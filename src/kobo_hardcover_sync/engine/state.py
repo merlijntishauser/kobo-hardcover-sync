@@ -119,6 +119,8 @@ def connect(path: str) -> sqlite3.Connection:
         ("hc_format", "text"),
         ("hc_edition_checked", "text"),
         ("state_changed", "text"),
+        # The version of the matching rules (hardcover.MATCH_RULES) that last looked this book up.
+        ("hc_looked", "integer"),
     ):
         if col not in have:  # state.db from before 2026-09-30 12:xx
             con.execute(f"alter table book add column {col} {decl}")

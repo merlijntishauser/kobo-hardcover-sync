@@ -14,11 +14,14 @@ API facts (docs.hardcover.app as of 2026-09-24, and the live API on
   finished_at, and progress only as **progress_pages** (or seconds for
   audiobooks). The Kobo percentage is converted with the edition's pages.
 
-Matching (tested on 128 real books: 58 by ISBN-13, 39 by title+author
-search, 31 uncertain): ISBN first; else search on "title first-author" and
-accept only when the normalised title and the author's last name both
-agree. Everything else is left for the reader to pick on the page; it never
-guesses.
+Matching: ISBN first; else a search on "title first-author", and a hit is
+taken only when a title of the book and an author both agree (see "matching"
+below). Everything else is left for the reader to pick on the page; it never
+guesses. Measured on one real shelf (2026-10-02, 160 books switched on):
+the 47 books an earlier version matched by search match the same books, and
+of 31 that waited 10 now match (7 translations by a title Hardcover lists,
+one that differed by an article, one by a part of the title, one that was
+the second hit); 21 still wait.
 """
 
 from __future__ import annotations
@@ -39,6 +42,7 @@ BACKOFF = (2, 5)  # seconds before the second and the third try
 TRIES = len(BACKOFF) + 1  # a request is tried this often before the run gives up
 MAX_WAIT = 60  # asked to wait longer than this: the day's limit is used up, stop instead
 SHELF_PAGE = 250  # shelf books per request
+HITS = 5  # search hits looked at for a match, and offered to the reader to choose from
 
 # What a token must be allowed to do (docs.hardcover.app/api/graphql/actions):
 # who am I, look up editions and search, read the shelf, change the shelf.
@@ -232,7 +236,9 @@ class Client:
                 out.setdefault(e["isbn_13"], e)
         return out
 
-    def search(self, text: str, n: int = 3) -> list[dict]:
+    def search(self, text: str, n: int = HITS) -> list[dict]:
+        """Books for a search text, best first. "also": the other titles
+        Hardcover lists for the book, its translations among them."""
         d = self.gql('query($q:String!,$n:Int!){ search(query:$q, query_type:"Book", per_page:$n){ results } }', {"q": text, "n": n})
         results = (d.get("search") or {}).get("results") or {}
         hits = results.get("hits", []) if isinstance(results, dict) else []
@@ -243,6 +249,7 @@ class Client:
                 "authors": h["document"].get("author_names", []),
                 "pages": h["document"].get("pages"),
                 "slug": h["document"].get("slug", ""),
+                "also": [t for t in h["document"].get("alternative_titles") or [] if isinstance(t, str)],
             }
             for h in hits
             if isinstance(h, dict) and isinstance(h.get("document"), dict) and str(h["document"].get("id", "")).isdigit()
@@ -358,6 +365,39 @@ def _shelf_rows(data: dict) -> list[dict]:
 
 
 # --- matching -----------------------------------------------------------
+# A search hit is taken as the book only on agreement, never on rank alone.
+#
+# An author agrees: the last name of any name the Kobo lists (it lists
+# translators and illustrators too, sometimes first) is the last name of
+# one of the book's authors. Without that, nothing else counts.
+#
+# A title agrees in one of three ways, strongest first. A leading article
+# is left out of the comparison.
+#   EXACT   the Kobo's title is the book's title, or one of the other
+#           titles Hardcover lists for the book. That list is how a
+#           translation is recognised: by Hardcover's own record, not by a
+#           guess.
+#   PART    the Kobo's title is one part of the book's own title, between
+#           colons or dashes: the title without its subtitle, or without a
+#           series name in front.
+#   PREFIX  one title starts with the other. Only for the first hit of the
+#           search and the book's own title: the longer title may as well
+#           be the next book of a series.
+#
+# Among the hits that agree, the strongest way wins. One book left: taken.
+# Several: the first hit of the search if it is one of them (Hardcover has
+# the same book twice more often than two books share a title and an
+# author); otherwise the reader chooses.
+#
+# MATCH_RULES numbers these rules. A book that waits for a match was looked
+# up by some version of them; when the number here is higher it is looked
+# up once more (job.run), and then waits again.
+MATCH_RULES = 2
+EXACT, PART, PREFIX = 3, 2, 1
+ARTICLES = {"de", "het", "een", "the", "a", "an"}  # Dutch and English: the two languages this was tried on
+PARTS = re.compile(r"[:;]|\s[-\u2013\u2014]\s")
+
+
 def norm(s: str) -> str:
     s = unicodedata.normalize("NFKD", (s or "").lower()).encode("ascii", "ignore").decode()
     return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", " ", s)).strip()
@@ -367,12 +407,50 @@ def first_author(attribution: str) -> str:
     return (attribution or "").split(",")[0].strip()
 
 
-def confident(title: str, author: str, cand: dict) -> bool:
-    t, ct = norm(title), norm(cand["title"])
-    t_ok = bool(t and ct) and (t == ct or t.startswith(ct) or ct.startswith(t))
-    last = norm(author).split()[-1:] if author else []
-    a_ok = bool(last) and any(norm(a).split()[-1:] == last for a in cand["authors"])
-    return t_ok and a_ok
+def title_key(title: str) -> str:
+    """A title to compare: normalised, without a leading article."""
+    words = norm(title).split()
+    return " ".join(words[1:] if len(words) > 1 and words[0] in ARTICLES else words)
+
+
+def _last_names(names) -> set[str]:
+    return {n.split()[-1] for n in map(norm, names) if n}
+
+
+def agreement(title: str, attribution: str, cand: dict, first: bool = False) -> int:
+    """How a search hit agrees with a Kobo book: EXACT, PART, PREFIX or 0.
+    first: this is the first hit of the search."""
+    if not _last_names((attribution or "").split(",")) & _last_names(cand.get("authors") or []):
+        return 0
+    ours, own = title_key(title), cand.get("title") or ""
+    theirs = title_key(own)
+    if not ours:
+        return 0
+    if ours == theirs or ours in {title_key(t) for t in cand.get("also") or []}:
+        return EXACT
+    if ours in {title_key(part) for part in PARTS.split(own)}:
+        return PART
+    if first and theirs and (ours.startswith(theirs + " ") or theirs.startswith(ours + " ")):
+        return PREFIX
+    return 0
+
+
+def choose(title: str, attribution: str, cands: list[dict]) -> dict | None:
+    """The hit that is this book, or None when the reader has to say."""
+    scored = [(agreement(title, attribution, c, first=i == 0), c) for i, c in enumerate(cands)]
+    best = max((score for score, _ in scored), default=0)
+    if not best:
+        return None
+    agreeing = [c for score, c in scored if score == best]
+    if len({c["book_id"] for c in agreeing}) == 1 or agreeing[0] is cands[0]:
+        return agreeing[0]
+    return None
+
+
+def shown(cands: list[dict]) -> list[dict]:
+    """Search hits as they are kept for the reader to choose from: without
+    the list of other titles, which is only for matching."""
+    return [{k: v for k, v in c.items() if k != "also"} for c in cands]
 
 
 def match_books(client: Client, rows) -> dict[str, dict]:
@@ -393,10 +471,9 @@ def match_books(client: Client, rows) -> dict[str, dict]:
                 "candidates": [],
             }
             continue
-        author = first_author(r["author"])
-        cands = client.search(f"{r['title']} {author}")
-        if cands and confident(r["title"], author, cands[0]):
-            c = cands[0]
+        cands = client.search(f"{r['title']} {first_author(r['author'])}")
+        c = choose(r["title"], r["author"], cands)
+        if c:
             out[r["content_id"]] = {
                 "how": "search",
                 "book_id": c["book_id"],
@@ -412,7 +489,7 @@ def match_books(client: Client, rows) -> dict[str, dict]:
                 "edition_id": None,
                 "pages": None,
                 "title": None,
-                "candidates": cands,
+                "candidates": shown(cands),
             }
     return out
 

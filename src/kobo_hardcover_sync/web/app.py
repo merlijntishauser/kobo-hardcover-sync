@@ -982,7 +982,7 @@ def research(request: Request, id: str = Form(...), q: str = Form(...), back: st
     if reader is None:
         return PlainTextResponse(T["unknown_user"], status_code=403)
     try:
-        cands = hardcover.Client(accounts.token_for(db(), reader), tries=1).search(q, n=5)
+        cands = hardcover.shown(hardcover.Client(accounts.token_for(db(), reader), tries=1).search(q))
     except hardcover.HardcoverError as ex:
         return PlainTextResponse(str(ex), status_code=502)
     con = db()

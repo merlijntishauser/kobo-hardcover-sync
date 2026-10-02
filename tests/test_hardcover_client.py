@@ -263,5 +263,10 @@ def test_a_page_that_fails_halfway_fails_the_shelf():
 def test_search_results_that_are_not_books_are_skipped():
     hits = [{"document": {"id": "80", "title": "Blindness", "author_names": ["José Saramago"], "pages": 300}}, {"document": {}}, "x", {}]
     assert [c["book_id"] for c in Line({"data": {"search": {"results": {"hits": hits}}}}).client().search("Blindness")] == [80]
+    # The other titles Hardcover lists for a book come along, for matching a translation.
+    hits = [{"document": {"id": "1", "title": "The Eye of the World", "alternative_titles": ["Het Oog van de Wereld", 7, None]}}]
+    line = Line({"data": {"search": {"results": {"hits": hits}}}})
+    assert line.client().search("Het Oog")[0]["also"] == ["Het Oog van de Wereld"]
+    assert line.requests[-1]["variables"]["n"] == hardcover.HITS == 5  # five hits are looked at
     assert Line({"data": {"search": {"results": "Service unavailable"}}}).client().search("Blindness") == []
     assert Line({"data": {"search": None}}).client().search("Blindness") == []

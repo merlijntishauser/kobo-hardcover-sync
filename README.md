@@ -30,7 +30,8 @@ Rakuten Kobo or Hardcover.
 - Starts as a **dry run**: it shows what it would send, and sends nothing
   until you say so.
 - **Never guesses a match.** A book it cannot place on Hardcover by ISBN,
-  or by title and author together, waits for you to choose.
+  or by title and author together, waits for you to choose. A translation
+  is placed when Hardcover itself lists its title for the book.
 - Takes over what you change on Hardcover (a status, a finish date, an
   edition) instead of overwriting it.
 - Can put a **collection** of your synced books on the Kobo. Handy when a

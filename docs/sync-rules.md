@@ -95,14 +95,17 @@ Three sources of truth, each for its own part:
 
 ## Matching a Kobo book to a Hardcover book
 
-- **M1** By ISBN first, then by title and author. A match found by title
-  is only taken when title and author agree; a translation or a doubtful
-  hit is put to you instead.
-  Tests: `tests/test_hardcover.py::test_confident_match_rules`,
+- **M1** By ISBN first, then by a search on title and author. A book the
+  search finds is only taken when a title and an author both agree; a
+  doubtful hit is put to you instead.
+  Tests: `tests/test_matching.py::test_a_title_agrees_exactly_as_a_part_or_as_a_start`,
+  `tests/test_matching.py::test_an_author_has_to_agree_and_may_be_any_name_the_kobo_lists`,
   `tests/test_hardcover.py::test_dry_run_matches_but_writes_nothing`
 - **M2** A book without a match is never sent. It is looked up once and
-  then waits for you.
-  Tests: `tests/test_rules.py::test_an_unmatched_book_is_never_sent`
+  then waits for you. When a newer version of the tool has other rules for
+  matching, it is looked up once more.
+  Tests: `tests/test_rules.py::test_an_unmatched_book_is_never_sent`,
+  `tests/test_matching.py::test_a_waiting_book_gets_one_more_look_when_the_rules_have_changed`
 - **M3** A match you chose is kept: not looked up again, not replaced.
   Tests: `tests/test_rules.py::test_a_match_the_reader_chose_is_kept`
 - **M4** The edition: the one with the Kobo's ISBN if it is an ebook, else
@@ -114,6 +117,26 @@ Three sources of truth, each for its own part:
 - **M5** An edition you chose on Hardcover is taken over and never
   replaced.
   Tests: `tests/test_hardcover.py::test_edition_chosen_on_hardcover_is_adopted_and_never_overwritten`
+- **M6** A title agrees when it is the book's title, or the book's title
+  without its subtitle or without a series name in front. A leading article
+  (the, a, de, het, een) does not count. A title that only starts the same
+  is believed of the search's first hit alone: further down it may as well
+  be the next book of a series.
+  Tests: `tests/test_matching.py::test_a_title_agrees_exactly_as_a_part_or_as_a_start`
+- **M7** A translation is taken when Hardcover itself lists the Kobo's
+  title among the other titles of the book, and an author agrees. A
+  translation Hardcover does not list waits for you; it is never guessed
+  from the author alone.
+  Tests: `tests/test_matching.py::test_a_translation_is_known_by_the_titles_hardcover_lists_for_the_book`,
+  `tests/test_matching.py::test_a_translation_matches_by_itself_and_what_is_kept_for_the_reader_is_small`
+- **M8** The author may be any name the Kobo lists for the book: it lists
+  translators and illustrators as well, sometimes first.
+  Tests: `tests/test_matching.py::test_an_author_has_to_agree_and_may_be_any_name_the_kobo_lists`
+- **M9** The first five hits of a search are looked at. The exact title
+  goes before a partial one. When several books agree equally, the
+  search's first hit is taken if it is one of them (Hardcover often has one
+  book twice); otherwise you choose.
+  Tests: `tests/test_matching.py::test_which_hit_is_taken`
 
 ## Several Kobo books that are one book on Hardcover
 

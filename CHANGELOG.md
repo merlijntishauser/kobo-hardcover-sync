@@ -7,7 +7,21 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Changed
+
+- Fewer books wait for a match. A translation is matched when Hardcover
+  itself lists the Kobo's title among the book's other titles. The author
+  may be any name the Kobo lists (it lists translators too). The first
+  five search hits are looked at instead of the first one, a leading
+  article no longer matters, and a title may be the book's title without
+  its subtitle or series name. On the shelf this was measured on, 10 of 31
+  waiting books now match by themselves; the rest are not on Hardcover
+  under a title it can be sure of, and still wait for you.
+- Books that already wait for a match are looked up once more after the
+  upgrade, at the next sync: one search each.
+- A title that only starts like another book's title is no longer enough
+  when the book is not the search's first hit, and has to match on whole
+  words.
 
 ## 0.2.0 - 2026-10-02
 

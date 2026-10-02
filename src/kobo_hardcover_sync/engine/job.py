@@ -44,12 +44,27 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
         shelf = client.shelf() if live else []
         if live:
             counts.update(syncback.pull(con, reader, shelf))
-        todo = [r for r in syncing_rows(con, reader) if not r["hc_book_id"] and r["hc_how"] not in ("uncertain", "none")]
+        # Not looked up yet, or waiting for the reader since rules that have changed since: those get one more look.
+        todo = [
+            r
+            for r in syncing_rows(con, reader)
+            if not r["hc_book_id"] and (r["hc_how"] not in ("uncertain", "none") or (r["hc_looked"] or 1) < hardcover.MATCH_RULES)
+        ]
         for cid, m in hardcover.match_books(client, todo).items():
             con.execute(
-                """update book set hc_how=?, hc_book_id=?, hc_edition_id=?, hc_pages=?, hc_title=?, hc_candidates=?
+                """update book set hc_how=?, hc_book_id=?, hc_edition_id=?, hc_pages=?, hc_title=?, hc_candidates=?, hc_looked=?
                            where reader=? and content_id=?""",
-                (m["how"], m["book_id"], m["edition_id"], m["pages"], m["title"], json.dumps(m["candidates"]), reader, cid),
+                (
+                    m["how"],
+                    m["book_id"],
+                    m["edition_id"],
+                    m["pages"],
+                    m["title"],
+                    json.dumps(m["candidates"]),
+                    hardcover.MATCH_RULES,
+                    reader,
+                    cid,
+                ),
             )
             counts["matched" if m["book_id"] else "uncertain"] += 1
             if m["book_id"]:

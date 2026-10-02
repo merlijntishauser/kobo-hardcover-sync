@@ -23,7 +23,7 @@ is in [local-mode.md](local-mode.md); what Hardcover's API allows is in
 | What goes to Hardcover | Status, progress and dates. No highlights, no ratings. | The things the Kobo knows for certain. |
 | Which books | Books already read before the first import start *Off*; books opened after it sync by themselves. | See *Reading time is shared*. |
 | Switching a book off | Stops syncing. Taking it off Hardcover is a separate, explicit button. | Stopping and deleting are different wishes. |
-| Matching | By ISBN, else by title and author when both agree. Otherwise the reader picks. | A wrong match puts a book on someone's public shelf. It never guesses. |
+| Matching | By ISBN, else by title and author when both agree; the title may be one of the other titles Hardcover lists for the book (a translation). Otherwise the reader picks. | A wrong match puts a book on someone's public shelf. It never guesses. |
 | First use | Dry run: everything is matched and planned, nothing is written to Hardcover until the reader goes live. | The first list deserves a look. |
 | Writing to the Kobo | Only one collection, and only behind a version gate, with a backup. | Everything else on the device is the Kobo's. |
 | Readers | Each record is keyed by reader and by Kobo. | A household often shares one Kobo account over several e-readers. |

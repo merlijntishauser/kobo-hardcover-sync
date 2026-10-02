@@ -100,11 +100,7 @@ class FakeHC:
             self.books[ub]["user_book_reads"][-1].update(read)
 
 
-def test_confident_match_rules():
-    c = {"title": "A Clash of Kings", "authors": ["George R.R. Martin"]}
-    assert not hardcover.confident("De strijd der koningen", "George R.R. Martin", c)  # translation: ask
-    assert hardcover.confident("Blindness", "José Saramago", {"title": "Blindness", "authors": ["Jose Saramago"]})
-    assert not hardcover.confident("Het verre huis", "Jan Jansen", {"title": "The Far House", "authors": ["Mary Smith"]})
+def test_pages_from_a_percentage():
     assert hardcover.pages_for(46, 300) == 138 and hardcover.pages_for(10, None) is None
 
 
