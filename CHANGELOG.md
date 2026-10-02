@@ -5,7 +5,10 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.2.0 - 2026-10-02
+
+For when something does not work: a command and a card that say what is
+wrong and what to do, and messages and a log that do the same.
 
 ### Added
 
@@ -37,6 +40,8 @@ minor version may change behaviour; the notes will say so.
 - A collection that was written to the Kobo just as it was unplugged is
   recognised as the tool's own at the next sync. Before, it could be taken
   for a collection of yours with the same name and left alone for good.
+- The Settings page no longer scrolls sideways on a phone with text at
+  200%.
 
 ## 0.1.0 - 2026-10-02
 
