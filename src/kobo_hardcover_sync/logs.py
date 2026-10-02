@@ -25,10 +25,20 @@ from logging.handlers import RotatingFileHandler
 
 ROOT = "kobo_hardcover_sync"
 MAX_BYTES = 1_000_000
-FORMAT = logging.Formatter("%(asctime)s %(levelname)s %(message)s", "%Y-%m-%d %H:%M:%S")
+WORDS = {logging.DEBUG: "detail", logging.INFO: "info", logging.WARNING: "warning", logging.ERROR: "error"}
 
-for _level, _name in ((logging.DEBUG, "detail"), (logging.INFO, "info"), (logging.WARNING, "warning"), (logging.ERROR, "error")):
-    logging.addLevelName(_level, _name)
+
+class _Format(logging.Formatter):
+    """When, the level in this tool's words, what. The words are set here
+    and not with logging.addLevelName: that would rename the levels for
+    everything else in the process too, the web server's own log included."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        record.word = WORDS.get(record.levelno, record.levelname.lower())
+        return super().format(record)
+
+
+FORMAT = _Format("%(asctime)s %(word)s %(message)s", "%Y-%m-%d %H:%M:%S")
 
 
 def asked_verbose() -> bool:

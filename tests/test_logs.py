@@ -59,6 +59,7 @@ def test_the_normal_log_has_counts_and_no_titles(home, capsys):
     assert " info said: Kobo synced: 2 sent to Hardcover. 1 failed." in log
     assert all(line[:4].isdigit() and line[19] == " " for line in log.splitlines())  # every line starts with when
     assert capsys.readouterr().err == ""  # and nothing is printed
+    assert logging.getLevelName(logging.INFO) == "INFO"  # the levels keep their names for everyone else in the process
 
 
 def test_the_verbose_log_names_the_books_and_still_no_token(home, capsys):
