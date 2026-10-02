@@ -1,0 +1,857 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-02T08:31:10Z",
+  "title": "Design System: Kobo Hardcover Sync",
+  "extensions": {
+    "colorMeta": {
+      "bg": {
+        "role": "neutral",
+        "displayName": "Morning Paper",
+        "canonical": "oklch(96.7% 0.015 270)",
+        "tonalRamp": [
+          "#090b12",
+          "#23262e",
+          "#42454e",
+          "#62666f",
+          "#858993",
+          "#aaaeb8",
+          "#cdd1db",
+          "#eaeef9"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Sheet White",
+        "canonical": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#262626",
+          "#454545",
+          "#666666",
+          "#898989",
+          "#aeaeae",
+          "#d1d1d1",
+          "#eeeeee"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Ruled Tint",
+        "canonical": "oklch(97.9% 0.007 269)",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#25262a",
+          "#434549",
+          "#64666a",
+          "#87898d",
+          "#acaeb2",
+          "#cfd1d6",
+          "#eceef3"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Log Ink",
+        "canonical": "oklch(27.9% 0.037 260)",
+        "tonalRamp": [
+          "#030b1a",
+          "#1c2739",
+          "#3a4659",
+          "#5a677c",
+          "#7c8aa0",
+          "#a1afc6",
+          "#c3d2ea",
+          "#e6efff"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Pencil Grey",
+        "canonical": "oklch(44.6% 0.037 257)",
+        "tonalRamp": [
+          "#030b1b",
+          "#1b2739",
+          "#384659",
+          "#59677c",
+          "#7b8aa0",
+          "#9fafc6",
+          "#c2d2ea",
+          "#e5efff"
+        ]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint Pencil",
+        "canonical": "oklch(53.7% 0.041 257)",
+        "tonalRamp": [
+          "#020b1c",
+          "#19273a",
+          "#37465b",
+          "#57677e",
+          "#7a8aa2",
+          "#9eafc8",
+          "#c0d3ec",
+          "#e5efff"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "oklch(88.9% 0.020 260)",
+        "tonalRamp": [
+          "#070b14",
+          "#212730",
+          "#3f4550",
+          "#606672",
+          "#828a96",
+          "#a7aebb",
+          "#cad1de",
+          "#e7effc"
+        ]
+      },
+      "line-soft": {
+        "role": "neutral",
+        "displayName": "Soft Rule",
+        "canonical": "oklch(93.9% 0.013 262)",
+        "tonalRamp": [
+          "#080b11",
+          "#23272d",
+          "#41454c",
+          "#62666e",
+          "#858991",
+          "#a9aeb7",
+          "#ccd1da",
+          "#eaeff8"
+        ]
+      },
+      "edge": {
+        "role": "neutral",
+        "displayName": "Field Edge",
+        "canonical": "oklch(63.2% 0.039 257)",
+        "tonalRamp": [
+          "#020b1b",
+          "#1a273a",
+          "#38465a",
+          "#58677d",
+          "#7a8aa1",
+          "#9fafc7",
+          "#c1d2eb",
+          "#e5efff"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Reading-light Cyan",
+        "canonical": "oklch(60.9% 0.111 222)",
+        "tonalRamp": [
+          "#000e14",
+          "#002c38",
+          "#004d60",
+          "#00728c",
+          "#1a98b9",
+          "#4ebee0",
+          "#84e0ff",
+          "#d7f4ff"
+        ]
+      },
+      "accent-fill": {
+        "role": "primary",
+        "displayName": "Reading-light Deep",
+        "canonical": "oklch(52.0% 0.094 223)",
+        "tonalRamp": [
+          "#000e15",
+          "#002c39",
+          "#004d62",
+          "#06718d",
+          "#3d95b2",
+          "#65bbd9",
+          "#89dffe",
+          "#d8f4ff"
+        ]
+      },
+      "accent-ink": {
+        "role": "primary",
+        "displayName": "Reading-light Ink",
+        "canonical": "oklch(52.0% 0.094 223)",
+        "tonalRamp": [
+          "#000e15",
+          "#002c39",
+          "#004d62",
+          "#06718d",
+          "#3d95b2",
+          "#65bbd9",
+          "#89dffe",
+          "#d8f4ff"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Reading-light Wash",
+        "canonical": "oklch(95.1% 0.025 237)",
+        "tonalRamp": [
+          "#020d14",
+          "#1b2831",
+          "#394751",
+          "#596973",
+          "#7b8c97",
+          "#a0b1bc",
+          "#c2d4e0",
+          "#e0f2fe"
+        ]
+      },
+      "on-accent": {
+        "role": "primary",
+        "displayName": "On Reading-light",
+        "canonical": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#262626",
+          "#454545",
+          "#666666",
+          "#898989",
+          "#aeaeae",
+          "#d1d1d1",
+          "#eeeeee"
+        ]
+      },
+      "ok": {
+        "role": "secondary",
+        "displayName": "Shelf Green",
+        "canonical": "oklch(52.7% 0.137 150)",
+        "tonalRamp": [
+          "#001002",
+          "#003011",
+          "#005423",
+          "#097b38",
+          "#3fa05b",
+          "#67c67f",
+          "#8beaa1",
+          "#c8ffd2"
+        ]
+      },
+      "ok-soft": {
+        "role": "secondary",
+        "displayName": "Shelf Green Wash",
+        "canonical": "oklch(96.2% 0.043 157)",
+        "tonalRamp": [
+          "#001005",
+          "#122d1e",
+          "#314c3c",
+          "#526e5c",
+          "#74917f",
+          "#98b7a3",
+          "#bbdac6",
+          "#d8f8e3"
+        ]
+      },
+      "warn": {
+        "role": "tertiary",
+        "displayName": "Bookplate Amber",
+        "canonical": "oklch(55.5% 0.146 49)",
+        "tonalRamp": [
+          "#1a0400",
+          "#411900",
+          "#6f3000",
+          "#a14902",
+          "#cd6a2c",
+          "#f78f54",
+          "#fec2a1",
+          "#feeadf"
+        ]
+      },
+      "warn-soft": {
+        "role": "tertiary",
+        "displayName": "Bookplate Amber Wash",
+        "canonical": "oklch(96.2% 0.058 96)",
+        "tonalRamp": [
+          "#100b00",
+          "#2f2600",
+          "#4e451e",
+          "#70663f",
+          "#948961",
+          "#b9ae84",
+          "#dcd1a6",
+          "#faefc3"
+        ]
+      },
+      "err": {
+        "role": "tertiary",
+        "displayName": "Margin Red",
+        "canonical": "oklch(51.4% 0.198 17)",
+        "tonalRamp": [
+          "#200003",
+          "#4f0012",
+          "#840225",
+          "#bc0f3b",
+          "#e8455d",
+          "#ff828b",
+          "#ffbdbf",
+          "#fee9e9"
+        ]
+      },
+      "track": {
+        "role": "neutral",
+        "displayName": "Track",
+        "canonical": "oklch(91.7% 0.023 261)",
+        "tonalRamp": [
+          "#060b15",
+          "#202732",
+          "#3e4551",
+          "#5f6773",
+          "#818a97",
+          "#a6aebd",
+          "#c9d2e0",
+          "#e6effe"
+        ]
+      },
+      "bg-dark": {
+        "role": "neutral",
+        "displayName": "Night Desk",
+        "canonical": "oklch(20.8% 0.040 266)",
+        "tonalRamp": [
+          "#040a1c",
+          "#1d263a",
+          "#3b455b",
+          "#5b667e",
+          "#7e89a2",
+          "#a2aec8",
+          "#c5d1ec",
+          "#e7efff"
+        ]
+      },
+      "surface-dark": {
+        "role": "neutral",
+        "displayName": "Slate Sheet",
+        "canonical": "oklch(23.0% 0.043 266)",
+        "tonalRamp": [
+          "#040a1d",
+          "#1c263c",
+          "#3a455c",
+          "#5a667f",
+          "#7d89a4",
+          "#a1aeca",
+          "#c4d1ee",
+          "#e7efff"
+        ]
+      },
+      "surface-2-dark": {
+        "role": "neutral",
+        "displayName": "Ruled Tint, night",
+        "canonical": "oklch(19.3% 0.035 263)",
+        "tonalRamp": [
+          "#040b1a",
+          "#1d2638",
+          "#3b4558",
+          "#5c667b",
+          "#7e8a9f",
+          "#a3aec5",
+          "#c5d1e9",
+          "#e6efff"
+        ]
+      },
+      "ink-dark": {
+        "role": "neutral",
+        "displayName": "Log Ink, night",
+        "canonical": "oklch(92.9% 0.013 256)",
+        "tonalRamp": [
+          "#080b10",
+          "#22272d",
+          "#41454c",
+          "#61676d",
+          "#848a91",
+          "#a9aeb6",
+          "#ccd1d9",
+          "#e9eff7"
+        ]
+      },
+      "muted-dark": {
+        "role": "neutral",
+        "displayName": "Pencil Grey, night",
+        "canonical": "oklch(71.1% 0.035 257)",
+        "tonalRamp": [
+          "#030b1a",
+          "#1b2738",
+          "#394658",
+          "#59677a",
+          "#7c8a9f",
+          "#a0afc5",
+          "#c3d2e8",
+          "#e4f0ff"
+        ]
+      },
+      "faint-dark": {
+        "role": "neutral",
+        "displayName": "Faint Pencil, night",
+        "canonical": "oklch(65.3% 0.039 259)",
+        "tonalRamp": [
+          "#030b1b",
+          "#1b2739",
+          "#39465a",
+          "#59677d",
+          "#7b8aa1",
+          "#a0afc7",
+          "#c2d2eb",
+          "#e5efff"
+        ]
+      },
+      "line-dark": {
+        "role": "neutral",
+        "displayName": "Rule, night",
+        "canonical": "oklch(34.7% 0.052 261)",
+        "tonalRamp": [
+          "#010a21",
+          "#172640",
+          "#354561",
+          "#556784",
+          "#778aa9",
+          "#9bafd0",
+          "#bed2f4",
+          "#e6efff"
+        ]
+      },
+      "line-soft-dark": {
+        "role": "neutral",
+        "displayName": "Soft Rule, night",
+        "canonical": "oklch(28.5% 0.044 262)",
+        "tonalRamp": [
+          "#030a1d",
+          "#1a263c",
+          "#38455d",
+          "#586680",
+          "#7b8aa4",
+          "#9fafcb",
+          "#c2d2ef",
+          "#e6efff"
+        ]
+      },
+      "edge-dark": {
+        "role": "neutral",
+        "displayName": "Field Edge, night",
+        "canonical": "oklch(55.4% 0.041 257)",
+        "tonalRamp": [
+          "#020b1c",
+          "#19273a",
+          "#37465b",
+          "#58677e",
+          "#7a8aa2",
+          "#9eafc8",
+          "#c1d2ec",
+          "#e5efff"
+        ]
+      },
+      "accent-dark": {
+        "role": "primary",
+        "displayName": "Reading-light Cyan, night",
+        "canonical": "oklch(79.7% 0.134 212)",
+        "tonalRamp": [
+          "#000e12",
+          "#002c34",
+          "#024e5a",
+          "#087383",
+          "#029aaf",
+          "#0ac3dd",
+          "#5fe6fe",
+          "#cff7ff"
+        ]
+      },
+      "accent-fill-dark": {
+        "role": "primary",
+        "displayName": "Reading-light Deep, night",
+        "canonical": "oklch(79.7% 0.134 212)",
+        "tonalRamp": [
+          "#000e12",
+          "#002c34",
+          "#024e5a",
+          "#087383",
+          "#029aaf",
+          "#0ac3dd",
+          "#5fe6fe",
+          "#cff7ff"
+        ]
+      },
+      "accent-ink-dark": {
+        "role": "primary",
+        "displayName": "Reading-light Ink, night",
+        "canonical": "oklch(86.5% 0.115 207)",
+        "tonalRamp": [
+          "#000e11",
+          "#002d32",
+          "#004f57",
+          "#04747f",
+          "#039baa",
+          "#39c2d3",
+          "#65e6f7",
+          "#caf8ff"
+        ]
+      },
+      "accent-soft-dark": {
+        "role": "primary",
+        "displayName": "Reading-light Wash, night",
+        "canonical": "rgba(34, 211, 238, 0.12)",
+        "tonalRamp": [
+          "#000e12",
+          "#002c34",
+          "#024e5a",
+          "#087383",
+          "#029aaf",
+          "#0ac3dd",
+          "#5fe6fe",
+          "#cff7ff"
+        ]
+      },
+      "on-accent-dark": {
+        "role": "primary",
+        "displayName": "On Reading-light, night",
+        "canonical": "oklch(18.3% 0.031 263)",
+        "tonalRamp": [
+          "#050b18",
+          "#1f2636",
+          "#3c4556",
+          "#5d6678",
+          "#7f899c",
+          "#a4aec2",
+          "#c7d1e6",
+          "#e6efff"
+        ]
+      },
+      "ok-dark": {
+        "role": "secondary",
+        "displayName": "Shelf Green, night",
+        "canonical": "oklch(77.3% 0.153 163)",
+        "tonalRamp": [
+          "#001007",
+          "#002f1e",
+          "#005338",
+          "#007954",
+          "#01a271",
+          "#27cb92",
+          "#5bf0b4",
+          "#c1ffe1"
+        ]
+      },
+      "ok-soft-dark": {
+        "role": "secondary",
+        "displayName": "Shelf Green Wash, night",
+        "canonical": "rgba(52, 211, 153, 0.14)",
+        "tonalRamp": [
+          "#001007",
+          "#002f1e",
+          "#005338",
+          "#007954",
+          "#01a271",
+          "#27cb92",
+          "#5bf0b4",
+          "#c1ffe1"
+        ]
+      },
+      "warn-dark": {
+        "role": "tertiary",
+        "displayName": "Bookplate Amber, night",
+        "canonical": "oklch(83.7% 0.164 84)",
+        "tonalRamp": [
+          "#120900",
+          "#332400",
+          "#594101",
+          "#826001",
+          "#ad8102",
+          "#dba402",
+          "#ffc84a",
+          "#ffecc8"
+        ]
+      },
+      "warn-soft-dark": {
+        "role": "tertiary",
+        "displayName": "Bookplate Amber Wash, night",
+        "canonical": "rgba(251, 191, 36, 0.14)",
+        "tonalRamp": [
+          "#120900",
+          "#332400",
+          "#594101",
+          "#826001",
+          "#ad8102",
+          "#dba402",
+          "#ffc84a",
+          "#ffecc8"
+        ]
+      },
+      "err-dark": {
+        "role": "tertiary",
+        "displayName": "Margin Red, night",
+        "canonical": "oklch(71.9% 0.169 13)",
+        "tonalRamp": [
+          "#200004",
+          "#4f0016",
+          "#83012c",
+          "#b12c49",
+          "#db546b",
+          "#fe8292",
+          "#ffbdc2",
+          "#fde9ea"
+        ]
+      },
+      "track-dark": {
+        "role": "neutral",
+        "displayName": "Track, night",
+        "canonical": "oklch(30.9% 0.049 262)",
+        "tonalRamp": [
+          "#020a1f",
+          "#19263e",
+          "#364560",
+          "#566783",
+          "#798aa8",
+          "#9dafce",
+          "#bfd2f2",
+          "#e6efff"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The name, once, set on the photograph."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "A page's title: Settings, Admin, the help dialog."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "A book's title; card and dialog headings in the same face."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Everything you operate or read as a fact."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Table heads, field labels, small headings inside a card. Sentence case."
+      },
+      "display-sidebar": {
+        "displayName": "Display, sidebar",
+        "purpose": "The name in the sidebar: the size at which three words fit on one line."
+      },
+      "dialog-title": {
+        "displayName": "Dialog title",
+        "purpose": "The title of the help dialog."
+      },
+      "card-heading": {
+        "displayName": "Card heading",
+        "purpose": "A card's heading, a help section, the book's title at the top of Details."
+      },
+      "secondary": {
+        "displayName": "Secondary",
+        "purpose": "Second lines, authors, controls, the sidebar's status."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Filter group names, the phone's navigation, the names above a phone card's switches."
+      }
+    },
+    "shadows": [
+      {
+        "name": "panel-day",
+        "value": "0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.07)",
+        "purpose": "Atmosphere under the sheet and cards in the day theme. None at night."
+      },
+      {
+        "name": "cover",
+        "value": "0 1px 2px rgba(15, 23, 42, 0.2), 0 4px 10px rgba(15, 23, 42, 0.12)",
+        "purpose": "A book cover lying on the sheet, in both themes."
+      },
+      {
+        "name": "dialog",
+        "value": "0 24px 64px rgba(0, 0, 0, 0.35)",
+        "purpose": "Help and Details, over a dimmed page."
+      },
+      {
+        "name": "lightbox-cover",
+        "value": "0 24px 64px rgba(0, 0, 0, 0.55)",
+        "purpose": "The cover shown large."
+      }
+    ],
+    "motion": [
+      {
+        "name": "landed",
+        "value": "1.8s ease-out",
+        "purpose": "The row you came back to after an action fades from Reading-light Wash. Static wash under reduced motion."
+      },
+      {
+        "name": "cover-in",
+        "value": "0.18s ease-out",
+        "purpose": "The large cover fades and grows in. Off under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone-narrow",
+        "value": "520px"
+      },
+      {
+        "name": "tablet",
+        "value": "720px"
+      },
+      {
+        "name": "desk",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "The ordinary action: bordered, quiet, cyan border when pointed at.",
+      "html": "<button class=\"ds-btn\">Refresh</button>",
+      "css": ".ds-btn { font: 500 0.875rem/1.55 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 0.4rem 0.9rem; min-height: 2.25rem; cursor: pointer; } .ds-btn:hover { border-color: var(--accent); } .ds-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled button of a page: Sync now, Check and save.",
+      "html": "<button class=\"ds-btn-primary\">Sync now</button>",
+      "css": ".ds-btn-primary { font: 600 0.875rem/1.55 var(--sans); color: var(--on-accent); background: var(--accent-fill); border: 1px solid var(--accent-fill); border-radius: var(--r-ctl); padding: 0.4rem 0.9rem; min-height: 2.25rem; cursor: pointer; } .ds-btn-primary:hover { filter: brightness(1.08); } .ds-btn-primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Removing button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Takes something away: red words, no box, beside the safe action.",
+      "html": "<button class=\"ds-btn-danger\">Remove the token</button>",
+      "css": ".ds-btn-danger { font: 500 0.875rem/1.55 var(--sans); color: var(--err); background: none; border: 1px solid transparent; border-radius: var(--r-ctl); padding: 0.4rem 0.9rem 0.4rem 0; min-height: 2.25rem; cursor: pointer; } .ds-btn-danger:hover { text-decoration: underline; } .ds-btn-danger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A labelled input with its button, as on the Settings cards.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-label\" for=\"ds-name\">Name</label><div class=\"ds-inputs\"><input class=\"ds-input\" id=\"ds-name\" type=\"text\" value=\"sam\"><button class=\"ds-field-btn\">Save</button></div></div>",
+      "css": ".ds-field { display: grid; gap: 0.3rem; font-family: var(--sans); } .ds-label { font-size: 0.8125rem; font-weight: 600; color: var(--muted); } .ds-inputs { display: flex; gap: 0.5rem; } .ds-input { flex: 1 1 14rem; min-width: 0; font: 400 0.875rem/1.55 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--edge); border-radius: var(--r-ctl); padding: 0.4rem 0.65rem; min-height: 2.25rem; } .ds-input:hover { border-color: var(--muted); } .ds-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-field-btn { font: 500 0.875rem/1.55 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 0.4rem 0.9rem; min-height: 2.25rem; cursor: pointer; } .ds-field-btn:hover { border-color: var(--accent); }"
+    },
+    {
+      "name": "Row switch",
+      "kind": "input",
+      "refersTo": "row-select",
+      "description": "A select inside a book's row: no frame until pointed at.",
+      "html": "<select class=\"ds-row-select\" aria-label=\"Sync\"><option>Auto</option><option selected>On</option><option>Off</option></select>",
+      "css": ".ds-row-select { appearance: none; -webkit-appearance: none; font: 400 0.875rem/1.55 var(--sans); color: var(--ink); background-color: var(--surface-2); border: 1px solid transparent; border-radius: var(--r-ctl); padding: 0.4rem 1.9rem 0.4rem 0.65rem; min-height: 2.25rem; width: 7rem; cursor: pointer; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 0.95rem) 50%, calc(100% - 0.95rem + 5px) 50%; background-size: 5px 5px; background-repeat: no-repeat; } .ds-row-select:hover, .ds-row-select:focus { border-color: var(--line); } .ds-row-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Filter chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "One choice at a time from a named group; the chosen one is filled.",
+      "html": "<div class=\"ds-fgroup\"><span class=\"ds-gname\">Reading progress</span><a class=\"ds-chip\" href=\"#\" aria-current=\"true\">All <b>34</b></a><a class=\"ds-chip\" href=\"#\">Reading <b>29</b></a><a class=\"ds-chip\" href=\"#\">Finished <b>3</b></a><a class=\"ds-chip ds-chip-attn\" href=\"#\">Needs a match <b>1</b></a></div>",
+      "css": ".ds-fgroup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem; font-family: var(--sans); } .ds-gname { color: var(--faint); font-size: 0.75rem; margin-right: 0.3rem; } .ds-chip { font-size: 0.8125rem; text-decoration: none; color: var(--muted); border-radius: 999px; padding: 0.25rem 0.65rem; white-space: nowrap; } .ds-chip b { font-weight: 600; color: var(--ink); margin-left: 0.3rem; } .ds-chip:hover { background: var(--accent-soft); color: var(--accent-ink); } .ds-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-chip[aria-current=\"true\"] { background: var(--accent-fill); color: var(--on-accent); font-weight: 600; } .ds-chip[aria-current=\"true\"] b { color: inherit; } .ds-chip-attn b { color: var(--warn); }"
+    },
+    {
+      "name": "The reading line",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "Signature: a book as a line in the log. Title, author, how far, when.",
+      "html": "<div class=\"ds-book\"><span class=\"ds-cover\"></span><div><div class=\"ds-title\">Moby-Dick; or, The Whale<span class=\"ds-tag\">New</span></div><div class=\"ds-author\">Herman Melville</div><div class=\"ds-bar\" role=\"img\" aria-label=\"37% read\"><span style=\"width:37%\"></span></div><div class=\"ds-meta\"><span>37%</span><span>last read 30 Sep 2026</span><span>30 min read</span></div></div></div>",
+      "css": ".ds-book { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 1rem; align-items: start; padding: 0.85rem 0.8rem 0.85rem 1rem; background: var(--surface); box-shadow: inset 3px 0 0 var(--accent); font-family: var(--sans); min-width: 22rem; } .ds-cover { display: block; width: 56px; height: 84px; border-radius: 3px; background: linear-gradient(90deg, rgba(15, 23, 42, 0.1) 0 4px, transparent 4px 5px, rgba(15, 23, 42, 0.05) 5px 6px, transparent 6px) var(--track); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2), 0 4px 10px rgba(15, 23, 42, 0.12); } .ds-title { font-family: var(--serif); font-size: 1.0625rem; font-weight: 600; line-height: 1.3; color: var(--ink); } .ds-tag { font-family: var(--sans); font-size: 0.75rem; font-weight: 600; color: var(--accent-ink); background: var(--accent-soft); border-radius: 999px; padding: 0.1rem 0.5rem; margin-left: 0.4rem; vertical-align: 0.1em; } .ds-author { color: var(--muted); font-size: 0.875rem; margin-top: 0.1rem; } .ds-bar { height: 4px; max-width: 26rem; margin: 0.6rem 0 0.4rem; background: var(--track); border-radius: 2px; overflow: hidden; } .ds-bar span { display: block; height: 100%; background: var(--accent); border-radius: 2px; } .ds-meta { display: flex; gap: 0.2rem 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "The status line",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "Signature: a dot carries the colour, the words stay plain. The same everywhere.",
+      "html": "<div class=\"ds-status\"><div class=\"ds-act ds-next\"><span class=\"ds-dot\"></span>Next sync: progress 35% to 37%</div><div class=\"ds-act ds-ok\"><span class=\"ds-dot\"></span>Up to date on Hardcover</div><div class=\"ds-act ds-warn\"><span class=\"ds-dot\"></span>Needs a Hardcover match</div><div class=\"ds-act ds-err\"><span class=\"ds-dot\"></span>Last sync failed</div><div class=\"ds-act ds-none\"><span class=\"ds-dot\"></span>Not syncing</div><a class=\"ds-details\" href=\"#\">Details</a></div>",
+      "css": ".ds-status { display: grid; gap: 0.45rem; justify-items: start; font: 400 0.875rem/1.55 var(--sans); } .ds-act { display: flex; align-items: center; gap: 0.5rem; color: var(--ink); } .ds-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); } .ds-ok .ds-dot { background: var(--ok); } .ds-next .ds-dot { background: var(--accent); } .ds-warn .ds-dot { background: var(--warn); } .ds-err .ds-dot { background: var(--err); } .ds-none { color: var(--muted); } .ds-details { margin: 0.2rem 0 0 calc(8px + 0.5rem); font-size: 0.8125rem; font-weight: 500; color: var(--accent-ink); text-decoration: none; border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 0.2rem 0.65rem; } .ds-details:hover { border-color: var(--accent); } .ds-details:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item-current",
+      "description": "The sidebar's list on a desk: the current page is a sheet-coloured box with a cyan icon.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3.5\" width=\"4\" height=\"13\" rx=\"1\"/><rect x=\"8\" y=\"5.5\" width=\"3.5\" height=\"11\" rx=\"1\"/><path d=\"M13.2 7.2l2.9-.8 2.4 9-2.9.8z\"/></svg>Books</a><a href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 6h7M14 6h3M3 14h3M10 14h7\"/><circle cx=\"12\" cy=\"6\" r=\"2\"/><circle cx=\"8\" cy=\"14\" r=\"2\"/></svg>Settings</a><a href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"7.5\" cy=\"7\" r=\"2.6\"/><path d=\"M2.5 16c.4-2.8 2.4-4.3 5-4.3s4.6 1.5 5 4.3\"/><path d=\"M13 4.6a2.6 2.6 0 010 4.9M14.8 11.9c1.5.5 2.5 1.9 2.7 4.1\"/></svg>Admin</a></nav>",
+      "css": ".ds-nav { display: grid; gap: 2px; width: 17.5rem; font-family: var(--sans); } .ds-nav a { display: flex; align-items: center; gap: 0.7rem; padding: 0.5rem 0.7rem; border: 1px solid transparent; border-radius: var(--r-ctl); text-decoration: none; color: var(--muted); font-size: 0.9375rem; font-weight: 500; } .ds-nav a:hover { background: var(--surface); color: var(--ink); } .ds-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-nav a[aria-current=\"page\"] { background: var(--surface); color: var(--ink); border-color: var(--line); font-weight: 600; } .ds-nav a[aria-current=\"page\"] svg { color: var(--accent); }"
+    },
+    {
+      "name": "Theme switch",
+      "kind": "chip",
+      "refersTo": "chip-hover",
+      "description": "A choice from a set of three, so it is a pill: Light, Auto, Dark.",
+      "html": "<div class=\"ds-theme\" role=\"group\" aria-label=\"Theme\"><button aria-pressed=\"false\">Light</button><button aria-pressed=\"true\">Auto</button><button aria-pressed=\"false\">Dark</button></div>",
+      "css": ".ds-theme { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--surface); } .ds-theme button { font: 400 0.8125rem/1.55 var(--sans); color: var(--muted); background: none; border: 0; min-height: 1.9rem; padding: 0.2rem 0.8rem; border-radius: 999px; cursor: pointer; } .ds-theme button:hover { color: var(--ink); } .ds-theme button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-theme button[aria-pressed=\"true\"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Reading Log",
+    "overview": "A reader's own ledger. Each book is a line: its title set like a title, a thin rule that shows how far you are, when you last read it, and what Hardcover was or will be told. The page is the notebook that holds those lines, and everything else on it (the filters, the switches, the settings) is the margin. The mood is calm, plain and bookish: unhurried, a little domestic, with the book titles carrying the character and the interface staying out of the way.\n\nIt is dense where a log is dense, in the list, and roomy where someone reads, in the help dialog and on the settings cards. It has two lights, a day theme and a night theme, each with its own photograph of a real Kobo: on linen by day, at dusk by night. The photograph sits once, at the top of the sidebar, and dissolves into the page.\n\nThree looks were considered and turned down, and stay turned down: a dashboard of tiles and big numbers, a photograph across the full width above the list, and filters in the sidebar like mail folders. The list of books is the page; nothing is allowed to push it down or stand in front of it.",
+    "keyCharacteristics": [
+      "One frame for every page: a sidebar that is \"your Kobo\", a sheet that is \"your books\".",
+      "Two typefaces with one job each: Literata for anything that is a title, Sora for the interface.",
+      "One accent, Reading-light Cyan, spent on where you are in a book and on what you chose.",
+      "Readable by the numbers: WCAG 2.2 AA for words, edges and marks, in both lights.",
+      "Status is a dot and plain words, the same everywhere.",
+      "Controls are quiet until pointed at; one filled button per page.",
+      "Surfaces are told apart by tone and a hairline, not by shadow."
+    ],
+    "rules": [
+      {
+        "name": "The One Light Rule",
+        "body": "There is one accent. Cyan means \"your place\" or \"your choice\" and nothing else; green, amber and red appear only as status, never as decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dot Rule",
+        "body": "Colour carries status only through an 8px dot; the words beside it stay in ink. No coloured text for status, no coloured row backgrounds, no badges.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Lights Rule",
+        "body": "Every colour has a day and a night value with the same role. A colour that exists in one theme only is a mistake.",
+        "section": "colors"
+      },
+      {
+        "name": "The Legible Rule",
+        "body": "Words stand at 4.5:1 or more on whatever they are on, the edge of a field and every mark at 3:1 (WCAG 2.2 AA). The bright cyan cannot carry white words by day, which is why fills are Reading-light Deep. `tests/test_design_tokens.py` checks the pairs.",
+        "section": "colors"
+      },
+      {
+        "name": "The Title Rule",
+        "body": "Literata is for things that are titles: the name, page and card headings, book titles. Anything you operate or read as a fact is Sora. A serif button or a sans book title is wrong.",
+        "section": "typography"
+      },
+      {
+        "name": "The Figures Rule",
+        "body": "Numbers are tabular everywhere, so percentages and dates line up down the list.",
+        "section": "typography"
+      },
+      {
+        "name": "The List First Rule",
+        "body": "Nothing sits above the list that is taller than the toolbar. A new element earns a place in the sidebar, in a row, or in the Details dialog, not between the reader and their books.",
+        "section": "layout"
+      },
+      {
+        "name": "The Tone Rule",
+        "body": "If two surfaces need telling apart, change the tone or draw a rule. Reach for a shadow only for something that is physically on top: a cover, a dialog.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do set every title in Literata at 600 and everything you operate in Sora.",
+      "Do give every new colour a day and a night value with the same role.",
+      "Do show status as an 8px dot and plain words in ink.",
+      "Do keep one filled button per page; everything else is a bordered or borderless control.",
+      "Do use 16px for what holds content, 9px for what you operate, and a pill only for a choice from a set.",
+      "Do put a new fact about a book in its row's small grey line or in Details, and a new fact about the installation in the sidebar.",
+      "Do make every motion stop under `prefers-reduced-motion`, and every action work without JavaScript.",
+      "Do fill with Reading-light Deep and draw with Reading-light Cyan; check any new pair of colours against 4.5:1 for words and 3:1 for edges and marks."
+    ],
+    "donts": [
+      "Don't build a dashboard of tiles and big numbers. The list of books is the page.",
+      "Don't put a photograph across the full width above the list; the photograph lives once, in the sidebar.",
+      "Don't move the filters into the sidebar like mail folders.",
+      "Don't colour status text, tint whole rows, or add badges; the dot carries the colour.",
+      "Don't set words in a grey lighter than Faint Pencil, or white words on the bright cyan.",
+      "Don't use cyan for decoration. If it is not your place in a book or your choice, it is not cyan.",
+      "Don't rely on a shadow to separate surfaces; the night theme has none.",
+      "Don't set labels in capitals or track them out.",
+      "Don't load a font, a script, a style or a picture from elsewhere; the tool serves everything, book covers included."
+    ]
+  }
+}

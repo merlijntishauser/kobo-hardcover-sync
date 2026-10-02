@@ -1,0 +1,50 @@
+name: test
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --locked --python ${{ matrix.python }}
+      - run: uv run pytest -q tests
+
+  style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --locked --python 3.13
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+
+  # A real Chromium clicks through the pages with a made-up shelf: the
+  # keyboard, a phone, no JavaScript, both themes.
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --locked --python 3.13 --group browser
+      - run: uv run --group browser playwright install --with-deps chromium
+      - run: uv run --group browser pytest -q browser_tests
+
+  # What a release would upload, built and looked at on every push.
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv build
+      - run: uvx twine check --strict dist/*

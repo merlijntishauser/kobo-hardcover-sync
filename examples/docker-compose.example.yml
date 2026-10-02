@@ -1,0 +1,49 @@
+name: kobo-hardcover-sync
+
+# kobo-hardcover-sync: Kobo reading stats to your own server and to Hardcover.
+# How it works, and why: docs/how-it-works.md.
+services:
+  kobo-hardcover-sync:
+    build: .
+    image: kobo-hardcover-sync:latest
+    container_name: kobo-hardcover-sync
+    # Publish the port only where your sign-in proxy can reach it: the page
+    # has no login of its own. "3012:3012" opens it on every address of the
+    # host; if the proxy runs on this host, "127.0.0.1:3012:3012" is enough,
+    # and with the proxy in the same compose network no port is needed at all.
+    ports:
+      - "3012:3012"
+    # KHS_SECRET_KEY: encrypts the readers' Hardcover tokens (README).
+    env_file:
+      - .env
+    environment:
+      KHS_DATA: /data
+      KHS_HOST: kobo.example.org        # public hostname (same-origin check)
+      # The address your sign-in proxy connects from. Remote-User is believed
+      # from here only; without this setting the server does not start.
+      KHS_TRUSTED_PROXIES: 192.0.2.10
+      # Dates and "today" follow this; without it the container counts in UTC.
+      TZ: Europe/London
+    volumes:
+      # state.db (selection, matches) plus imported snapshots. Not in git:
+      # it is personal reading data.
+      - ./data:/data
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:3012/healthz', timeout=5).status == 200 else 1)
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped

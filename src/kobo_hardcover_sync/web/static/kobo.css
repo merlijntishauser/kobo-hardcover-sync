@@ -1,0 +1,484 @@
+/* kobo-hardcover-sync, one design for every page.
+
+   The frame: a sidebar that is "your Kobo" (a photograph of one, the
+   navigation, and on Books what the Kobo and Hardcover last did), a sheet
+   that is "your books", and a footer with who is signed in. On a phone the
+   sidebar becomes the top of the page, the navigation a bar under the
+   thumb, and the list a stack of book cards.
+
+   Two typefaces: Literata, made for reading ebooks, for everything that is
+   a title (the name, page and card headings, book titles); Sora for the
+   interface. Theme: light by default,
+   dark when the system asks for it, and html[data-theme] (the
+   Light/Auto/Dark switch, kobo.js) overrides both. Each theme has its own
+   photograph: a Kobo by day, a Kobo at dusk.
+
+   Panels (16px) hold content, controls are 9px, pills are only for things
+   that are chosen from a set. The one loud element is the reading line
+   under each title.
+
+   Colour is held to WCAG 2.2 AA, and tests/test_design_tokens.py checks the
+   pairs: words at 4.5:1 (--faint is the lightest grey a word may have),
+   the edge of a field at 3:1 (--edge), and a filled control in
+   --accent-fill, the deeper cyan that white words can be read on. */
+@font-face {
+  font-family: 'Sora'; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url(fonts/Sora-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sora'; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url(fonts/Sora-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Literata'; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url(fonts/Literata-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Literata'; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url(fonts/Literata-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light;
+  --bg: #f0f4ff; --surface: #ffffff; --surface-2: #f6f8fd;
+  --ink: #1e293b; --muted: #475569; --faint: #5f6f86;
+  --line: #d3dbe8; --line-soft: #e6ebf4; --edge: #7b8ba2;
+  --accent: #0891b2; --accent-fill: #0e7490; --accent-ink: #0e7490; --accent-soft: #e0f2fe; --on-accent: #ffffff;
+  --ok: #15803d; --ok-soft: #dcfce7;
+  --warn: #b45309; --warn-soft: #fef3c7;
+  --err: #be123c;
+  --track: #dbe4f3;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.07);
+  --photo: url(img/kobo-day.webp); --photo-pos: 58% 52%;
+  --serif: 'Literata', Georgia, 'Times New Roman', serif;
+  --sans: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --r-panel: 16px; --r-ctl: 9px;
+  --side: 17.5rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f172a; --surface: #131c31; --surface-2: #0c1424;
+    --ink: #e2e8f0; --muted: #94a3b8; --faint: #8291a8;
+    --line: #2a3a55; --line-soft: #1e2a40; --edge: #64748b;
+    --accent: #22d3ee; --accent-fill: #22d3ee; --accent-ink: #67e8f9; --accent-soft: rgba(34, 211, 238, 0.12); --on-accent: #0b1220;
+    --ok: #34d399; --ok-soft: rgba(52, 211, 153, 0.14);
+    --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, 0.14);
+    --err: #fb7185;
+    --track: #223049;
+    --shadow: none;
+    --photo: url(img/kobo-night.webp); --photo-pos: 50% 46%;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f172a; --surface: #131c31; --surface-2: #0c1424;
+  --ink: #e2e8f0; --muted: #94a3b8; --faint: #8291a8;
+  --line: #2a3a55; --line-soft: #1e2a40; --edge: #64748b;
+  --accent: #22d3ee; --accent-fill: #22d3ee; --accent-ink: #67e8f9; --accent-soft: rgba(34, 211, 238, 0.12); --on-accent: #0b1220;
+  --ok: #34d399; --ok-soft: rgba(52, 211, 153, 0.14);
+  --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, 0.14);
+  --err: #fb7185;
+  --track: #223049;
+  --shadow: none;
+  --photo: url(img/kobo-night.webp); --photo-pos: 50% 46%;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+/* What takes keyboard focus is scrolled clear of the bars that stay put:
+   the navigation at the bottom of a phone, the table's head on a desk. */
+@media (max-width: 1023.98px) { html { scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom)); } }
+body {
+  margin: 0; padding: 1rem;
+  font: 400 0.9375rem/1.55 var(--sans);
+  color: var(--ink); background: var(--bg);
+  font-variant-numeric: tabular-nums;
+}
+a { color: var(--accent-ink); }
+::selection { background: var(--accent-fill); color: var(--on-accent); }
+:root { accent-color: var(--accent-fill); caret-color: var(--accent-ink); scrollbar-color: var(--edge) transparent; }
+/* For a screen reader only: a heading where the eye needs none. */
+.sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+form { margin: 0; }
+h1, h2, .title { font-family: var(--serif); font-optical-sizing: auto; }
+
+/* ---------- the frame ---------- */
+/* Phone first: one column. From 1024px: sidebar and footer on the left,
+   the page beside them, everything inside one window height. */
+body.app { display: flex; flex-direction: column; gap: 1rem; padding: 0 0 calc(4.5rem + env(safe-area-inset-bottom)); }
+.side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.9rem; min-width: 0; }
+body.app > main { min-width: 0; padding: 0 0.75rem; }
+.foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem 1rem;
+  padding: 0.25rem 1rem 0.5rem; font-size: 0.875rem; }
+.who b { font-weight: 600; }
+.toolrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+
+/* The photograph, with the name set on it. The picture dissolves into the
+   page at the bottom, so the name sits on the page's own colour in either
+   theme. */
+.brand { position: relative; isolation: isolate; }
+.brandphoto { height: 11.5rem; background: var(--surface-2) var(--photo) var(--photo-pos) / cover no-repeat; }
+.brand::after { content: ""; position: absolute; inset: 4.5rem 0 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--bg) 7rem); }
+.brandtext { position: relative; z-index: 1; margin-top: -3.4rem; padding: 0 1rem; }
+/* The name is three words now: sized to stay on one line. */
+h1 { font-size: clamp(1.55rem, 8vw, 2.1rem); font-weight: 600; letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
+.tagline { margin: 0.4rem 0 0; color: var(--muted); font-size: 0.875rem; max-width: 34ch; overflow-wrap: anywhere; }
+button.linkbtn { min-height: 0; font: inherit; color: var(--accent-ink); background: none; border: 0; padding: 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px; }
+
+/* Navigation: a bar under the thumb on a phone, a list in the sidebar on a desk. */
+.nav { position: fixed; inset: auto 0 0 0; z-index: 5; display: flex; justify-content: space-around; gap: 0.25rem;
+  padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom));
+  background: var(--surface); border-top: 1px solid var(--line); }
+.nav a { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 0.1rem; padding: 0.3rem 0.25rem;
+  border: 1px solid transparent; border-radius: var(--r-ctl); text-decoration: none; color: var(--muted); font-size: 0.75rem; font-weight: 500; }
+.nav a:hover { color: var(--ink); }
+.nav a[aria-current="page"] { color: var(--accent-ink); font-weight: 600; }
+
+/* Sync status: three facts in the page's status language (dot + text),
+   and the buttons that act on them. */
+.status { display: grid; gap: 0.6rem; margin: 0 0.75rem; padding: 0.9rem 1rem 1rem; background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--r-panel); box-shadow: var(--shadow); font-size: 0.875rem; }
+.status .act { align-items: flex-start; }
+.status .act .dot { margin-top: 0.45em; }
+.status .act .muted { display: block; font-size: 0.8125rem; }
+.statusactions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.3rem; }
+.statusactions form:last-child { flex: 1; }
+.statusactions button { width: 100%; padding-block: 0.5rem; }
+
+/* ---------- controls ---------- */
+input[type="search"], input[type="text"], input[type="password"], input[type="date"], select {
+  font: inherit; font-size: 0.875rem; color: var(--ink); background-color: var(--surface);
+  border: 1px solid var(--edge); border-radius: var(--r-ctl); padding: 0.4rem 0.65rem; max-width: 100%; min-height: 2.25rem;
+}
+input::placeholder { color: var(--faint); }
+input:hover, select:hover { border-color: var(--muted); }
+/* One chevron for every select, drawn in the theme's own grey. */
+select { appearance: none; -webkit-appearance: none; padding-right: 1.9rem; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 0.95rem) 50%, calc(100% - 0.95rem + 5px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+button { font: inherit; font-size: 0.875rem; font-weight: 500; cursor: pointer; border-radius: var(--r-ctl); padding: 0.4rem 0.9rem;
+  min-height: 2.25rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
+button.primary:hover { filter: brightness(1.08); }
+button.danger { color: var(--err); background: none; border-color: transparent; padding-left: 0; }
+button.danger:hover { text-decoration: underline; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:disabled:hover { border-color: var(--line); filter: none; }
+.helpbtn { width: 2.25rem; padding: 0; border-radius: 50%; font-weight: 600; color: var(--muted); }
+.helpbtn:hover { color: var(--accent-ink); }
+.theme { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--surface); }
+.theme button { font-size: 0.8125rem; font-weight: 400; color: var(--muted); background: none; border: 0; min-height: 1.9rem;
+  padding: 0.2rem 0.8rem; border-radius: 999px; }
+.theme button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+
+/* ---------- the sheet: find, filter, the list ---------- */
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-panel); box-shadow: var(--shadow); overflow: hidden; }
+.toolbar { display: grid; gap: 0.7rem; padding: 0.85rem 1rem; border-bottom: 1px solid var(--line); }
+.find { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.find input[type="search"] { flex: 1 1 12rem; min-width: 0; }
+.sortby { display: flex; align-items: center; gap: 0.5rem; flex: 1 1 100%; color: var(--muted); font-size: 0.875rem; }
+.sortby select { flex: 1; }
+/* Filters: one choice at a time, in three groups. The chosen one is filled
+   in, the others are quiet text. On a phone they fold behind one line that
+   names the chosen one; without JS they simply stay open. */
+.ftoggle { display: none; align-items: center; gap: 0.5rem; width: 100%; text-align: left; color: var(--muted); }
+.ftoggle b { color: var(--ink); font-weight: 600; }
+.ftoggle .n { margin-left: auto; color: var(--ink); font-weight: 600; }
+.ftoggle .n::after { content: ""; display: inline-block; width: 0.45rem; height: 0.45rem; margin: 0 0.15rem 0.2rem 0.7rem;
+  border: solid var(--muted); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+.ftoggle[aria-expanded="true"] .n::after { transform: rotate(-135deg); margin-bottom: -0.05rem; }
+.filters { display: grid; gap: 0.45rem; }
+/* The group's name hangs in its own column; chips that wrap stay beside it. */
+.fgroup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem; padding-left: 7.25rem; }
+.gname { color: var(--faint); font-size: 0.75rem; flex: 0 0 7.25rem; margin-left: -7.25rem; }
+.chip { font-size: 0.8125rem; text-decoration: none; color: var(--muted); border-radius: 999px; padding: 0.25rem 0.65rem; white-space: nowrap; }
+.chip b { font-weight: 600; color: var(--ink); margin-left: 0.3rem; }
+.chip:hover { background: var(--accent-soft); color: var(--accent-ink); }
+.chip[aria-current="true"] { background: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
+.chip[aria-current="true"] b { color: inherit; }
+.chip.attn:not([aria-current="true"]) b { color: var(--warn); }
+.bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: var(--muted); font-size: 0.875rem;
+  margin-top: 0.35rem; padding-top: 0.75rem; border-top: 1px solid var(--line-soft); }
+
+/* ---------- books ---------- */
+table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0; }
+th { text-align: left; font-size: 0.8125rem; font-weight: 600; color: var(--muted);
+  padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+td { padding: 0.85rem 0.8rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; overflow-wrap: anywhere; }
+tbody tr:last-child td { border-bottom: 0; }
+th.c-mode { width: 7.25rem; } th.c-state { width: 10.5rem; } th.c-hc { width: 29%; }
+.bk { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 1rem; align-items: start; }
+.cover { display: block; width: 48px; height: 72px; border-radius: 3px; object-fit: cover;
+  background: var(--track); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2), 0 4px 10px rgba(15, 23, 42, 0.12); }
+.bk .cover { width: 56px; height: 84px; }
+/* A book without a cover keeps a plain tile, with a spine. */
+span.cover { background: linear-gradient(90deg, rgba(15, 23, 42, 0.1) 0 4px, transparent 4px 5px, rgba(15, 23, 42, 0.05) 5px 6px, transparent 6px) var(--track); }
+tr.off .cover { opacity: 0.6; }
+.coverlink { display: block; border-radius: 3px; cursor: zoom-in; }
+.title { font-size: 1.0625rem; font-weight: 600; line-height: 1.3; }
+tr.off .title { color: var(--muted); font-weight: 500; }
+.author { color: var(--muted); font-size: 0.875rem; margin-top: 0.1rem; }
+.tag { font-family: var(--sans); font-size: 0.75rem; font-weight: 600; color: var(--accent-ink); background: var(--accent-soft);
+  border-radius: 999px; padding: 0.1rem 0.5rem; margin-left: 0.4rem; white-space: nowrap; vertical-align: 0.1em; }
+
+/* The reading line: how far into the book, at a glance. */
+.bar { height: 4px; max-width: 26rem; margin: 0.6rem 0 0.4rem; background: var(--track); border-radius: 2px; overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+.bar.done span { background: var(--ok); }
+tr.off .bar span { opacity: 0.55; }
+.meta { display: flex; gap: 0.2rem 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.8125rem; }
+
+/* A row that syncs carries the accent on its edge. The switches in a row
+   are quiet until they are pointed at: thirty framed boxes are too loud. */
+tr.on td.book { box-shadow: inset 3px 0 0 var(--accent); }
+td select { width: 100%; background-color: var(--surface-2); border-color: transparent; }
+td select:hover, td select:focus { border-color: var(--line); }
+tr.off td select { color: var(--muted); }
+.rowdate { margin-top: 0.4rem; display: block; width: 100%; }
+td noscript button { margin-top: 0.4rem; width: 100%; }
+.rowdate[hidden] { display: none; }
+.hint { color: var(--muted); font-size: 0.8125rem; margin-top: 0.3rem; }
+
+td.hc { font-size: 0.875rem; }
+/* One language for status everywhere: a dot carries the colour, the text
+   stays plain; the match on a quiet second line; one Details button. */
+.act { display: flex; align-items: center; gap: 0.5rem; color: var(--ink); }
+.act .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+.act.ok .dot { background: var(--ok); }
+.act.next .dot { background: var(--accent); }
+.act.warn .dot { background: var(--warn); }
+.act.err .dot { background: var(--err); }
+.act.none { color: var(--muted); }
+td.hc .act { align-items: flex-start; }
+td.hc .act .dot { margin-top: 0.45em; }
+.sub { color: var(--muted); font-size: 0.8125rem; margin-top: 0.15rem; }
+td.hc .sub { margin-left: calc(8px + 0.5rem); }
+.details { display: inline-block; margin-top: 0.5rem; font-size: 0.8125rem; font-weight: 500; color: var(--accent-ink); text-decoration: none;
+  border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 0.2rem 0.65rem; }
+td.hc .details { margin-left: calc(8px + 0.5rem); }
+.details:hover { border-color: var(--accent); }
+tr.off .details { color: var(--muted); }
+.err { color: var(--err); }
+.muted { color: var(--muted); }
+.pickrow { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.pickrow select { flex: 1 1 12rem; min-width: 0; width: 100%; text-overflow: ellipsis; }
+.pickrow input { flex: 1 1 10rem; min-width: 0; }
+.empty { padding: 3rem 1rem; text-align: center; color: var(--muted); }
+
+/* Coming back to a row after Use / Search / Remove: show which one. */
+@keyframes landed { from { background: var(--accent-soft); } to { background: transparent; } }
+tbody tr:target td { animation: landed 1.8s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  tbody tr:target td { animation: none; background: var(--accent-soft); }
+}
+
+/* ---------- dialogs ---------- */
+#help, #details { border: 0; padding: 0; border-radius: var(--r-panel); background: var(--surface); color: var(--ink);
+  width: min(40rem, 94vw); max-height: 92vh; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35); }
+#help::backdrop, #details::backdrop { background: rgba(8, 13, 26, 0.6); }
+/* Help: reading matter. The title and Close stay put while the text
+   scrolls; sections are set apart, paragraphs have air, and the words
+   from the page stand in their own column. */
+#help { width: min(44rem, 94vw); overflow: hidden; }
+#help[open] { display: flex; flex-direction: column; }
+#help .dtop { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.75rem;
+  border-bottom: 1px solid var(--line); }
+#help h2 { margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.2; }
+#help .close { position: static; flex: none; }
+#help .dbody { overflow-y: auto; overscroll-behavior: contain; padding: 0.25rem 1.75rem 1.5rem; line-height: 1.65; }
+#help section { padding: 1.4rem 0 1.5rem; border-bottom: 1px solid var(--line-soft); }
+#help h3 { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; line-height: 1.3; margin: 0 0 0.6rem; }
+#help p { margin: 0.75rem 0 0; max-width: 62ch; }
+#help h3 + p { margin-top: 0; }
+#help .terms { gap: 0; margin: 0; }
+#help .terms > div { grid-template-columns: 9.5rem minmax(0, 1fr); gap: 1.25rem; padding: 0.55rem 0; border-top: 1px solid var(--line-soft); }
+#help .terms > div:first-child { border-top: 0; padding-top: 0; }
+#help .terms dt { color: var(--ink); font-weight: 600; }
+#help .terms dt .act { color: inherit; }
+#help .terms dd { color: var(--ink); max-width: 52ch; }
+#help .credit { margin: 1.25rem 0 0; color: var(--muted); font-size: 0.8125rem; }
+@media (max-width: 520px) {
+  #help .dtop { padding: 0.9rem 1.1rem; }
+  #help h2 { font-size: 1.25rem; }
+  #help .dbody { padding: 0 1.1rem 1.25rem; }
+  #help .terms > div { grid-template-columns: 1fr; gap: 0.1rem; }
+}
+.dbody, .dpage { padding: 1.4rem 1.5rem 1.5rem; }
+.dpage { max-width: 40rem; margin: 0 auto; }
+.dhead { display: flex; gap: 1rem; align-items: center; margin-bottom: 0.5rem; padding-right: 4.5rem; }
+.dhead h2 { margin: 0; font-size: 1.25rem; font-weight: 600; line-height: 1.25; }
+.dhead .author { margin: 0.2rem 0 0; }
+#details section h3, .dpage section h3 { font-size: 0.8125rem; font-weight: 600; color: var(--muted); margin: 1.1rem 0 0.4rem; }
+dl { margin: 0; display: grid; gap: 0.35rem; }
+dl > div { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 0.75rem; align-items: baseline; }
+dt { color: var(--muted); }
+dd { margin: 0; overflow-wrap: anywhere; }
+.actions { display: grid; gap: 0.6rem; margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid var(--line-soft); }
+dialog .close { position: absolute; top: 0.9rem; right: 0.9rem; }
+
+/* Lightbox: the cover, large. A native <dialog>: Esc and the Close button
+   work by themselves; kobo.js adds "click outside to close". */
+#lightbox { border: 0; padding: 0; background: none; color: #e2e8f0; max-width: 96vw; max-height: 96vh; overflow: visible; }
+#lightbox::backdrop { background: rgba(8, 13, 26, 0.86); }
+#lightbox figure { margin: 0; display: grid; justify-items: center; gap: 0.75rem; }
+#lightbox img { display: block; height: min(82vh, 900px); width: auto; max-width: 92vw; object-fit: contain;
+  border-radius: var(--r-ctl); box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55); }
+#lightbox figcaption { text-align: center; font-size: 0.9375rem; max-width: min(92vw, 40rem); }
+#lightbox figcaption b { display: block; font-family: var(--serif); font-size: 1.0625rem; font-weight: 600; }
+#lightbox .close { position: fixed; top: 1rem; right: 1rem; color: #e2e8f0; background: rgba(15, 23, 42, 0.7); border-color: #475569; }
+#lightbox .close:hover { border-color: #22d3ee; }
+@keyframes cover-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+#lightbox[open] figure { animation: cover-in 0.18s ease-out; }
+@media (prefers-reduced-motion: reduce) { #lightbox[open] figure { animation: none; } }
+
+/* ---------- sign-up, settings, admin: the same panels ---------- */
+.cards { display: grid; gap: 1rem; align-content: start; max-width: 46rem; }
+.cards.admin { max-width: none; }
+.pagetitle { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.01em; margin: 0; line-height: 1.2; }
+.intro { margin: -0.6rem 0 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-panel); box-shadow: var(--shadow); padding: 1.15rem 1.25rem 1.3rem; }
+.card h2 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.75rem; line-height: 1.25; }
+.card h3 { font-size: 0.8125rem; font-weight: 600; color: var(--muted); margin: 1.2rem 0 0.5rem; padding-top: 1rem; border-top: 1px solid var(--line-soft); }
+.card p { margin: 0.45rem 0; max-width: 64ch; }
+.card ol { margin: 0.4rem 0 0.9rem; padding-left: 1.3rem; max-width: 64ch; }
+.card li { margin: 0.3rem 0; }
+.card dl { margin-top: 0.9rem; }
+.card form + form, .card .act + form, .card p + form { margin-top: 0.75rem; }
+.field { display: grid; gap: 0.3rem; margin-top: 0.75rem; }
+.field label { font-size: 0.8125rem; font-weight: 600; color: var(--muted); }
+.field .hint { margin: 0.2rem 0 0; }
+.inputs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.inputs input { flex: 1 1 14rem; min-width: 0; }
+.pair { display: flex; gap: 0.6rem 0.75rem; flex-wrap: wrap; align-items: end; }
+.pair > div { display: grid; gap: 0.3rem; flex: 1 1 12rem; }
+.pair > div.grow { flex: 2 1 18rem; }
+.pair input { width: 100%; }
+.btnrow { display: flex; gap: 0.5rem 0.75rem; flex-wrap: wrap; align-items: center; margin: 0.6rem 0 0; }
+.btnrow form, .moderow form, .card .btnrow form + form { margin: 0; }
+.btnrow .details { margin: 0; padding: 0.4rem 0.9rem; font-size: 0.875rem; min-height: 2.25rem; display: inline-flex; align-items: center; color: var(--ink); }
+.moderow { display: flex; gap: 0.6rem 1.25rem; flex-wrap: wrap; align-items: center; }
+.devices { list-style: none; margin: 0 0 0.5rem; padding: 0; }
+.devices li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 0; padding: 0.55rem 0; border-bottom: 1px solid var(--line-soft); }
+.devices li:last-child { border-bottom: 0; }
+.devices form { margin: 0; }
+code { font: 0.8125rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted); }
+/* A token shown once: easy to select, and it wraps instead of running off a phone. */
+code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--r-ctl); overflow-wrap: anywhere; user-select: all; }
+.card .flash { margin-top: 0.6rem; }
+.card .flash p { margin: 0.5rem 0 0; }
+.flash { padding: 0.7rem 1rem; border-radius: var(--r-ctl); background: var(--ok-soft); }
+.flash.bad { background: var(--surface); border: 1px solid var(--err); }
+.flash p { margin: 0.25rem 0 0 1.05rem; font-size: 0.875rem; overflow-wrap: anywhere; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; align-items: start; }
+/* The readers table sits edge to edge in its card. */
+.card.wide { padding: 1.15rem 0 0; overflow: hidden; }
+.card.wide h2 { padding: 0 1.25rem; }
+.readers th { border-top: 1px solid var(--line); padding-left: 1.25rem; }
+.readers td { padding-left: 1.25rem; }
+.readers .btnrow { margin: 0; }
+/* A page outside the frame: no login was passed on. */
+.solo { max-width: 34rem; margin: 12vh auto 0; padding: 0 1rem; }
+.solo h1 { font-size: 1.75rem; }
+
+/* ---------- below 1024px: book cards, stacked tables ---------- */
+@media (max-width: 1023.98px) {
+  .toolbar.js .ftoggle { display: flex; }
+  .toolbar.js .filters:not(.open) { display: none; }
+  table, tbody, tr, td { display: block; width: auto; }
+  thead { display: none; }
+  td { border-bottom: 0; padding: 0; }
+  tbody tr { padding: 0.9rem 1rem; border-bottom: 1px solid var(--line-soft); scroll-margin-top: 1rem; }
+  tbody tr:last-child { border-bottom: 0; }
+  /* A book: the cover and title across, the two switches side by side
+     under their names, then what Hardcover will get. */
+  .books tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.7rem 0.6rem; }
+  .books td.book, .books td.hc { grid-column: 1 / -1; }
+  .books td.book, .books tr.on td.book { box-shadow: none; }
+  .books tr.on { box-shadow: inset 3px 0 0 var(--accent); }
+  .books td[data-label]::before { content: attr(data-label); display: block; color: var(--faint); font-size: 0.75rem; margin-bottom: 0.15rem; }
+  .books td.hc::before { content: none; }
+  .books td.hc > div { padding-top: 0.7rem; border-top: 1px solid var(--line-soft); }
+  td.hc .details { padding: 0.35rem 0.8rem; }
+  /* Other tables (Admin): a name on the left, the value beside it. */
+  .readers td { padding: 0.3rem 0 0.3rem 0.25rem; }
+  .readers td[data-label] { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: 0.5rem; align-items: start; }
+  .readers td[data-label] > * { min-width: 0; }
+  .readers td[data-label]::before { content: attr(data-label); color: var(--muted); font-size: 0.8125rem; padding-top: 0.15rem; }
+  .pickrow select, .pickrow input { flex-basis: 100%; }
+  .cards { max-width: none; }
+  .foot { order: 3; }
+  input[type="search"], input[type="text"], input[type="password"], input[type="date"], select, button { min-height: 2.5rem; }
+  .theme button { min-height: 2.1rem; }
+}
+@media (max-width: 520px) {
+  dl > div { grid-template-columns: 6.75rem minmax(0, 1fr); gap: 0.6rem; }
+  .dbody, .dpage { padding: 1.2rem 1.1rem 1.25rem; }
+}
+/* A finger needs more than a pointer: 44px, whatever the width of the screen. */
+@media (pointer: coarse) {
+  input[type="search"], input[type="text"], input[type="password"], input[type="date"], select, button { min-height: 2.75rem; }
+  .theme button { min-height: 2.75rem; padding-inline: 1rem; }
+  .helpbtn { width: 2.75rem; }
+  /* A filter keeps its small pill; the finger gets more than is drawn, and
+     the rows stand far enough apart that two chips never share a spot. */
+  .chip { position: relative; }
+  .chip::after { content: ""; position: absolute; inset: -0.5rem 0; }
+  .filters, .fgroup { row-gap: 1rem; }
+  .details, td.hc .details { display: inline-flex; align-items: center; min-height: 2.75rem; padding-inline: 0.9rem; }
+}
+/* A tablet has room for two books side by side. */
+@media (min-width: 720px) and (max-width: 1023.98px) {
+  .brandphoto { height: 14rem; }
+  .books tbody { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .books tbody tr { border-right: 1px solid var(--line-soft); }
+  .books tbody tr:last-child { border-bottom: 1px solid var(--line-soft); }
+  .sortby { flex: 0 1 auto; }
+  .status { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .statusactions { grid-column: 1 / -1; justify-content: flex-end; }
+  .statusactions form:last-child { flex: 0 0 auto; }
+}
+
+/* ---------- from 1024px: the sidebar, and a list that scrolls in its sheet ---------- */
+@media (min-width: 1024px) {
+  body.app { display: grid; grid-template-columns: var(--side) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto;
+    gap: 1rem 1.5rem; height: 100vh; height: 100dvh; padding: 1.25rem 1.5rem 1.25rem 1.25rem; max-width: 96rem; margin: 0 auto; overflow: hidden; }
+  .side { grid-area: 1 / 1; align-content: start; gap: 1.1rem; overflow-y: auto; scrollbar-width: thin; }
+  body.app > main { grid-area: 1 / 2 / 3 / 3; padding: 0; display: flex; flex-direction: column; min-height: 0; }
+  /* Room around the cards for their shadows, taken from the gap and the page edge. */
+  body.app > main.cards { display: grid; overflow-y: auto; margin: 0 -1rem; padding: 0.25rem 1rem 1.5rem; scrollbar-width: thin; }
+  .foot { grid-area: 2 / 1; padding: 0 0.25rem; }
+  .brand { border-radius: var(--r-panel); overflow: hidden; }
+  .brandphoto { height: 13.5rem; }
+  .brand::after { inset: 7rem 0 0; background: linear-gradient(to bottom, transparent, var(--bg) 6.3rem); }
+  .brandtext { margin-top: -2.9rem; padding: 0 0.35rem; }
+  .brandtext h1 { font-size: 1.62rem; white-space: nowrap; }
+  .nav { position: static; display: grid; justify-content: stretch; gap: 2px; padding: 0; background: none; border: 0; }
+  .nav a { flex-direction: row; gap: 0.7rem; padding: 0.5rem 0.7rem; font-size: 0.9375rem; }
+  .nav a:hover { background: var(--surface); }
+  .nav a[aria-current="page"] { background: var(--surface); color: var(--ink); border-color: var(--line); }
+  .nav a[aria-current="page"] svg { color: var(--accent); }
+  .status { margin: 0; box-shadow: none; }
+  .sheet { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .tablewrap { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; scroll-padding-top: 3.25rem; }
+  thead th { position: sticky; top: 0; z-index: 1; }
+  tbody tr { scroll-margin-top: 3rem; }
+  .toolbar { padding: 0.9rem 1rem; }
+  .find input[type="search"] { flex: 0 1 22rem; }
+  .sortby { flex: 0 0 auto; margin-left: auto; }
+  .sortby select { flex: none; }
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 1.4rem; }
+  .fgroup { padding-left: 0; }
+  .gname { flex: none; margin: 0 0.3rem 0 0; }
+  .bulk { margin: 0 0 0 auto; padding: 0; border: 0; }
+  th:first-child, td:first-child { padding-left: 1rem; }
+}

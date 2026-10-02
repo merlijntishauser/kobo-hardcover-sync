@@ -1,0 +1,88 @@
+[project]
+name = "kobo-hardcover-sync"
+version = "0.1.0"
+description = "Reading progress from a stock Kobo e-reader to Hardcover, on your own computer or your own server"
+dynamic = ["readme"]
+requires-python = ">=3.12"
+keywords = ["kobo", "hardcover", "e-reader", "reading", "sync"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Utilities",
+]
+license = "MIT"
+# The fonts and photographs the page uses have licences of their own; they
+# travel inside the package, next to the files they are about.
+license-files = ["LICENSE", "THIRD-PARTY-NOTICES.md"]
+authors = [{ name = "Merlijn Tishauser", email = "merlijn@ccadd.nl" }]
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn==0.34.0",
+    "python-multipart==0.0.20",
+    "PyYAML==6.0.2",
+    "cryptography==50.0.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/merlijntishauser/kobo-hardcover-sync"
+Documentation = "https://github.com/merlijntishauser/kobo-hardcover-sync#readme"
+Changelog = "https://github.com/merlijntishauser/kobo-hardcover-sync/blob/main/CHANGELOG.md"
+Issues = "https://github.com/merlijntishauser/kobo-hardcover-sync/issues"
+
+[project.scripts]
+kobo-hardcover-sync = "kobo_hardcover_sync.cli:main"
+
+[dependency-groups]
+dev = ["pytest", "httpx", "ruff"]
+browser = ["playwright==1.63.0"]
+
+[build-system]
+requires = ["hatchling", "hatch-fancy-pypi-readme"]
+build-backend = "hatchling.build"
+
+# The README as PyPI shows it: the same text, with the pictures and the
+# links to files in this repository pointing at the released version on
+# GitHub (PyPI cannot follow a relative link).
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '(src=")(src/|docs/)'
+replacement = '\1https://raw.githubusercontent.com/merlijntishauser/kobo-hardcover-sync/v$HFPR_VERSION/\2'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '(!\[[^\]]*\]\()(docs/)'
+replacement = '\1https://raw.githubusercontent.com/merlijntishauser/kobo-hardcover-sync/v$HFPR_VERSION/\2'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '(?<!!)(\]\()(?!https?://|#)([^)]+\))'
+replacement = '\1https://github.com/merlijntishauser/kobo-hardcover-sync/blob/v$HFPR_VERSION/\2'
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kobo_hardcover_sync"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "docs", "examples", "README.md", "CHANGELOG.md", "LICENSE", "THIRD-PARTY-NOTICES.md", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 140
+src = ["src"]
+
+[tool.ruff.lint]
+# A fixed set, so a new ruff version does not change what CI enforces.
+# Long lines are left to the formatter: the page is built from long
+# f-strings of HTML that no rule should make anyone break up.
+select = ["E4", "E7", "E9", "F", "I", "UP", "B"]

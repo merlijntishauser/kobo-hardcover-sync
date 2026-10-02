@@ -1,0 +1,12 @@
+The photographs in this folder are not part of kobo-hardcover-sync's own
+code and are not under its MIT licence. They come from Unsplash and are used
+under the Unsplash License (https://unsplash.com/license), which allows
+copying, changing and distributing them, also commercially, but not selling
+them without significant modification and not collecting them into a
+competing image service.
+
+kobo-day.webp    by Spencer (@spen), https://unsplash.com/photos/DXobXpIa9_4
+kobo-night.webp  by Amanz (@amanz),  https://unsplash.com/photos/S6R5ZirJAFk
+
+Both were scaled to 1280 px wide and saved as WebP. Both pages said "Free to
+use under the Unsplash License" when read on 2026-10-02.
