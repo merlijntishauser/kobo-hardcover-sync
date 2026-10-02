@@ -73,6 +73,9 @@ SHELF_ID_OK = re.compile(r"^[0-9a-f-]{36}$")
 BACKUPS_KEPT = 3
 NAME_MAX = 60
 
+UNTESTED_HOW = 'To try it anyway, see "The collection on the Kobo" in the README.'
+IN_USE = "Close other programs that read the Kobo (Calibre, the Kobo desktop app) and plug it in again."
+
 # For tests: called inside the transaction just before COMMIT, and right
 # after it. A real interruption looks like one of these raising or dying.
 _before_commit = None
@@ -171,10 +174,11 @@ def check(con: sqlite3.Connection, allow_untested: bool = False) -> int:
             version,
         )
     if version not in KNOWN_VERSIONS and not allow_untested:
-        tested = ", ".join(f"{v} (Kobo software {fw})" for v, fw in sorted(KNOWN_VERSIONS.items()))
+        tested = ", ".join(f"{v}, Kobo software {fw}" for v, fw in sorted(KNOWN_VERSIONS.items()))
         raise UnsupportedKobo(
-            f"This Kobo's database is version {version}, which has not been tested with kobo-hardcover-sync yet "
-            f"(tested: {tested}). {nothing} The collection on the Kobo stays as it is; syncing to Hardcover is not affected.",
+            f"This Kobo's software has not been tested with kobo-hardcover-sync yet (its database is version {version}; "
+            f"tested: {tested}). {nothing} The collection on the Kobo stays as it is; syncing to Hardcover is not affected. "
+            f"{UNTESTED_HOW}",
             version,
         )
     return version
@@ -205,13 +209,19 @@ def _own_id(state_dir: str, name: str) -> str:
 
 def _open(db_path: str) -> sqlite3.Connection:
     if not os.path.isfile(db_path):
-        raise KoboGone("The Kobo's database is not there. Is the Kobo still plugged in?")
+        raise KoboGone("The Kobo was unplugged before the collection could be written. Nothing was written; plug it in again.")
     try:
         con = sqlite3.connect(f"file:{quote(db_path)}?mode=rw", uri=True, timeout=5, isolation_level=None)
         con.execute("select count(*) from sqlite_master").fetchone()
     except sqlite3.DatabaseError as ex:
-        raise CollectionError(f"The Kobo's database could not be opened: {ex}") from ex
+        if _busy(ex):
+            raise CollectionError(f"The Kobo's database is in use by another program; nothing was written. {IN_USE}") from ex
+        raise CollectionError(f"The Kobo's database could not be opened ({ex}); nothing was written.") from ex
     return con
+
+
+def _busy(ex: Exception) -> bool:
+    return "locked" in str(ex) or "busy" in str(ex)
 
 
 def _wanted(con: sqlite3.Connection, ids) -> None:
@@ -287,8 +297,11 @@ def _backup(con: sqlite3.Connection, state_dir: str) -> str:
     return plain + ".gz"
 
 
-def _write(con: sqlite3.Connection, statements, backup: str) -> None:
-    """One transaction, flushed all the way to the device before it counts."""
+def _write(con: sqlite3.Connection, statements, backup: str, db_path: str, committed=None) -> None:
+    """One transaction, flushed all the way to the device before it counts.
+    committed: called once the transaction is on the Kobo, before anything
+    that can still fail."""
+    landed = False
     try:
         # On macOS an ordinary fsync may leave data in the drive's cache;
         # the Kobo is about to be unplugged, so ask for the real thing.
@@ -305,13 +318,28 @@ def _write(con: sqlite3.Connection, statements, backup: str) -> None:
             with contextlib.suppress(sqlite3.Error):
                 con.execute("rollback")
             raise
+        landed = True
+        if committed:
+            committed()
         con.execute("pragma wal_checkpoint(truncate)")
-    except sqlite3.OperationalError as ex:
-        if "locked" in str(ex) or "busy" in str(ex):
-            raise CollectionError("The Kobo's database is in use by another program; nothing was written.", backup) from ex
-        raise CollectionError(f"Writing to the Kobo failed ({ex}); the change was rolled back.", backup) from ex
     except sqlite3.Error as ex:
-        raise CollectionError(f"Writing to the Kobo failed ({ex}); the change was rolled back.", backup) from ex
+        again = "Plug it in again: the next sync looks at the collection and writes it again if needed."
+        if _busy(ex) and not landed:
+            raise CollectionError(f"The Kobo's database is in use by another program; nothing was written. {IN_USE}", backup) from ex
+        if not os.path.isfile(db_path):
+            raise KoboGone(
+                f"The Kobo was unplugged while the collection was being written. {again} The database as it was before is in {backup}.",
+                backup,
+            ) from ex
+        if landed:
+            raise CollectionError(
+                f"The collection was written, but the Kobo did not confirm it ({ex}). {again} "
+                f"The database as it was before is in {backup}.",
+                backup,
+            ) from ex
+        raise CollectionError(
+            f"Writing to the Kobo failed ({ex}); the change was rolled back. Plug the Kobo in again to try once more.", backup
+        ) from ex
     if _after_commit:
         _after_commit()
 
@@ -322,14 +350,18 @@ def _reopen(db_path: str, backup: str) -> sqlite3.Connection:
         return _open(db_path)
     except CollectionError as ex:
         raise KoboGone(
-            "The Kobo disappeared right after the write. Plug it in again and check the collection; "
-            f"the database as it was before is in {backup}.",
+            "The Kobo was unplugged right after the collection was written. Plug it in again: the next sync looks at the "
+            f"collection and writes it again if needed. The database as it was before is in {backup}.",
             backup,
         ) from ex
 
 
 def _not_as_written(backup: str) -> CollectionError:
-    return CollectionError(f"The collection on the Kobo is not what was written; the database as it was before is in {backup}.", backup)
+    return CollectionError(
+        "The collection on the Kobo is not what was written. Plug the Kobo in again to let the next sync mend it; "
+        f"the database as it was before is in {backup}.",
+        backup,
+    )
 
 
 def _take_off(con: sqlite3.Connection, now: str, shelf_id: str, name: str) -> None:
@@ -442,13 +474,16 @@ def apply(db_path: str, name: str, ids, state_dir: str, *, preflight_db: str | N
             )
             con.execute("update Shelf set LastModified = ?, _IsSynced = 0 where Id = ?", (now, shelf_id))
 
-        _write(con, statements, backup)
+        def remember():
+            # Only once it is on the Kobo, and then at once: whatever fails
+            # after this, the collection there is known to be this tool's.
+            tmp = _idfile(state_dir, name) + ".tmp"
+            with open(tmp, "w") as fh:
+                fh.write(shelf_id)
+            os.replace(tmp, _idfile(state_dir, name))
 
-    # Remembered only once it is on the Kobo.
-    tmp = _idfile(state_dir, name) + ".tmp"
-    with open(tmp, "w") as fh:
-        fh.write(shelf_id)
-    os.replace(tmp, _idfile(state_dir, name))
+        _write(con, statements, backup, db_path, committed=remember)
+
     books = _verify(db_path, name, backup, ids)
     return Result("updated" if existing else "created", books, to_add, to_remove, backup)
 
@@ -484,7 +519,7 @@ def remove(db_path: str, name: str, state_dir: str, *, allow_untested: bool = Fa
         backup = _backup(con, state_dir)
         now = _now()
 
-        _write(con, lambda: _take_off(con, now, existing, name), backup)
+        _write(con, lambda: _take_off(con, now, existing, name), backup, db_path)
     with contextlib.suppress(FileNotFoundError):
         os.unlink(_idfile(state_dir, name))
     _verify(db_path, name, backup)
@@ -549,7 +584,7 @@ def remove_others(db_path: str, keep_name: str, state_dir: str, *, preflight_db:
             for shelf_id, name in others:
                 _take_off(con, now, shelf_id, name)
 
-        _write(con, statements, backup)
+        _write(con, statements, backup, db_path)
     for shelf_id, _name in others:
         with contextlib.suppress(FileNotFoundError):
             os.unlink(remembered[shelf_id])

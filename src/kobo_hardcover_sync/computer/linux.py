@@ -179,6 +179,23 @@ class Linux(Computer):
             f"It reacts to a Kobo mounted as {LABEL} under {' or '.join(self.volume_roots())}, where the desktop puts it.",
         ]
 
+    def trigger_state(self) -> tuple[bool, str]:
+        again = "Run `kobo-hardcover-sync setup` again from a desktop session."
+        unit = os.path.join(self.unit_dir, UNIT)
+        command = ""
+        try:
+            with open(unit) as fh:
+                for line in fh:
+                    if line.startswith('ExecStart="'):
+                        command = line[len('ExecStart="') :].split('"', 1)[0]
+        except OSError:
+            return False, f"No trigger on this computer: plugging in the Kobo does nothing by itself. {again}"
+        if not (command and os.access(command, os.X_OK)):
+            return False, f"The trigger starts {command or 'a command'} that is not there any more. {again}"
+        if not self.which("systemctl") or self._call("systemctl", "--user", "is-enabled", UNIT).returncode != 0:
+            return False, f"The user service is written but not enabled, so nothing starts it. {again}"
+        return True, f"Plugging in the Kobo starts a sync (user service enabled; it runs {command})."
+
     def remove_trigger(self) -> list[str]:
         if self.which("systemctl"):
             self._call("systemctl", "--user", "disable", UNIT)

@@ -43,6 +43,12 @@ class Computer:
     def eject(self, mount: str) -> bool:
         raise NotImplementedError
 
+    def cannot_read(self, by_hand: bool) -> str:
+        """What to do when this computer does not let the tool read the
+        Kobo's files. by_hand: the tool was started in a terminal, not by
+        the trigger."""
+        return "This computer does not let the tool read the Kobo's files. Check how the Kobo is mounted, and for whom."
+
     # --- secrets (never on a command line, never in a log)
     def secret(self, name: str) -> str:
         raise NotImplementedError
@@ -69,6 +75,11 @@ class Computer:
         raise NotImplementedError
 
     def remove_trigger(self) -> list[str]:
+        raise NotImplementedError
+
+    def trigger_state(self) -> tuple[bool, str]:
+        """Whether plugging in the Kobo starts a sync, and in words what
+        was found. Looks only."""
         raise NotImplementedError
 
 

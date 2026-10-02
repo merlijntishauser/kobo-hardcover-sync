@@ -131,7 +131,7 @@ nothing sent, nothing written to the Kobo.
   the state folder, so a second `open` reuses the running page.
 - It stops after 30 minutes without a request.
 - The reader is always the one built-in reader. Settings shows the
-  Hardcover token (set, test, remove), live or dry run, the collection
+  Hardcover token (set, remove), live or dry run, the collection
   name and eject after sync. No Admin page.
 - First use is as on the server: dry run until the reader goes live, and
   every book already on the Kobo starts as *Off*.
@@ -173,8 +173,9 @@ Added with the move to Python:
 ```
 kobo-hardcover-sync setup [--server URL]   make the trigger; says what permission to give
 kobo-hardcover-sync token                  ask for the Hardcover token, check it, store it
-kobo-hardcover-sync sync [--dry-run]       one sync now
+kobo-hardcover-sync sync [--verbose]       one sync now; --verbose shows it book by book
 kobo-hardcover-sync status                 mode, last sync, Kobo found, token present, collection
+kobo-hardcover-sync doctor                 check everything a sync depends on; changes nothing
 kobo-hardcover-sync open                   start the page and open it
 kobo-hardcover-sync uninstall [--purge]    remove the trigger; --purge also state and secrets
 kobo-hardcover-sync serve                  server mode (what the container runs)
@@ -189,6 +190,10 @@ prints the command.
 - State: `~/Library/Application Support/kobo-hardcover-sync/` on macOS,
   `~/.local/share/kobo-hardcover-sync/` on Linux (state database, covers,
   Kobo backups, log, lock).
+- The log, `agent.log` there, has two levels (`logs.py`): counts and
+  messages without book titles, and verbose, a line per book and per
+  request to Hardcover. It is kept to about a megabyte, with one older
+  file beside it. No token is written to it at either level.
 - Settings chosen at `setup` (the mode and the server address): a small
   file next to the state.
 - On the Mac the app wrapper stays for now: Full Disk Access given to

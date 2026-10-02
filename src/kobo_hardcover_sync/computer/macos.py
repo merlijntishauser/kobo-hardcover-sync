@@ -122,6 +122,17 @@ class MacOS(Computer):
     def eject(self, mount: str) -> bool:
         return self._call("/usr/sbin/diskutil", "eject", mount).returncode == 0
 
+    def cannot_read(self, by_hand: bool) -> str:
+        if by_hand:
+            return (
+                "macOS does not let this terminal read the Kobo. Allow it when macOS asks, or under System Settings, "
+                "Privacy & Security, Files & Folders (Removable Volumes)."
+            )
+        return (
+            f"macOS does not let the tool read the Kobo. Give {APP} Full Disk Access (System Settings, Privacy & Security, "
+            "Full Disk Access), then plug the Kobo in again."
+        )
+
     # --- secrets: the Keychain
     def secret(self, name: str, service: str = KEYCHAIN) -> str:
         r = self._call("/usr/bin/security", "find-generic-password", "-s", service, "-a", name, "-w")
@@ -231,6 +242,21 @@ class MacOS(Computer):
             f"  {self.app}",
             "(Remove an older Kobo Hardcover Sync entry there first.)",
         ]
+
+    def trigger_state(self) -> tuple[bool, str]:
+        again = "Run `kobo-hardcover-sync setup` again."
+        if not os.path.isfile(self.plist) or not os.path.isdir(self.app):
+            return False, f"No trigger on this Mac: plugging in the Kobo does nothing by itself. {again}"
+        try:
+            with open(os.path.join(self.state, "command")) as fh:
+                command = fh.read().strip()
+        except OSError:
+            command = ""
+        if not (command and os.access(command, os.X_OK)):
+            return False, f"The trigger starts {command or 'a command'} that is not there any more. {again}"
+        if self._call("/bin/launchctl", "print", f"gui/{os.getuid()}/{LABEL}").returncode != 0:
+            return False, f"The launch agent is there but not loaded. {again}"
+        return True, f"Plugging in the Kobo starts a sync (launch agent loaded; it runs {command})."
 
     def remove_trigger(self) -> list[str]:
         self._call("/bin/launchctl", "bootout", f"gui/{os.getuid()}/{LABEL}")

@@ -7,7 +7,36 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Added
+
+- `kobo-hardcover-sync doctor`: checks everything a sync depends on (the
+  setup, the trigger, the Kobo and its database, the Hardcover token, the
+  collection, the backups) and says per item what to do. It changes
+  nothing, and ends with status 1 when something stops syncing from
+  working.
+- The same check on the page: a *Check* card under Settings. It takes the
+  place of the *Test* button next to the token.
+- `kobo-hardcover-sync sync --verbose`, and `verbose_log = true` in
+  `config.toml`: a log line per book and per request to Hardcover. A
+  verbose log contains book titles. On a server: `KHS_LOG=verbose`.
+
+### Changed
+
+- Messages say what to do next. A Kobo that was unplugged during a sync, a
+  database another program is using, a Mac that does not let the tool read
+  the Kobo and a Kobo whose software has not been tested each have their
+  own message, instead of one that guessed at Full Disk Access.
+- Log lines carry a level (`info`, `warning`, `error`, `detail`), and the
+  log is kept to about a megabyte with one older file beside it. The
+  server now logs each run for Hardcover, in counts.
+- Something the tool did not expect no longer ends a sync without a word:
+  the notification says so and the details go to the log.
+
+### Fixed
+
+- A collection that was written to the Kobo just as it was unplugged is
+  recognised as the tool's own at the next sync. Before, it could be taken
+  for a collection of yours with the same name and left alone for good.
 
 ## 0.1.0 - 2026-10-02
 

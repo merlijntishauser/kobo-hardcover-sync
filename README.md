@@ -159,8 +159,9 @@ Other commands:
 
 | | |
 |---|---|
-| `kobo-hardcover-sync sync` | One sync now, from a terminal. Without a Kobo it still exchanges changes with Hardcover (local mode). |
-| `kobo-hardcover-sync status` | What is set up, the Kobo it sees, its model and software, the last message. |
+| `kobo-hardcover-sync sync` | One sync now, from a terminal. Without a Kobo it still exchanges changes with Hardcover (local mode). `--verbose` shows what it does, book by book. |
+| `kobo-hardcover-sync status` | What is set up, the Kobo it sees, its model and software, the last message. Quick, and never uses the network. |
+| `kobo-hardcover-sync doctor` | Checks everything a sync depends on and says what to do about what is wrong. Changes nothing. |
 | `kobo-hardcover-sync open` | The page. |
 | `kobo-hardcover-sync token --remove` | Forget the Hardcover token and go back to dry run. |
 | `kobo-hardcover-sync uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
@@ -262,7 +263,8 @@ alone cannot upload anything.
 Settings of the server, as environment variables: `KHS_DATA`, `KHS_HOST`,
 `KHS_TRUSTED_PROXIES`, `KHS_SECRET_KEY`, `KHS_INTERVAL` (seconds between
 syncs with Hardcover, 0 for never), `KHS_MAX_UPLOAD_MB`,
-`KHS_SNAPSHOT_DAYS`, `KHS_COVER_URL`, and `TZ` for the time zone.
+`KHS_SNAPSHOT_DAYS`, `KHS_COVER_URL`, `KHS_LOG` (`verbose` for a line per
+book in the server's log, with book titles), and `TZ` for the time zone.
 
 ## Privacy
 
@@ -312,19 +314,45 @@ The full list is at the end of [docs/sync-rules.md](docs/sync-rules.md).
 
 ## When something does not work
 
-Start with `kobo-hardcover-sync status`. The log is `agent.log` in the
-tool's folder: `~/Library/Application Support/kobo-hardcover-sync/` on a
-Mac, `~/.local/share/kobo-hardcover-sync/` on Linux.
+Start with `kobo-hardcover-sync doctor`. It looks at everything a sync
+depends on (the setup, the trigger, the Kobo and its database, your
+Hardcover token, the collection, the backups), changes nothing, and says
+per item what it found and what to do:
+
+```
+ok       Kobo: Found at /Volumes/KOBOeReader (Kobo Clara Colour, software 6.0.274403).
+ok       Database: The Kobo's database can be read: 412 books on it.
+problem  Hardcover: Hardcover does not accept your token. It has expired, was removed or is not complete: make a new one on Hardcover and put it under Settings.
+note     Sending: Dry run: the page shows what would be sent, and nothing goes to Hardcover.
+         To do: Go live under Settings when the plan looks right.
+```
+
+The page has the same check under Settings, in the *Check* card. With a
+server each side sees its own half: the card on the server's page checks
+your token, Hardcover and what was uploaded; `doctor` on the computer
+checks the Kobo and whether the server knows that computer.
+
+The log is `agent.log` in the tool's folder:
+`~/Library/Application Support/kobo-hardcover-sync/` on a Mac,
+`~/.local/share/kobo-hardcover-sync/` on Linux. It holds what happened in
+counts and messages, and no book titles. For a line per book, run
+`kobo-hardcover-sync sync --verbose` once, or put `verbose_log = true` in
+`config.toml` in that folder to have it for every sync. **A verbose log
+contains your book titles**: read it before you share it. Neither log ever
+holds a token.
 
 | You see | What to do |
 |---|---|
 | Nothing happens when the Kobo is plugged in | Tap *Connect* on the Kobo. On a Mac, check that `KoboHardcoverSync.app` has Full Disk Access. Run `kobo-hardcover-sync sync` in a terminal to see the message. |
-| "Could not read the Kobo's database. Does the app have Full Disk Access?" | Give the app the permission (step 1 above). If you rebuilt the app, remove its old entry there first and add it again. |
+| "macOS does not let the tool read the Kobo. Give KoboHardcoverSync.app Full Disk Access ..." | Give the app the permission (step 1 above). If you rebuilt the app, remove its old entry there first and add it again. |
+| "The Kobo was unplugged during the sync" | Plug it in again. Nothing on the Kobo was changed; what was already sent to Hardcover stays sent. |
+| "The Kobo's database is in use by another program" | Close Calibre, the Kobo desktop app or anything else that reads the Kobo, and plug it in again. |
 | "Nothing new." | The Kobo is as it was at the last sync. Read a page and plug it in again. |
 | "Hardcover does not accept your token" | It expired or was removed. Make a new one: `kobo-hardcover-sync token`, or Settings on a server. |
 | "Your Hardcover token may not do this (it lacks: ...)" | The token was made without one of the four permissions. Make a new one with the link the tool gives. |
 | *Needs a Hardcover match* on a book | Open its Details and choose the right book, or search for it there. |
-| "Collection not updated: ..." with a database version | Your Kobo's software has not been tried yet. Syncing to Hardcover still works. See [the collection](#the-collection-on-the-kobo). |
+| "Collection not updated: This Kobo's software has not been tested ..." | Your Kobo's software has not been tried yet. Syncing to Hardcover still works. See [the collection](#the-collection-on-the-kobo). |
+| "Something went wrong that this tool did not expect" | A bug. The details are in `agent.log`; please [report it](https://github.com/merlijntishauser/kobo-hardcover-sync/issues) with the output of `doctor`. |
 | "None of the N books this tool put on your Hardcover shelf are on the shelf ..." | The token belongs to another Hardcover account, or you emptied the shelf yourself. Nothing was switched off. Fix the token, or switch those books off on the page. |
 | "Hardcover could not be reached" or "Today's number of requests ... is used up" | Nothing is lost. The next sync carries on. |
 | The server answers 403 to everything, or does not start | `KHS_TRUSTED_PROXIES` does not name the address your proxy connects from. |

@@ -24,6 +24,7 @@ guesses.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import time
@@ -79,6 +80,8 @@ class HardcoverError(Exception):
 
 
 NOTHING_LOST = "Nothing is lost: the next sync carries on"
+log = logging.getLogger(__name__)
+ASKS = re.compile(r"\{\s*(\w+)")  # the first field of a request: what it asks for
 
 
 def not_understood(what: str) -> HardcoverError:
@@ -192,12 +195,16 @@ class Client:
         """write: the request changes something on Hardcover, so it is only
         sent again when Hardcover says it was not carried out."""
         payload = json.dumps({"query": query, "variables": variables or {}}).encode()
+        asks = m.group(1) if (m := ASKS.search(query)) else "?"
         for backoff in (*self._backoff, None):  # None: the last try
             pause = MIN_INTERVAL - (time.monotonic() - self._last)
             if pause > 0:
                 self._sleep(pause)
+            began = time.monotonic()
             status, headers, raw = self._exchange(payload)
             self._last = time.monotonic()
+            # What was asked and how it went; never what was sent with it.
+            log.debug("hardcover %s: %s in %.1fs", asks, status or "no answer", self._last - began)
             try:
                 return self._judge(status, headers, raw, write)
             except _Again as again:

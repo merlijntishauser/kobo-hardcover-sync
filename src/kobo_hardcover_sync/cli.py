@@ -15,11 +15,17 @@ kobo-hardcover-sync token [--remove]
     Local mode: ask for your Hardcover token, check it with Hardcover, and
     keep it in the Keychain. (The page's Settings does the same.)
 
-kobo-hardcover-sync sync
-    One sync now.
+kobo-hardcover-sync sync [--verbose]
+    One sync now. --verbose shows the log while it runs, with a line per
+    book (book titles are in it).
 
 kobo-hardcover-sync status
-    What is set up, and what it sees.
+    What is set up, and what it sees. Quick, and never uses the network.
+
+kobo-hardcover-sync doctor
+    Check everything a sync depends on, and say what to do about what is
+    wrong. Changes nothing; asks Hardcover (or your server) one question.
+    Ends with status 1 when something stops syncing from working.
 
 kobo-hardcover-sync open
     Open the page (local mode: it is started for the occasion).
@@ -61,7 +67,7 @@ from .env import env
 def main(argv: list[str] | None = None, computer=None) -> None:
     p = argparse.ArgumentParser(prog="kobo-hardcover-sync")
     p.add_argument("--version", action="version", version=f"kobo-hardcover-sync {__version__}")
-    sub = p.add_subparsers(dest="cmd", required=True, metavar="{setup,token,sync,status,open,uninstall,serve,import}")
+    sub = p.add_subparsers(dest="cmd", required=True, metavar="{setup,token,sync,status,doctor,open,uninstall,serve,import}")
     stp = sub.add_parser("setup", help="make this computer sync a plugged-in Kobo")
     stp.add_argument("--server", default="", help="the server's address, e.g. https://kobo.example.org")
     stp.add_argument("--local", action="store_true", help="everything on this computer, no server")
@@ -73,7 +79,9 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     sub.add_parser("page", help=argparse.SUPPRESS)  # what `open` starts in local mode
     syn = sub.add_parser("sync", help="one sync now")
     syn.add_argument("--trigger", default="", help=argparse.SUPPRESS)  # "mount": started by the plug-in trigger
+    syn.add_argument("--verbose", action="store_true", help="show the log while it runs, a line per book (with titles)")
     sub.add_parser("status", help="what is set up, and what it sees")
+    sub.add_parser("doctor", help="check everything a sync depends on; changes nothing")
     sub.add_parser("open", help="open the page")
     uni = sub.add_parser("uninstall", help="remove the trigger")
     uni.add_argument("--purge", action="store_true", help="also remove the state and the upload token")
@@ -107,14 +115,25 @@ def main(argv: list[str] | None = None, computer=None) -> None:
         computer = computer or platform.pick()
     except platform.Unsupported as ex:
         sys.exit(f"kobo-hardcover-sync: {ex}")
-    {"setup": _setup, "sync": _sync, "status": _status, "open": _open, "uninstall": _uninstall, "token": _token}[a.cmd](a, computer)
+    commands = {
+        "setup": _setup,
+        "sync": _sync,
+        "status": _status,
+        "doctor": _doctor,
+        "open": _open,
+        "uninstall": _uninstall,
+        "token": _token,
+    }
+    commands[a.cmd](a, computer)
 
 
 def _serve(a) -> None:
     import uvicorn
 
+    from . import logs
     from .server import proxy
 
+    logs.to_stderr()  # KHS_LOG=verbose: a line per book, with titles
     try:
         if not proxy.parse(env("TRUSTED_PROXIES", "")):
             sys.exit("kobo-hardcover-sync: not started. " + proxy.HOW)
@@ -229,7 +248,7 @@ def _token(a, computer) -> None:
 def _sync(a, computer) -> None:
     from .computer import runner
 
-    out = runner.sync(computer, trigger=a.trigger)
+    out = runner.sync(computer, trigger=a.trigger, verbose=a.verbose)
     if out.message:
         if a.trigger:  # started by the plug-in trigger or the small app: tell the person there
             computer.notify(out.title, out.message)
@@ -286,6 +305,18 @@ def _status(a, computer) -> None:
         print(f"Last:    {lines[-1]}: {' '.join(lines[:-1])}")
     except (FileNotFoundError, IndexError):
         print("Last:    nothing synced yet")
+
+
+def _doctor(a, computer) -> None:
+    import platform as os_platform
+
+    from . import doctor
+
+    print(f"kobo-hardcover-sync {__version__}, Python {os_platform.python_version()}, {os_platform.platform(terse=True)}\n")
+    checks = doctor.computer_checks(computer)
+    print(doctor.report(checks))
+    if doctor.problems(checks):
+        sys.exit(1)
 
 
 def _open(a, computer) -> None:

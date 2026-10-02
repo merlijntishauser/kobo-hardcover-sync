@@ -273,11 +273,15 @@ of the books that sync. This is the only thing ever written to the Kobo.
   copies are kept.
   Tests: `tests/test_collection.py::test_only_the_last_three_backups_are_kept`
 - **K9** A write happens completely or not at all, also when the tool dies
-  or the Kobo is pulled out in the middle.
+  or the Kobo is pulled out in the middle. A write that did reach the Kobo
+  is known to be this tool's from that moment, so the next sync carries on
+  with it, also when the Kobo was gone before the tool could look again.
   Tests: `tests/test_collection.py::test_a_failure_inside_the_write_changes_nothing`,
   `tests/test_collection.py::test_a_process_that_dies_in_the_middle_of_the_write_changes_nothing`,
   `tests/test_collection.py::test_a_first_write_that_fails_does_not_remember_a_collection`,
-  `tests/test_collection.py::test_a_kobo_that_disappears_right_after_the_write_is_reported_with_the_backup`
+  `tests/test_collection.py::test_a_kobo_that_disappears_right_after_the_write_is_reported_with_the_backup`,
+  `tests/test_collection.py::test_a_write_that_landed_but_was_not_confirmed_is_still_this_tools_collection`,
+  `tests/test_collection.py::test_a_kobo_unplugged_during_the_write_says_so`
 - **K10** Books that are not on this Kobo are skipped, and so are books you
   put on the Kobo yourself (sideloaded): they can sync to Hardcover, but
   they are not put in the collection.

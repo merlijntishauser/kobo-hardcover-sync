@@ -308,6 +308,35 @@ def test_settings_and_admin_on_a_phone_and_in_dark(browser, base_url):
     ctx.close()
 
 
+def test_the_check_card_says_what_it_found_and_fits_a_phone(browser, base_url):
+    ctx, page = new_page(browser, base_url, scheme="dark", width=390)
+    page.goto(base_url + "/settings")
+    assert page.locator(".checks").count() == 0  # nothing is checked by looking at the page
+    page.click("#check button")
+    page.wait_for_selector(".checks li")
+    assert page.url == base_url + "/settings/check#check"
+    assert page.evaluate("document.querySelector('#check').getBoundingClientRect().top") < 300  # the page lands on the card
+    found = page.inner_text(".checks")
+    assert "No Hardcover token yet" in found and "kobo-hardcover-sync doctor" in found
+    assert page.inner_text("#check button") == "Check again" and page.locator("#check [role=status]").count() == 1
+    assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    page.screenshot(path=os.path.join(OUT, "kobo-check-phone-dark.png"), full_page=True) if OUT else None
+    page.add_style_tag(content="html { font-size: 200% !important; }")
+    page.wait_for_timeout(200)
+    sticking_out = page.evaluate(
+        """() => [...document.querySelectorAll('main *')].filter(e => e.getBoundingClientRect().right > innerWidth + 1)
+                 .map(e => e.tagName + '.' + e.className + ' ' + (e.getAttribute('action') || e.textContent.slice(0, 30)))"""
+    )
+    assert sticking_out == [], sticking_out[:6]
+    ctx.close()
+    ctx, page = new_page(browser, base_url)
+    page.goto(base_url + "/settings")
+    page.click("#check button")
+    page.wait_for_selector(".checks li")
+    page.locator("#check").screenshot(path=os.path.join(OUT, "kobo-check.png")) if OUT else None
+    ctx.close()
+
+
 def test_a_new_login_signs_up_and_sees_what_to_do(browser, base_url):
     ctx, page = new_page(browser, base_url, user="kim")
     assert "Welcome to Kobo Hardcover Sync" in page.inner_text("main") and page.locator(".nav").count() == 0

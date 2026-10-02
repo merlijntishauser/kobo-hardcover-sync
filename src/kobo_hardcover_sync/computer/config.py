@@ -9,6 +9,7 @@ Settings are a few lines of `key = "value"` in config.toml there:
     server = "https://kobo.example.org"   # server mode; absent = local mode
     eject_after_sync = false
     allow_untested_kobo = false
+    verbose_log = false                   # true: book titles in agent.log
 """
 
 from __future__ import annotations
@@ -34,6 +35,7 @@ class Config:
     server: str = ""  # "" = local mode
     eject_after_sync: bool = False
     allow_untested_kobo: bool = False
+    verbose_log: bool = False
 
     set_up: bool = False  # has `setup` been run here?
 
@@ -58,6 +60,7 @@ def load() -> Config:
     c.server = str(data.get("server") or "").rstrip("/")
     c.eject_after_sync = bool(data.get("eject_after_sync", False))
     c.allow_untested_kobo = bool(data.get("allow_untested_kobo", False))
+    c.verbose_log = bool(data.get("verbose_log", False))
     return c
 
 
@@ -68,6 +71,7 @@ def save(c: Config) -> None:
         lines.append("server = " + _quote(c.server.rstrip("/")))
     lines.append(f"eject_after_sync = {str(c.eject_after_sync).lower()}")
     lines.append(f"allow_untested_kobo = {str(c.allow_untested_kobo).lower()}")
+    lines.append(f"verbose_log = {str(c.verbose_log).lower()}")
     tmp = c.path + ".tmp"
     with open(tmp, "w") as fh:
         fh.write("\n".join(lines) + "\n")

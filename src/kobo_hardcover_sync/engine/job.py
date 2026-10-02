@@ -13,12 +13,14 @@ engine's business."""
 from __future__ import annotations
 
 import json
+import logging
 import threading
 from datetime import UTC, datetime, timedelta
 
 from . import hardcover, state, syncback
 from .plan import action, desired, quiet
 
+log = logging.getLogger(__name__)  # titles only at debug level (see logs.py)
 _running: set[str] = set()
 _lock = threading.Lock()
 
@@ -50,16 +52,21 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
                 (m["how"], m["book_id"], m["edition_id"], m["pages"], m["title"], json.dumps(m["candidates"]), reader, cid),
             )
             counts["matched" if m["book_id"] else "uncertain"] += 1
+            if m["book_id"]:
+                log.debug("matched %r: Hardcover book %s (%s)", m["title"], m["book_id"], m["how"])
+            else:
+                log.debug("no sure match for Kobo book %s: left for the reader to choose", cid)
         con.commit()
         counts["editions"] = choose_editions(con, reader, client)
         existing = {u["book_id"]: u for u in shelf}
         rows = syncing_rows(con, reader)
         silent = quiet(rows)
         for r in rows:
-            if not r["hc_book_id"] or (r["device"], r["content_id"]) in silent or not action(r):
+            if not r["hc_book_id"] or (r["device"], r["content_id"]) in silent or not (what := action(r)):
                 continue
             if not live:
                 counts["planned"] += 1
+                log.debug("would send %r: %s", r["title"], what)
                 continue
             try:
                 sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
@@ -68,12 +75,15 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
                 state.record_sent(con, reader, r, json.dumps(new))
                 con.execute("update book set hc_error=null where reader=? and content_id=?", (reader, r["content_id"]))
                 counts["sent"] += 1
+                log.debug("sent %r: %s", r["title"], what)
             except hardcover.HardcoverError as e:
                 if e.stops_the_run:  # no token, no connection, too many requests: the next book would hear the same
                     con.commit()
                     raise
                 con.execute("update book set hc_error=? where reader=? and content_id=?", (str(e)[:300], reader, r["content_id"]))
                 counts["errors"] += 1
+                log.warning("a book could not be sent (%s); its row on the page says why", e.kind)
+                log.debug("not sent %r: %s", r["title"], e)
             con.commit()
         status = "ok" if not counts["errors"] else "errors"
     except hardcover.HardcoverError as e:
@@ -86,6 +96,13 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
         (state.now(), status, json.dumps(counts), reader, started),
     )
     con.commit()
+    log.log(
+        logging.INFO if status == "ok" else logging.ERROR,
+        "hardcover (%s) for %s: %s",
+        "live" if live else "dry run",
+        reader,
+        {"status": status, **counts},
+    )
     return {"status": status, **counts}
 
 

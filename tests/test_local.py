@@ -178,7 +178,9 @@ def test_a_kobo_unplugged_halfway(home, monkeypatch):
 
     monkeypatch.setattr(job, "run", unplugged_during_the_hardcover_half)
     out = runner.sync(mac, LOCAL, hardcover_client=hc)
-    assert out.ok and out.message == "2 sent to Hardcover. Collection not updated: The Kobo's database is not there."
+    assert out.ok and out.message == (
+        "2 sent to Hardcover. Collection not updated: The Kobo was unplugged before the collection could be written."
+    )
     assert "Eject" not in out.message and os.listdir(home / "scratch") == []
     # Plugged in again: Hardcover already has them, the collection catches up.
     monkeypatch.setattr(job, "run", real)
@@ -337,6 +339,36 @@ def test_the_token_goes_to_the_secret_store_from_the_page(local, monkeypatch):
     assert config.load().eject_after_sync is False
     inside.post("/settings/token/remove", headers=ORIGIN)
     assert mac.secrets == {} and st_of(web).execute("select hardcover_live from reader").fetchone()[0] == 0
+
+
+def test_the_check_card_in_local_mode_looks_at_the_kobo_too(local, monkeypatch):
+    web, mac, inside = local
+    kobo(web_home(web))
+    mac.set_secret(HARDCOVER, TOKEN)
+
+    class Stub:
+        def __init__(self, token, **kw):
+            assert token == TOKEN
+
+        def whoami(self):
+            return {"id": 1, "username": "sam"}
+
+    monkeypatch.setattr(hardcover, "Client", Stub)
+    page_before = inside.get("/settings").text
+    assert ">Check now</button>" in page_before and "with the Kobo plugged in, the Kobo too" in page_before
+    r = inside.post("/settings/check", headers=ORIGIN)
+    assert r.status_code == 200 and TOKEN not in r.text
+    for line in (
+        "<b>Setup</b> Local mode: everything happens on this computer.",
+        "<b>Hardcover</b> Hardcover is reachable and accepts the token: it is @sam&#x27;s.",
+        "<b>Kobo</b> Found at ",
+        "<b>Database</b> The Kobo&#x27;s database can be read: 9 books on it.",
+        "<b>Kobo software</b> Database version 222 is one this tool was tested with (Kobo software 6.0.274403).",
+        "<b>Trigger</b> No trigger on this computer.",
+        "run <code>kobo-hardcover-sync sync</code> with the Kobo plugged in",
+    ):
+        assert line in r.text, line
+    assert inside.post("/settings/check").status_code == 403  # not without the page's own Origin
 
 
 def test_sync_now_on_the_page_is_the_whole_sync(local, monkeypatch):

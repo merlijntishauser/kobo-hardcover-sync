@@ -18,7 +18,7 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from kobo_hardcover_sync import cli
+from kobo_hardcover_sync import cli, doctor
 from kobo_hardcover_sync.computer import config, macos, remote, runner
 from kobo_hardcover_sync.computer.platform import UPLOAD, Computer
 from kobo_hardcover_sync.engine import collection, kobo_db
@@ -65,6 +65,14 @@ class FakeComputer(Computer):
     def remove_trigger(self):
         self.triggers.clear()
         return ["trigger removed"]
+
+    def trigger_state(self):
+        if self.triggers:
+            return True, "Plugging in the Kobo starts a sync."
+        return False, "No trigger on this computer."
+
+    def cannot_read(self, by_hand):
+        return "This computer does not let " + ("this terminal" if by_hand else "the tool") + " read the Kobo."
 
 
 def plug_in(tmp_path, **kw):
@@ -302,11 +310,84 @@ def test_an_untested_kobo_still_syncs_but_its_collection_is_left_alone(home, ser
     register(server, mac)
     server.page.post("/settings/collection", data={"collection": COLLECTION})
     out = runner.sync(mac, config.Config(server=server.url))
-    assert out.ok and out.message.startswith("9 book(s) updated. Collection not updated: This Kobo's database is version 300")
+    assert out.ok and out.message == (
+        "9 book(s) updated. Collection not updated: This Kobo's software has not been tested with kobo-hardcover-sync yet "
+        "(its database is version 300; tested: 222, Kobo software 6.0.274403)."
+    )
     assert "Eject" not in out.message and members(db) == set()
     server.page.post("/mode", data={"ids": BOOKS[0], "mode": "on"})
     out = runner.sync(mac, config.Config(server=server.url, allow_untested_kobo=True))
     assert out.message.startswith(f"Collection '{COLLECTION}': 1 books") and members(db) == {BOOKS[0]}
+
+
+def test_doctor_on_a_computer_that_uploads_to_a_server(home, server, capsys):
+    db = plug_in(home)
+    mac = FakeComputer(home / "Volumes")
+    cfg = config.Config(server=server.url)
+    config.save(cfg)  # as setup leaves it
+    state_of = lambda checks: {c.what: c.state for c in checks}  # noqa: E731
+
+    # No upload token: nothing to ask the server with.
+    checks = doctor.computer_checks(mac, cfg)
+    assert state_of(checks)["Upload token"] == "fail" and "Server" not in state_of(checks) and doctor.problems(checks) == 1
+    # A token the server was never told about.
+    mac.set_secret(UPLOAD, "u" * 64)
+    checks = doctor.computer_checks(mac, cfg)
+    unknown = next(c for c in checks if c.what == "Server")
+    assert (
+        unknown.state == "fail"
+        and unknown.found == "127.0.0.1 does not know this computer. Add its hash under Settings, Devices (run setup to see it)."
+    )
+    assert next(c for c in checks if c.what == "Collection").found == "Which collection is wanted is not known: the server did not say."
+    # Known to the server, synced, a collection on the Kobo.
+    register(server, mac)
+    mac.install_trigger("kobo-hardcover-sync")
+    runner.sync(mac, cfg)
+    server.page.post("/settings/collection", data={"collection": COLLECTION})
+    server.page.post("/mode", data={"ids": BOOKS[0], "mode": "on"})
+    runner.sync(mac, cfg)
+    before, taken = open(db, "rb").read(), uploads(server)
+    checks = doctor.computer_checks(mac, cfg)
+    assert open(db, "rb").read() == before and uploads(server) == taken  # looked, and nothing else
+    assert state_of(checks) == {
+        "Setup": "ok", "Trigger": "ok", "Folder": "ok", "Upload token": "ok", "Server": "ok", "Hardcover": "note", "Kobo": "ok",
+        "Database": "ok", "Kobo software": "ok", "Collection": "ok", "Backups": "ok", "Last sync": "ok", "Log": "ok",
+    }  # fmt: skip
+    said = {c.what: c.found for c in checks}
+    digest = hashlib.sha256(b"t" * 64).hexdigest()
+    assert said["Upload token"].endswith(f"its hash starts with {digest[:8]}.") and digest not in doctor.report(checks)
+    assert said["Server"] == "127.0.0.1 is reachable and knows this computer."
+    assert said["Hardcover"] == f"Your Hardcover token and your books are checked on the server: {server.url}/settings, Check."
+    assert said["Collection"] == f"'{COLLECTION}' is on the Kobo, with 1 book."
+    assert "t" * 64 not in doctor.report(checks)
+    # A server that is not there.
+    away = next(c for c in doctor.computer_checks(mac, config.Config(server="http://127.0.0.1:9", set_up=True)) if c.what == "Server")
+    assert away.state == "fail" and away.found.startswith("Could not reach 127.0.0.1")
+
+
+def test_whether_plugging_in_starts_a_sync_on_a_mac(home):
+    fake = FakeMac()
+    mac = macos.MacOS(run=fake, home=str(home), volumes=str(home / "Volumes"))
+    assert mac.trigger_state() == (
+        False,
+        "No trigger on this Mac: plugging in the Kobo does nothing by itself. Run `kobo-hardcover-sync setup` again.",
+    )
+    tool = home / "bin" / "kobo-hardcover-sync"
+    tool.parent.mkdir()
+    tool.write_text("#!/bin/sh\n")
+    tool.chmod(0o755)
+    mac.install_trigger(str(tool))
+    calls = len(fake.calls)
+    works, said = mac.trigger_state()
+    assert works and said == f"Plugging in the Kobo starts a sync (launch agent loaded; it runs {tool})."
+    assert [a[1] for a, _ in fake.calls[calls:]] == ["print"]  # it asked launchctl, and changed nothing
+    # The tool was uninstalled (or moved) after setup: the trigger starts nothing.
+    tool.unlink()
+    works, said = mac.trigger_state()
+    assert not works and said == f"The trigger starts {tool} that is not there any more. Run `kobo-hardcover-sync setup` again."
+    # What to do when macOS keeps the Kobo closed depends on who asked.
+    assert "Give KoboHardcoverSync.app Full Disk Access" in mac.cannot_read(by_hand=False)
+    assert "this terminal" in mac.cannot_read(by_hand=True) and "Removable Volumes" in mac.cannot_read(by_hand=True)
 
 
 def test_the_server_client_says_what_a_person_can_act_on():

@@ -22,12 +22,14 @@ edition on the shelf was kobo-hardcover-sync's or Hardcover's default, not a cho
 from __future__ import annotations
 
 import json
+import logging
 
 from . import hardcover, state
 from .plan import desired, quiet
 from .state import syncs
 
 MANY = 3  # this many books gone from the shelf at once, and none left: not believed
+log = logging.getLogger(__name__)
 
 
 def _edition_fields(ub: dict) -> dict:
@@ -67,6 +69,7 @@ def pull(con, reader: str, shelf: list[dict]) -> dict:
             state.record_sent(con, reader, r, None, off=True)
             counts["removed"] += ub_id not in gone
             gone.add(ub_id)
+            log.debug("off the shelf on Hardcover, switched off here: %r", r["title"])
             continue
         if (r["device"], r["content_id"]) in silent:
             continue  # another copy speaks for this Hardcover book, and its record is copied to this one below
@@ -135,6 +138,7 @@ def pull(con, reader: str, shelf: list[dict]) -> dict:
         if adopted:
             sent["at"] = state.now()
             counts["adopted"] += 1
+            log.debug("taken over from Hardcover for %r: %s", r["title"], ", ".join(sets) or "the edition")
         if sets:
             con.execute(
                 f"update book set {', '.join(k + '=?' for k in sets)} where reader=? and content_id=?",

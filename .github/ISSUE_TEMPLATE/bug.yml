@@ -8,7 +8,7 @@ body:
         Thank you for taking the time. A few things first:
 
         - **Do not attach your Kobo's database** (`KoboReader.sqlite`). It holds your Kobo account's login tokens and your whole library.
-        - **Do not paste a token.** The hash that `status` prints is fine.
+        - **Do not paste a token.** The hash that `status` and `doctor` print is fine.
         - A security problem does not belong here: see SECURITY.md.
   - type: textarea
     id: what
@@ -20,8 +20,8 @@ body:
   - type: textarea
     id: status
     attributes:
-      label: Output of `kobo-hardcover-sync status`
-      description: It names the mode, the Kobo's model and software, and the last message. On a server without the tool, say so.
+      label: Output of `kobo-hardcover-sync doctor`
+      description: With the Kobo plugged in, if you can. It names the version, what was checked and what it found; no book and no token is in it. In server mode, also what the Check card under Settings says.
       render: text
     validations:
       required: true
@@ -59,5 +59,5 @@ body:
     id: log
     attributes:
       label: The last lines of agent.log, if there are any
-      description: "In the tool's folder: ~/Library/Application Support/kobo-hardcover-sync/ on a Mac, ~/.local/share/kobo-hardcover-sync/ on Linux. Book titles may be in it; take out what you do not want to share."
+      description: "In the tool's folder: ~/Library/Application Support/kobo-hardcover-sync/ on a Mac, ~/.local/share/kobo-hardcover-sync/ on Linux. It holds counts and messages. A verbose log (sync --verbose) also holds your book titles: take out what you do not want to share."
       render: text

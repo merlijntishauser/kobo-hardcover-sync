@@ -10,6 +10,7 @@ import sqlite3
 
 from cryptography.fernet import Fernet
 
+from kobo_hardcover_sync import doctor
 from kobo_hardcover_sync.engine import hardcover, kobo_db, state
 from kobo_hardcover_sync.server import accounts
 from tests import client_at
@@ -197,19 +198,72 @@ def test_token_is_checked_encrypted_and_never_shown(tmp_path, monkeypatch):
     assert accounts.token_for(st, "anna") == "" and accounts.token_state(st, "anna") == "unreadable"
 
 
-def test_live_test_and_remove_token(tmp_path, monkeypatch):
+def test_live_and_remove_token(tmp_path, monkeypatch):
     c, st = client(tmp_path, monkeypatch)
     monkeypatch.setattr(hardcover, "Client", Hardcover)
     c.post("/signup", headers=ANNA)
     c.post("/settings/token", data={"token": SECRET}, headers=ANNA)
     assert c.post("/settings/live", data={"live": "1"}, headers=ANNA, follow_redirects=False).status_code == 303
     assert accounts.get(st, "anna")["hardcover_live"] == 1
-    r = c.post("/settings/token/test", headers=ANNA, follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/settings?ok=token_test"
     c.post("/settings/token/remove", headers=ANNA)
     anna = accounts.get(st, "anna")
     assert anna["hardcover_token_enc"] is None and anna["hardcover_live"] == 0  # no token: back to dry run
     assert "No token yet" in c.get("/settings", headers=ANNA).text
+
+
+def test_the_check_card_on_the_server(tmp_path, monkeypatch):
+    c, st = client(tmp_path, monkeypatch)
+    monkeypatch.setattr(hardcover, "Client", Hardcover)
+    c.post("/signup", headers=ANNA)
+    Hardcover.seen.clear()
+    page = c.get("/settings", headers=ANNA).text
+    assert 'id="check"' in page and ">Check now</button>" in page and 'class="checks"' not in page
+    assert "/settings/token/test" not in page and Hardcover.seen == []  # looking at the page asks Hardcover nothing
+
+    # No token, no computer yet: what is missing, and what to do about it.
+    r = c.post("/settings/check", headers=ANNA)
+    assert r.status_code == 200 and r.headers["cache-control"] == "no-store" and ">Check again</button>" in r.text
+    assert "<b>Hardcover</b> No Hardcover token yet, so nothing is sent to Hardcover." in r.text
+    assert "To do: Add one under Hardcover, above." in r.text
+    assert "<b>Computers</b> No computer uploads your Kobo yet." in r.text
+    assert "Run <code>kobo-hardcover-sync setup --server &lt;this address&gt;</code> on the computer" in r.text
+    assert "run <code>kobo-hardcover-sync doctor</code> there" in r.text  # the Kobo's half is on the computer
+    assert '<span class="sr">warning: </span>' in r.text and "1 warning: its line says what to do." in r.text
+    assert Hardcover.seen == []
+
+    # With a token: Hardcover is asked once, and the page shows whose it is and not the token.
+    c.post("/settings/token", data={"token": SECRET}, headers=ANNA)
+    c.post("/settings/devices/add", data={"device": "kobo-anna", "hash": "a" * 64}, headers=ANNA)
+    Hardcover.seen.clear()
+    before = "\n".join(st.iterdump())
+    r = c.post("/settings/check", headers=ANNA)
+    assert Hardcover.seen == [SECRET] and SECRET not in r.text
+    assert "<b>Hardcover</b> Hardcover is reachable and accepts the token: it is @anna_reads&#x27;s." in r.text
+    assert "<b>Computer</b> kobo-anna: no upload yet." in r.text and '<span class="sr">ok: </span>' in r.text
+    assert "\n".join(st.iterdump()) == before  # it changed nothing
+    # Robin has books and a computer that uploaded.
+    r = c.post("/settings/check", headers=ROBIN)
+    assert "<b>Books</b> 0 of 2 books are switched on." in r.text and "<b>Computer</b> kobo-robin: last upload" in r.text
+    # A token Hardcover no longer accepts is a problem, said in Hardcover's words.
+    monkeypatch.setattr(
+        Hardcover, "whoami", lambda self: (_ for _ in ()).throw(hardcover.HardcoverError("Hardcover does not accept your token", "token"))
+    )
+    r = c.post("/settings/check", headers=ANNA)
+    assert '<span class="sr">problem: </span><b>Hardcover</b> Hardcover does not accept your token.' in r.text
+    assert '<div class="found" role="status"><div class="act err">' in r.text and "1 problem: its line says what to do." in r.text
+    # Another site cannot press the button.
+    assert c.post("/settings/check", headers={"Remote-User": "Anna", "Origin": "https://evil.example"}).status_code == 403
+
+
+def test_the_server_half_of_the_check(tmp_path, monkeypatch):
+    c, st = client(tmp_path, monkeypatch)
+    said = lambda checks: {x.what: (x.state, x.found) for x in checks}  # noqa: E731
+    unreadable = said(doctor.server_checks(st, "robin", "unreadable", "", True, []))
+    assert unreadable["Token"] == ("fail", "The stored Hardcover token cannot be read any more.") and "Hardcover" not in unreadable
+    no_key = said(doctor.server_checks(st, "robin", "none", "", False, []))
+    assert no_key["Token"] == ("fail", "Tokens cannot be stored: the server has no KHS_SECRET_KEY.")
+    assert said(doctor.server_checks(st, "robin", "env", "t", False, [], client=Hardcover(SECRET)))["Hardcover"][0] == "ok"
+    assert said(doctor.server_checks(st, "robin", "none", "", True, []))["Kobo"] == ("note", doctor.ON_THE_COMPUTER)
 
 
 def test_without_a_key_tokens_cannot_be_stored_and_env_keeps_working(tmp_path, monkeypatch):

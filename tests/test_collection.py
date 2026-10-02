@@ -217,8 +217,9 @@ def refused(db, state, match, **kw):
 def test_an_untested_database_version_is_refused_unless_asked_for(tmp_path):
     state = str(tmp_path / "state")
     db = altered(tmp_path, version=223)
-    ex = refused(db, state, "version 223, which has not been tested")
-    assert ex.version == 223 and "222 (Kobo software 6.0.274403)" in str(ex)
+    ex = refused(db, state, "software has not been tested with kobo-hardcover-sync yet .its database is version 223")
+    assert ex.version == 223 and "tested: 222, Kobo software 6.0.274403" in str(ex)
+    assert "syncing to Hardcover is not affected" in str(ex) and str(ex).endswith(collection.UNTESTED_HOW)  # and what to do
     assert collection.status(db, NAME, state)["tested"] is False
     assert collection.apply(db, NAME, BOOKS[:2], state, allow_untested=True).action == "created"
 
@@ -319,9 +320,58 @@ def test_a_process_that_dies_in_the_middle_of_the_write_changes_nothing(kobo):
 def test_a_kobo_that_disappears_right_after_the_write_is_reported_with_the_backup(kobo, monkeypatch):
     db, state = kobo
     monkeypatch.setattr(collection, "_after_commit", lambda: os.rename(db, db + ".unplugged"))
-    with pytest.raises(collection.KoboGone, match="disappeared right after the write") as ex:
+    with pytest.raises(collection.KoboGone, match="unplugged right after the collection was written. Plug it in again") as ex:
         collection.apply(db, NAME, BOOKS[:2], state)
     assert ex.value.backup and os.path.exists(ex.value.backup) and ex.value.backup in str(ex.value)
+    # Plugged in again: the collection that did land is known to be this tool's, not someone else's.
+    os.rename(db + ".unplugged", db)
+    monkeypatch.setattr(collection, "_after_commit", None)
+    assert collection.apply(db, NAME, BOOKS[:2], state).action == "unchanged"
+
+
+class _NoConfirmation(sqlite3.Connection):
+    """A Kobo that takes the write and then stops answering."""
+
+    gone = None  # called when it stops answering
+
+    def execute(self, sql, *args):
+        if "wal_checkpoint" in sql:
+            if self.gone:
+                self.gone()
+            raise sqlite3.OperationalError("disk I/O error")
+        return super().execute(sql, *args)
+
+
+def _stops_answering(monkeypatch, gone=None):
+    real = sqlite3.connect
+    _NoConfirmation.gone = staticmethod(gone) if gone else None
+    monkeypatch.setattr(collection.sqlite3, "connect", lambda *a, **kw: real(*a, factory=_NoConfirmation, **kw))
+    return lambda: monkeypatch.setattr(collection.sqlite3, "connect", real)
+
+
+def test_a_write_that_landed_but_was_not_confirmed_is_still_this_tools_collection(kobo, monkeypatch):
+    db, state = kobo
+    answers_again = _stops_answering(monkeypatch)
+    with pytest.raises(
+        collection.CollectionError, match="was written, but the Kobo did not confirm it .disk I/O error.. Plug it in again"
+    ) as ex:
+        collection.apply(db, NAME, BOOKS[:2], state)
+    assert not isinstance(ex.value, collection.KoboGone) and ex.value.backup in str(ex.value)
+    answers_again()
+    assert members(db) == set(BOOKS[:2])
+    # Not "a collection of that name exists and was not made by this tool": it carries on.
+    assert collection.apply(db, NAME, BOOKS[:3], state).action == "updated" and members(db) == set(BOOKS[:3])
+
+
+def test_a_kobo_unplugged_during_the_write_says_so(kobo, monkeypatch):
+    db, state = kobo
+    answers_again = _stops_answering(monkeypatch, gone=lambda: os.rename(db, db + ".unplugged"))
+    with pytest.raises(collection.KoboGone, match="The Kobo was unplugged while the collection was being written. Plug it in again") as ex:
+        collection.apply(db, NAME, BOOKS[:2], state)
+    assert os.path.exists(ex.value.backup)
+    answers_again()
+    os.rename(db + ".unplugged", db)
+    assert collection.apply(db, NAME, BOOKS[:2], state).action == "unchanged"
 
 
 def test_a_database_another_program_is_writing_to(kobo):
@@ -329,7 +379,7 @@ def test_a_database_another_program_is_writing_to(kobo):
     other = sqlite3.connect(db, isolation_level=None)
     other.execute("begin immediate")
     try:
-        with pytest.raises(collection.CollectionError, match="in use by another program"):
+        with pytest.raises(collection.CollectionError, match="in use by another program; nothing was written. Close other programs"):
             collection_apply_fast(db, state)
     finally:
         other.execute("rollback")

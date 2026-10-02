@@ -4,7 +4,9 @@ Pure functions: web.py does the checking and the changing."""
 from __future__ import annotations
 
 import json
+import re
 
+from .. import doctor
 from ..engine.hardcover import NEW_TOKEN_URL
 from .fmt import e, fmt_bytes, fmt_dt
 from .strings import T
@@ -65,6 +67,36 @@ def confirm_bulk(n: int, mode: str, ids: str, back: str) -> str:
     )
 
 
+def _with_code(text: str) -> str:
+    """Escaped, with `a command` set as code."""
+    return re.sub(r"`([^`]+)`", r"<code>\1</code>", e(text))
+
+
+CHECK_DOT = {doctor.OK: "ok", doctor.NOTE: "none", doctor.WARN: "warn", doctor.FAIL: "err"}
+
+
+def check_card(checks: list | None, local: bool) -> str:
+    """The Check card. checks: None before the button was pressed, else what
+    doctor found. The state is in the dot's colour and, for someone who
+    does not see it, in a word before the line."""
+    result = ""
+    if checks is not None:
+        worst = "err" if doctor.problems(checks) else "warn" if any(c.state == doctor.WARN for c in checks) else "ok"
+        rows = "".join(
+            f'<li><div class="act {CHECK_DOT[c.state]}"><span class="dot"></span><span><span class="sr">{e(doctor.WORDS[c.state])}: </span>'
+            f"<b>{e(c.what)}</b> {_with_code(c.found)}</span></div>"
+            + (f'<div class="sub">{T["s_check_todo"]} {_with_code(c.todo)}</div>' if c.todo else "")
+            + "</li>"
+            for c in checks
+        )
+        result = f'<div class="found" role="status">{line(worst, doctor.summary(checks))}</div><ul class="checks">{rows}</ul>'
+    return (
+        f'<section class="card" id="check"><h2>{T["s_check"]}</h2>{result}'
+        f'<form method="post" action="/settings/check#check"><button>{T["s_check_again" if checks is not None else "s_check_btn"]}</button></form>'
+        f'<p class="hint">{e(T["s_check_help_local" if local else "s_check_help"])}</p></section>'
+    )
+
+
 def _token_line(token_state: str, can_store: bool, hc_user: str) -> str:
     if token_state == "stored":
         return line("ok", T["tok_stored_as"].format(user="@" + hc_user) if hc_user else T["tok_stored"])
@@ -84,10 +116,12 @@ def settings(
     msg: str = "",
     new_stats_token: str = "",
     local: dict | None = None,
+    checks: list | None = None,
 ) -> str:
     """local: None in server mode; in local mode what this computer does
     ({"eject": bool, "kept_in": where the token is kept}). Local mode has no
-    logins, devices or stats."""
+    logins, devices or stats. checks: what the Check card found, when its
+    button was just pressed."""
     has_token = token_state in ("stored", "env")
     you = (
         f'<section class="card"><h2>{T["s_profile"]}</h2>'
@@ -115,16 +149,10 @@ def settings(
     else:
         token_form = line("warn", T["tok_no_key"])
     token_actions = ""
-    if has_token:
+    if token_state == "stored":  # whether it still works is the Check card's business
         token_actions = (
-            f'<div class="btnrow"><form method="post" action="/settings/token/test"><button>{T["s_token_test"]}</button></form>'
-            + (
-                f'<form method="post" action="/settings/token/remove" data-confirm="{e(T["s_token_remove_confirm"])}">'
-                f'<button class="danger">{T["s_token_remove"]}</button></form>'
-                if token_state == "stored"
-                else ""
-            )
-            + "</div>"
+            f'<div class="btnrow"><form method="post" action="/settings/token/remove" data-confirm="{e(T["s_token_remove_confirm"])}">'
+            f'<button class="danger">{T["s_token_remove"]}</button></form></div>'
         )
     if me["hardcover_live"]:
         mode = (
@@ -198,8 +226,14 @@ def settings(
             f"<button>{T['s_eject_turn_off'] if on else T['s_eject_turn_on']}</button></form>"
             f'<p class="hint">{e(T["s_eject_help"])}</p></section>'
         )
-        return f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{collection}{computer}</main>'
-    return f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{collection}{devs}{stats}</main>'
+        return (
+            f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{collection}{computer}'
+            f"{check_card(checks, True)}</main>"
+        )
+    return (
+        f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{collection}{devs}{stats}'
+        f"{check_card(checks, False)}</main>"
+    )
 
 
 def _problem(j) -> str:

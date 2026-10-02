@@ -176,7 +176,10 @@ def serve() -> None:
     os.environ["KHS_PAGE_PORT"] = str(port)
     os.environ["KHS_DATA"] = config.state_dir()
     os.environ["KHS_HOST"] = HOST
+    from .. import logs
     from ..web import app as web
+
+    logs.to_stderr(config.load().verbose_log)  # standard error is page.log (see start)
 
     server = uvicorn.Server(uvicorn.Config(web.app, log_level="warning", proxy_headers=False))
 

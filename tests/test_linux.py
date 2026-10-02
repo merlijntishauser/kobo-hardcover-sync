@@ -162,6 +162,27 @@ def test_the_trigger_is_a_user_service_the_kobos_mount_wants(home, monkeypatch):
     assert "No systemd here" in bare.install_trigger("/usr/bin/kobo-hardcover-sync")[0]
 
 
+def test_whether_plugging_in_starts_a_sync(home, monkeypatch):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(home / "cfg"))
+    pc, desk = desk_computer(home, tools=("systemctl",))
+    works, said = pc.trigger_state()
+    assert not works and said.startswith("No trigger on this computer: plugging in the Kobo does nothing by itself.")
+    tool = home / "kobo-hardcover-sync"
+    tool.write_text("#!/bin/sh\n")
+    tool.chmod(0o755)
+    pc.install_trigger(str(tool))
+    calls = len(desk.calls)
+    assert pc.trigger_state() == (True, f"Plugging in the Kobo starts a sync (user service enabled; it runs {tool}).")
+    assert [a for a, _ in desk.calls[calls:]] == [
+        ["systemctl", "--user", "is-enabled", "kobo-hardcover-sync.service"]
+    ]  # asked, nothing changed
+    bare = linux.Linux(run=desk, which=lambda name: None, home=str(home), user="sam")
+    assert bare.trigger_state()[1].startswith("The user service is written but not enabled")
+    tool.unlink()
+    assert pc.trigger_state()[1].startswith(f"The trigger starts {tool} that is not there any more.")
+    assert "Check how the Kobo is mounted" in pc.cannot_read(by_hand=True)
+
+
 def test_mount_unit_names_are_the_ones_systemd_makes(home):
     if not os.path.exists("/usr/bin/systemd-escape"):
         pytest.skip("no systemd-escape to compare with")
@@ -208,6 +229,12 @@ def test_the_whole_tool_on_this_machine(home, monkeypatch, capsys):
     status = capsys.readouterr().out
     assert "Mode:    local" in status and "no Hardcover token yet" in status and f"Kobo:    {home / 'Volumes' / 'KOBOeReader'}" in status
     assert os.path.getsize(db) > 0 and config.load().mode == "local"
+    cli.main(["doctor"], computer=pc)  # ends well: no trigger and no token are a warning and a note, not problems
+    seen = capsys.readouterr().out
+    assert "warning  Trigger: No trigger on this computer" in seen and "note     Hardcover: No Hardcover token yet" in seen
+    assert "ok       Database: The Kobo's database can be read: 9 books on it." in seen and seen.endswith(
+        "1 warning: its line says what to do.\n"
+    )
 
     link = page.link()  # starts the page, as `open` does
     try:

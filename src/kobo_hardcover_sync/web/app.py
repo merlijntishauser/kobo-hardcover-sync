@@ -22,6 +22,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTex
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
+from .. import doctor
 from ..engine import hardcover, job, state
 from ..engine.plan import action, desired, quiet_for
 from ..env import env
@@ -1026,7 +1027,9 @@ def signup(request: Request):
     return RedirectResponse("/settings?ok=signed_up", status_code=303)
 
 
-def settings_page(con, me, ok: str = "", err: str = "", detail: str = "", status: int = 200, new_stats_token: str = "") -> HTMLResponse:
+def settings_page(
+    con, me, ok: str = "", err: str = "", detail: str = "", status: int = 200, new_stats_token: str = "", checks: list | None = None
+) -> HTMLResponse:
     me = accounts.get(con, me["name"])  # after a change: the row as it is now
     body = account_pages.settings(
         me,
@@ -1037,6 +1040,7 @@ def settings_page(con, me, ok: str = "", err: str = "", detail: str = "", status
         account_pages.flash(ok, err, detail),
         new_stats_token,
         {"eject": computer_config.load().eject_after_sync, "kept_in": local.computer.secret_place(local_page.HARDCOVER)} if local else None,
+        checks,
     )
     return HTMLResponse(frame_for(me, "settings", body), status_code=status)
 
@@ -1139,17 +1143,29 @@ def settings_token(request: Request, token: str = Form("")):
     return RedirectResponse("/settings?ok=token", status_code=303)
 
 
-@app.post("/settings/token/test")
-def settings_token_test(request: Request):
+@app.post("/settings/check")
+def settings_check(request: Request):
+    """The Check card (doctor.py): look at everything a sync depends on,
+    change nothing. A form, not a link, because it asks Hardcover a
+    question, and looking at a page never does that."""
     con, me, bad = guard(request)
     if bad:
         return bad
-    try:
-        who = hardcover.Client(accounts.token_for(con, me["name"]), tries=1).whoami()
-    except hardcover.HardcoverError as ex:
-        return settings_page(con, me, err="err_token_test", detail=str(ex), status=400)
-    accounts.set_hardcover_user(con, me["name"], str(who.get("username") or ""))
-    return RedirectResponse("/settings?ok=token_test", status_code=303)
+    if local:
+        checks = doctor.computer_checks(local.computer, by_hand=False)
+    else:
+        name = me["name"]
+        checks = doctor.server_checks(
+            con,
+            name,
+            accounts.token_state(con, name),
+            accounts.token_for(con, name),
+            accounts.can_store_tokens(),
+            accounts.devices(con, name),
+        )
+    resp = settings_page(con, me, checks=checks)
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
 
 
 @app.post("/settings/eject")
