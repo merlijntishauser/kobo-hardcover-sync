@@ -4,8 +4,11 @@ name: kobo-hardcover-sync
 # How it works, and why: docs/how-it-works.md.
 services:
   kobo-hardcover-sync:
-    build: .
-    image: kobo-hardcover-sync:latest
+    # The published image, for amd64 and arm64. A number instead of "latest"
+    # (for example :0.4.0) keeps it at one version until you change it. To
+    # build it yourself from a checkout of the repository: `build: .` here
+    # instead of this line.
+    image: ghcr.io/merlijntishauser/kobo-hardcover-sync:latest
     container_name: kobo-hardcover-sync
     # Publish the port only where your sign-in proxy can reach it: the page
     # has no login of its own. "3012:3012" opens it on every address of the

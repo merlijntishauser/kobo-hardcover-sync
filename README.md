@@ -242,12 +242,18 @@ a sign-in proxy you already run (forward authentication) and believes the
 `Remote-User` header only from that proxy's address.
 
 ```
-docker build -t kobo-hardcover-sync .
-cp examples/docker-compose.example.yml docker-compose.yml
+mkdir kobo-hardcover-sync && cd kobo-hardcover-sync
+curl -fsSLo docker-compose.yml https://raw.githubusercontent.com/merlijntishauser/kobo-hardcover-sync/main/examples/docker-compose.example.yml
 python3 -c "import base64,os;print('KHS_SECRET_KEY='+base64.urlsafe_b64encode(os.urandom(32)).decode())" > .env
 chmod 600 .env && mkdir -p data
 docker compose up -d
 ```
+
+That runs the published image, `ghcr.io/merlijntishauser/kobo-hardcover-sync`
+(amd64 and arm64). Look through `docker-compose.yml` before the last
+line: it has two addresses that are yours to fill in. To build the image
+yourself, clone the repository and put `build: .` in place of the `image:`
+line.
 
 - Set `KHS_TRUSTED_PROXIES` in the compose file to the address your proxy
   connects from. The server refuses to start without it, and answers 403

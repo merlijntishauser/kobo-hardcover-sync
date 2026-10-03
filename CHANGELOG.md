@@ -10,8 +10,9 @@ minor version may change behaviour; the notes will say so.
 ### Added
 
 - A container image for the server, built for amd64 and arm64 at every
-  release: `ghcr.io/merlijntishauser/kobo-hardcover-sync`. Building it
-  yourself from the repository keeps working.
+  release: `ghcr.io/merlijntishauser/kobo-hardcover-sync`. The example
+  compose file pulls it. Building it yourself from the repository keeps
+  working.
 
 ## 0.4.0 - 2026-10-03
 
