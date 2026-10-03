@@ -7,7 +7,21 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Changed
+
+- Signing in on Hardcover itself is switched on: the project's app is
+  registered there. *Connect to Hardcover* under Settings and
+  `kobo-hardcover-sync token` show a link and a short code, you approve on
+  Hardcover, done. A pasted token keeps working, and stays possible
+  (`token --paste`, or *Paste a token instead* on the page).
+- The page and the commands say "connect to Hardcover" where they said
+  "add a token".
+
+### Fixed
+
+- Homebrew bottles were not made for 0.3.0 at first: the formula's own
+  test looked for words that 0.3.0 printed with a capital. A test now
+  holds the two together.
 
 ## 0.3.0 - 2026-10-03
 

@@ -181,7 +181,7 @@ def test_token_is_checked_encrypted_and_never_shown(tmp_path, monkeypatch):
     monkeypatch.setattr(hardcover, "Client", Hardcover)
     c.post("/signup", headers=ANNA)
     r = c.post("/settings/live", data={"live": "1"}, headers=ANNA)
-    assert r.status_code == 400 and "Add a Hardcover token first." in r.text
+    assert r.status_code == 400 and "Connect to Hardcover first." in r.text
     r = c.post("/settings/token", data={"token": "wrong"}, headers=ANNA)
     assert r.status_code == 400 and "The token was not stored." in r.text and "Hardcover does not accept your token" in r.text
     assert accounts.token_state(st, "anna") == "none"  # a refused token is not stored
@@ -208,7 +208,7 @@ def test_live_and_remove_token(tmp_path, monkeypatch):
     c.post("/settings/token/remove", headers=ANNA)
     anna = accounts.get(st, "anna")
     assert anna["hardcover_token_enc"] is None and anna["hardcover_live"] == 0  # no token: back to dry run
-    assert "No token yet" in c.get("/settings", headers=ANNA).text
+    assert "Not connected yet" in c.get("/settings", headers=ANNA).text
 
 
 def test_the_check_card_on_the_server(tmp_path, monkeypatch):
@@ -223,7 +223,7 @@ def test_the_check_card_on_the_server(tmp_path, monkeypatch):
     # No token, no computer yet: what is missing, and what to do about it.
     r = c.post("/settings/check", headers=ANNA)
     assert r.status_code == 200 and r.headers["cache-control"] == "no-store" and ">Check again</button>" in r.text
-    assert "<b>Hardcover</b> No Hardcover token yet, so nothing is sent to Hardcover." in r.text
+    assert "<b>Hardcover</b> Not connected to Hardcover yet, so nothing is sent to it." in r.text
     assert "To do: Add one under Hardcover, above." in r.text
     assert "<b>Computers</b> No computer uploads your Kobo yet." in r.text
     assert "Run <code>kobo-hardcover-sync setup --server &lt;this address&gt;</code> on the computer" in r.text

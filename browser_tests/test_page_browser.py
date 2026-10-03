@@ -383,7 +383,7 @@ def test_the_check_card_says_what_it_found_and_fits_a_phone(browser, base_url):
     assert page.url == base_url + "/settings/check#check"
     assert page.evaluate("document.querySelector('#check').getBoundingClientRect().top") < 300  # the page lands on the card
     found = page.inner_text(".checks")
-    assert "No Hardcover token yet" in found and "kobo-hardcover-sync doctor" in found
+    assert "Not connected to Hardcover yet" in found and "kobo-hardcover-sync doctor" in found
     assert page.inner_text("#check button") == "Check again" and page.locator("#check [role=status]").count() == 1
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
     page.screenshot(path=os.path.join(OUT, "kobo-check-phone-dark.png"), full_page=True) if OUT else None
@@ -581,7 +581,7 @@ def approve_on_hardcover(pretend_hardcover, page):
 
 def test_connecting_to_hardcover_the_page_notices_the_approval_by_itself(browser, base_url, pretend_hardcover):
     ctx, page = signed_up(browser, base_url, "ada")
-    assert page.inner_text("#hardcover .act") == "No token yet" and page.locator("#hardcover details.paste").count() == 1
+    assert page.inner_text("#hardcover .act") == "Not connected yet" and page.locator("#hardcover details.paste").count() == 1
     assert not page.is_visible("#hardcover details.paste input")  # pasting a token is folded away
     page.click("#hardcover form[action^='/settings/connect'] button")
     page.wait_for_selector(".signin code.code")

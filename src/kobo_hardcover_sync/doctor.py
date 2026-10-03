@@ -69,7 +69,7 @@ def hardcover_check(token: str, add_one: str, client=None, run_out: bool = False
     if run_out and client is None:
         return Check("Hardcover", NOTE, "The connection to Hardcover is renewed at the next sync; it was not asked about now.")
     if not token and client is None:
-        return Check("Hardcover", NOTE, "No Hardcover token yet, so nothing is sent to Hardcover.", add_one)
+        return Check("Hardcover", NOTE, "Not connected to Hardcover yet, so nothing is sent to it.", add_one)
     try:
         who = (client or hardcover.Client(token, tries=1)).whoami()
     except hardcover.HardcoverError as ex:

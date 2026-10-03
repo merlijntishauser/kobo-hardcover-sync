@@ -32,7 +32,7 @@ def test_no_identity_gets_403(tmp_path, monkeypatch):
 
 def test_page_lists_books_for_mapped_user(tmp_path, monkeypatch):
     r = client(tmp_path, monkeypatch).get("/", headers={"Remote-Email": "Robin@example.org"})
-    assert r.status_code == 200 and "Old Finished" in r.text and "No Hardcover token yet" in r.text
+    assert r.status_code == 200 and "Old Finished" in r.text and "Not connected to Hardcover yet" in r.text
 
 
 def test_mode_post_and_cross_origin_refusal(tmp_path, monkeypatch):

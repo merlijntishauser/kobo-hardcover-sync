@@ -297,8 +297,8 @@ def _sync_here(
                 )
         else:
             if imported:
-                said.append("No Hardcover token yet: add one on the page.")
-            step(Row(NOTE, "Hardcover", "No token yet: add one on the page"))
+                said.append("Not connected to Hardcover yet: connect on the page.")
+            step(Row(NOTE, "Hardcover", "Not connected yet: connect on the page"))
 
         name = (reader["kobo_collection"] or "").strip()
         if mount:

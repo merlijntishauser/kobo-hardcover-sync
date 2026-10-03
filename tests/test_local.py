@@ -84,9 +84,9 @@ def test_plug_in_dry_run_live_collection_and_then_nothing(home):
     mac = FakeComputer(home / "Volumes")
     hc = FakeHC(isbn=catalogue())
 
-    # No token yet: the books are imported, nothing else.
+    # Not connected yet: the books are imported, nothing else.
     first = runner.sync(mac, LOCAL)
-    assert (first.ok, first.message) == (True, "9 books updated. No Hardcover token yet: add one on the page.")
+    assert (first.ok, first.message) == (True, "9 books updated. Not connected to Hardcover yet: connect on the page.")
     con = st(home)
     assert tuple(con.execute("select count(*), count(distinct device) from book where reader = 'me'").fetchone()) == (9, 1)
     assert con.execute("select device from device").fetchone()[0] == kobo_db.device(str(home / "Volumes" / "KOBOeReader")).name
@@ -266,9 +266,7 @@ def test_the_page_wants_the_key_from_open(local):
     # With the cookie, the page is the usual one, for the one built-in reader.
     home_page = inside.get("/")
     assert (
-        home_page.status_code == 200
-        and "Add your Hardcover token under Settings" in home_page.text
-        and "On this computer:" in home_page.text
+        home_page.status_code == 200 and "Connect to Hardcover under Settings" in home_page.text and "On this computer:" in home_page.text
     )
     assert 'href="/admin"' not in home_page.text
 
@@ -320,7 +318,7 @@ def test_the_token_goes_to_the_secret_store_from_the_page(local, monkeypatch):
             return {"id": 1, "username": "sam"}
 
     monkeypatch.setattr(hardcover, "Client", Stub)
-    assert "No token yet" in inside.get("/settings").text
+    assert "Not connected yet" in inside.get("/settings").text
     r = inside.post("/settings/token", data={"token": "Bearer " + TOKEN}, headers=ORIGIN)
     assert r.status_code == 200 and "Connected to Hardcover as @sam" in r.text and TOKEN not in r.text
     assert mac.secrets == {HARDCOVER: TOKEN}
@@ -389,7 +387,7 @@ def test_books_show_up_on_the_local_page_after_a_sync(local):
     kobo(web_home(web))
     runner.sync(mac, config.load())
     books = inside.get("/").text
-    assert "Made-up Book 3" in books and "Kobo read" in books and "No Hardcover token yet" in books
+    assert "Made-up Book 3" in books and "Kobo read" in books and "Not connected to Hardcover yet" in books
     assert (
         inside.post("/mode", data={"ids": BOOKS[0], "mode": "on"}, headers={**ORIGIN, "X-Requested-With": "fetch"}).json()["syncs"] is True
     )

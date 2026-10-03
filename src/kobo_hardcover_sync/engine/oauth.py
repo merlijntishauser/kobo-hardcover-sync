@@ -41,7 +41,8 @@ from dataclasses import dataclass
 from . import hardcover
 
 # The app "Kobo Hardcover Sync" at Hardcover (type: mobile, desktop or CLI; device flow only).
-CLIENT_ID = ""
+# Public by design: the device flow has no secret, and this id is sent with every sign-in.
+CLIENT_ID = "8767c855-9e91-4ff7-813b-635c0af953db"
 DEVICE_URL = os.environ.get("HARDCOVER_OAUTH_DEVICE", "https://api.hardcover.app/oauth2/device")
 TOKEN_URL = os.environ.get("HARDCOVER_OAUTH_TOKEN", "https://api.hardcover.app/oauth2/token")
 REVOKE_URL = os.environ.get("HARDCOVER_OAUTH_REVOKE", "https://api.hardcover.app/oauth2/revoke")

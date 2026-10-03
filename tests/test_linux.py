@@ -225,15 +225,15 @@ def test_the_whole_tool_on_this_machine(home, monkeypatch, capsys):
     cli.main(["setup", "--local", "--no-trigger"], computer=pc)
     cli.main(["sync"], computer=pc)
     out = said(capsys)
-    assert "Local mode" in out and "ok Kobo Kobo: 9 books updated note Hardcover No token yet: add one on the page" in out
+    assert "Local mode" in out and "ok Kobo Kobo: 9 books updated note Hardcover Not connected yet: connect on the page" in out
     cli.main(["status"], computer=pc)
     status = said(capsys)
-    assert "ok Mode Local mode" in status and "note Token No Hardcover token yet" in status
+    assert "ok Mode Local mode" in status and "note Token Not connected to Hardcover yet" in status
     assert f"ok Kobo {home / 'Volumes' / 'KOBOeReader'}" in status
     assert os.path.getsize(db) > 0 and config.load().mode == "local"
     cli.main(["doctor"], computer=pc)  # ends well: no trigger and no token are a warning and a note, not problems
     seen = said(capsys)
-    assert "warning Trigger No trigger on this computer" in seen and "note Hardcover No Hardcover token yet" in seen
+    assert "warning Trigger No trigger on this computer" in seen and "note Hardcover Not connected to Hardcover yet" in seen
     assert "ok Database The Kobo's database can be read: 9 books on it." in seen
     assert seen.endswith("1 warning: its line says what to do.")
 
@@ -241,10 +241,10 @@ def test_the_whole_tool_on_this_machine(home, monkeypatch, capsys):
     try:
         with httpx.Client(follow_redirects=True) as browser:
             books = browser.get(link)
-            assert books.status_code == 200 and "Made-up Book 3" in books.text and "No Hardcover token yet" in books.text
+            assert books.status_code == 200 and "Made-up Book 3" in books.text and "Not connected to Hardcover yet" in books.text
             base = link.split("/?k=")[0]
             settings = browser.get(base + "/settings")
-            assert settings.status_code == 200 and "This computer" in settings.text and "No token yet" in settings.text
+            assert settings.status_code == 200 and "This computer" in settings.text and "Not connected yet" in settings.text
             # A token straight into the secret store (as `token` would, after asking Hardcover): the page says where it is kept.
             if not os.path.exists("/usr/bin/secret-tool"):
                 pc.set_secret(HARDCOVER, TOKEN)

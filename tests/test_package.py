@@ -49,7 +49,7 @@ def test_a_sync_without_a_token_fails_with_a_plain_reason(tmp_path):
     db = str(tmp_path / "state.db")
     state.connect(db)
     r = job.run(db, "nobody", live=True)  # no client, no token handed over
-    assert r["status"] == "failed" and "no Hardcover token" in r["fatal"]
+    assert r["status"] == "failed" and "Not connected to Hardcover yet" in r["fatal"]
     con = state.connect(db)
     assert con.execute("select status from job where reader='nobody'").fetchone()[0] == "failed"
     assert os.path.exists(db)

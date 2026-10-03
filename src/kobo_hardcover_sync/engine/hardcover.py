@@ -124,7 +124,7 @@ class Client:
         """tries: 1 for a person waiting at a page, who is better served by
         an answer now than by a third attempt."""
         if not bare(token):
-            raise HardcoverError("There is no Hardcover token yet: add one under Settings", "token")
+            raise HardcoverError("Not connected to Hardcover yet: connect under Settings", "token")
         self.token = "Bearer " + bare(token)
         self._last = 0.0
         self._open = opener or urllib.request.urlopen

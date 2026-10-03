@@ -433,7 +433,7 @@ def _status(a, computer) -> None:
         if computer.secret(HARDCOVER):
             rows.append(Row(OK, "Token", f"Hardcover token present, kept in {computer.secret_place(HARDCOVER)}"))
         else:
-            rows.append(Row(NOTE, "Token", "No Hardcover token yet", "`kobo-hardcover-sync token` stores one."))
+            rows.append(Row(NOTE, "Token", "Not connected to Hardcover yet", "`kobo-hardcover-sync token` connects."))
         live = bool(row and row[0])
         rows.append(
             Row(
