@@ -7,6 +7,11 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Changed
+
+- Help says what *stet* means: Latin for "let it stand", the word a
+  proofreader writes to keep the original.
+
 ## 0.5.0 - 2026-10-03
 
 A new look: the page reads like a proof of your Hardcover shelf, and a new

@@ -402,7 +402,8 @@ T = {
                 (
                     "stet",
                     "stet",
-                    "Kept as it is on Hardcover: an edition you chose there wins over the one Kobo Hardcover Sync would pick.",
+                    "Kept as it is on Hardcover: an edition you chose there wins over the one Kobo Hardcover Sync would pick. "
+                    'Stet is Latin for "let it stand": a proofreader writes it in the margin to cancel a correction and keep the original.',
                 ),
                 ("warn", "Circled question mark", "The book still needs a match on Hardcover. Open Details to pick one or search."),
                 ("err", "Black square", "The last sync failed for this book. Details shows the error."),
