@@ -111,7 +111,7 @@ class KoboHardcoverSync < Formula
     assert_match "kobo-hardcover-sync", shell_output("#{{bin}}/kobo-hardcover-sync --version")
     # A folder of its own: nothing is set up there, and it says so.
     ENV["KHS_HOME"] = testpath.to_s
-    assert_match "not set up", shell_output("#{{bin}}/kobo-hardcover-sync status")
+    assert_match(/not set up/i, shell_output("#{{bin}}/kobo-hardcover-sync status"))
   end
 end
 '''
@@ -146,6 +146,10 @@ def main(argv: list[str] | None = None) -> None:
     else:
         p.error("give --url and --sha256, or --sdist")
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    # The version is the package's, as its file name has it. This checkout may be on the next one
+    # already: the formula for a release is written after the release.
+    if named := re.search(r"kobo_hardcover_sync-(.+?)\.tar\.gz$", url):
+        project = {**project, "version": named.group(1)}
     lock = tomllib.loads((ROOT / "uv.lock").read_text())
     sys.stdout.write(formula(url, sha256, project, lock))
 

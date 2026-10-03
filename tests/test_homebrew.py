@@ -50,9 +50,21 @@ def test_it_says_what_to_do_after_installing_and_before_removing():
     assert "kobo-hardcover-sync setup" in caveats and "Full Disk Access" in caveats
     assert "Before `brew uninstall kobo-hardcover-sync`" in caveats and "kobo-hardcover-sync uninstall" in caveats and "--purge" in caveats
     test = FORMULA[FORMULA.index("test do") :]
-    assert (
-        "--version" in test and 'ENV["KHS_HOME"] = testpath.to_s' in test and "not set up" in test
-    )  # the test never touches a real installation
+    assert "--version" in test and 'ENV["KHS_HOME"] = testpath.to_s' in test  # the test never touches a real installation
+
+
+def test_what_the_formula_tests_for_is_what_the_tool_prints(home, capsys):
+    """Homebrew runs the formula's test when it builds a bottle. It looks
+    for words in the tool's output, so those words have to be the tool's:
+    a reworded `status` once left a release without bottles."""
+    from kobo_hardcover_sync import cli
+    from tests.test_computer import FakeComputer
+
+    test = FORMULA[FORMULA.index("test do") :]
+    looked_for, flags, command = re.findall(r"assert_match\(/(.+?)/(i?), shell_output\(\"#\{bin\}/kobo-hardcover-sync (\w+)\"\)\)", test)[0]
+    cli.main([command], computer=FakeComputer(home / "Volumes"))  # a folder of its own, nothing set up: as in the formula's test
+    printed = capsys.readouterr().out
+    assert re.search(looked_for, printed, re.I if flags else 0), printed
 
 
 def test_a_formula_for_trying_points_at_the_file_on_this_computer(tmp_path, capsys):
@@ -61,6 +73,16 @@ def test_a_formula_for_trying_points_at_the_file_on_this_computer(tmp_path, caps
     make_formula.main(["--sdist", str(sdist)])
     out = capsys.readouterr().out
     assert f'url "{sdist.as_uri()}"' in out and 'sha256 "' + __import__("hashlib").sha256(b"not really a tarball").hexdigest() + '"' in out
+
+
+def test_the_version_is_the_packages_not_the_checkouts(capsys):
+    """The formula for a release is written after it, when this checkout is
+    on the next development version already."""
+    make_formula.main(["--url", "https://files.pythonhosted.org/packages/ab/cd/kobo_hardcover_sync-9.8.7.tar.gz", "--sha256", "0" * 64])
+    released = capsys.readouterr().out
+    assert "kobo_hardcover_sync-9.8.7.tar.gz" in released and "  version " not in released  # Homebrew reads 9.8.7 from the name
+    make_formula.main(["--url", "https://example.org/kobo_hardcover_sync-9.8.7.dev0.tar.gz", "--sha256", "0" * 64])
+    assert '  version "9.8.7.dev0"\n' in capsys.readouterr().out  # a development version it cannot read: written out
 
 
 def test_setup_points_the_trigger_at_the_tool_it_was_run_from(tmp_path, monkeypatch):
