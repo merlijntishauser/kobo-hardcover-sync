@@ -196,3 +196,14 @@ def test_what_a_sync_has_to_say_when_it_cannot_run(home, capsys):
         cli.main(["sync"], computer=mac)
     assert ex.value.code == 1
     assert capsys.readouterr().out == "\n  problem  Sync        Not set up yet: run `kobo-hardcover-sync setup`.\n"
+
+
+def test_the_picture_in_the_readme_is_what_a_sync_prints():
+    """docs/img/sync.svg is made from the tool's real output (tests/picture.py).
+    Made again here, it must be the same: reword the output and the picture follows, or this fails."""
+    from tests import picture
+
+    text = picture.printed()
+    assert "\x1b[32m●\x1b[0m  Kobo        Kobo Clara Colour: 3 books updated" in text and "Sent to Hardcover" in text
+    assert picture.svg(text) == picture.PICTURE.read_text(encoding="utf-8"), "run: uv run python -m tests.picture"
+    assert "a-made-up-token" not in text

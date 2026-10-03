@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 708 322" width="708" height="322" role="img" aria-label="A terminal running kobo-hardcover-sync sync: three steps, then the books that went to Hardcover, each with a line showing how far it is read.">
+<style>
+text { font: 14px ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; fill: #e2e8f0; }
+@keyframes l0 { 0%, 0.00% { opacity: 0 } 0.00%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l1 { 0%, 12.63% { opacity: 0 } 12.64%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l2 { 0%, 16.08% { opacity: 0 } 16.09%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l3 { 0%, 19.53% { opacity: 0 } 19.54%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l4 { 0%, 22.98% { opacity: 0 } 22.99%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l5 { 0%, 26.43% { opacity: 0 } 26.44%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l6 { 0%, 29.88% { opacity: 0 } 29.89%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l7 { 0%, 33.32% { opacity: 0 } 33.33%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l8 { 0%, 36.77% { opacity: 0 } 36.78%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l9 { 0%, 40.22% { opacity: 0 } 40.23%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l10 { 0%, 43.67% { opacity: 0 } 43.68%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l11 { 0%, 47.12% { opacity: 0 } 47.13%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes l12 { 0%, 50.56% { opacity: 0 } 50.57%, 97% { opacity: 1 } 100% { opacity: 0 } }
+@media (prefers-reduced-motion: reduce) { text { animation: none !important; opacity: 1 } }
+</style>
+<rect width="708" height="322" rx="10" fill="#0f172a" stroke="#2a3a55"/>
+<circle cx="22" cy="18" r="5" fill="#2a3a55"/><circle cx="40" cy="18" r="5" fill="#2a3a55"/><circle cx="58" cy="18" r="5" fill="#2a3a55"/>
+<text x="18" y="58" xml:space="preserve" style="animation: l0 13.1s linear infinite"><tspan fill="#94a3b8">$</tspan><tspan> kobo-hardcover-sync sync</tspan></text>
+<text x="18" y="78" xml:space="preserve" style="animation: l1 13.1s linear infinite"></text>
+<text x="18" y="98" xml:space="preserve" style="animation: l2 13.1s linear infinite"><tspan>  </tspan><tspan fill="#34d399">●</tspan><tspan>  Kobo        Kobo Clara Colour: 3 books updated</tspan></text>
+<text x="18" y="118" xml:space="preserve" style="animation: l3 13.1s linear infinite"><tspan>  </tspan><tspan fill="#34d399">●</tspan><tspan>  Hardcover   3 sent</tspan></text>
+<text x="18" y="138" xml:space="preserve" style="animation: l4 13.1s linear infinite"><tspan>  </tspan><tspan fill="#34d399">●</tspan><tspan>  Collection  &#x27;On Hardcover&#x27; is up to date</tspan></text>
+<text x="18" y="158" xml:space="preserve" style="animation: l5 13.1s linear infinite"></text>
+<text x="18" y="178" xml:space="preserve" style="animation: l6 13.1s linear infinite"><tspan font-weight="600">Sent to Hardcover</tspan></text>
+<text x="18" y="198" xml:space="preserve" style="animation: l7 13.1s linear infinite"><tspan>  </tspan><tspan font-weight="600">The Left Hand of Darkness</tspan></text>
+<text x="18" y="218" xml:space="preserve" style="animation: l8 13.1s linear infinite"><tspan>  </tspan><tspan fill="#22d3ee">━━━━━━</tspan><tspan fill="#94a3b8">──────────────────────────────</tspan><tspan>  </tspan><tspan fill="#94a3b8">progress 4% to 16%</tspan></text>
+<text x="18" y="238" xml:space="preserve" style="animation: l9 13.1s linear infinite"><tspan>  </tspan><tspan font-weight="600">Moby-Dick; or, The Whale</tspan></text>
+<text x="18" y="258" xml:space="preserve" style="animation: l10 13.1s linear infinite"><tspan>  </tspan><tspan fill="#22d3ee">━━━━━━━━━━━━━</tspan><tspan fill="#94a3b8">───────────────────────</tspan><tspan>  </tspan><tspan fill="#94a3b8">progress 35% to 37%</tspan></text>
+<text x="18" y="278" xml:space="preserve" style="animation: l11 13.1s linear infinite"><tspan>  </tspan><tspan font-weight="600">Middlemarch</tspan></text>
+<text x="18" y="298" xml:space="preserve" style="animation: l12 13.1s linear infinite"><tspan>  </tspan><tspan fill="#34d399">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</tspan><tspan>  </tspan><tspan fill="#94a3b8">mark Read, finished 2026-09-21</tspan></text>
+</svg>

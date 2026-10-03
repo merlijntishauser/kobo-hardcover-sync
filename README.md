@@ -9,6 +9,8 @@ works with the Kobo as it comes, with books bought in the **Kobo store**.
 Plug the Kobo into your computer and it syncs. Nothing is installed on the
 Kobo, and nothing about how you read changes.
 
+![A terminal running kobo-hardcover-sync sync on a made-up shelf: the Kobo is read, three books go to Hardcover, each shown with a line for how far it is read](docs/img/sync.svg)
+
 ![The Books page: a list of books, each with a reading line, a Sync switch and what Hardcover will be told](docs/img/books.png)
 
 > **Beta.** It has been used daily on one Kobo and one Mac. It can write
@@ -160,25 +162,12 @@ Plug in the Kobo. A notification says what happened, for example:
 > Kobo synced. 8 books updated.
 
 That is all. Nothing runs in between: the sync starts when the Kobo is
-mounted and exits when it is done. Run by hand in a terminal, the same sync
-shows what it did:
+mounted and exits when it is done. Run by hand in a terminal
+(`kobo-hardcover-sync sync`), the same sync says what it did, as in the
+picture at the top.
 
-```
-  ●  Kobo        Kobo Clara Colour: 3 books updated
-  ●  Hardcover   2 sent, 1 taken over
-  ●  Collection  'On Hardcover': 38 books (+1, -0).
-
-Sent to Hardcover
-  Moby-Dick; or, The Whale
-  ━━━━━━━━━━━━━───────────────────────  progress 35% to 37%
-  Middlemarch
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  mark Read, finished 2026-09-21
-
-Eject before unplugging.
-```
- Open the page when you want to switch a
-book on or off, fix a match, set a finish date, or see why something did
-not sync.
+Open the page when you want to switch a book on or off, fix a match, set a
+finish date, or see why something did not sync.
 
 Other commands:
 
