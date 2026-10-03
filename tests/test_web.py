@@ -184,6 +184,16 @@ def test_dialog_forms_answer_with_refreshed_details_and_row(tmp_path, monkeypatc
     assert r.status_code == 200
     d = r.json()
     assert '<option value="77|120|Mine Now"' in d["details"] and "Needs a Hardcover match" in d["hc"]
+    # A search that finds nothing: the dialog says so and keeps the search box.
+    monkeypatch.setattr(Stub, "search", lambda self, q, n=3: [])
+    r = c.post("/research", data={"id": "mine", "q": "nothing like it", "back": "f=all"}, headers=h)
+    assert r.status_code == 200 and "Hardcover found nothing for this book." in r.json()["details"]
+    assert 'action="/research"' in r.json()["details"] and 'action="/pick"' not in r.json()["details"]
+    assert "Hardcover found nothing" in c.get("/details/mine", headers=h).text
+    monkeypatch.setattr(
+        Stub, "search", lambda self, q, n=3: [{"book_id": 77, "title": "Mine Now", "authors": ["C"], "pages": 120, "slug": "m"}]
+    )
+    c.post("/research", data={"id": "mine", "q": "Mine Now", "back": "f=all"}, headers=h)
     # Use the candidate: the row's status moves on, the dialog shows the match.
     r = c.post("/pick", data={"id": "mine", "choice": "77|120|Mine Now", "back": "f=all"}, headers=h)
     d = r.json()
@@ -305,3 +315,21 @@ def test_pages_are_compressed_and_what_does_not_change_is_kept(tmp_path, monkeyp
     assert "content-encoding" not in font.headers and font.headers["cache-control"] == "max-age=604800" and len(font.content) > 20000
     assert c.get("/static/img/kobo-day.webp", headers=h).headers["cache-control"] == "max-age=604800"
     assert c.get("/static/nothing.css", headers=h).status_code == 404
+
+
+def test_every_text_the_page_asks_for_exists():
+    """A text that is missing only shows when its branch runs: here, a book Hardcover found nothing for."""
+    import pathlib
+    import re
+
+    from kobo_hardcover_sync.web.strings import T
+
+    src = pathlib.Path(__file__).resolve().parents[1] / "src" / "kobo_hardcover_sync"
+    asked = set()
+    for path in src.rglob("*.py"):
+        text = path.read_text()
+        # T["name"], and T["one" if ... else "other"]. A name made at run time (T["ok_" + ok]) is not looked at.
+        asked |= {name for _, name in re.findall(r"""\bT\[(["'])([a-z0-9_]+)\1\]""", text)}
+        for one, other in re.findall(r"""\bT\[["']([a-z0-9_]+)["'] if [^\]]*? else ["']([a-z0-9_]+)["']\]""", text):
+            asked |= {one, other}
+    assert len(asked) > 150 and sorted(asked - set(T)) == []

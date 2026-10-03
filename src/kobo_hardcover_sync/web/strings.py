@@ -157,6 +157,7 @@ T = {
     "opens_hardcover": "Opens this book on Hardcover in a new tab",
     "candidates": "Hardcover candidates",
     "use": "Use",
+    "no_match": "Hardcover found nothing for this book. Search for it under another title, for example the original one, or by its author.",
     "search_hc": "Search Hardcover",
     "search_hc_hint": "Other title or author",
     "search_btn": "Search",

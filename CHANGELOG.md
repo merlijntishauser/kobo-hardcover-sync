@@ -23,6 +23,14 @@ minor version may change behaviour; the notes will say so.
   when the book is not the search's first hit, and has to match on whole
   words.
 
+### Fixed
+
+- On a wide screen, pressing *Check* under Settings moved the whole page
+  up and cut off the side column, with no way to scroll back (0.2.0).
+- Details gave an error for a book Hardcover found nothing for, also
+  after a search there that found nothing (since 0.1.0). It now says so
+  and keeps the search box.
+
 ## 0.2.0 - 2026-10-02
 
 For when something does not work: a command and a card that say what is

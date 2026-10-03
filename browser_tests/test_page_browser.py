@@ -329,11 +329,21 @@ def test_the_check_card_says_what_it_found_and_fits_a_phone(browser, base_url):
     )
     assert sticking_out == [], sticking_out[:6]
     ctx.close()
+    # At a desk the cards scroll in their own panel. The jump to the card must move that panel and
+    # nothing else: the page itself has nowhere to go, and no scrollbar to come back with.
     ctx, page = new_page(browser, base_url)
     page.goto(base_url + "/settings")
     page.click("#check button")
     page.wait_for_selector(".checks li")
-    page.locator("#check").screenshot(path=os.path.join(OUT, "kobo-check.png")) if OUT else None
+    page.wait_for_timeout(200)
+    where = page.evaluate(
+        """() => ({page: scrollY, tall: document.documentElement.scrollHeight - innerHeight,
+                   side: document.querySelector('.side').getBoundingClientRect().top,
+                   panel: document.querySelector('main').scrollTop, card: document.querySelector('#check').getBoundingClientRect().top})"""
+    )
+    assert where["page"] == 0 and where["tall"] == 0 and where["side"] >= 0, where
+    assert where["panel"] > 0 and 0 <= where["card"] < 400, where
+    page.screenshot(path=os.path.join(OUT, "kobo-check.png")) if OUT else None
     ctx.close()
 
 
