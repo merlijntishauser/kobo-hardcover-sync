@@ -101,10 +101,9 @@ Supporting, true and worth showing, but not what sets it apart:
 - Tested with a real device on one Kobo (Clara Colour, software
   6.0.274403) and macOS. Linux desktop support is built and not yet seen
   working with a real Kobo.
-- Published on PyPI and in a Homebrew tap. Sign-in to Hardcover is a
-  pasted personal token; signing in on Hardcover itself (OAuth, the device
-  flow) is built, and switched on once the project's app is registered
-  there.
+- Published on PyPI and in a Homebrew tap. A reader signs in on Hardcover
+  itself (OAuth, the device flow: a link and a short code); pasting a
+  personal token is the second way.
 - Not built: a hook on the Kobo that syncs over Wi-Fi; statistics shared
   between readers.
 

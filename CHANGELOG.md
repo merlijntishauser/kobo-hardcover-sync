@@ -13,7 +13,9 @@ minor version may change behaviour; the notes will say so.
   registered there. *Connect to Hardcover* under Settings and
   `kobo-hardcover-sync token` show a link and a short code, you approve on
   Hardcover, done. A pasted token keeps working, and stays possible
-  (`token --paste`, or *Paste a token instead* on the page).
+  (`token --paste`, or *Paste a token instead* on the page). Seen working
+  against Hardcover on a self-hosted server: signing in, a sync, and a
+  renewal of the connection.
 - The page and the commands say "connect to Hardcover" where they said
   "add a token".
 

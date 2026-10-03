@@ -127,12 +127,18 @@ kobo-hardcover-sync open
 
    On Linux no permission is needed.
 
-2. **`token`** asks for your Hardcover token, checks it with Hardcover and
-   stores it in your computer's secret store (the Keychain on a Mac). It
-   prints a link to Hardcover's page for making a token, with the four
-   permissions this tool needs already ticked: your profile name, the
-   catalogue, reading your library, changing your library. A token stops
-   working on the date you choose there; you then make a new one.
+2. **`token`** connects the tool to your Hardcover account. It shows an
+   address and a short code and opens the address in your browser; you
+   approve on Hardcover, and that is all. The tool may then read your
+   profile name, the catalogue and your library, and change your library,
+   and nothing more. The connection is kept in your computer's secret
+   store (the Keychain on a Mac) and renews itself. You can end it with
+   `token --remove`, or on Hardcover under your authorised apps.
+
+   Would you rather hand it a token you made on Hardcover yourself?
+   `kobo-hardcover-sync token --paste` asks for one and prints a link to
+   Hardcover's page for making it, with the four permissions already
+   ticked. Such a token stops working on the date you choose there.
 
 3. **Plug in the Kobo** and tap *Connect* on it. The first sync reads your
    books.
@@ -182,7 +188,7 @@ Other commands:
 | `kobo-hardcover-sync status` | What is set up, the Kobo it sees, its model and software, the last message. Quick, and never uses the network. |
 | `kobo-hardcover-sync doctor` | Checks everything a sync depends on and says what to do about what is wrong. Changes nothing. |
 | `kobo-hardcover-sync open` | The page. |
-| `kobo-hardcover-sync token --remove` | Forget the Hardcover token and go back to dry run. |
+| `kobo-hardcover-sync token --remove` | End the connection to Hardcover and go back to dry run. |
 | `kobo-hardcover-sync uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
 
 <img src="docs/img/phone-night.png" alt="The same page on a phone, at night" width="300">
@@ -261,9 +267,10 @@ docker compose up -d
 - Open the page through the proxy and press *Start using Kobo Hardcover
   Sync*. The first reader is the admin. Everyone else the proxy lets in
   signs up with one click and starts in dry run.
-- Each reader enters their own Hardcover token under Settings. Tokens are
-  encrypted in the database with `KHS_SECRET_KEY`; keep that key out of the
-  data folder and its backups.
+- Each reader connects to their own Hardcover account under Settings
+  (*Connect to Hardcover*: a link and a short code, approved on Hardcover).
+  What the server keeps for that is encrypted in the database with
+  `KHS_SECRET_KEY`; keep that key out of the data folder and its backups.
 - `/upload` and `/collection` are for the computers that send a Kobo's
   books: route them past the sign-in, because they carry a token of their
   own. `/api/stats/<reader>` gives reading minutes and the current book to
@@ -311,9 +318,10 @@ your books, reviews, wishlist or anything else in the Kobo's database. The
 upload is built from a list of what is needed, and the server refuses an
 upload that holds more.
 
-Your Hardcover token is kept in your computer's secret store (local mode)
-or encrypted in the server's database (server mode). It is never shown
-again, never logged, and never put on a command line.
+Your connection to Hardcover (or a token you pasted) is kept in your
+computer's secret store (local mode) or encrypted in the server's database
+(server mode). It is never shown again, never logged, and never put on a
+command line. Disconnecting ends it at Hardcover too.
 
 ## Limits worth knowing
 
@@ -382,7 +390,8 @@ holds a token.
 | "The Kobo was unplugged during the sync" | Plug it in again. Nothing on the Kobo was changed; what was already sent to Hardcover stays sent. |
 | "The Kobo's database is in use by another program" | Close Calibre, the Kobo desktop app or anything else that reads the Kobo, and plug it in again. |
 | "Nothing new." | The Kobo is as it was at the last sync. Read a page and plug it in again. |
-| "Hardcover does not accept your token" | It expired or was removed. Make a new one: `kobo-hardcover-sync token`, or Settings on a server. |
+| "Hardcover no longer accepts this connection. Connect again under Settings" | The connection was ended on Hardcover, or went unused for six months. Connect again: `kobo-hardcover-sync token`, or Settings on a server. |
+| "Hardcover does not accept your token" | A pasted token expired or was removed. Connect instead (`kobo-hardcover-sync token`, or Settings), or paste a new one. |
 | "Your Hardcover token may not do this (it lacks: ...)" | The token was made without one of the four permissions. Make a new one with the link the tool gives. |
 | *Needs a Hardcover match* on a book | Open its Details and choose the right book, or search for it there. |
 | "Collection not updated: This Kobo's software has not been tested ..." | Your Kobo's software has not been tried yet. Syncing to Hardcover still works. See [the collection](#the-collection-on-the-kobo). |
@@ -433,8 +442,7 @@ called 1.0:
   by more people than its author;
 - a season of use without a damaged Kobo database, on more than one
   device;
-- Hardcover's API out of beta, or its changes handled as they came;
-- signing in to Hardcover without pasting a token.
+- Hardcover's API out of beta, or its changes handled as they came.
 
 ## AI disclaimer
 

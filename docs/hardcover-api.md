@@ -93,6 +93,13 @@ without a sync): the run is recorded as one that could not start, with
 another app, for a fork. Without an id the tool offers only the pasted
 token.
 
+**Seen working against Hardcover** (2026-10-03, one reader on a
+self-hosted server): the sign-in from the page to "Connected", a sync with
+the access token, a renewal (the refresh token exchanged for a new pair,
+and the sync after it), and the check that asks whose token it is. Not
+seen yet: disconnecting (the revoke), a sign-in that is refused, the
+`token` command on a real computer.
+
 Not settled: Hardcover describes the device flow for devices without a
 browser or a keyboard. Whether they are content with it for self-hosted
 servers is still to be confirmed with them. If they are not, the server
