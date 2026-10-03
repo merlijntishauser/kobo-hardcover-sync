@@ -404,8 +404,11 @@ def _backups(collection_dir: str) -> Check:
 
 # ---------- shown ----------
 def grouped(checks: list[Check]) -> list[tuple[str, list[Check]]]:
-    """The checks under the thing they are about, in the order found."""
+    """The checks under the thing they are about, in the order found. A
+    check nobody gave a place still shows, at the end."""
     out = [(name, [c for c in checks if c.what in whats]) for name, whats in GROUPS.items()]
+    placed = {what for whats in GROUPS.values() for what in whats}
+    out.append(("Also", [c for c in checks if c.what not in placed]))
     return [(name, some) for name, some in out if some]
 
 

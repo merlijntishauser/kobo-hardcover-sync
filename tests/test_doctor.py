@@ -105,6 +105,17 @@ def test_everything_in_order_and_nothing_touched(home):
     assert TOKEN not in text and "Made-up Book" not in text  # no token, no book
 
 
+def test_every_check_is_shown_also_one_without_a_place():
+    C = doctor.Check
+    checks = [C("Hardcover", "ok", "fine"), C("Something new", "warn", "a check added later"), C("Setup", "ok", "fine")]
+    assert [(g, [c.what for c in some]) for g, some in doctor.grouped(checks)] == [
+        ("This computer", ["Setup"]),
+        ("Hardcover", ["Hardcover"]),
+        ("Also", ["Something new"]),
+    ]
+    assert "Also\n  warning  Something new  a check added later" in doctor.report(checks)
+
+
 def test_not_set_up_is_a_problem_and_the_command_says_so(home, capsys):
     mac = FakeComputer(home / "Volumes")
     checks = doctor.computer_checks(mac)
