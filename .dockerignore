@@ -1,0 +1,8 @@
+# The image is built from these and nothing else (see the Dockerfile).
+*
+!pyproject.toml
+!README.md
+!LICENSE
+!THIRD-PARTY-NOTICES.md
+!src/
+**/__pycache__

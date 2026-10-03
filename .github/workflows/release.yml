@@ -1,6 +1,7 @@
 name: release
-# Pushing a tag v1.2.3 publishes that version: to PyPI, and as a GitHub
-# release with the notes from CHANGELOG.md. Nothing secret is stored here:
+# Pushing a tag v1.2.3 publishes that version: to PyPI, as a GitHub release
+# with the notes from CHANGELOG.md, and as a container image (image.yml).
+# Nothing secret is stored here:
 # PyPI trusts this workflow in this repository (trusted publishing), and
 # the upload happens in the "pypi" environment.
 on:
@@ -62,3 +63,13 @@ jobs:
       - run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes-file notes.md
         env:
           GH_TOKEN: ${{ github.token }}
+
+  # The server as a container image, once the release is out.
+  image:
+    needs: pypi
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/image.yml
+    with:
+      tag: ${{ github.ref_name }}

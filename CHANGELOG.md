@@ -7,7 +7,11 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Added
+
+- A container image for the server, built for amd64 and arm64 at every
+  release: `ghcr.io/merlijntishauser/kobo-hardcover-sync`. Building it
+  yourself from the repository keeps working.
 
 ## 0.4.0 - 2026-10-03
 

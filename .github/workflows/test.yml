@@ -48,3 +48,20 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv build
       - run: uvx twine check --strict dist/*
+
+  # The container image a release publishes: built, started, and asked.
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t kobo-hardcover-sync .
+      - name: It starts and answers
+        run: |
+          docker run -d --name khs -e KHS_TRUSTED_PROXIES=127.0.0.1 -e KHS_DATA=/tmp -p 127.0.0.1:3012:3012 kobo-hardcover-sync
+          for _ in $(seq 30); do curl -sf http://127.0.0.1:3012/healthz && break; sleep 1; done
+          curl -sf http://127.0.0.1:3012/healthz
+          docker exec khs kobo-hardcover-sync --version
+          test "$(docker exec khs id -u)" != 0
+      - name: Without the address of a sign-in proxy it does not start
+        run: |
+          if docker run --rm kobo-hardcover-sync; then echo "::error::it started half open"; exit 1; fi
