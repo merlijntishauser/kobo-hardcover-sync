@@ -55,6 +55,8 @@ class Hardcover:
         if url == oauth.REVOKE_URL:
             self.ended = True
             return 200, {}
+        if fields["grant_type"] == "authorization_code":  # the browser sign-in: a code, and the PKCE verifier for it
+            return (200, self.pair()) if fields["code"] == "a-code" and fields.get("code_verifier") else (400, {"error": "invalid_grant"})
         if fields["grant_type"] == oauth.DEVICE_GRANT:
             if self.denied:
                 return 400, {"error": "access_denied"}
@@ -356,6 +358,43 @@ def test_the_check_renews_nothing(tmp_path, monkeypatch, hc):
     assert "The connection to Hardcover is renewed at the next sync; it was not asked about now." in r.text and hc.asked("token") == []
 
 
+# ---------- the browser sign-in, back to this computer ----------
+def test_the_browser_sign_in_is_off_until_hardcover_has_the_address_and_can_be_switched_on(hc, monkeypatch):
+    assert oauth.LOOPBACK_READY is False and oauth.loopback() is False  # the device flow, until Hardcover confirms
+    monkeypatch.setenv("KHS_HARDCOVER_LOOPBACK", "1")
+    assert oauth.loopback() is True
+    monkeypatch.setenv("KHS_HARDCOVER_CLIENT_ID", "")
+    monkeypatch.setattr(oauth, "CLIENT_ID", "")
+    assert oauth.loopback() is False  # no app to sign in through, no sign-in
+
+
+def test_the_browser_sign_in_sends_a_challenge_and_takes_only_its_own_answer(hc):
+    import base64
+    import hashlib
+    import urllib.parse
+
+    sign_in = oauth.browser_start(5555)
+    url = urllib.parse.urlparse(sign_in.url)
+    q = dict(urllib.parse.parse_qsl(url.query))
+    assert f"{url.scheme}://{url.netloc}{url.path}" == "https://hardcover.app/oauth2/authorize"
+    assert q["response_type"] == "code" and q["client_id"] == "an-app-id" and q["scope"] == " ".join(hardcover.SCOPES)
+    assert q["redirect_uri"] == "http://127.0.0.1:5555/oauth/callback" and q["state"] == sign_in.state
+    # PKCE: only the hash of the secret goes out; the secret goes with the code, to the token endpoint.
+    assert q["code_challenge_method"] == "S256" and sign_in.verifier not in sign_in.url
+    assert q["code_challenge"] == base64.urlsafe_b64encode(hashlib.sha256(sign_in.verifier.encode()).digest()).rstrip(b"=").decode()
+    back = {"code": "a-code", "state": sign_in.state, "iss": "https://api.hardcover.app"}
+    for wrong, code in (({"state": "someone-elses"}, "state"), ({"iss": "https://evil.example"}, "iss"), ({"code": ""}, "answer")):
+        with pytest.raises(oauth.OAuthError) as ex:
+            oauth.browser_finish(sign_in, {**back, **wrong})
+        assert ex.value.code == code
+    with pytest.raises(oauth.OAuthError, match="refused on Hardcover"):
+        oauth.browser_finish(sign_in, {"error": "access_denied", "state": sign_in.state})
+    assert hc.asked("token") == []  # none of those reached Hardcover
+    tokens = oauth.browser_finish(sign_in, back)
+    sent = hc.asked("token")[0]
+    assert tokens.access == "hc_at_1" and sent["code_verifier"] == sign_in.verifier and sent["redirect_uri"] == sign_in.redirect_uri
+
+
 # ---------- on your own computer ----------
 def test_the_token_command_connects_at_a_terminal_and_still_takes_a_pasted_one(home, monkeypatch, capsys, hc):
     mac = FakeComputer(home / "Volumes")
@@ -389,6 +428,39 @@ def test_the_token_command_connects_at_a_terminal_and_still_takes_a_pasted_one(h
     monkeypatch.setattr("sys.stdin", io.StringIO("a-pasted-token\n"))
     cli.main(["token"], computer=mac)
     assert mac.secrets == {HARDCOVER: "a-pasted-token"} and said(capsys) == "ok Stored. Hardcover knows you as @sam."
+
+
+def test_the_token_command_signs_in_through_the_browser_when_that_is_switched_on(home, monkeypatch, capsys, hc):
+    import urllib.parse
+    import urllib.request
+
+    mac = FakeComputer(home / "Volumes")
+    cli.main(["setup", "--local", "--no-trigger"], computer=mac)
+    capsys.readouterr()
+    monkeypatch.setattr(hardcover, "Client", Me)
+    monkeypatch.setenv("KHS_HARDCOVER_LOOPBACK", "1")
+    terminal = io.StringIO()
+    terminal.isatty = lambda: True
+    monkeypatch.setattr("sys.stdin", terminal)
+
+    def browser(url):  # the reader approves; Hardcover sends the browser back to the tool
+        q = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(url).query))
+        back = q["redirect_uri"] + "?" + urllib.parse.urlencode({"code": "a-code", "state": q["state"], "iss": "https://api.hardcover.app"})
+        threading.Thread(target=lambda: urllib.request.urlopen(back, timeout=10).read(), daemon=True).start()
+
+    monkeypatch.setattr(mac, "open_page", browser)
+    cli.main(["token"], computer=mac)
+    out = said(capsys)
+    assert "Approve on Hardcover, in the browser that is being opened for you." in out and "token --code" in out
+    assert out.endswith("ok Connected. Hardcover knows you as @anna_reads.") and "a-code" not in out
+    assert oauth.unpack(mac.secrets[HARDCOVER]).refresh == "hc_rt_1" and hc.asked("device") == []
+    # --code: the device flow, as without the switch.
+    cli.main(["token", "--remove"], computer=mac)
+    capsys.readouterr()
+    monkeypatch.setattr(mac, "open_page", lambda url: setattr(hc, "approved", True))
+    monkeypatch.setattr(cli.time, "sleep", lambda s: None)
+    cli.main(["token", "--code"], computer=mac)
+    assert hc.asked("device") and "Check that Hardcover shows this code: ABCD-EFGH" in said(capsys)
 
 
 def test_a_local_sync_renews_and_one_whose_connection_ended_says_so(home, hc):

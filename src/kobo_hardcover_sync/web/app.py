@@ -183,6 +183,10 @@ async def local_gate(request: Request, call_next):
         resp = RedirectResponse(path + ("?" + rest if rest else ""), status_code=303)
         resp.set_cookie(local_page.COOKIE, local.session, httponly=True, samesite="strict", path="/")
         return resp
+    # Back from signing in on Hardcover: a cross-site arrival, so without the cookie; the answer
+    # itself is checked against the sign-in it belongs to (oauth_callback).
+    if path == oauth.CALLBACK and request.method == "GET":
+        return await call_next(request)
     if not local.has_session(request.cookies.get(local_page.COOKIE)):
         return PlainTextResponse(T["local_no_key"], status_code=403)
     if request.method not in ("GET", "HEAD") and request.headers.get("origin") != local.origin:
@@ -1238,7 +1242,7 @@ def signup(request: Request):
 
 # Sign-ins that wait for the reader to approve on Hardcover, per reader. In
 # memory: one lasts a quarter of an hour, and a restart only means starting again.
-_signins: dict[str, oauth.Device] = {}
+_signins: dict[str, oauth.Device | oauth.Browser] = {}
 
 
 def settings_page(
@@ -1263,7 +1267,11 @@ def settings_page(
         new_stats_token,
         {"eject": computer_config.load().eject_after_sync, "kept_in": local.computer.secret_place(local_page.HARDCOVER)} if local else None,
         checks,
-        {"kind": accounts.token_kind(con, me["name"]), "signin": _signins.get(me["name"]), "waiting": waiting}
+        {
+            "kind": accounts.token_kind(con, me["name"]),
+            "signin": signin if isinstance(signin := _signins.get(me["name"]), oauth.Device) else None,
+            "waiting": waiting,
+        }
         if oauth.available()
         else None,
     )
@@ -1378,6 +1386,10 @@ def settings_connect(request: Request):
     try:
         if not accounts.can_store_tokens():
             raise accounts.AccountError("err_no_key")
+        if local and oauth.loopback():  # on the reader's own computer: in the browser, back to this page
+            sign_in = oauth.browser_start(local.port)
+            _signins[me["name"]] = sign_in
+            return RedirectResponse(sign_in.url, status_code=303)
         _signins[me["name"]] = oauth.start()
     except accounts.AccountError as ex:
         return settings_page(con, me, err=ex.key, status=400)
@@ -1385,6 +1397,46 @@ def settings_connect(request: Request):
         return settings_page(con, me, err="err_connect", detail=f"{ex}.", status=502)
     resp = settings_page(con, me)
     resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
+@app.get(oauth.CALLBACK)
+def oauth_callback(request: Request):
+    """Where Hardcover sends the browser back after a sign-in started on the
+    local page. The browser comes from hardcover.app, so the page's session
+    cookie (SameSite=Strict) does not come along: what makes the answer
+    count is that it belongs to a sign-in started here (its state), and the
+    code is worth nothing without the PKCE secret only this process holds.
+    The page it ends on sends the browser on to Settings from this origin,
+    where the cookie applies again."""
+    if not local:
+        return PlainTextResponse("Not Found", status_code=404)
+    answer = dict(request.query_params)
+    con = db()
+    name = next((n for n, s in _signins.items() if isinstance(s, oauth.Browser) and s.state == answer.get("state")), None)
+    if name is None:  # an old tab, a second visit, or an answer for another sign-in
+        return _back_to_settings(T["s_connect_lost"], "/settings")
+    sign_in = _signins.pop(name)
+    try:
+        got = oauth.browser_finish(sign_in, answer)
+        who = hardcover.Client(got.access, tries=1).whoami()
+        accounts.set_token(con, name, got.pack(), str(who.get("username") or ""))
+    except (oauth.OAuthError, hardcover.HardcoverError, accounts.AccountError) as ex:
+        detail = T[ex.key] if isinstance(ex, accounts.AccountError) else f"{ex}."
+        return _back_to_settings(f"{T['err_connect']} {detail}", "/settings")
+    return _back_to_settings(T["ok_connected"], "/settings?ok=connected")
+
+
+def _back_to_settings(said: str, to: str) -> HTMLResponse:
+    """A moment's page that says how the sign-in went and goes on to Settings by itself."""
+    resp = HTMLResponse(
+        shell(
+            f'<main class="solo"><h1>{T["title"]}</h1><p>{e(said)}</p><p><a href="{e(to)}">{T["s_connect_on"]}</a></p></main>',
+            head=f'<meta http-equiv="refresh" content="1;url={e(to)}">',
+        )
+    )
+    resp.headers["Cache-Control"] = "no-store"
+    resp.headers["Referrer-Policy"] = "no-referrer"  # the address carried the code
     return resp
 
 

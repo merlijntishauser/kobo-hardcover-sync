@@ -63,15 +63,38 @@ own server at an address only they know, and its code is public. It
 cannot keep a secret and has no one address to register. So it is a
 public app, for both ways of running it.
 
-**Which flow.** The device flow (RFC 8628), everywhere: the tool shows a
+**Which flow.** On a server, the device flow (RFC 8628): the tool shows a
 link and a short code, the reader approves on hardcover.app, the tool
-collects the tokens. It needs no address to come back to, so it works the
-same on a laptop and on a server that is only reachable at home. The other
-flow for a public app, a redirect to a loopback address, would have been
-one click smoother on a reader's own computer and no use on a server; one
-flow is one thing to keep working. Hardcover warns that both can be
-misused by someone who copies the app's public id; no redirect address is
-registered, which leaves the device flow as the only way in.
+collects the tokens. It needs no address to come back to, which a
+household's server, at an address only they know, could not offer one
+shared app.
+
+On a reader's own computer Hardcover suggested the standard flow instead
+(2026-10-03, on their Discord): the authorization code flow with PKCE
+(RFC 7636), the browser coming back to an address on this computer
+(RFC 8252, `http://127.0.0.1:<port>/oauth/callback`). Nothing to type, no
+code to compare. Hardcover publishes what it needs
+(`api.hardcover.app/.well-known/oauth-authorization-server`): the
+authorize page at `hardcover.app/oauth2/authorize`, PKCE with S256, public
+clients without a secret, and its own name (`iss`) in the answer, which
+the tool checks. Both the `token` command (a moment's server on a free
+port) and the local page (its own address) use it. It needs that address
+registered for the app at Hardcover, with any port accepted, so it is off
+until it is: `LOOPBACK_READY` in `engine/oauth.py`, and
+`KHS_HARDCOVER_LOOPBACK=1` to try it before. `token --code` keeps the
+device flow at hand.
+
+The local page's cookie is `SameSite=Strict`, so it does not come along
+when Hardcover sends the browser back. The way back is checked on its
+own: from this computer, to the page's own address, with the `state` of a
+sign-in the page started; the code is useless without the PKCE secret the
+page kept. A moment's page then sends the browser on to Settings from the
+page's own origin, where the cookie applies again. A browser test goes the
+whole way round against a stand-in Hardcover.
+
+Hardcover warns that both public flows can be misused by someone who
+copies the app's public id; PKCE and the state keep a stolen code or a
+forged answer from being of use to them.
 
 **The tokens.** An access token lasts a week and is used like a pasted
 one. A refresh token lasts six months and is replaced on every use; one
@@ -100,10 +123,9 @@ and the sync after it), and the check that asks whose token it is. Not
 seen yet: disconnecting (the revoke), a sign-in that is refused, the
 `token` command on a real computer.
 
-Not settled: Hardcover describes the device flow for devices without a
-browser or a keyboard. Whether they are content with it for self-hosted
-servers is still to be confirmed with them. If they are not, the server
-half changes and the rest stands.
+Settled (2026-10-03): Hardcover is content with the device flow for
+self-hosted servers. Open: whether they accept the loopback address with
+any port for a public app, so that the browser sign-in can be switched on.
 
 ## What the live API does (2026-10-02)
 

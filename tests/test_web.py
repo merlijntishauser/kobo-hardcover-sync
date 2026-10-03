@@ -68,6 +68,12 @@ def test_the_first_run_says_what_to_do_until_the_reader_goes_live(tmp_path, monk
     assert "firstrun" not in c.get("/", headers=h).text
 
 
+def test_the_browser_sign_ins_way_back_is_not_there_on_a_server(tmp_path, monkeypatch):
+    # Coming back to the page by the browser is for a reader's own computer only; a server signs in with a code.
+    c = client(tmp_path, monkeypatch)
+    assert c.get("/oauth/callback?code=a-code&state=x", headers={"Remote-User": "robin"}).status_code == 404
+
+
 def test_sync_now_shows_the_sync_running_and_then_what_it_did(tmp_path, monkeypatch):
     c = client(tmp_path, monkeypatch)
     h = {"Remote-User": "robin"}

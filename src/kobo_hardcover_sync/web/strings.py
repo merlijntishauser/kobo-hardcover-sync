@@ -252,6 +252,8 @@ T = {
     "s_connect_done": "I have approved it",
     "s_connect_cancel": "Cancel",
     "s_connect_waiting": "Not approved on Hardcover yet. Approve there first.",
+    "s_connect_lost": "This sign-in is not one this page is waiting for (an old tab, or it was already finished). Start again under Settings.",
+    "s_connect_on": "On to Settings",
     "s_paste_instead": "Paste a token instead",
     "s_disconnect": "Disconnect",
     "s_disconnect_confirm": "Disconnect from Hardcover? Syncing to Hardcover stops and Kobo Hardcover Sync goes back to dry run.",

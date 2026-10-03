@@ -641,3 +641,94 @@ def test_connecting_to_hardcover_without_javascript_and_on_a_phone(browser, base
     page.click(".signin form[action='/settings/connect/cancel'] button")
     assert page.locator(".signin").count() == 0
     ctx.close()
+
+
+class PretendHardcoverBrowser(BaseHTTPRequestHandler):
+    """Hardcover's browser sign-in (authorization code with PKCE): the
+    authorize page approves at once and sends the browser back; the token
+    endpoint gives tokens only for the verifier that matches the challenge."""
+
+    challenges: dict = {}
+
+    def log_message(self, *a):
+        pass
+
+    def do_GET(self):
+        u = urllib.parse.urlparse(self.path)
+        q = dict(urllib.parse.parse_qsl(u.query))
+        if u.path != "/authorize" or q.get("code_challenge_method") != "S256":
+            self.send_response(400)
+            self.end_headers()
+            return
+        PretendHardcoverBrowser.challenges["a-code"] = (q["code_challenge"], q["redirect_uri"])
+        back = q["redirect_uri"] + "?" + urllib.parse.urlencode({"code": "a-code", "state": q["state"], "iss": "https://api.hardcover.app"})
+        self.send_response(302)
+        self.send_header("Location", back)
+        self.end_headers()
+
+    def do_POST(self):
+        fields = dict(urllib.parse.parse_qsl(self.rfile.read(int(self.headers.get("Content-Length") or 0)).decode()))
+        if self.path == "/graphql":
+            body, status = {"data": {"me": [{"id": 7, "username": "anna_reads"}]}}, 200
+        else:
+            import base64
+            import hashlib
+
+            challenge, redirect = PretendHardcoverBrowser.challenges.get(fields.get("code"), ("", ""))
+            made = base64.urlsafe_b64encode(hashlib.sha256(fields.get("code_verifier", "").encode()).digest()).rstrip(b"=").decode()
+            ok = fields.get("grant_type") == "authorization_code" and made == challenge and fields.get("redirect_uri") == redirect
+            body, status = (
+                ({"access_token": "hc_at_1", "refresh_token": "hc_rt_1", "expires_in": 604800}, 200)
+                if ok
+                else ({"error": "invalid_grant"}, 400)
+            )
+        raw = json.dumps(body).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(raw)))
+        self.end_headers()
+        self.wfile.write(raw)
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="the local page keeps the token in a file only on Linux")
+def test_on_your_own_computer_connecting_goes_through_the_browser_and_comes_back_signed_in(browser, tmp_path, monkeypatch):
+    # The page's own cookie is SameSite=Strict: it does not come along when Hardcover sends the browser
+    # back. This is the whole way round in a real browser, to see that the sign-in still lands.
+    server = ThreadingHTTPServer(("127.0.0.1", 0), PretendHardcoverBrowser)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    hc = f"http://127.0.0.1:{server.server_address[1]}"
+    monkeypatch.setenv("KHS_HOME", str(tmp_path))
+    from kobo_hardcover_sync.computer import config, page
+    from kobo_hardcover_sync.engine import state
+    from kobo_hardcover_sync.server import accounts
+
+    con = state.connect(str(tmp_path / "state.db"))
+    accounts.local_reader(con, "anna")
+    con.close()
+    config.save(config.Config())
+    env = {k: v for k, v in os.environ.items() if k != "KHS_TRUSTED_PROXIES"}
+    env.update(
+        KHS_HARDCOVER_CLIENT_ID="an-app-id",
+        KHS_HARDCOVER_LOOPBACK="1",
+        HARDCOVER_OAUTH_AUTHORIZE=hc + "/authorize",
+        HARDCOVER_OAUTH_TOKEN=hc + "/token",
+        HARDCOVER_API=hc + "/graphql",
+    )
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "kobo_hardcover_sync", "page"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    try:
+        for _ in range(150):
+            if page.running():
+                break
+            time.sleep(0.1)
+        ctx = browser.new_context()
+        p = ctx.new_page()
+        p.goto(page.link().replace("/?k=", "/settings?k="))
+        p.click("#hardcover form[action^='/settings/connect'] button")
+        p.wait_for_url("**/settings?ok=connected", timeout=15000)  # back at Settings, with the page's own cookie again
+        assert "Connected to Hardcover as @anna_reads" in p.inner_text("#hardcover")
+        ctx.close()
+    finally:
+        proc.terminate()
+        server.shutdown()

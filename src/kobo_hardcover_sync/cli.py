@@ -130,6 +130,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     tok = sub.add_parser("token", help="local mode: store your Hardcover token")
     tok.add_argument("--remove", action="store_true", help="forget the token (and go back to dry run)")
     tok.add_argument("--paste", action="store_true", help="paste a token made on Hardcover, instead of connecting there")
+    tok.add_argument("--code", action="store_true", help="connect with a code to compare, instead of in the browser")
     sub.add_parser("page")  # what `open` starts in local mode; no help text, so it is not listed
     syn = sub.add_parser("sync", help="one sync now")
     syn.add_argument("--trigger", default="", help=argparse.SUPPRESS)  # "mount": started by the plug-in trigger
@@ -307,7 +308,7 @@ def _token(a, computer) -> None:
         # At a terminal, and with an app to connect through: sign in on Hardcover. A token that is
         # piped in, or asked for with --paste, is taken as before.
         if oauth.available() and sys.stdin.isatty() and not a.paste:
-            token, keep = _connect(computer, oauth)
+            token, keep = _connect_browser(computer, oauth) if oauth.loopback() and not a.code else _connect(computer, oauth)
         else:
             if sys.stdin.isatty():
                 import getpass
@@ -333,6 +334,76 @@ def _token(a, computer) -> None:
     finally:
         accounts.token_store = None
         con.close()
+
+
+BACK_IN_THE_TERMINAL = (
+    "<!doctype html><html lang=en><meta charset=utf-8><title>Kobo Hardcover Sync</title>"
+    '<body style="font:16px/1.5 system-ui,sans-serif;margin:3rem auto;max-width:34rem;padding:0 1rem">'
+    "<h1 style=font-size:1.4rem>Kobo Hardcover Sync</h1><p>{}</p></body></html>"
+)
+
+
+def _connect_browser(computer, oauth) -> tuple[str, str]:
+    """Sign in on Hardcover in the browser (engine/oauth.py): Hardcover sends
+    the browser back to a moment's address on this computer, and the tool
+    takes the code from there. Returns the token to use now and the
+    connection to keep."""
+    import threading
+    import urllib.parse
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    answer: dict = {}
+    came = threading.Event()
+
+    class Back(BaseHTTPRequestHandler):
+        def log_message(self, *a):  # the query carries the code: nothing of it goes anywhere
+            pass
+
+        def do_GET(self):
+            u = urllib.parse.urlparse(self.path)
+            if u.path != oauth.CALLBACK or came.is_set():
+                self.send_response(404)
+                self.end_headers()
+                return
+            answer.update(urllib.parse.parse_qsl(u.query))
+            refused = answer.get("error") == "access_denied"
+            body = BACK_IN_THE_TERMINAL.format(
+                "The sign-in was refused on Hardcover. The terminal says what next."
+                if refused
+                else "Back in the terminal: it finishes the connection. You can close this tab."
+            ).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+            came.set()
+
+    server = HTTPServer(("127.0.0.1", 0), Back)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        sign_in = oauth.browser_start(server.server_address[1])
+        screen = term.Screen.of()
+        screen.heading("Connect to Hardcover")
+        screen.say("Approve on Hardcover, in the browser that is being opened for you. If none opens, go to:", indent=2)
+        screen.line(f"  {screen.style(sign_in.url, term.CYAN)}")
+        screen.line()
+        screen.say(
+            "Waiting for your approval. Ctrl-C stops; `kobo-hardcover-sync token --code` connects with a code instead.",
+            style=(term.DIM,),
+        )
+        sys.stdout.flush()
+        computer.open_page(sign_in.url)
+        if not came.wait(600):
+            sys.exit("kobo-hardcover-sync: the sign-in took too long. Nothing was stored.")
+        got = oauth.browser_finish(sign_in, answer)
+    except oauth.OAuthError as ex:
+        sys.exit(f"kobo-hardcover-sync: {ex}. Nothing was stored. `kobo-hardcover-sync token --code` connects with a code instead.")
+    finally:
+        server.shutdown()
+        server.server_close()
+    return got.access, got.pack()
 
 
 def _connect(computer, oauth) -> tuple[str, str]:

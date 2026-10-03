@@ -24,14 +24,26 @@ that must not happen.
 The app is registered at Hardcover by this project; its id is public (the
 flow has no secret). KHS_HARDCOVER_CLIENT_ID names another app, for a fork
 or for someone who wants their own.
+
+On a reader's own computer there is a smoother way, Hardcover's suggestion
+(2026-10-03): the authorization code flow with PKCE (RFC 7636), coming back
+to an address on this computer (RFC 8252): the browser opens Hardcover, the
+reader approves, and Hardcover sends the browser back to the tool. Nothing
+to type, no code to compare. It needs that address registered for the app
+at Hardcover, with any port allowed, so it is off until it is
+(LOOPBACK_READY); KHS_HARDCOVER_LOOPBACK=1 switches it on to try it. The
+device flow stays, for a server and as the way back.
 """
 
 from __future__ import annotations
 
 import base64
+import hashlib
+import hmac
 import json
 import logging
 import os
+import secrets
 import time
 import urllib.error
 import urllib.parse
@@ -47,6 +59,13 @@ DEVICE_URL = os.environ.get("HARDCOVER_OAUTH_DEVICE", "https://api.hardcover.app
 TOKEN_URL = os.environ.get("HARDCOVER_OAUTH_TOKEN", "https://api.hardcover.app/oauth2/token")
 REVOKE_URL = os.environ.get("HARDCOVER_OAUTH_REVOKE", "https://api.hardcover.app/oauth2/revoke")
 DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
+# From Hardcover's own description of itself (api.hardcover.app/.well-known/oauth-authorization-server):
+AUTHORIZE_URL = os.environ.get("HARDCOVER_OAUTH_AUTHORIZE", "https://hardcover.app/oauth2/authorize")
+ISSUER = os.environ.get("HARDCOVER_OAUTH_ISSUER", "https://api.hardcover.app")
+CALLBACK = "/oauth/callback"  # where Hardcover sends the browser back: http://127.0.0.1:<port>/oauth/callback
+# Whether Hardcover has the loopback address registered for this project's app. Until it has, the
+# browser would end on an error at Hardcover, so the tool keeps to the device flow.
+LOOPBACK_READY = False
 
 RENEW_BEFORE = 24 * 3600  # an access token is renewed when it has less than a day left
 PREFIX = "oauth."  # how a kept OAuth connection is told from a pasted token
@@ -60,6 +79,14 @@ def client_id() -> str:
 def available() -> bool:
     """Can a reader connect with OAuth? Only with an app to connect through."""
     return bool(client_id())
+
+
+def loopback() -> bool:
+    """Sign in through the browser, back to this computer (only where the
+    tool runs on the reader's own computer)? KHS_HARDCOVER_LOOPBACK says yes
+    or no; without it, LOOPBACK_READY decides."""
+    said = os.environ.get("KHS_HARDCOVER_LOOPBACK", "").strip().lower()
+    return available() and (said in ("1", "on", "yes", "true") if said else LOOPBACK_READY)
 
 
 class OAuthError(Exception):
@@ -108,6 +135,72 @@ class Device:
     link_with_code: str  # the same, with the code filled in
     expires: float  # time.monotonic() after which this sign-in is over
     interval: int  # seconds to leave between two questions
+
+
+@dataclass(frozen=True)
+class Browser:
+    """A sign-in in the reader's browser, waiting for Hardcover to send the
+    browser back with a code: what the answer must carry, and what turns
+    the code into tokens."""
+
+    state: str  # must come back as it went: the answer belongs to this sign-in
+    verifier: str  # the PKCE secret; only its hash went to Hardcover
+    redirect_uri: str
+    url: str  # where to send the browser
+    expires: float  # time.monotonic() after which this sign-in is over
+
+
+def browser_start(port: int) -> Browser:
+    """A browser sign-in that comes back to http://127.0.0.1:<port>/oauth/callback."""
+    if not available():
+        raise OAuthError("This installation has no Hardcover app to connect through", "no_app")
+    redirect = f"http://127.0.0.1:{int(port)}{CALLBACK}"
+    state, verifier = secrets.token_urlsafe(24), secrets.token_urlsafe(48)
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
+    query = urllib.parse.urlencode(
+        {
+            "response_type": "code",
+            "client_id": client_id(),
+            "redirect_uri": redirect,
+            "scope": " ".join(hardcover.SCOPES),
+            "state": state,
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+        }
+    )
+    return Browser(state, verifier, redirect, f"{AUTHORIZE_URL}?{query}", time.monotonic() + 600)
+
+
+def browser_finish(sign_in: Browser, answer: dict, opener=None) -> Tokens:
+    """What Hardcover sent the browser back with (the query of the callback),
+    turned into tokens. Raises OAuthError when it is not an answer to this
+    sign-in, or a refusal."""
+    if time.monotonic() > sign_in.expires:
+        raise OAuthError("The sign-in took too long. Start again", "expired_token")
+    if not hmac.compare_digest(str(answer.get("state") or ""), sign_in.state):
+        raise OAuthError("This answer does not belong to the sign-in this tool started. Start again", "state")
+    if answer.get("iss") and answer["iss"] != ISSUER:  # RFC 9207: who sent it
+        raise OAuthError("The answer did not come from Hardcover. Start again", "iss")
+    error = str(answer.get("error") or "")
+    if error == "access_denied":
+        raise OAuthError("The sign-in was refused on Hardcover", error)
+    if error:
+        raise OAuthError(f"Hardcover did not finish the sign-in ({error})", error)
+    if not answer.get("code"):
+        raise OAuthError("Hardcover sent the browser back without a code. Start again", "answer")
+    fields = {
+        "grant_type": "authorization_code",
+        "code": str(answer["code"]),
+        "redirect_uri": sign_in.redirect_uri,
+        "client_id": client_id(),
+        "code_verifier": sign_in.verifier,
+    }
+    status, said = _post(TOKEN_URL, fields, opener)
+    if status == 200:
+        return _tokens(said)
+    if status == 0:
+        raise OAuthError("Hardcover could not be reached. Try again in a moment", "unreachable")
+    raise OAuthError(f"Hardcover did not finish the sign-in ({said.get('error') or f'error {status}'})", str(said.get("error") or ""))
 
 
 def _post(url: str, fields: dict, opener=None) -> tuple[int, dict]:

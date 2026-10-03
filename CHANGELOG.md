@@ -7,6 +7,14 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- Signing in on Hardcover in the browser, on your own computer: Hardcover
+  sends the browser back to the tool, with no code to compare. Ready, but
+  off until Hardcover has the tool's address registered;
+  `KHS_HARDCOVER_LOOPBACK=1` switches it on to try it. `token --code` keeps
+  the sign-in with a code. A server keeps signing in with a code.
+
 ## 0.5.1 - 2026-10-03
 
 *Sync now* shows the sync while it runs, and says what it did.
