@@ -29,7 +29,7 @@ from ..engine.plan import action, desired, quiet_for
 from ..env import env
 from ..server import accounts, proxy, upload
 from ..server import stats as stats_mod
-from . import account_pages, covers
+from . import account_pages, covers, marks
 from .fmt import e, fmt_date, fmt_dt, fmt_dur, shorten
 from .strings import T
 
@@ -63,7 +63,7 @@ class Compress(GZipMiddleware):
     compressed already and pass untouched."""
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] == "http" and scope["path"].startswith(("/static/fonts/", "/static/img/", "/cover/")):
+        if scope["type"] == "http" and scope["path"].startswith(("/static/fonts/", "/cover/")):
             await self.app(scope, receive, send)
             return
         await super().__call__(scope, receive, send)
@@ -344,7 +344,7 @@ def book_cell(r) -> str:
 
 def hc_status(r, live: bool, quiet: dict) -> tuple[str, str]:
     """(kind, text) of the Hardcover status line: what the next sync does.
-    kind: ok | next | warn | err | none. `quiet`: plan.quiet for this reader."""
+    kind: ok | next | wait | warn | err | none (marks.py). `quiet`: plan.quiet for this reader."""
     if r["hc_error"]:
         return "err", T["status_error"]
     if (r["device"], r["content_id"]) in quiet:
@@ -359,13 +359,57 @@ def hc_status(r, live: bool, quiet: dict) -> tuple[str, str]:
     if state.syncs(r) and r["last_sent"]:
         return "ok", T["up_to_date"]
     if state.syncs(r):
-        return "next", T["not_yet_sent"]
+        return "wait", T["not_yet_sent"]
     return "none", T["not_syncing"]
 
 
 def status_html(status: tuple[str, str]) -> str:
-    kind, text = status
-    return f'<div class="act {kind}"><span class="dot"></span>{e(text)}</div>'
+    return marks.line(*status)
+
+
+def marked_line(con, reader: str, live: bool) -> str:
+    """The second line of Sync now: how many books carry the red mark, so the
+    button says what it is about to send. Empty when there are none."""
+    quiet = quiet_for(con, reader)
+    n = sum(1 for r in con.execute("select * from book where reader=?", (reader,)) if hc_status(r, live, quiet)[0] == "next")
+    if not n:
+        return ""
+    one, many = T["marked_send" if live else "marked_would"]
+    return (one if n == 1 else many).format(n=n)
+
+
+def shelf_words(d: dict) -> str:
+    """'Currently reading, 37%' / 'Read, finished 30 Sep 2026': a shelf entry
+    in the page's words, for what Hardcover has (last_sent) or will get (desired)."""
+    st = d.get("status") if d else None
+    if not st:
+        return ""
+    words = T.get("hc_" + st, st)
+    if st == "reading" and d.get("progress") is not None:
+        words += f", {d['progress']}%"
+    if st == "read" and d.get("finished"):
+        words += ", " + T["shelf_finished"].format(date=fmt_date(d["finished"]))
+    return words
+
+
+def correction(r) -> tuple[str, str, str] | None:
+    """The proof mark for a row the next sync changes: (kept, struck, inserted),
+    'Currently reading,' '35%' '37%'. None when there is no shelf change to show
+    (no match yet, or only the edition changes)."""
+    a = action(r)
+    if not a or not r["hc_book_id"] or a.startswith(("needs", "match pending")):
+        return None
+    sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
+    now = shelf_words(desired(r) or {})
+    was = shelf_words(sent) if sent.get("user_book_id") else ""
+    if not now or now == was:
+        return None
+    if was:
+        h1, _, t1 = was.partition(", ")
+        h2, _, t2 = now.partition(", ")
+        if h1 == h2 and t1 and t2:
+            return h1 + ",", t1, t2
+    return "", was, now
 
 
 def row_json(con, reader, cid, back: str = "", with_details: bool = False):
@@ -376,6 +420,7 @@ def row_json(con, reader, cid, back: str = "", with_details: bool = False):
         return {"syncs": False, "action": "", "book": "", "status": '<div class="act"></div>', "hc": ""}
     status = hc_status(row, live_for(reader), quiet_for(con, reader))
     d = {
+        "marked": marked_line(con, reader, live_for(reader)),
         "syncs": state.syncs(row),
         "action": action(row),
         "book": book_cell(row),
@@ -415,14 +460,40 @@ def state_cell(r, back: str) -> str:
 
 
 def edition_line(r, sent: dict) -> str:
-    """'Blindness, Ebook' style line: the match and its edition."""
+    """'Blindness, Ebook' style line: the match and its edition. An edition
+    chosen on Hardcover carries a stet: it is kept as it is."""
     if not r["hc_book_id"]:
         return ""
     parts = [e(r["hc_title"] or "")]
     if r["hc_format"] or sent.get("user_book_id"):
         parts.append(e(r["hc_format"] or T["format_unknown"]))
     parts = [x for x in parts if x]
-    return f'<div class="sub">{", ".join(parts)}</div>' if parts else ""
+    if not parts:
+        return ""
+    stet = f'{marks.mark("stet")}<span class="sr">{e(T["how_hardcover"])}: </span>' if r["hc_edition_by"] == "hardcover" else ""
+    return f'<div class="sub">{stet}{", ".join(parts)}</div>'
+
+
+def mark_html(r, status: tuple[str, str], labelled: bool = True) -> str:
+    """The status line, and for a change the correction itself: the old value
+    struck through, the new one after a caret, kept together on one line. The
+    words for a screen reader are the status text; the drawn correction is for
+    the eye. labelled=False where the page already names it (Details, under
+    "Next sync"): the mark and the correction only."""
+    kind, text = status
+    label, sep, rest = text.partition(": ")
+    if kind != "next" or not sep:
+        return marks.line(kind, text)
+    fix = correction(r)
+    if fix is None:
+        drawn = f"<ins>{marks.INSERT}{e(rest)}</ins>"
+    else:
+        kept, was, now = fix
+        drawn = (f"{e(kept)} " if kept else "") + '<span class="swap">' + (f"<s>{e(was)}</s> " if was else "")
+        drawn += f"<ins>{marks.INSERT}{e(now)}</ins></span>"
+    if not labelled:
+        return f'<div class="act {kind}">{marks.mark(kind)}<span class="sr">{e(text)}</span><span class="fix" aria-hidden="true">{drawn}</span></div>'
+    return marks.line(kind, label, f'<span class="sr">: {e(rest)}</span>') + f'<div class="fix" aria-hidden="true">{drawn}</div>'
 
 
 def hc_cell(r, back: str, status: tuple[str, str]) -> str:
@@ -431,7 +502,7 @@ def hc_cell(r, back: str, status: tuple[str, str]) -> str:
     sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
     href = f"/details/{quote(r['content_id'], safe='')}" + (f"?back={quote(back, safe='')}" if back else "")
     return (
-        status_html(status)
+        mark_html(r, status)
         + edition_line(r, sent)
         + f'<a class="details" href="{href}" aria-label="{e(T["details_of"].format(title=r["title"]))}">{T["details"]}</a>'
     )
@@ -495,7 +566,7 @@ def details_fragment(r, status: tuple[str, str], back: str) -> str:
             shelf += f", {e(fmt_date(sent['finished']))}"
         hc.append((T["d_on_shelf"], shelf))
         hc.append((T["d_last_sync"], e(fmt_dt(sent.get("at")))))
-    hc.append((T["d_next_sync"], f'<span class="act {kind}"><span class="dot"></span>{e(status)}</span>'))
+    hc.append((T["d_next_sync"], mark_html(r, (kind, status), labelled=False)))
     if r["hc_error"]:
         hc.append((T["d_error"], f'<span class="err">{e(r["hc_error"])}</span>'))
     actions = []
@@ -508,7 +579,7 @@ def details_fragment(r, status: tuple[str, str], back: str) -> str:
         )
         if opts:
             actions.append(
-                f'<form method="post" action="/pick" class="pickrow">{keep}<select name="choice" aria-label="{T["candidates"]}">{opts}</select><button class="primary">{T["use"]}</button></form>'
+                f'<form method="post" action="/pick" class="pickrow">{keep}<select name="choice" aria-label="{T["candidates"]}">{opts}</select><button class="solid">{T["use"]}</button></form>'
             )
         else:
             actions.append(f'<p class="muted">{T["no_match"]}</p>')
@@ -558,8 +629,8 @@ HEAD_SCRIPT = (
 # The browser's own bar in the page's colour, day and night (kobo.js keeps
 # it right when the theme is chosen by hand).
 THEME_COLOR = (
-    '<meta name="theme-color" content="#f0f4ff" media="(prefers-color-scheme: light)">'
-    '<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">'
+    '<meta name="theme-color" content="#c3e2ef" media="(prefers-color-scheme: light)">'
+    '<meta name="theme-color" content="#123040" media="(prefers-color-scheme: dark)">'
 )
 
 
@@ -593,7 +664,7 @@ def help_html() -> str:
                 out.append(f"<p>{e(it)}</p>")
             else:
                 kind, term, text = it if len(it) == 3 else ("", *it)
-                dt = f'<span class="act {kind}"><span class="dot"></span>{e(term)}</span>' if kind else e(term)
+                dt = marks.line(kind, term) if kind else e(term)
                 terms.append(f"<div><dt>{dt}</dt><dd>{e(text)}</dd></div>")
         flush()
         return f"<section><h3>{e(title)}</h3>{''.join(out)}</section>"
@@ -602,7 +673,7 @@ def help_html() -> str:
     return (
         f'<dialog id="help" aria-labelledby="helptitle"><header class="dtop"><h2 id="helptitle">{T["help_title"]}</h2>'
         f'<form method="dialog"><button class="close">{T["close"]}</button></form></header>'
-        f'<div class="dbody">{secs}<p class="credit">{e(T["disclaimer"])}<br>{T["photo_credit"]}</p></div></dialog>'
+        f'<div class="dbody">{secs}<p class="credit">{e(T["disclaimer"])}</p></div></dialog>'
     )
 
 
@@ -624,6 +695,14 @@ NAV_ICONS = {
 }
 
 
+# What the marks in the Hardcover column mean, above the list.
+LEGEND = (
+    f'<ul class="legend" aria-label="{T["legend"]}">'
+    + "".join(f'<li class="{k}">{marks.mark(k)}{T["legend_" + k]}</li>' for k in ("next", "wait", "ok", "stet", "warn", "err", "none"))
+    + "</ul>"
+)
+
+
 THEME_SWITCH = (
     '<div class="theme" role="group" aria-label="Theme">'
     '<button type="button" data-set="light">Light</button>'
@@ -637,11 +716,7 @@ def status_items(con, reader: str, live: bool, last_upload, j) -> str:
     the Kobo's last upload, Hardcover's state and last sync, the books."""
 
     def item(kind, text, detail=""):
-        return (
-            f'<div class="act {kind}"><span class="dot"></span><div><span>{e(text)}</span>'
-            + (f'<span class="muted">{e(detail)}</span>' if detail else "")
-            + "</div></div>"
-        )
+        return marks.line(kind, text, f'<span class="muted">{e(detail)}</span>' if detail else "")
 
     if last_upload:
         age = (datetime.now(UTC) - datetime.strptime(last_upload[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=UTC)).days
@@ -673,15 +748,17 @@ def frame(name: str, main: str, current: str = "", is_admin: bool = False, nav: 
         for k, href in items
     )
     return shell(
-        f'<aside class="side"><div class="brand"><div class="brandphoto"></div><div class="brandtext"><h1>{T["title"]}</h1>'
-        f'<p class="tagline">{T["tagline"]} <button type="button" class="linkbtn" data-open="help">{T["about"]}</button></p></div></div>'
+        f'<aside class="side"><div><div class="brand"><h1>{marks.BRAND}<span>{T["title"]}</span></h1>'
+        f'<button type="button" class="bandhelp" data-open="help" aria-label="{T["help"]}" title="{T["help"]}">{marks.HELP}</button></div>'
+        f'<p class="tagline">{T["tagline"]} <button type="button" class="linkbtn" data-open="help">{T["about"]}</button></p></div>'
         + (f'<nav class="nav" aria-label="{T["nav"]}">{links}</nav>' if nav else "")
         + side
         + "</aside>"
         + main
         + f'<footer class="foot"><span class="who"><span class="muted">{T["on_this_computer" if local else "signed_in_as"]}</span> <b>{e(name)}</b></span>'
         f'<div class="toolrow">{THEME_SWITCH}<button type="button" class="helpbtn" data-open="help"'
-        f' aria-label="{T["help"]}" title="{T["help"]}">?</button></div></footer>' + help_html(),
+        f' aria-label="{T["help"]}" title="{T["help"]}">{marks.HELP}</button></div>'
+        f'<p class="indep">{e(T["disclaimer"])}</p></footer>' + help_html(),
         "app",
     )
 
@@ -730,11 +807,11 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
     mode_opts = "".join(f'<option value="{m}">{T[m]}</option>' for m in state.MODES)
     body = []
     quiet = quiet_for(con, reader)
-    for r in rows:
+    for i, r in enumerate(rows):
         cid = e(r["content_id"])
         mode_sel = "".join(f'<option value="{m}"{" selected" if m == r["mode"] else ""}>{T[m]}</option>' for m in state.MODES)
         body.append(
-            f'<tr id="b-{cid}" class="{"on" if state.syncs(r) else "off"}" role="row"><td class="book" role="cell">{book_cell(r)}</td>'
+            f'<tr id="b-{cid}" class="{"on" if state.syncs(r) else "off"}" style="--d:{min(i, 12) * 70}ms" role="row"><td class="book" role="cell">{book_cell(r)}</td>'
             f'<td data-label="{T["col_mode"]}" role="cell"><form method="post" action="/mode"><input type="hidden" name="ids" value="{cid}">'
             f'<input type="hidden" name="back" value="{e(back)}">'
             f'<select name="mode" class="rowmode" aria-label="{T["col_mode"]}">{mode_sel}</select>{NOSCRIPT_SET}</form></td>'
@@ -773,12 +850,13 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
         if v and (k, v) not in (("f", "all"), ("sort", "last_read"))
     )
     fcur = f if f in FILTERS else "all"
+    total = con.execute("select count(*) from book where reader=?", (reader,)).fetchone()[0]
     # The sidebar: what the Kobo and Hardcover last did, and the buttons that act on it.
     side = f"""<section class="status" aria-label="{T["status"]}">
 {status_items(con, reader, live, dev, j)}
 <div class="statusactions">
 <form method="get" action="/">{keep}<button>{T["refresh"]}</button></form>
-<form method="post" action="/sync"><input type="hidden" name="back" value="{e(back)}"><button class="primary">{T["sync_now"]}</button></form>
+<form method="post" action="/sync"><input type="hidden" name="back" value="{e(back)}"><button class="primary"><span>{T["sync_now"]}</span><small class="marked">{e(marked_line(con, reader, live))}</small></button></form>
 </div>
 </section>"""
     # The sheet: find, filter, and the list. On a phone the filters fold
@@ -786,7 +864,9 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
     return frame_for(
         me,
         "books",
-        f"""<main><div class="sheet"><h2 class="sr">{T["nav_books"]}</h2>
+        f"""<main><div class="head"><h2 class="pagehead">{T["nav_books"]}</h2>
+<p class="intro">{e(T["books_meta"].format(n=total))}</p>{LEGEND}</div>
+<div class="sheet">
 <nav class="toolbar" aria-label="{T["filter"]}">
 <form class="find" method="get"><input type="search" name="q" value="{e(q)}" placeholder="{T["search"]}" aria-label="{T["search"]}">
 <input type="hidden" name="f" value="{e(f)}"><button>{T["apply"]}</button>

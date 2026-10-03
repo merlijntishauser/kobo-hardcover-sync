@@ -176,12 +176,19 @@ What a Kobo does with it (seen on software 6.0):
 
 ## The pages
 
-One frame for every page: a sidebar that is "your Kobo" (a photograph of
-one, the navigation, what the Kobo and Hardcover last did, *Sync now*) and
-a sheet that is "your books". On a phone the sidebar becomes the top of
-the page, the navigation a bar at the bottom, and each book a card. Two
-photographs, one per theme, both of a real Kobo; two typefaces, Literata
-for titles and Sora for the interface. Everything is served by the tool
+The page reads like a proof of your Hardcover shelf. The Hardcover column
+is its margin: what the next sync changes is marked there the way a
+proofreader marks a page, the old value struck through and the new one
+after a caret, and a legend above the list says what each mark means.
+Red is only for what a sync sends; blue is your own choice or a question
+for you.
+
+One frame for every page: a rail that is "your Kobo" (the name, the
+navigation, what the Kobo and Hardcover last did, *Sync now*) and a sheet
+that is "your books". On a phone the rail becomes a band at the top, the
+navigation a bar at the bottom, and each book a card with its own margin.
+Two typefaces: Source Serif 4 for book titles, Schibsted Grotesk for
+everything else. DESIGN.md has the whole system. Everything is served by the tool
 itself, book covers included: it fetches them from Kobo's servers once
 and keeps them, so the browser talks to nobody else.
 

@@ -15,28 +15,15 @@ each font's copyright notice, is in the folder with the font files,
 
 | Font | Files | Copyright | Licence text |
 |---|---|---|---|
-| Sora | `Sora-latin.woff2`, `Sora-latin-ext.woff2` | Copyright 2019 The Sora Project Authors (https://github.com/sora-xor/sora-font) | `Sora-LICENSE.txt` |
-| Literata | `Literata-latin.woff2`, `Literata-latin-ext.woff2` | Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata) | `Literata-LICENSE.txt` |
+| Schibsted Grotesk | `SchibstedGrotesk-latin.woff2`, `SchibstedGrotesk-latin-ext.woff2`, `SchibstedGrotesk-italic-latin.woff2`, `SchibstedGrotesk-italic-latin-ext.woff2` | Copyright 2023 The Schibsted-Grotesk Project Authors (https://github.com/schibsted/schibsted-grotesk) | `SchibstedGrotesk-LICENSE.txt` |
+| Source Serif 4 | `SourceSerif4-latin.woff2`, `SourceSerif4-latin-ext.woff2` | Copyright 2014 The Source Serif 4 Project Authors (https://github.com/adobe-fonts/source-serif) | `SourceSerif4-LICENSE.txt` |
 
 The files are the subsets Google Fonts serves, unchanged. If you pass this
 project on, the fonts go with their licence files; the Open Font License
 does not allow selling the fonts by themselves.
 
-### Photographs
-
-Both under the **Unsplash License** (https://unsplash.com/license), in
-`src/kobo_hardcover_sync/web/static/img/`, credited in `CREDITS.txt` there
-and in the page's help dialog.
-
-| File | Photographer | Source |
-|---|---|---|
-| `kobo-day.webp` | Spencer (@spen) | https://unsplash.com/photos/DXobXpIa9_4 |
-| `kobo-night.webp` | Amanz (@amanz) | https://unsplash.com/photos/S6R5ZirJAFk |
-
-The Unsplash License lets you copy, change and distribute the photographs,
-also commercially. It does not let you sell them without significant
-modification, or collect them into a competing image service. That is
-narrower than MIT: the MIT licence above does not cover these two files.
+The page uses no photographs or other pictures from elsewhere: the icon is
+the project's own, and book covers are fetched while it runs (below).
 
 ## Installed next to it, not in this repository
 
@@ -80,7 +67,7 @@ are not part of what is installed for use.
 
 - **Book covers** are loaded from Kobo's servers when the page shows a
   book. They are not in this repository and not passed on by it.
-- Nothing else: fonts, photographs, styles and scripts are served by the
+- Nothing else: fonts, styles and scripts are served by the
   tool itself.
 
 ## Names

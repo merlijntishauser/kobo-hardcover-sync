@@ -7,6 +7,17 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Changed
+
+- A new look for the page. The Hardcover column now reads like the margin
+  of a proof: what the next sync changes is marked there, the value
+  Hardcover has struck through and the new one after a caret, and a legend
+  above the list says what each mark means. Red is only for what a sync
+  sends; blue is your own choice or a question for you. The status dots are
+  marks now (a tick, a caret, a question mark, a dash), so they can be told
+  apart without their colour. New fonts, Schibsted Grotesk and Source Serif
+  4, and no more photographs. Nothing about what the page does changed.
+
 ### Added
 
 - A container image for the server, built for amd64 and arm64 at every

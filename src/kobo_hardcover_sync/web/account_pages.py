@@ -8,6 +8,7 @@ import re
 
 from .. import doctor
 from ..engine.hardcover import NEW_TOKEN_URL
+from . import marks
 from .fmt import e, fmt_bytes, fmt_dt
 from .strings import T
 
@@ -18,8 +19,8 @@ def plural(key: str, n: int) -> str:
 
 
 def line(kind: str, text: str) -> str:
-    """The page's status language: a dot carries the colour, the text stays plain."""
-    return f'<div class="act {kind}"><span class="dot"></span><span>{e(text)}</span></div>'
+    """The page's status language: a mark carries the colour, the text stays plain."""
+    return marks.line(kind, text)
 
 
 def flash(ok: str = "", err: str = "", detail: str = "") -> str:
@@ -39,7 +40,7 @@ def signup(who: str) -> str:
         f'<main class="cards"><section class="card"><h2>{T["signup_title"]}</h2>'
         f"<p>{e(T['signup_who'].format(who=who))}</p>"
         + "".join(f"<p>{e(p)}</p>" for p in T["signup_what"])
-        + f'<form method="post" action="/signup"><button class="primary">{T["signup_btn"]}</button></form></section></main>'
+        + f'<form method="post" action="/signup"><button class="solid">{T["signup_btn"]}</button></form></section></main>'
     )
 
 
@@ -62,7 +63,7 @@ def confirm_bulk(n: int, mode: str, ids: str, back: str) -> str:
     return (
         f'<main class="cards"><section class="card"><h2>{e(T["confirm_bulk"].format(n=n, mode=T[mode]))}</h2>'
         f"<p>{e(T['confirm_bulk_what'])}</p>"
-        f'<div class="btnrow"><form method="post" action="/mode">{keep}<button class="primary">{e(T["confirm_bulk_yes"].format(mode=T[mode]))}</button></form>'
+        f'<div class="btnrow"><form method="post" action="/mode">{keep}<button class="solid">{e(T["confirm_bulk_yes"].format(mode=T[mode]))}</button></form>'
         f'<a class="details" href="{e("/?" + back if back else "/")}">{T["cancel"]}</a></div></section></main>'
     )
 
@@ -77,7 +78,7 @@ CHECK_DOT = {doctor.OK: "ok", doctor.NOTE: "none", doctor.WARN: "warn", doctor.F
 
 def check_card(checks: list | None, local: bool) -> str:
     """The Check card. checks: None before the button was pressed, else what
-    doctor found. The state is in the dot's colour and, for someone who
+    doctor found. The state is in the mark's colour and shape and, for someone who
     does not see it, in a word before the line."""
     result = ""
     if checks is not None:
@@ -85,7 +86,7 @@ def check_card(checks: list | None, local: bool) -> str:
         rows = "".join(
             f'<li class="group">{e(group)}</li>'
             + "".join(
-                f'<li><div class="act {CHECK_DOT[c.state]}"><span class="dot"></span><span><span class="sr">{e(doctor.WORDS[c.state])}: </span>'
+                f'<li><div class="act {CHECK_DOT[c.state]}">{marks.mark(CHECK_DOT[c.state])}<span><span class="sr">{e(doctor.WORDS[c.state])}: </span>'
                 f"<b>{e(c.what)}</b> {_with_code(c.found)}</span></div>"
                 + (f'<div class="sub">{T["s_check_todo"]} {_with_code(c.todo)}</div>' if c.todo else "")
                 + "</li>"
@@ -112,7 +113,7 @@ def _signin(device, waiting: bool) -> str:
         f'<li>{e(T["s_connect_step2"])} <code class="code">{e(device.user_code)}</code></li>'
         f"<li>{e(T['s_connect_step3'])}</li></ol>"
         + (line("warn", T["s_connect_waiting"]) if waiting else "")
-        + f'<div class="btnrow"><form method="post" action="/settings/connect/check#hardcover"><button class="primary">{T["s_connect_done"]}</button></form>'
+        + f'<div class="btnrow"><form method="post" action="/settings/connect/check#hardcover"><button class="solid">{T["s_connect_done"]}</button></form>'
         f'<form method="post" action="/settings/connect/cancel"><button>{T["s_connect_cancel"]}</button></form></div></div>'
     )
 
@@ -157,7 +158,7 @@ def settings(
             if local is not None
             else f"<dl><div><dt>{T['s_logins']}</dt><dd>{e(', '.join(logins))}</dd></div>"
             f"<div><dt>{T['s_reader']}</dt><dd>{e(me['name'])}"
-            + (f' <span class="tag">{T["s_admin"]}</span>' if me["is_admin"] else "")
+            + (f' <span class="tag role">{T["s_admin"]}</span>' if me["is_admin"] else "")
             + "</dd></div></dl>"
         )
         + "</section>"
@@ -166,7 +167,7 @@ def settings(
     connected = connect is not None and connect["kind"] == "oauth"
     if can_store:
         # With a way to connect, pasting a token is the second way: folded away, and its button is not the filled one.
-        filled = "" if connect is not None else ' class="primary"'
+        filled = "" if connect is not None else ' class="solid"'
         paste = (
             f'<form method="post" action="/settings/token" class="field"><label for="token">{T["s_token_replace"] if token_state == "stored" and not connected else T["s_token"]}</label>'
             f'<div class="inputs"><input type="password" id="token" name="token" autocomplete="off" spellcheck="false" required>'
@@ -181,7 +182,7 @@ def settings(
             start = (
                 ""
                 if connected
-                else f'<form method="post" action="/settings/connect#hardcover"><button class="primary">{T["s_connect"]}</button></form>'
+                else f'<form method="post" action="/settings/connect#hardcover"><button class="solid">{T["s_connect"]}</button></form>'
                 f'<p class="hint">{e(T["s_connect_help"])}</p>'
             )
             token_form = f'{start}<details class="paste"><summary>{T["s_paste_instead"]}</summary>{paste}</details>'
@@ -288,7 +289,7 @@ def admin(me, rows: list[dict], problems: list, storage: dict, can_store: bool, 
     body = []
     n_admins = sum(1 for r in rows if r["is_admin"])
     for r in rows:
-        tags = (f' <span class="tag">{T["a_admin"]}</span>' if r["is_admin"] else "") + (
+        tags = (f' <span class="tag role">{T["a_admin"]}</span>' if r["is_admin"] else "") + (
             f' <span class="muted">({T["a_you"]})</span>' if r["name"] == me["name"] else ""
         )
         if r["token"] in ("none",):
@@ -322,7 +323,7 @@ def admin(me, rows: list[dict], problems: list, storage: dict, can_store: bool, 
             else f'<div class="btnrow">{role}{remove}</div>'
         )
         body.append(
-            f'<tr id="r-{e(r["name"])}" role="row"><td class="who" role="cell"><div class="title">{e(r["display_name"])}{tags}</div>'
+            f'<tr id="r-{e(r["name"])}" role="row"><td class="who" role="cell"><div class="rname">{e(r["display_name"])}{tags}</div>'
             f'<div class="sub">{e(", ".join(r["logins"]) or r["name"])}</div></td>'
             f'<td data-label="{T["a_kobo"]}" role="cell"><div>{kobo}</div></td><td data-label="{T["a_hardcover"]}" role="cell"><div>{hc}</div></td>'
             f'<td data-label="{T["a_books"]}" role="cell">{e(T["a_syncing"].format(on=r["syncing"], n=r["books"]))}</td>'

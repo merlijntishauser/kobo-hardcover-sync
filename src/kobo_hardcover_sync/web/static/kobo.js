@@ -6,9 +6,9 @@
 (function () {
   const root = document.documentElement;
   const current = () => root.dataset.theme || 'auto';
-  // The browser's own bar: the page colour of the theme in force, also when
+  // The browser's own bar: the rail's colour in the theme in force, also when
   // it was chosen here against the system's.
-  const bar = () => { const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
+  const bar = () => { const bg = getComputedStyle(root).getPropertyValue('--rail').trim();
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.removeAttribute('media'); m.content = bg; }); };
   const paint = () => { document.querySelectorAll('.theme button').forEach(b =>
     b.setAttribute('aria-pressed', String(b.dataset.set === current()))); bar(); };
@@ -25,6 +25,9 @@
 // page keeps its place.
 function redraw(tr, d) {
   tr.className = d.syncs ? 'on' : 'off';
+  // Sync now says how many marked changes it sends: that count moves with the row.
+  const n = document.querySelector('.statusactions .marked');
+  if (n && typeof d.marked === 'string') n.textContent = d.marked;
   tr.querySelector('td.book').innerHTML = d.book;
   if (d.hc) tr.querySelector('td.hc > div').innerHTML = d.hc;
   else tr.querySelector('.act').outerHTML = d.status;

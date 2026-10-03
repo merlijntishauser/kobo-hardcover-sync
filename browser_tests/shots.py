@@ -221,7 +221,7 @@ def main():
             snap(p, "help-light-scrolled")
             p = page("light", 390, 844)
             p.goto(url)
-            p.click(".tagline .linkbtn")
+            p.click(".bandhelp")
             snap(p, "phone-help-light")
             p.evaluate("document.querySelector('#help .dbody').scrollTop = 900")
             snap(p, "phone-help-light-scrolled")

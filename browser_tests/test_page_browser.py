@@ -23,7 +23,7 @@ from playwright.sync_api import sync_playwright
 
 CHROMIUM = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH")
 OUT = os.environ.get("DEV_OUT")
-DARK_BG, LIGHT_BG = "rgb(15, 23, 42)", "rgb(240, 244, 255)"
+DARK_BG, LIGHT_BG = "rgb(15, 17, 20)", "rgb(237, 239, 234)"
 IMAGE_IDS = [i for i in os.environ.get("KOBO_TEST_IMAGE_IDS", "").split(",") if i]
 
 
@@ -194,7 +194,10 @@ def test_sync_switch_saves_in_place_and_keeps_scroll(browser, base_url):
     page.wait_for_function("document.querySelector('tr#b-b25').className === 'on'")
     assert page.evaluate("window.__stayed") is True  # no page reload
     assert page.evaluate("document.querySelector('.tablewrap').scrollTop") == y  # same place
-    assert "Would send: mark Currently reading" in row.locator(".act").inner_text()
+    # What the eye gets: the label, and the change drawn as a correction after a caret;
+    # what a screen reader gets: the whole sentence.
+    assert row.locator(".act").inner_text().startswith("Would send") and "Currently reading" in row.locator(".fix ins").inner_text()
+    assert "Would send: mark Currently reading" in row.locator(".act").text_content()
     page.reload()  # and it was saved
     assert "on" in page.locator("tr#b-b25").get_attribute("class")
     ctx.close()
@@ -230,7 +233,7 @@ def test_covers_sit_beside_the_title_without_stretching_the_row(browser, base_ur
     tile = page.locator("tr#b-b29 .cover")
     assert tile.evaluate("e => e.tagName") == "SPAN"
     box = tile.bounding_box()
-    assert (round(box["width"]), round(box["height"])) == (56, 84)
+    assert (round(box["width"]), round(box["height"])) == (48, 72)
     if IMAGE_IDS:
         img = page.locator("tr#b-b00 img.cover")
         img.scroll_into_view_if_needed()
@@ -238,7 +241,7 @@ def test_covers_sit_beside_the_title_without_stretching_the_row(browser, base_ur
             "(() => { const i = document.querySelector('tr#b-b00 img.cover'); return i.complete && i.naturalWidth > 0; })()"
         )
         box = img.bounding_box()
-        assert (round(box["width"]), round(box["height"])) == (56, 84)
+        assert (round(box["width"]), round(box["height"])) == (48, 72)
     page.evaluate("window.scrollTo(0, 0)")
     page.wait_for_timeout(800)
     shot(page, "kobo-covers-dark.png")
@@ -321,7 +324,7 @@ def test_help_dialog(browser, base_url):
     page.click("button.helpbtn")
     box = page.locator("#help")
     box.wait_for(state="visible")
-    assert "How Kobo Hardcover Sync works" in box.inner_text() and "Amber" in box.inner_text()
+    assert "How Kobo Hardcover Sync works" in box.inner_text() and "Circled question mark" in box.inner_text()
     shot(page, "kobo-help.png")
     page.keyboard.press("Escape")
     box.wait_for(state="hidden")
@@ -585,7 +588,7 @@ def test_connecting_to_hardcover_the_page_notices_the_approval_by_itself(browser
     assert not page.is_visible("#hardcover details.paste input")  # pasting a token is folded away
     page.click("#hardcover form[action^='/settings/connect'] button")
     page.wait_for_selector(".signin code.code")
-    assert page.url.endswith("/settings/connect#hardcover") and page.inner_text(".signin .btnrow .primary") == "I have approved it"
+    assert page.url.endswith("/settings/connect#hardcover") and page.inner_text(".signin .btnrow .solid") == "I have approved it"
     assert page.evaluate("document.querySelector('#hardcover').getBoundingClientRect().top") < 400
     assert page.evaluate("scrollY") == 0  # the panel scrolled to the card; the page itself stayed
     shot(page, "kobo-connect.png")
@@ -603,10 +606,10 @@ def test_connecting_to_hardcover_without_javascript_and_on_a_phone(browser, base
     page.set_viewport_size({"width": 390, "height": 844})
     page.click("#hardcover form[action^='/settings/connect'] button")
     page.wait_for_selector(".signin code.code")
-    page.click(".signin .btnrow .primary")  # too early
+    page.click(".signin .btnrow .solid")  # too early
     assert "Not approved on Hardcover yet." in page.inner_text(".signin")
     approve_on_hardcover(pretend_hardcover, page)
-    page.click(".signin .btnrow .primary")
+    page.click(".signin .btnrow .solid")
     page.wait_for_url("**/settings?ok=connected#hardcover")  # back on the card it was started from
     assert page.inner_text("#hardcover .act") == "Connected to Hardcover as @ada_reads"
     ctx.close()

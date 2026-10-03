@@ -54,9 +54,18 @@ def test_row_mode_via_fetch_returns_json(tmp_path, monkeypatch):
     )
     d = r.json()
     assert r.status_code == 200 and d["syncs"] is True and d["action"] == "mark Read, finished 2021-05-01"
-    # The row's redrawn pieces: a full green reading line, and what would be sent.
+    # The row's redrawn pieces: a full line gauge, and what would be sent, as a mark and the words.
     assert 'class="bar done"' in d["book"] and "Finished 1 May 2021" in d["book"]
-    assert d["status"] == '<div class="act next"><span class="dot"></span>Would send: mark Read, finished 2021-05-01</div>'
+    assert d["status"].startswith('<div class="act next"><svg class="mk"') and d["status"].endswith(
+        "<span>Would send: mark Read, finished 2021-05-01</span></div>"
+    )
+    # In the cell the change is drawn as a correction: nothing on the shelf yet, so only an insertion.
+    assert '<span>Would send</span><span class="sr">: mark Read, finished 2021-05-01</span>' in d["hc"]
+    assert (
+        '<div class="fix" aria-hidden="true"><span class="swap"><ins>' in d["hc"]
+        and "Read, finished 1 May 2021</ins>" in d["hc"]
+        and "<s>" not in d["hc"]
+    )
 
 
 def test_pick_returns_to_the_row_with_filters(tmp_path, monkeypatch):
@@ -80,7 +89,7 @@ def test_page_has_theme_switch_chips_and_static_assets(tmp_path, monkeypatch):
     assert "Mine Now" not in page  # filtered out
     css = c.get("/static/kobo.css")
     assert css.status_code == 200 and '[data-theme="dark"]' in css.text and "prefers-color-scheme: dark" in css.text
-    assert c.get("/static/fonts/Sora-latin.woff2").status_code == 200
+    assert c.get("/static/fonts/SchibstedGrotesk-latin.woff2").status_code == 200
 
 
 def test_filters_never_leak_other_readers(tmp_path, monkeypatch):
@@ -144,10 +153,11 @@ def test_hardcover_column_and_details(tmp_path, monkeypatch):
     st.commit()
     h = {"Remote-User": "robin"}
     page = c.get("/", headers=h).text
-    # The cell: status with a dot, a quiet match line, a Details button; no forms in the row.
-    assert '<div class="act ok"><span class="dot"></span>Up to date on Hardcover</div>' in page
+    # The cell: status with its mark, a quiet match line, a Details button; no forms in the row.
+    assert re.search(r'<div class="act ok"><svg class="mk"[^>]*>.*?</svg><span>Up to date on Hardcover</span></div>', page)
     assert '<div class="sub">Old Finished, Ebook</div>' in page
-    assert '<div class="act warn"><span class="dot"></span>Needs a Hardcover match</div>' in page
+    assert re.search(r'<div class="act warn"><svg class="mk"[^>]*>.*?</svg><span>Needs a Hardcover match</span></div>', page)
+    assert '<ul class="legend" aria-label="What the marks mean">' in page  # every mark explained above the list
     assert page.count('class="details"') == 2 and "/pick" not in page.split("<dialog")[0]
     # The details fragment carries the facts and the actions.
     d = c.get("/details/old?back=f%3Dall", headers={**h, "X-Requested-With": "fetch"}).text
@@ -293,12 +303,12 @@ def test_the_list_says_what_it_is_to_someone_who_cannot_see_it(tmp_path, monkeyp
     c = client(tmp_path, monkeypatch)
     h = {"Remote-User": "robin"}
     page = c.get("/", headers=h).text
-    assert '<h2 class="sr">Books</h2>' in page
+    assert '<h2 class="pagehead">Books</h2>' in page
     assert '<table class="books" role="table" aria-label="Books">' in page and page.count('role="columnheader"') == 4
     assert (
         page.count('<tr id="b-') == page.count('role="row"') - 1 == 2 and page.count('role="cell"') == 8
     )  # laid out as cards on a phone, a table all the same
-    assert '<meta name="theme-color" content="#f0f4ff" media="(prefers-color-scheme: light)">' in page
+    assert '<meta name="theme-color" content="#c3e2ef" media="(prefers-color-scheme: light)">' in page
     alone = c.get("/details/old", headers=h).text
     assert '<main class="dpage"><h1 class="sr">Kobo Hardcover Sync</h1>' in alone
 
@@ -311,9 +321,8 @@ def test_pages_are_compressed_and_what_does_not_change_is_kept(tmp_path, monkeyp
     assert "content-encoding" not in c.get("/", headers={"Remote-User": "robin", "Accept-Encoding": "identity"}).headers
     css = c.get("/static/kobo.css?v=1", headers=h)
     assert css.headers["content-encoding"] == "gzip" and css.headers["cache-control"] == "max-age=31536000, immutable"
-    font = c.get("/static/fonts/Sora-latin.woff2", headers=h)  # compressed already: left alone, kept a week
+    font = c.get("/static/fonts/SchibstedGrotesk-latin.woff2", headers=h)  # compressed already: left alone, kept a week
     assert "content-encoding" not in font.headers and font.headers["cache-control"] == "max-age=604800" and len(font.content) > 20000
-    assert c.get("/static/img/kobo-day.webp", headers=h).headers["cache-control"] == "max-age=604800"
     assert c.get("/static/nothing.css", headers=h).status_code == 404
 
 

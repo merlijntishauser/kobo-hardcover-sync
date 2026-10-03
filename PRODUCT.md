@@ -117,9 +117,9 @@ Supporting, true and worth showing, but not what sets it apart:
 - Voice, as the shipped texts have it: plain words, short sentences,
   addressed to "you", says what happened and what to do next, no
   exclamation, no jargon where a common word exists.
-- MIT licence. The two fonts and the two photographs the page uses have
-  their own licences (`THIRD-PARTY-NOTICES.md`); new bundled assets need a
-  licence that allows redistribution, and a notice.
+- MIT licence. The two fonts the page uses have their own licences
+  (`THIRD-PARTY-NOTICES.md`); new bundled assets need a licence that allows
+  redistribution, and a notice.
 
 ## Evidence on Hand
 

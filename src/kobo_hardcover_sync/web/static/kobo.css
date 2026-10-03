@@ -1,311 +1,371 @@
-/* kobo-hardcover-sync, one design for every page.
+/* kobo-hardcover-sync: the galley proof. DESIGN.md has the reasoning.
 
-   The frame: a sidebar that is "your Kobo" (a photograph of one, the
-   navigation, and on Books what the Kobo and Hardcover last did), a sheet
-   that is "your books", and a footer with who is signed in. On a phone the
-   sidebar becomes the top of the page, the navigation a bar under the
-   thumb, and the list a stack of book cards.
+   The page reads like a proof of your Hardcover shelf. The Hardcover column
+   is the margin: what the next sync changes is marked there in proofreaders'
+   marks, the old value struck through in red and the new one after a caret.
+   Red is only for what a sync sends (and the one button that sends it);
+   blue is the reader's own choice or a question for them; a green tick is
+   up to date; an ink square is a failure; a dash is not syncing.
 
-   Two typefaces: Literata, made for reading ebooks, for everything that is
-   a title (the name, page and card headings, book titles); Sora for the
-   interface. Theme: light by default,
-   dark when the system asks for it, and html[data-theme] (the
-   Light/Auto/Dark switch, kobo.js) overrides both. Each theme has its own
-   photograph: a Kobo by day, a Kobo at dusk.
+   The frame: a blue rail that is "your Kobo" (the name, the navigation, on
+   Books what the Kobo and Hardcover last did), a sheet that is "your books".
+   On a phone the rail is a band at the top, the navigation a bar under the
+   thumb, and each book a card with its own margin strip.
 
-   Panels (16px) hold content, controls are 9px, pills are only for things
-   that are chosen from a set. The one loud element is the reading line
-   under each title.
+   Two typefaces: Source Serif 4 for book titles only, Schibsted Grotesk for
+   everything else. Figures are tabular only where numbers stand in columns:
+   set on the whole page, Schibsted Grotesk widens full stops and commas too.
 
-   Colour is held to WCAG 2.2 AA, and tests/test_design_tokens.py checks the
-   pairs: words at 4.5:1 (--faint is the lightest grey a word may have),
-   the edge of a field at 3:1 (--edge), and a filled control in
-   --accent-fill, the deeper cyan that white words can be read on. */
+   Colour is held to WCAG 2.2 AA and tests/test_design_tokens.py checks the
+   pairs: words at 4.5:1 (--faint is the lightest grey a word may have), the
+   edge of a field and every mark at 3:1. */
 @font-face {
-  font-family: 'Sora'; font-style: normal; font-weight: 400 700; font-display: swap;
-  src: url(fonts/Sora-latin-ext.woff2) format('woff2');
+  font-family: 'Schibsted Grotesk'; font-style: normal; font-weight: 400 800; font-display: swap;
+  src: url(fonts/SchibstedGrotesk-latin-ext.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Sora'; font-style: normal; font-weight: 400 700; font-display: swap;
-  src: url(fonts/Sora-latin.woff2) format('woff2');
+  font-family: 'Schibsted Grotesk'; font-style: normal; font-weight: 400 800; font-display: swap;
+  src: url(fonts/SchibstedGrotesk-latin.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Literata'; font-style: normal; font-weight: 400 700; font-display: swap;
-  src: url(fonts/Literata-latin-ext.woff2) format('woff2');
+  font-family: 'Schibsted Grotesk'; font-style: italic; font-weight: 400 800; font-display: swap;
+  src: url(fonts/SchibstedGrotesk-italic-latin-ext.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: 'Literata'; font-style: normal; font-weight: 400 700; font-display: swap;
-  src: url(fonts/Literata-latin.woff2) format('woff2');
+  font-family: 'Schibsted Grotesk'; font-style: italic; font-weight: 400 800; font-display: swap;
+  src: url(fonts/SchibstedGrotesk-italic-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Source Serif 4'; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url(fonts/SourceSerif4-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Source Serif 4'; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url(fonts/SourceSerif4-latin.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 :root {
   color-scheme: light;
-  --bg: #f0f4ff; --surface: #ffffff; --surface-2: #f6f8fd;
-  --ink: #1e293b; --muted: #475569; --faint: #5f6f86;
-  --line: #d3dbe8; --line-soft: #e6ebf4; --edge: #7b8ba2;
-  --accent: #0891b2; --accent-fill: #0e7490; --accent-ink: #0e7490; --accent-soft: #e0f2fe; --on-accent: #ffffff;
-  --ok: #15803d; --ok-soft: #dcfce7;
-  --warn: #b45309; --warn-soft: #fef3c7;
-  --err: #be123c;
-  --track: #dbe4f3;
-  --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.07);
-  --photo: url(img/kobo-day.webp); --photo-pos: 58% 52%;
-  --serif: 'Literata', Georgia, 'Times New Roman', serif;
-  --sans: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --r-panel: 16px; --r-ctl: 9px;
-  --side: 17.5rem;
+  --ground: #edefea; --sheet: #fbfbf8; --margin: #f4f5f1;
+  --ink: #17191c; --graphite: #4a4f57; --faint: #5f656e;
+  --rule: #cdd1cb; --rule-soft: #e3e6e0; --edge: #80868e;
+  --rail: #c3e2ef; --rail-ink: #14222b; --rail-graphite: #2f4653;
+  --blue: #1c5e8b; --blue-wash: #ddeff7;
+  --red: #c0212b; --red-wash: #f9e3e1;
+  --green: #2c6a39; --green-wash: #e1f0e2;
+  --flag: #17191c; --on-flag: #fbfbf8; --on-fill: #ffffff;
+  --lift: 0 1px 0 #cdd1cb, 0 18px 40px -28px rgba(23, 25, 28, 0.38);
+  --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --sans: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r-sheet: 2px; --r-ctl: 4px;
+  --rail-w: 17.25rem;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0f172a; --surface: #131c31; --surface-2: #0c1424;
-    --ink: #e2e8f0; --muted: #94a3b8; --faint: #8291a8;
-    --line: #2a3a55; --line-soft: #1e2a40; --edge: #64748b;
-    --accent: #22d3ee; --accent-fill: #22d3ee; --accent-ink: #67e8f9; --accent-soft: rgba(34, 211, 238, 0.12); --on-accent: #0b1220;
-    --ok: #34d399; --ok-soft: rgba(52, 211, 153, 0.14);
-    --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, 0.14);
-    --err: #fb7185;
-    --track: #223049;
-    --shadow: none;
-    --photo: url(img/kobo-night.webp); --photo-pos: 50% 46%;
+    --ground: #0f1114; --sheet: #171a1e; --margin: #1b1f24;
+    --ink: #e7e9e4; --graphite: #aeb4bb; --faint: #959ca4;
+    --rule: #30353c; --rule-soft: #24282e; --edge: #6e757e;
+    --rail: #123040; --rail-ink: #e3f1f7; --rail-graphite: #a9c6d4;
+    --blue: #86c5ea; --blue-wash: #173444;
+    --red: #ff8077; --red-wash: #3b1f1f;
+    --green: #86cf95; --green-wash: #18301e;
+    --flag: #e7e9e4; --on-flag: #0f1114; --on-fill: #0f1114;
+    --lift: none;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0f172a; --surface: #131c31; --surface-2: #0c1424;
-  --ink: #e2e8f0; --muted: #94a3b8; --faint: #8291a8;
-  --line: #2a3a55; --line-soft: #1e2a40; --edge: #64748b;
-  --accent: #22d3ee; --accent-fill: #22d3ee; --accent-ink: #67e8f9; --accent-soft: rgba(34, 211, 238, 0.12); --on-accent: #0b1220;
-  --ok: #34d399; --ok-soft: rgba(52, 211, 153, 0.14);
-  --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, 0.14);
-  --err: #fb7185;
-  --track: #223049;
-  --shadow: none;
-  --photo: url(img/kobo-night.webp); --photo-pos: 50% 46%;
+  --ground: #0f1114; --sheet: #171a1e; --margin: #1b1f24;
+  --ink: #e7e9e4; --graphite: #aeb4bb; --faint: #959ca4;
+  --rule: #30353c; --rule-soft: #24282e; --edge: #6e757e;
+  --rail: #123040; --rail-ink: #e3f1f7; --rail-graphite: #a9c6d4;
+  --blue: #86c5ea; --blue-wash: #173444;
+  --red: #ff8077; --red-wash: #3b1f1f;
+  --green: #86cf95; --green-wash: #18301e;
+  --flag: #e7e9e4; --on-flag: #0f1114; --on-fill: #0f1114;
+  --lift: none;
 }
 
 * { box-sizing: border-box; }
-html { background: var(--bg); }
+html { background: var(--ground); }
 /* What takes keyboard focus is scrolled clear of the bars that stay put:
    the navigation at the bottom of a phone, the table's head on a desk. */
 @media (max-width: 1023.98px) { html { scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom)); } }
 body {
   margin: 0; padding: 1rem;
-  font: 400 0.9375rem/1.55 var(--sans);
-  color: var(--ink); background: var(--bg);
-  font-variant-numeric: tabular-nums;
+  font: 400 0.9375rem/1.5 var(--sans);
+  color: var(--ink); background: var(--ground);
+  -webkit-font-smoothing: antialiased;
 }
-a { color: var(--accent-ink); }
-::selection { background: var(--accent-fill); color: var(--on-accent); }
-:root { accent-color: var(--accent-fill); caret-color: var(--accent-ink); scrollbar-color: var(--edge) transparent; }
-/* For a screen reader only: a heading where the eye needs none. */
+a { color: var(--blue); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+::selection { background: var(--red-wash); color: var(--ink); }
+:root { accent-color: var(--blue); caret-color: var(--red); scrollbar-color: var(--edge) transparent; }
+/* For a screen reader only: words the eye gets from a mark or a layout. */
 .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 2px; }
 form { margin: 0; }
-h1, h2, .title { font-family: var(--serif); font-optical-sizing: auto; }
+h1, h2, h3 { font-family: var(--sans); }
+.title, .dhead h2, #lightbox figcaption b { font-family: var(--serif); font-optical-sizing: auto; }
+/* Numbers that stand in columns or are compared: only these are tabular. */
+.meta, .chip b, .ftoggle .n, code { font-variant-numeric: tabular-nums; }
 
 /* ---------- the frame ---------- */
-/* Phone first: one column. From 1024px: sidebar and footer on the left,
-   the page beside them, everything inside one window height. */
-body.app { display: flex; flex-direction: column; gap: 1rem; padding: 0 0 calc(4.5rem + env(safe-area-inset-bottom)); }
-.side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.9rem; min-width: 0; }
+/* Phone first: one column, the rail a band at the top. From 1024px: the
+   rail down the left edge, the page beside it, everything in one window. */
+body.app { display: flex; flex-direction: column; gap: 1rem; padding: 0 0 calc(5rem + env(safe-area-inset-bottom)); }
+.side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.8rem; min-width: 0;
+  padding: 0.9rem 1rem 1rem; background: var(--rail); color: var(--rail-ink); }
+.side a, .side button.linkbtn { color: var(--rail-ink); }
 body.app > main { min-width: 0; padding: 0 0.75rem; }
 .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem 1rem;
-  padding: 0.25rem 1rem 0.5rem; font-size: 0.875rem; }
-.who b { font-weight: 600; }
+  padding: 0.25rem 1rem 0.5rem; font-size: 0.8125rem; color: var(--graphite); }
+.who b { font-weight: 600; color: var(--ink); }
+/* The independence sentence closes the rail on a desk; on a phone it is in Help. */
+.foot .indep { display: none; margin: 0; font-size: 0.75rem; line-height: 1.45; }
+.rname { font-weight: 650; }
 .toolrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 
-/* The photograph, with the name set on it. The picture dissolves into the
-   page at the bottom, so the name sits on the page's own colour in either
-   theme. */
-.brand { position: relative; isolation: isolate; }
-.brandphoto { height: 11.5rem; background: var(--surface-2) var(--photo) var(--photo-pos) / cover no-repeat; }
-.brand::after { content: ""; position: absolute; inset: 4.5rem 0 0; z-index: 0; pointer-events: none;
-  background: linear-gradient(to bottom, transparent, var(--bg) 7rem); }
-.brandtext { position: relative; z-index: 1; margin-top: -3.4rem; padding: 0 1rem; }
-/* The name is three words now: sized to stay on one line. */
-h1 { font-size: clamp(1.55rem, 8vw, 2.1rem); font-weight: 600; letter-spacing: -0.02em; margin: 0; line-height: 1.1; }
-.tagline { margin: 0.4rem 0 0; color: var(--muted); font-size: 0.875rem; max-width: 34ch; overflow-wrap: anywhere; }
-button.linkbtn { min-height: 0; font: inherit; color: var(--accent-ink); background: none; border: 0; padding: 0; cursor: pointer;
-  text-decoration: underline; text-underline-offset: 2px; }
+/* The name, with the caret a proofreader writes where something goes in. */
+.brand { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+h1 { display: flex; align-items: center; gap: 0.45rem; margin: 0; font-size: 1.25rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.025em; }
+h1 svg { flex: none; width: 1rem; height: 1rem; }
+.tagline { display: none; margin: 0.5rem 0 0; color: var(--rail-graphite); font-size: 0.8125rem; line-height: 1.45; max-width: 34ch; }
+button.linkbtn { min-height: 0; font: inherit; background: none; border: 0; padding: 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 
-/* Navigation: a bar under the thumb on a phone, a list in the sidebar on a desk. */
+/* Navigation: a bar under the thumb on a phone, a list in the rail on a desk. */
 .nav { position: fixed; inset: auto 0 0 0; z-index: 5; display: flex; justify-content: space-around; gap: 0.25rem;
-  padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom));
-  background: var(--surface); border-top: 1px solid var(--line); }
-.nav a { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 0.1rem; padding: 0.3rem 0.25rem;
-  border: 1px solid transparent; border-radius: var(--r-ctl); text-decoration: none; color: var(--muted); font-size: 0.75rem; font-weight: 500; }
-.nav a:hover { color: var(--ink); }
-.nav a[aria-current="page"] { color: var(--accent-ink); font-weight: 600; }
+  padding: 0.35rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
+  background: var(--rail); border-top: 1px solid color-mix(in srgb, var(--rail-ink) 22%, transparent); }
+.nav a { flex: 1 1 0; min-width: 0; min-height: 3.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem;
+  padding: 0.3rem 0.25rem; border-radius: var(--r-ctl); text-decoration: none; color: var(--rail-graphite); font-size: 0.78rem; font-weight: 600; }
+.nav a:hover { color: var(--rail-ink); }
+.nav a[aria-current="page"] { color: var(--rail-ink); background: color-mix(in srgb, var(--sheet) 30%, transparent); }
 
-/* Sync status: three facts in the page's status language (dot + text),
-   and the buttons that act on them. */
-.status { display: grid; gap: 0.6rem; margin: 0 0.75rem; padding: 0.9rem 1rem 1rem; background: var(--surface);
-  border: 1px solid var(--line); border-radius: var(--r-panel); box-shadow: var(--shadow); font-size: 0.875rem; }
-.status .act { align-items: flex-start; }
-.status .act .dot { margin-top: 0.45em; }
-.status .act .muted { display: block; font-size: 0.8125rem; }
-.statusactions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.3rem; }
-.statusactions form:last-child { flex: 1; }
-.statusactions button { width: 100%; padding-block: 0.5rem; }
+/* Sync status: what the Kobo and Hardcover last did, in the page's marks,
+   and the two buttons that act on it. */
+.status { display: grid; gap: 0.55rem; font-size: 0.875rem; }
+.status .act { color: var(--rail-ink); }
+.status .act > span { font-weight: 600; }
+.status .act .muted { font-weight: 400; font-size: 0.8125rem; color: var(--rail-graphite); }
+.status .act.none > span, .status .act.none .muted { font-weight: 400; }
+.status .act.ok .mk { color: var(--green); }
+.status .act.none .mk { color: var(--rail-graphite); }
+.statusactions { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.5rem; margin-top: 0.3rem; }
+.statusactions button { width: 100%; }
+/* Sync now names what it is about to send: the count of red marks. */
+.statusactions .primary { min-height: 2.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1rem; line-height: 1.2; }
+.statusactions .marked { font-size: 0.75rem; font-weight: 500; }
+.statusactions .marked:empty { display: none; }
 
 /* ---------- controls ---------- */
 input[type="search"], input[type="text"], input[type="password"], input[type="date"], select {
-  font: inherit; font-size: 0.875rem; color: var(--ink); background-color: var(--surface);
-  border: 1px solid var(--edge); border-radius: var(--r-ctl); padding: 0.4rem 0.65rem; max-width: 100%; min-height: 2.25rem;
+  font: inherit; font-size: 0.875rem; color: var(--ink); background-color: var(--sheet);
+  border: 1px solid var(--edge); border-radius: var(--r-ctl); padding: 0.4rem 0.7rem; max-width: 100%; min-height: 2.375rem;
 }
 input::placeholder { color: var(--faint); }
-input:hover, select:hover { border-color: var(--muted); }
+input:hover, select:hover { border-color: var(--ink); }
 /* One chevron for every select, drawn in the theme's own grey. */
-select { appearance: none; -webkit-appearance: none; padding-right: 1.9rem; cursor: pointer;
-  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position: calc(100% - 0.95rem) 50%, calc(100% - 0.95rem + 5px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
-button { font: inherit; font-size: 0.875rem; font-weight: 500; cursor: pointer; border-radius: var(--r-ctl); padding: 0.4rem 0.9rem;
-  min-height: 2.25rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); }
-button:hover { border-color: var(--accent); }
-button.primary { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
-button.primary:hover { filter: brightness(1.08); }
-button.danger { color: var(--err); background: none; border-color: transparent; padding-left: 0; }
-button.danger:hover { text-decoration: underline; }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-button:disabled:hover { border-color: var(--line); filter: none; }
-.helpbtn { width: 2.25rem; padding: 0; border-radius: 50%; font-weight: 600; color: var(--muted); }
-.helpbtn:hover { color: var(--accent-ink); }
-.theme { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--surface); }
-.theme button { font-size: 0.8125rem; font-weight: 400; color: var(--muted); background: none; border: 0; min-height: 1.9rem;
-  padding: 0.2rem 0.8rem; border-radius: 999px; }
-.theme button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+select { appearance: none; -webkit-appearance: none; padding-right: 2rem; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--graphite) 50%), linear-gradient(135deg, var(--graphite) 50%, transparent 50%);
+  background-position: calc(100% - 1rem) 52%, calc(100% - 1rem + 5px) 52%; background-size: 5px 5px; background-repeat: no-repeat; }
+button { font: inherit; font-size: 0.875rem; font-weight: 600; cursor: pointer; border-radius: var(--r-ctl); padding: 0.4rem 0.9rem;
+  min-height: 2.375rem; color: var(--ink); background: var(--sheet); border: 1px solid var(--edge); }
+button:hover { border-color: var(--ink); }
+/* Red fills only what sends to Hardcover: Sync now, Go live. */
+button.primary { background: var(--red); border-color: var(--red); color: var(--on-fill); }
+button.primary:hover { filter: brightness(1.07); }
+/* A choice that changes nothing on Hardcover yet: an ink fill. */
+button.solid { background: var(--flag); border-color: var(--flag); color: var(--on-flag); }
+button.danger { color: var(--ink); background: none; border-color: transparent; padding-inline: 0.15rem;
+  text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+button.danger:hover { text-decoration-thickness: 2px; }
+button:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(1); }
+button:disabled:hover { border-color: var(--edge); }
+.helpbtn { display: inline-flex; align-items: center; justify-content: center; width: 2.375rem; padding: 0; color: var(--ink); }
+.ic { width: 20px; height: 20px; }
+/* On a phone the band carries its own Help button; on a desk Help is at the foot of the rail. */
+.bandhelp { display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; min-height: 2.75rem; padding: 0; background: transparent; color: var(--rail-ink);
+  border-color: color-mix(in srgb, var(--rail-ink) 35%, transparent); }
+.theme { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--edge); border-radius: var(--r-ctl); }
+.theme button { font-size: 0.8125rem; font-weight: 500; color: var(--ink); background: none; border: 0; min-height: 2rem;
+  padding: 0.2rem 0.7rem; border-radius: 3px; }
+.theme button:hover { background: var(--blue-wash); }
+.theme button[aria-pressed="true"] { background: var(--blue); color: var(--on-fill); font-weight: 650; }
+
+/* ---------- the marks ----------
+   One language for status everywhere: a mark carries the colour, the words
+   beside it stay in ink. */
+.mk { flex: none; width: 20px; height: 20px; }
+.act { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); column-gap: 0.5rem; align-items: start; color: var(--ink); }
+.act > :not(.mk) { grid-column: 2; }
+.act .mk { margin-top: -0.05em; }
+.act.ok .mk { color: var(--green); }
+.act.next .mk { color: var(--red); }
+.act.wait .mk, .act.none .mk { color: var(--faint); }
+.act.warn .mk { color: var(--blue); }
+.act.err .mk { color: var(--flag); }
+.act.none { color: var(--graphite); }
+.mk.stet { width: auto; min-width: 20px; font-style: italic; font-weight: 800; font-size: 0.8125rem; line-height: 20px; color: var(--blue); }
+.legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--graphite); }
+.legend li { display: flex; align-items: center; gap: 0.35rem; color: var(--graphite); }
+.legend .mk { width: 17px; height: 17px; }
+.legend .mk.stet { width: auto; height: auto; line-height: 1; }
+.legend .ok .mk { color: var(--green); } .legend .next .mk { color: var(--red); } .legend .warn .mk { color: var(--blue); }
+.legend .err .mk { color: var(--flag); } .legend .wait .mk, .legend .none .mk { color: var(--faint); }
 
 /* ---------- the sheet: find, filter, the list ---------- */
-.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-panel); box-shadow: var(--shadow); overflow: hidden; }
-.toolbar { display: grid; gap: 0.7rem; padding: 0.85rem 1rem; border-bottom: 1px solid var(--line); }
+.head { display: grid; gap: 0.4rem; margin: 0.25rem 0 0.9rem; }
+.pagehead, .pagetitle { margin: 0; font-size: 1.75rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.035em; }
+.head .intro { margin: 0; color: var(--graphite); font-size: 0.875rem; }
+.sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); box-shadow: var(--lift); overflow: hidden; }
+/* minmax(0, 1fr): the column is the page's width, never the search field's natural one (text at 200% on a phone). */
+.toolbar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.7rem; padding: 0.85rem 1rem; border-bottom: 1px solid var(--rule); }
 .find { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .find input[type="search"] { flex: 1 1 12rem; min-width: 0; }
-.sortby { display: flex; align-items: center; gap: 0.5rem; flex: 1 1 100%; color: var(--muted); font-size: 0.875rem; }
+.sortby { display: flex; align-items: center; gap: 0.5rem; flex: 1 1 100%; color: var(--graphite); font-size: 0.8125rem; }
 .sortby select { flex: 1; }
 /* Filters: one choice at a time, in three groups. The chosen one is filled
-   in, the others are quiet text. On a phone they fold behind one line that
-   names the chosen one; without JS they simply stay open. */
-.ftoggle { display: none; align-items: center; gap: 0.5rem; width: 100%; text-align: left; color: var(--muted); }
-.ftoggle b { color: var(--ink); font-weight: 600; }
-.ftoggle .n { margin-left: auto; color: var(--ink); font-weight: 600; }
+   blue (it is the reader's choice), the others are quiet text. On a phone
+   they fold behind one line that names the chosen one; without JS they stay open. */
+.ftoggle { display: none; align-items: center; gap: 0.5rem; width: 100%; text-align: left; font-weight: 500; }
+.ftoggle svg { color: var(--graphite); }
+.ftoggle b { font-weight: 700; }
+.ftoggle .n { margin-left: auto; color: var(--graphite); font-weight: 500; }
 .ftoggle .n::after { content: ""; display: inline-block; width: 0.45rem; height: 0.45rem; margin: 0 0.15rem 0.2rem 0.7rem;
-  border: solid var(--muted); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+  border: solid var(--graphite); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
 .ftoggle[aria-expanded="true"] .n::after { transform: rotate(-135deg); margin-bottom: -0.05rem; }
 .filters { display: grid; gap: 0.45rem; }
 /* The group's name hangs in its own column; chips that wrap stay beside it. */
-.fgroup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem; padding-left: 7.25rem; }
-.gname { color: var(--faint); font-size: 0.75rem; flex: 0 0 7.25rem; margin-left: -7.25rem; }
-.chip { font-size: 0.8125rem; text-decoration: none; color: var(--muted); border-radius: 999px; padding: 0.25rem 0.65rem; white-space: nowrap; }
-.chip b { font-weight: 600; color: var(--ink); margin-left: 0.3rem; }
-.chip:hover { background: var(--accent-soft); color: var(--accent-ink); }
-.chip[aria-current="true"] { background: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
+.fgroup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem; padding-left: 7.5rem; }
+.gname { color: var(--graphite); font-size: 0.78rem; font-weight: 650; flex: 0 0 7.5rem; margin-left: -7.5rem; }
+.chip { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 2rem; font-size: 0.875rem; font-weight: 500; text-decoration: none;
+  color: var(--graphite); border-radius: var(--r-ctl); padding: 0.2rem 0.6rem; white-space: nowrap; }
+.chip b { font-weight: 650; color: var(--ink); }
+.chip:hover { background: var(--blue-wash); color: var(--ink); }
+.chip[aria-current="true"] { background: var(--blue); color: var(--on-fill); }
 .chip[aria-current="true"] b { color: inherit; }
-.chip.attn:not([aria-current="true"]) b { color: var(--warn); }
-.bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: var(--muted); font-size: 0.875rem;
-  margin-top: 0.35rem; padding-top: 0.75rem; border-top: 1px solid var(--line-soft); }
+.chip.attn:not([aria-current="true"]) b { color: var(--blue); }
+.bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: var(--graphite); font-size: 0.8125rem;
+  margin-top: 0.35rem; padding-top: 0.75rem; border-top: 1px solid var(--rule-soft); }
 
 /* ---------- books ---------- */
 table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0; }
-th { text-align: left; font-size: 0.8125rem; font-weight: 600; color: var(--muted);
-  padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--line); background: var(--surface-2); }
-td { padding: 0.85rem 0.8rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; overflow-wrap: anywhere; }
+th { text-align: left; font-size: 0.78rem; font-weight: 650; color: var(--graphite);
+  padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--rule); background: var(--sheet); }
+td { padding: 1rem 0.9rem; border-bottom: 1px solid var(--rule-soft); vertical-align: top; overflow-wrap: anywhere; }
 tbody tr:last-child td { border-bottom: 0; }
-th.c-mode { width: 7.25rem; } th.c-state { width: 10.5rem; } th.c-hc { width: 29%; }
-.bk { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 1rem; align-items: start; }
-.cover { display: block; width: 48px; height: 72px; border-radius: 3px; object-fit: cover;
-  background: var(--track); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2), 0 4px 10px rgba(15, 23, 42, 0.12); }
-.bk .cover { width: 56px; height: 84px; }
-/* A book without a cover keeps a plain tile, with a spine. */
-span.cover { background: linear-gradient(90deg, rgba(15, 23, 42, 0.1) 0 4px, transparent 4px 5px, rgba(15, 23, 42, 0.05) 5px 6px, transparent 6px) var(--track); }
-tr.off .cover { opacity: 0.6; }
+th.c-mode { width: 7.5rem; } th.c-state { width: 10.75rem; } th.c-hc { width: 34%; }
+/* The margin: set off by a double rule, on its own tint. */
+th.c-hc, td.hc { border-left: 3px double var(--rule); }
+td.hc { background: var(--margin); }
+.bk { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 0.95rem; align-items: start; }
+.cover { display: block; width: 48px; height: 72px; border-radius: 1px 3px 3px 1px; object-fit: cover; background: var(--sheet);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1); }
+/* A book without a cover: the crossed box a proof leaves where a picture goes. */
+span.cover { border: 1px solid var(--edge); box-shadow: none;
+  background-image: linear-gradient(to top right, transparent calc(50% - 0.6px), var(--edge) 50%, transparent calc(50% + 0.6px)),
+    linear-gradient(to top left, transparent calc(50% - 0.6px), var(--edge) 50%, transparent calc(50% + 0.6px)); }
+tr.off img.cover { opacity: 0.7; }
 .coverlink { display: block; border-radius: 3px; cursor: zoom-in; }
-.title { font-size: 1.0625rem; font-weight: 600; line-height: 1.3; }
-tr.off .title { color: var(--muted); font-weight: 500; }
-.author { color: var(--muted); font-size: 0.875rem; margin-top: 0.1rem; }
-.tag { font-family: var(--sans); font-size: 0.75rem; font-weight: 600; color: var(--accent-ink); background: var(--accent-soft);
-  border-radius: 999px; padding: 0.1rem 0.5rem; margin-left: 0.4rem; white-space: nowrap; vertical-align: 0.1em; }
+.title { font-size: 1.0625rem; font-weight: 600; line-height: 1.25; letter-spacing: -0.005em; }
+.author { color: var(--graphite); font-size: 0.875rem; margin-top: 0.1rem; }
+.tag { display: inline-block; font-family: var(--sans); font-size: 0.75rem; font-weight: 700; line-height: 1.1rem; color: var(--graphite);
+  border: 1px solid currentColor; border-radius: 3px; padding: 0 0.3rem; margin-left: 0.45rem; white-space: nowrap; vertical-align: 0.12em; }
 
-/* The reading line: how far into the book, at a glance. */
-.bar { height: 4px; max-width: 26rem; margin: 0.6rem 0 0.4rem; background: var(--track); border-radius: 2px; overflow: hidden; }
-.bar span { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
-.bar.done span { background: var(--ok); }
-tr.off .bar span { opacity: 0.55; }
-.meta { display: flex; gap: 0.2rem 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.8125rem; }
+/* The line gauge: how far into the book, read off a printer's rule with a
+   tick every tenth. */
+.bar { position: relative; height: 9px; max-width: 16rem; margin: 0.7rem 0 0.35rem;
+  background: repeating-linear-gradient(to right, var(--edge) 0 1px, transparent 1px 10%) left bottom / 100% 4px no-repeat,
+    linear-gradient(var(--edge), var(--edge)) left bottom / 100% 1px no-repeat; }
+.bar::after { content: ""; position: absolute; right: 0; bottom: 0; width: 1px; height: 4px; background: var(--edge); }
+.bar span { position: absolute; left: 0; bottom: 1px; height: 4px; background: var(--ink); }
+tr.off .bar span { background: var(--faint); }
+.meta { display: flex; gap: 0.1rem 0.9rem; flex-wrap: wrap; color: var(--graphite); font-size: 0.8125rem; }
+.meta > span { white-space: nowrap; }
 
-/* A row that syncs carries the accent on its edge. The switches in a row
-   are quiet until they are pointed at: thirty framed boxes are too loud. */
-tr.on td.book { box-shadow: inset 3px 0 0 var(--accent); }
-td select { width: 100%; background-color: var(--surface-2); border-color: transparent; }
-td select:hover, td select:focus { border-color: var(--line); }
-tr.off td select { color: var(--muted); }
+/* The switches in a row: plain fields; their words and chevron say what they are. */
+td select { width: 100%; }
+tr.off td select { color: var(--graphite); }
 .rowdate { margin-top: 0.4rem; display: block; width: 100%; }
 td noscript button { margin-top: 0.4rem; width: 100%; }
 .rowdate[hidden] { display: none; }
-.hint { color: var(--muted); font-size: 0.8125rem; margin-top: 0.3rem; }
+.hint { color: var(--graphite); font-size: 0.8125rem; margin-top: 0.3rem; }
 
+/* The Hardcover cell: the mark and what it says, the correction itself (old
+   value struck, new value after a caret), the match, one Details link. */
 td.hc { font-size: 0.875rem; }
-/* One language for status everywhere: a dot carries the colour, the text
-   stays plain; the match on a quiet second line; one Details button. */
-.act { display: flex; align-items: center; gap: 0.5rem; color: var(--ink); }
-.act .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
-.act.ok .dot { background: var(--ok); }
-.act.next .dot { background: var(--accent); }
-.act.warn .dot { background: var(--warn); }
-.act.err .dot { background: var(--err); }
-.act.none { color: var(--muted); }
-td.hc .act { align-items: flex-start; }
-td.hc .act .dot { margin-top: 0.45em; }
-.sub { color: var(--muted); font-size: 0.8125rem; margin-top: 0.15rem; }
-td.hc .sub { margin-left: calc(8px + 0.5rem); }
-.details { display: inline-block; margin-top: 0.5rem; font-size: 0.8125rem; font-weight: 500; color: var(--accent-ink); text-decoration: none;
-  border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 0.2rem 0.65rem; }
-td.hc .details { margin-left: calc(8px + 0.5rem); }
-.details:hover { border-color: var(--accent); }
-tr.off .details { color: var(--muted); }
-.err { color: var(--err); }
-.muted { color: var(--muted); }
+td.hc .act > span:first-of-type { font-weight: 650; font-size: 0.8125rem; }
+td.hc .act.next > span:first-of-type { color: var(--red); }
+td.hc .act.ok > span:first-of-type { color: var(--green); }
+td.hc .act.warn > span:first-of-type { color: var(--blue); }
+td.hc .act.err > span:first-of-type { padding: 0 0.35rem; border-radius: 2px; background: var(--flag); color: var(--on-flag); }
+td.hc .act.wait > span:first-of-type, td.hc .act.none > span:first-of-type { font-weight: 500; color: var(--graphite); font-size: 0.875rem; }
+.fix, .sub, td.hc .details { margin-left: 2.1rem; }
+.fix { margin-top: 0.1rem; font-size: 0.9375rem; }
+.fix .swap { white-space: nowrap; }
+.act .fix { margin: 0; font-size: inherit; }
+.fix s { color: var(--graphite); text-decoration: none; background: linear-gradient(var(--red), var(--red)) no-repeat 0 58% / 100% 1.5px; }
+.fix ins { display: inline-flex; align-items: baseline; gap: 1px; color: var(--red); font-weight: 650; text-decoration: none; }
+.fix ins svg { width: 10px; height: 10px; align-self: flex-end; margin-bottom: -4px; }
+/* The signature: the strike draws across, the new value writes in after it.
+   On load row by row, and again whenever a row is redrawn. */
+@keyframes strike { from { background-size: 0 1.5px; } }
+@keyframes write { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.fix s { animation: strike 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d, 0s); }
+.fix ins { animation: write 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--d, 0s) + 0.2s); }
+@media (prefers-reduced-motion: reduce) { .fix s, .fix ins { animation: none; } }
+.sub { color: var(--graphite); font-size: 0.8125rem; margin-top: 0.2rem; }
+.sub .mk.stet { display: inline; margin-right: 0.3rem; font-size: 0.78rem; }
+.details { display: inline-flex; align-items: center; min-height: 2rem; margin-top: 0.55rem; font-size: 0.8125rem; font-weight: 600; color: var(--ink);
+  text-decoration: none; background: var(--sheet); border: 1px solid var(--edge); border-radius: var(--r-ctl); padding: 0.15rem 0.65rem; }
+a.details { color: var(--ink); }
+.details:hover { border-color: var(--ink); }
+.err { color: var(--ink); }
+.muted { color: var(--graphite); }
 .pickrow { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .pickrow select { flex: 1 1 12rem; min-width: 0; width: 100%; text-overflow: ellipsis; }
 .pickrow input { flex: 1 1 10rem; min-width: 0; }
-.empty { padding: 3rem 1rem; text-align: center; color: var(--muted); }
+.empty { padding: 3rem 1rem; text-align: center; color: var(--graphite); }
 
 /* Coming back to a row after Use / Search / Remove: show which one. */
-@keyframes landed { from { background: var(--accent-soft); } to { background: transparent; } }
-tbody tr:target td { animation: landed 1.8s ease-out; }
-@media (prefers-reduced-motion: reduce) {
-  tbody tr:target td { animation: none; background: var(--accent-soft); }
-}
+@keyframes landed { from { background: var(--blue-wash); } to { background: transparent; } }
+tbody tr:target td:not(.hc) { animation: landed 1.8s ease-out; }
+@media (prefers-reduced-motion: reduce) { tbody tr:target td:not(.hc) { animation: none; background: var(--blue-wash); } }
 
 /* ---------- dialogs ---------- */
-#help, #details { border: 0; padding: 0; border-radius: var(--r-panel); background: var(--surface); color: var(--ink);
+#help, #details { border: 1px solid var(--rule); padding: 0; border-radius: var(--r-sheet); background: var(--sheet); color: var(--ink);
   width: min(40rem, 94vw); max-height: 92vh; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35); }
-#help::backdrop, #details::backdrop { background: rgba(8, 13, 26, 0.6); }
+#help::backdrop, #details::backdrop { background: rgba(10, 12, 14, 0.6); }
 /* Help: reading matter. The title and Close stay put while the text
-   scrolls; sections are set apart, paragraphs have air, and the words
-   from the page stand in their own column. */
+   scrolls; the words and marks from the page stand in their own column. */
 #help { width: min(44rem, 94vw); overflow: hidden; }
 #help[open] { display: flex; flex-direction: column; }
 #help .dtop { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.75rem;
-  border-bottom: 1px solid var(--line); }
-#help h2 { margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.2; }
+  border-bottom: 3px double var(--rule); }
+#help h2 { margin: 0; font-size: 1.375rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
 #help .close { position: static; flex: none; }
-#help .dbody { overflow-y: auto; overscroll-behavior: contain; padding: 0.25rem 1.75rem 1.5rem; line-height: 1.65; }
-#help section { padding: 1.4rem 0 1.5rem; border-bottom: 1px solid var(--line-soft); }
-#help h3 { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; line-height: 1.3; margin: 0 0 0.6rem; }
+#help .dbody { overflow-y: auto; overscroll-behavior: contain; padding: 0.25rem 1.75rem 1.5rem; line-height: 1.6; }
+#help section { padding: 1.4rem 0 1.5rem; border-bottom: 1px solid var(--rule-soft); }
+#help h3 { font-size: 1.0625rem; font-weight: 750; line-height: 1.3; margin: 0 0 0.6rem; }
 #help p { margin: 0.75rem 0 0; max-width: 62ch; }
 #help h3 + p { margin-top: 0; }
 #help .terms { gap: 0; margin: 0; }
-#help .terms > div { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 1.25rem; padding: 0.55rem 0; border-top: 1px solid var(--line-soft); }
+#help .terms > div { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 1.25rem; padding: 0.55rem 0; border-top: 1px solid var(--rule-soft); }
 #help .terms > div:first-child { border-top: 0; padding-top: 0; }
 #help .terms dt { color: var(--ink); font-weight: 600; }
 #help .terms dt .act { color: inherit; }
 #help .terms dd { color: var(--ink); max-width: 52ch; }
-#help .credit { margin: 1.25rem 0 0; color: var(--muted); font-size: 0.8125rem; }
+#help .credit { margin: 1.25rem 0 0; color: var(--graphite); font-size: 0.8125rem; }
 @media (max-width: 520px) {
   #help .dtop { padding: 0.9rem 1.1rem; }
   #help h2 { font-size: 1.25rem; }
@@ -313,50 +373,51 @@ tbody tr:target td { animation: landed 1.8s ease-out; }
   #help .terms > div { grid-template-columns: 1fr; gap: 0.1rem; }
 }
 .dbody, .dpage { padding: 1.4rem 1.5rem 1.5rem; }
-.dpage { max-width: 40rem; margin: 0 auto; }
-.dhead { display: flex; gap: 1rem; align-items: center; margin-bottom: 0.5rem; padding-right: 4.5rem; }
-.dhead h2 { margin: 0; font-size: 1.25rem; font-weight: 600; line-height: 1.25; }
+.dpage { max-width: 40rem; margin: 0 auto; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); }
+.dhead { display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 0.5rem; padding-right: 4.5rem; }
+.dhead .cover { width: 60px; height: 90px; }
+.dhead h2 { margin: 0; font-size: 1.375rem; font-weight: 600; line-height: 1.2; }
 .dhead .author { margin: 0.2rem 0 0; }
-#details section h3, .dpage section h3 { font-size: 0.8125rem; font-weight: 600; color: var(--muted); margin: 1.1rem 0 0.4rem; }
+#details section h3, .dpage section h3 { font-size: 0.8125rem; font-weight: 700; color: var(--graphite); margin: 1.2rem 0 0.4rem; }
 dl { margin: 0; display: grid; gap: 0.35rem; }
 /* A term and what it is, side by side; the value drops under its term when there is no room left for it. */
 dl > div { display: flex; flex-wrap: wrap; gap: 0 0.75rem; align-items: baseline; }
-dt { flex: 0 0 8.5rem; color: var(--muted); }
+dt { flex: 0 0 8.5rem; color: var(--graphite); }
 dd { flex: 1 1 8rem; min-width: 0; margin: 0; overflow-wrap: anywhere; }
-.actions { display: grid; gap: 0.6rem; margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid var(--line-soft); }
+dd .act { display: inline-grid; }
+.actions { display: grid; gap: 0.6rem; margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid var(--rule-soft); }
 dialog .close { position: absolute; top: 0.9rem; right: 0.9rem; }
 
 /* Lightbox: the cover, large. A native <dialog>: Esc and the Close button
    work by themselves; kobo.js adds "click outside to close". */
-#lightbox { border: 0; padding: 0; background: none; color: #e2e8f0; max-width: 96vw; max-height: 96vh; overflow: visible; }
-#lightbox::backdrop { background: rgba(8, 13, 26, 0.86); }
+#lightbox { border: 0; padding: 0; background: none; color: #e7e9e4; max-width: 96vw; max-height: 96vh; overflow: visible; }
+#lightbox::backdrop { background: rgba(10, 12, 14, 0.88); }
 #lightbox figure { margin: 0; display: grid; justify-items: center; gap: 0.75rem; }
 #lightbox img { display: block; height: min(82vh, 900px); width: auto; max-width: 92vw; object-fit: contain;
-  border-radius: var(--r-ctl); box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55); }
+  border-radius: 2px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55); }
 #lightbox figcaption { text-align: center; font-size: 0.9375rem; max-width: min(92vw, 40rem); }
-#lightbox figcaption b { display: block; font-family: var(--serif); font-size: 1.0625rem; font-weight: 600; }
-#lightbox .close { position: fixed; top: 1rem; right: 1rem; color: #e2e8f0; background: rgba(15, 23, 42, 0.7); border-color: #475569; }
-#lightbox .close:hover { border-color: #22d3ee; }
+#lightbox figcaption b { display: block; font-size: 1.0625rem; font-weight: 600; }
+#lightbox .close { position: fixed; top: 1rem; right: 1rem; color: #e7e9e4; background: rgba(15, 17, 20, 0.75); border-color: #6e757e; }
+#lightbox .close:hover { border-color: #e7e9e4; }
 @keyframes cover-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
 #lightbox[open] figure { animation: cover-in 0.18s ease-out; }
 @media (prefers-reduced-motion: reduce) { #lightbox[open] figure { animation: none; } }
 
-/* ---------- sign-up, settings, admin: the same panels ---------- */
+/* ---------- sign-up, settings, admin: the same sheets ---------- */
 /* minmax(0, 1fr): a card is as wide as the page, never as wide as its longest word (text at 200% on a phone). */
 .cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-content: start; max-width: 46rem; }
 .cards.admin { max-width: none; }
-.pagetitle { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.01em; margin: 0; line-height: 1.2; }
-.intro { margin: -0.6rem 0 0; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-panel); box-shadow: var(--shadow); padding: 1.15rem 1.25rem 1.3rem; }
-.card h2 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.75rem; line-height: 1.25; }
-.card h3 { font-size: 0.8125rem; font-weight: 600; color: var(--muted); margin: 1.2rem 0 0.5rem; padding-top: 1rem; border-top: 1px solid var(--line-soft); }
+.intro { margin: -0.5rem 0 0; color: var(--graphite); }
+.card { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); box-shadow: var(--lift); padding: 1.2rem 1.35rem 1.35rem; }
+.card h2 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.75rem; line-height: 1.2; }
+.card h3 { font-size: 0.8125rem; font-weight: 700; color: var(--graphite); margin: 1.2rem 0 0.5rem; padding-top: 1rem; border-top: 1px solid var(--rule-soft); }
 .card p { margin: 0.45rem 0; max-width: 64ch; }
 .card ol { margin: 0.4rem 0 0.9rem; padding-left: 1.3rem; max-width: 64ch; }
 .card li { margin: 0.3rem 0; }
 .card dl { margin-top: 0.9rem; }
 .card form + form, .card .act + form, .card p + form { margin-top: 0.75rem; }
 .field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.3rem; margin-top: 0.75rem; }
-.field label { font-size: 0.8125rem; font-weight: 600; color: var(--muted); }
+.field label { font-size: 0.8125rem; font-weight: 650; color: var(--graphite); }
 .field .hint { margin: 0.2rem 0 0; }
 .inputs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .inputs input { flex: 1 1 14rem; min-width: 0; }
@@ -366,47 +427,50 @@ dialog .close { position: absolute; top: 0.9rem; right: 0.9rem; }
 .pair input { width: 100%; }
 .btnrow { display: flex; gap: 0.5rem 0.75rem; flex-wrap: wrap; align-items: center; margin: 0.6rem 0 0; }
 .btnrow form, .moderow form, .card .btnrow form + form { margin: 0; }
-.btnrow .details { margin: 0; padding: 0.4rem 0.9rem; font-size: 0.875rem; min-height: 2.25rem; display: inline-flex; align-items: center; color: var(--ink); }
+.btnrow .details { margin: 0; padding: 0.4rem 0.9rem; font-size: 0.875rem; min-height: 2.375rem; }
 .moderow { display: flex; gap: 0.6rem 1.25rem; flex-wrap: wrap; align-items: center; }
 .devices { list-style: none; margin: 0 0 0.5rem; padding: 0; }
-.devices li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 0; padding: 0.55rem 0; border-bottom: 1px solid var(--line-soft); }
+.devices li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 0; padding: 0.55rem 0; border-bottom: 1px solid var(--rule-soft); }
 .devices li:last-child { border-bottom: 0; }
 .devices form { margin: 0; }
 /* Signing in to Hardcover: three steps, the code set large enough to compare at a glance. */
 .signin ol { margin: 0.6rem 0 0.9rem; padding-left: 1.3rem; max-width: 64ch; }
-.signin li { margin: 0.5rem 0; }
-.signin li > div { margin-top: 0.4rem; }
-.signin code.code { font-size: 1.125rem; letter-spacing: 0.08em; color: var(--ink); padding: 0.1rem 0.45rem; background: var(--surface-2);
-  border: 1px solid var(--line); border-radius: var(--r-ctl); user-select: all; white-space: nowrap; }
-details.paste { margin-top: 0.9rem; }
-details.paste summary { cursor: pointer; color: var(--muted); font-size: 0.875rem; padding: 0.4rem 0; }
+.signin li { margin: 0.6rem 0; }
+.signin li > div { margin-top: 0.45rem; }
+.signin code.code { font-size: min(1.375rem, 7vw); font-weight: 600; letter-spacing: 0.12em; color: var(--ink); padding: 0.2rem 0.7rem; background: var(--margin);
+  border: 1px solid var(--edge); border-radius: var(--r-ctl); user-select: all; white-space: nowrap; }
+details.paste { margin-top: 0.9rem; border-top: 1px solid var(--rule-soft); padding-top: 0.4rem; }
+details.paste summary { display: flex; align-items: center; gap: 0.5rem; min-height: 2rem; list-style: none; cursor: pointer; color: var(--graphite); font-size: 0.875rem; }
+details.paste summary::-webkit-details-marker { display: none; }
+details.paste summary::before { content: ""; width: 0.4rem; height: 0.4rem; margin: 0 0.2rem 0.2rem 0.15rem; border: solid currentColor; border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+details.paste[open] summary::before { transform: rotate(-135deg); margin-bottom: -0.15rem; }
+@media (prefers-reduced-motion: reduce) { details.paste summary::before { transition: none; } }
 details.paste summary:hover { color: var(--ink); }
 /* What the check found: one line per thing looked at, what to do under it. */
-.found { font-weight: 600; }
+.found { font-weight: 700; }
 .checks { list-style: none; margin: 0.35rem 0 0.75rem; padding: 0; }
-.checks li { margin: 0; padding: 0.5rem 0; border-bottom: 1px solid var(--line-soft); overflow-wrap: anywhere; }
+.checks li { margin: 0; padding: 0.5rem 0; border-bottom: 1px solid var(--rule-soft); overflow-wrap: anywhere; }
 .checks li:last-child { border-bottom: 0; }
 /* The thing a few checks are about: This computer, Your Kobo, Hardcover. */
-.checks li.group { padding: 0.9rem 0 0.2rem; border-bottom: 0; font-size: 0.8125rem; font-weight: 600; color: var(--muted); }
-.checks .act { align-items: flex-start; }
-.checks .act .dot { margin-top: 0.45em; }
+.checks li.group { padding: 0.9rem 0 0.2rem; border-bottom: 0; font-size: 0.8125rem; font-weight: 700; color: var(--graphite); }
 .checks .act.none { color: var(--ink); }
-.checks .sub { margin-left: calc(8px + 0.5rem); }
-code { font: 0.8125rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted); }
+.checks .sub { margin-left: 2.1rem; }
+code { font: 0.8125rem var(--mono); color: var(--graphite); }
 /* A token shown once: easy to select, and it wraps instead of running off a phone. */
-code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color: var(--ink); background: var(--surface);
-  border: 1px solid var(--line); border-radius: var(--r-ctl); overflow-wrap: anywhere; user-select: all; }
+code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color: var(--ink); background: var(--margin);
+  border: 1px solid var(--edge); border-radius: var(--r-ctl); overflow-wrap: anywhere; user-select: all; }
 .card .flash { margin-top: 0.6rem; }
 .card .flash p { margin: 0.5rem 0 0; }
-.flash { padding: 0.7rem 1rem; border-radius: var(--r-ctl); background: var(--ok-soft); }
-.flash.bad { background: var(--surface); border: 1px solid var(--err); }
+.flash { padding: 0.7rem 1rem; border-radius: var(--r-ctl); background: var(--green-wash); }
+.flash.bad { background: var(--sheet); border: 1px solid var(--flag); }
 .flash p { margin: 0.25rem 0 0 1.05rem; font-size: 0.875rem; overflow-wrap: anywhere; }
 .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; align-items: start; }
 /* The readers table sits edge to edge in its card. */
-.card.wide { padding: 1.15rem 0 0; overflow: hidden; }
-.card.wide h2 { padding: 0 1.25rem; }
-.readers th { border-top: 1px solid var(--line); padding-left: 1.25rem; }
-.readers td { padding-left: 1.25rem; }
+.card.wide { padding: 1.2rem 0 0; overflow: hidden; }
+.card.wide h2 { padding: 0 1.35rem; }
+.readers th { border-top: 1px solid var(--rule); padding-left: 1.35rem; }
+.readers td { padding-left: 1.35rem; }
 .readers .btnrow { margin: 0; }
 /* A page outside the frame: no login was passed on. */
 .solo { max-width: 34rem; margin: 12vh auto 0; padding: 0 1rem; }
@@ -416,95 +480,119 @@ code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color
 @media (max-width: 1023.98px) {
   .toolbar.js .ftoggle { display: flex; }
   .toolbar.js .filters:not(.open) { display: none; }
+  .sheet { background: none; border: 0; box-shadow: none; overflow: visible; }
+  .toolbar { padding: 0 0 0.85rem; border-bottom: 0; }
   table, tbody, tr, td { display: block; width: auto; }
   thead { display: none; }
   td { border-bottom: 0; padding: 0; }
-  tbody tr { padding: 0.9rem 1rem; border-bottom: 1px solid var(--line-soft); scroll-margin-top: 1rem; }
-  tbody tr:last-child { border-bottom: 0; }
-  /* A book: the cover and title across, the two switches side by side
-     under their names, then what Hardcover will get. */
-  .books tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.7rem 0.6rem; }
+  /* A book: a card, the cover and title across, the two switches side by
+     side under their names, then its own margin strip with the mark. */
+  .books tbody { display: grid; gap: 0.75rem; }
+  .books tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.8rem 0.6rem; padding: 1rem 0.9rem 0;
+    background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); scroll-margin-top: 1rem; overflow: hidden; }
   .books td.book, .books td.hc { grid-column: 1 / -1; }
-  .books td.book, .books tr.on td.book { box-shadow: none; }
-  .books tr.on { box-shadow: inset 3px 0 0 var(--accent); }
-  .books td[data-label]::before { content: attr(data-label); display: block; color: var(--faint); font-size: 0.75rem; margin-bottom: 0.15rem; }
+  .books td[data-label]::before { content: attr(data-label); display: block; color: var(--graphite); font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.25rem; }
   .books td.hc::before { content: none; }
-  .books td.hc > div { padding-top: 0.7rem; border-top: 1px solid var(--line-soft); }
-  td.hc .details { padding: 0.35rem 0.8rem; }
+  .books td.hc { margin: 0.1rem -0.9rem 0; padding: 0.85rem 0.9rem 0.9rem; border-left: 0; border-top: 3px double var(--rule); }
   /* Other tables (Admin): a name on the left, the value beside it. */
+  .readers tr { padding: 0.75rem 1rem; border-bottom: 1px solid var(--rule-soft); }
   .readers td { padding: 0.3rem 0 0.3rem 0.25rem; }
   .readers td[data-label] { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: 0.5rem; align-items: start; }
   .readers td[data-label] > * { min-width: 0; }
-  .readers td[data-label]::before { content: attr(data-label); color: var(--muted); font-size: 0.8125rem; padding-top: 0.15rem; }
+  .readers td[data-label]::before { content: attr(data-label); color: var(--graphite); font-size: 0.8125rem; padding-top: 0.15rem; }
   .pickrow select, .pickrow input { flex-basis: 100%; }
   .cards { max-width: none; }
   .foot { order: 3; }
-  input[type="search"], input[type="text"], input[type="password"], input[type="date"], select, button { min-height: 2.5rem; }
-  .theme button { min-height: 2.1rem; }
+  input[type="search"], input[type="text"], input[type="password"], input[type="date"], select, button { min-height: 2.75rem; }
+  .details, td.hc .details { min-height: 2.75rem; padding-inline: 0.9rem; }
+  .theme button { min-height: 2.5rem; }
+  .statusactions form:first-child { order: 0; }
+  .legend { font-size: 0.75rem; gap: 0.1rem 0.8rem; }
+  .pagehead { font-size: 1.6rem; }
+}
+/* A phone: the first book and its mark on the first screen. The legend says
+   what the page line said, the Filter button carries the count, and Filter
+   and Sort share a row. */
+@media (max-width: 719.98px) {
+  .head .intro, .status > .act:nth-child(3) { display: none; }
+  .toolbar.js { grid-template-columns: minmax(0, 1fr) auto; }
+  .toolbar.js .find { display: contents; }
+  .toolbar.js .find input[type="search"] { grid-column: 1; }
+  .toolbar.js .ftoggle { grid-column: 1; grid-row: 2; }
+  .toolbar.js .sortby { grid-column: 2; grid-row: 2; }
+  .toolbar.js .sortby label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .toolbar.js .filters { grid-column: 1 / -1; }
 }
 @media (max-width: 520px) {
   dl > div { column-gap: 0.6rem; }
   dt { flex-basis: 6.75rem; }
   .dbody, .dpage { padding: 1.2rem 1.1rem 1.25rem; }
+  .fgroup { padding-left: 0; }
+  .gname { flex: 0 0 100%; margin: 0.3rem 0 0; }
 }
 /* A finger needs more than a pointer: 44px, whatever the width of the screen. */
 @media (pointer: coarse) {
   input[type="search"], input[type="text"], input[type="password"], input[type="date"], select, button { min-height: 2.75rem; }
   .theme button { min-height: 2.75rem; padding-inline: 1rem; }
   .helpbtn { width: 2.75rem; }
-  /* A filter keeps its small pill; the finger gets more than is drawn, and
-     the rows stand far enough apart that two chips never share a spot. */
-  .chip { position: relative; }
-  .chip::after { content: ""; position: absolute; inset: -0.5rem 0; }
-  .filters, .fgroup { row-gap: 1rem; }
-  .details, td.hc .details { display: inline-flex; align-items: center; min-height: 2.75rem; padding-inline: 0.9rem; }
+  .chip { min-height: 2.75rem; }
+  .details, td.hc .details { min-height: 2.75rem; padding-inline: 0.9rem; }
 }
 /* A tablet has room for two books side by side. */
 @media (min-width: 720px) and (max-width: 1023.98px) {
-  .brandphoto { height: 14rem; }
-  .books tbody { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .books tbody tr { border-right: 1px solid var(--line-soft); }
-  .books tbody tr:last-child { border-bottom: 1px solid var(--line-soft); }
+  .books tbody { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .sortby { flex: 0 1 auto; }
   .status { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .statusactions { grid-column: 1 / -1; justify-content: flex-end; }
-  .statusactions form:last-child { flex: 0 0 auto; }
+  .statusactions { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+  .statusactions button { width: auto; }
 }
 
-/* ---------- from 1024px: the sidebar, and a list that scrolls in its sheet ---------- */
+/* ---------- from 1024px: the rail, and a list that scrolls in its sheet ---------- */
 @media (min-width: 1024px) {
-  body.app { display: grid; grid-template-columns: var(--side) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto;
-    gap: 1rem 1.5rem; height: 100vh; height: 100dvh; padding: 1.25rem 1.5rem 1.25rem 1.25rem; max-width: 96rem; margin: 0 auto; overflow: hidden; }
-  .side { grid-area: 1 / 1; align-content: start; gap: 1.1rem; overflow-y: auto; scrollbar-width: thin; }
-  body.app > main { grid-area: 1 / 2 / 3 / 3; padding: 0; display: flex; flex-direction: column; min-height: 0; }
-  /* Room around the cards for their shadows, taken from the gap and the page edge. */
+  body.app { display: grid; grid-template-columns: var(--rail-w) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto;
+    gap: 0 2rem; height: 100vh; height: 100dvh; padding: 0 2rem 0 0; overflow: hidden; }
+  .side { grid-area: 1 / 1; align-content: start; gap: 1.6rem; padding: 1.75rem 1.4rem 1rem; overflow-y: auto; scrollbar-width: thin; }
+  .brand { display: block; }
+  h1 { align-items: flex-start; font-size: 1.45rem; }
+  h1 svg { margin-top: 0.2rem; }
+  .bandhelp { display: none; }
+  .tagline { display: block; }
+  .nav { position: static; display: grid; justify-content: stretch; gap: 2px; padding: 0; background: none; border: 0; }
+  .nav a { flex-direction: row; justify-content: flex-start; gap: 0.75rem; min-height: 2.6rem; padding: 0 0.75rem; font-size: 0.9375rem; color: var(--rail-ink); }
+  .nav a:hover { background: color-mix(in srgb, var(--sheet) 50%, transparent); }
+  .nav a[aria-current="page"] { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 0 var(--rule); }
+  .status { gap: 0.85rem; padding-top: 1.3rem; border-top: 1px solid color-mix(in srgb, var(--rail-ink) 22%, transparent); }
+  .statusactions { grid-template-columns: minmax(0, 1fr); }
+  .statusactions form:last-child { order: -1; }
+  .foot { grid-area: 2 / 1; display: grid; justify-content: stretch; gap: 0.75rem; padding: 0.75rem 1.4rem 1.25rem;
+    background: var(--rail); color: var(--rail-graphite); }
+  .foot .who b { color: var(--rail-ink); }
+  .foot .theme { border-color: color-mix(in srgb, var(--rail-ink) 32%, transparent); }
+  .foot .theme button { color: var(--rail-ink); }
+  .foot .theme button:hover { background: color-mix(in srgb, var(--sheet) 45%, transparent); }
+  .foot .theme button[aria-pressed="true"] { background: var(--sheet); color: var(--ink); }
+  .foot .helpbtn { background: transparent; color: var(--rail-ink); border-color: color-mix(in srgb, var(--rail-ink) 35%, transparent); }
+  .foot .indep { display: block; color: var(--rail-graphite); }
+  .toolrow { justify-content: space-between; }
+  body.app > main { grid-area: 1 / 2 / 3 / 3; padding: 1.75rem 0 1.5rem; display: flex; flex-direction: column; min-height: 0; max-width: 92rem; }
   /* position: what is taken out of the flow inside (text for screen readers only) stays inside this panel
      and scrolls with it. Without it such text counts as part of the page below the window, and a jump to a
      card (#check) moves the whole page up with no way back. */
-  body.app > main.cards { position: relative; display: grid; overflow-y: auto; margin: 0 -1rem; padding: 0.25rem 1rem 1.5rem; scrollbar-width: thin; }
-  .foot { grid-area: 2 / 1; padding: 0 0.25rem; }
-  .brand { border-radius: var(--r-panel); overflow: hidden; }
-  .brandphoto { height: 13.5rem; }
-  .brand::after { inset: 7rem 0 0; background: linear-gradient(to bottom, transparent, var(--bg) 6.3rem); }
-  .brandtext { margin-top: -2.9rem; padding: 0 0.35rem; }
-  .brandtext h1 { font-size: 1.62rem; white-space: nowrap; }
-  .nav { position: static; display: grid; justify-content: stretch; gap: 2px; padding: 0; background: none; border: 0; }
-  .nav a { flex-direction: row; gap: 0.7rem; padding: 0.5rem 0.7rem; font-size: 0.9375rem; }
-  .nav a:hover { background: var(--surface); }
-  .nav a[aria-current="page"] { background: var(--surface); color: var(--ink); border-color: var(--line); }
-  .nav a[aria-current="page"] svg { color: var(--accent); }
-  .status { margin: 0; box-shadow: none; }
+  body.app > main.cards { position: relative; display: grid; overflow-y: auto; margin: 0 -1rem; padding: 1.75rem 1rem 1.5rem; scrollbar-width: thin; }
+  .head { gap: 0.45rem; margin-bottom: 1.1rem; }
+  .pagehead { font-size: 2.1rem; }
   .sheet { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .tablewrap { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; scroll-padding-top: 3.25rem; }
   thead th { position: sticky; top: 0; z-index: 1; }
+  th.c-hc { background: var(--margin); }
   tbody tr { scroll-margin-top: 3rem; }
-  .toolbar { padding: 0.9rem 1rem; }
-  .find input[type="search"] { flex: 0 1 22rem; }
+  .toolbar { padding: 0.95rem 1.1rem; }
+  .find input[type="search"] { flex: 0 1 24rem; }
   .sortby { flex: 0 0 auto; margin-left: auto; }
   .sortby select { flex: none; }
-  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 1.4rem; }
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 1.5rem; }
   .fgroup { padding-left: 0; }
-  .gname { flex: none; margin: 0 0.3rem 0 0; }
+  .gname { flex: none; margin: 0 0.4rem 0 0; }
   .bulk { margin: 0 0 0 auto; padding: 0; border: 0; }
-  th:first-child, td:first-child { padding-left: 1rem; }
+  th:first-child, td:first-child { padding-left: 1.1rem; }
 }

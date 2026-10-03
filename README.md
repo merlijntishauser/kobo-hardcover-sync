@@ -11,7 +11,7 @@ Kobo, and nothing about how you read changes.
 
 ![A terminal running kobo-hardcover-sync sync on a made-up shelf: the Kobo is read, three books go to Hardcover, each shown with a line for how far it is read](docs/img/sync.svg)
 
-![The Books page: a list of books, each with a reading line, a Sync switch and what Hardcover will be told](docs/img/books.png)
+![The Books page: a list of books, each with how far it is read, a Sync switch, and in the margin what the next sync changes on Hardcover, marked like a proof](docs/img/books.png)
 
 > **Beta.** It has been used daily on one Kobo and one Mac. It can write
 > one thing to your Kobo, a collection, and only if you ask for it; see
@@ -462,8 +462,8 @@ great e-readers, but finally give us a family account!
 
 The code, the documentation and the icon are under the [MIT licence](LICENSE).
 
-Two kinds of files in this repository are not, and keep their own licence:
-the two fonts (SIL Open Font License 1.1) and the two photographs (Unsplash
-License). What that means, where their licence texts are, and the licences
-of the Python packages installed next to the tool:
+One kind of file in this repository is not, and keeps its own licence: the
+two fonts (SIL Open Font License 1.1). What that means, where their licence
+texts are, and the licences of the Python packages installed next to the
+tool:
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

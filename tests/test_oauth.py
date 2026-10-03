@@ -299,7 +299,7 @@ def test_a_sign_in_that_fails_on_the_page_and_one_from_elsewhere(tmp_path, monke
     monkeypatch.delenv("KHS_HARDCOVER_CLIENT_ID")
     monkeypatch.setattr(oauth, "CLIENT_ID", "")
     plain = c.get("/settings", headers=ANNA).text
-    assert "Connect to Hardcover" not in plain and '<button class="primary">Check and save</button>' in plain
+    assert "Connect to Hardcover" not in plain and '<button class="solid">Check and save</button>' in plain
 
 
 def test_everything_that_wants_the_token_at_once_renews_it_once(tmp_path, monkeypatch, hc):

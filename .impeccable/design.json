@@ -4,695 +4,827 @@
   "title": "Design System: Kobo Hardcover Sync",
   "extensions": {
     "colorMeta": {
-      "bg": {
+      "ground": {
         "role": "neutral",
-        "displayName": "Morning Paper",
-        "canonical": "oklch(96.7% 0.015 270)",
+        "displayName": "Galley Stock",
+        "canonical": "#edefea",
+        "oklch": "oklch(94.9% 0.007 124)",
         "tonalRamp": [
-          "#090b12",
-          "#23262e",
-          "#42454e",
-          "#62666f",
-          "#858993",
-          "#aaaeb8",
-          "#cdd1db",
-          "#eaeef9"
+          "#0a0c09",
+          "#232521",
+          "#3f403c",
+          "#5d5e5a",
+          "#7c7e79",
+          "#9d9f9a",
+          "#c3c5c0",
+          "#edefea"
         ]
       },
-      "surface": {
+      "sheet": {
         "role": "neutral",
-        "displayName": "Sheet White",
-        "canonical": "oklch(100.0% 0.000 90)",
+        "displayName": "Proof Sheet",
+        "canonical": "#fbfbf8",
+        "oklch": "oklch(98.7% 0.004 106)",
         "tonalRamp": [
-          "#0b0b0b",
-          "#262626",
-          "#454545",
-          "#666666",
-          "#898989",
-          "#aeaeae",
-          "#d1d1d1",
-          "#eeeeee"
+          "#0b0b09",
+          "#242422",
+          "#40403d",
+          "#5e5e5b",
+          "#7d7d7b",
+          "#9e9e9c",
+          "#c4c4c1",
+          "#efefec"
         ]
       },
-      "surface-2": {
+      "margin": {
         "role": "neutral",
-        "displayName": "Ruled Tint",
-        "canonical": "oklch(97.9% 0.007 269)",
+        "displayName": "Margin Tint",
+        "canonical": "#f4f5f1",
+        "oklch": "oklch(96.8% 0.005 118)",
         "tonalRamp": [
-          "#0a0b0e",
-          "#25262a",
-          "#434549",
-          "#64666a",
-          "#87898d",
-          "#acaeb2",
-          "#cfd1d6",
-          "#eceef3"
+          "#0b0b09",
+          "#242421",
+          "#3f403d",
+          "#5d5e5b",
+          "#7d7e7a",
+          "#9e9f9b",
+          "#c4c4c1",
+          "#eeefeb"
         ]
       },
       "ink": {
         "role": "neutral",
-        "displayName": "Log Ink",
-        "canonical": "oklch(27.9% 0.037 260)",
+        "displayName": "Proof Ink",
+        "canonical": "#17191c",
+        "oklch": "oklch(21.3% 0.007 258)",
         "tonalRamp": [
-          "#030b1a",
-          "#1c2739",
-          "#3a4659",
-          "#5a677c",
-          "#7c8aa0",
-          "#a1afc6",
-          "#c3d2ea",
-          "#e6efff"
+          "#090b0e",
+          "#222427",
+          "#3e4043",
+          "#5b5e61",
+          "#7b7d81",
+          "#9c9fa3",
+          "#c1c4c8",
+          "#eceff3"
         ]
       },
-      "muted": {
+      "graphite": {
         "role": "neutral",
-        "displayName": "Pencil Grey",
-        "canonical": "oklch(44.6% 0.037 257)",
+        "displayName": "Graphite",
+        "canonical": "#4a4f57",
+        "oklch": "oklch(42.6% 0.015 260)",
         "tonalRamp": [
-          "#030b1b",
-          "#1b2739",
-          "#384659",
-          "#59677c",
-          "#7b8aa0",
-          "#9fafc6",
-          "#c2d2ea",
-          "#e5efff"
+          "#080b11",
+          "#20242b",
+          "#3b4048",
+          "#595e66",
+          "#787e86",
+          "#999fa8",
+          "#bfc4ce",
+          "#e9eff9"
         ]
       },
       "faint": {
         "role": "neutral",
-        "displayName": "Faint Pencil",
-        "canonical": "oklch(53.7% 0.041 257)",
+        "displayName": "Faint Graphite",
+        "canonical": "#5f656e",
+        "oklch": "oklch(50.5% 0.016 258)",
         "tonalRamp": [
-          "#020b1c",
-          "#19273a",
-          "#37465b",
-          "#57677e",
-          "#7a8aa2",
-          "#9eafc8",
-          "#c0d3ec",
-          "#e5efff"
+          "#070b12",
+          "#1f242c",
+          "#3b4048",
+          "#585e67",
+          "#777e87",
+          "#989fa9",
+          "#bec5cf",
+          "#e8effa"
         ]
       },
-      "line": {
+      "rule": {
         "role": "neutral",
         "displayName": "Rule",
-        "canonical": "oklch(88.9% 0.020 260)",
+        "canonical": "#cdd1cb",
+        "oklch": "oklch(85.6% 0.009 135)",
         "tonalRamp": [
-          "#070b14",
-          "#212730",
-          "#3f4550",
-          "#606672",
-          "#828a96",
-          "#a7aebb",
-          "#cad1de",
-          "#e7effc"
+          "#090c08",
+          "#222521",
+          "#3e413c",
+          "#5b5f5a",
+          "#7b7f79",
+          "#9ca09a",
+          "#c1c5c0",
+          "#ecf0ea"
         ]
       },
-      "line-soft": {
+      "rule-soft": {
         "role": "neutral",
         "displayName": "Soft Rule",
-        "canonical": "oklch(93.9% 0.013 262)",
+        "canonical": "#e3e6e0",
+        "oklch": "oklch(92.1% 0.009 129)",
         "tonalRamp": [
-          "#080b11",
-          "#23272d",
-          "#41454c",
-          "#62666e",
-          "#858991",
-          "#a9aeb7",
-          "#ccd1da",
-          "#eaeff8"
+          "#0a0c08",
+          "#232520",
+          "#3e413c",
+          "#5c5f59",
+          "#7c7e79",
+          "#9d9f9a",
+          "#c2c5bf",
+          "#edf0ea"
         ]
       },
       "edge": {
         "role": "neutral",
         "displayName": "Field Edge",
-        "canonical": "oklch(63.2% 0.039 257)",
+        "canonical": "#80868e",
+        "oklch": "oklch(61.8% 0.014 256)",
         "tonalRamp": [
-          "#020b1b",
-          "#1a273a",
-          "#38465a",
-          "#58677d",
-          "#7a8aa1",
-          "#9fafc7",
-          "#c1d2eb",
-          "#e5efff"
+          "#070b11",
+          "#20242b",
+          "#3b4047",
+          "#585e66",
+          "#787e86",
+          "#999fa7",
+          "#bec5cd",
+          "#e8eff8"
         ]
       },
-      "accent": {
-        "role": "primary",
-        "displayName": "Reading-light Cyan",
-        "canonical": "oklch(60.9% 0.111 222)",
+      "rail": {
+        "role": "neutral",
+        "displayName": "Non-repro Blue",
+        "canonical": "#c3e2ef",
+        "oklch": "oklch(89.4% 0.037 225)",
         "tonalRamp": [
-          "#000e14",
-          "#002c38",
-          "#004d60",
-          "#00728c",
-          "#1a98b9",
-          "#4ebee0",
-          "#84e0ff",
-          "#d7f4ff"
+          "#000e17",
+          "#0d2832",
+          "#29444f",
+          "#47626e",
+          "#66828e",
+          "#86a4b0",
+          "#abcad7",
+          "#d5f4ff"
         ]
       },
-      "accent-fill": {
-        "role": "primary",
-        "displayName": "Reading-light Deep",
-        "canonical": "oklch(52.0% 0.094 223)",
+      "rail-ink": {
+        "role": "neutral",
+        "displayName": "Rail Ink",
+        "canonical": "#14222b",
+        "oklch": "oklch(24.4% 0.026 237)",
         "tonalRamp": [
-          "#000e15",
-          "#002c39",
-          "#004d62",
-          "#06718d",
-          "#3d95b2",
-          "#65bbd9",
-          "#89dffe",
-          "#d8f4ff"
+          "#020d15",
+          "#18262f",
+          "#33424c",
+          "#50606b",
+          "#6f808b",
+          "#90a1ad",
+          "#b5c7d3",
+          "#dff2fe"
         ]
       },
-      "accent-ink": {
-        "role": "primary",
-        "displayName": "Reading-light Ink",
-        "canonical": "oklch(52.0% 0.094 223)",
+      "rail-graphite": {
+        "role": "neutral",
+        "displayName": "Rail Graphite",
+        "canonical": "#2f4653",
+        "oklch": "oklch(38.1% 0.036 234)",
         "tonalRamp": [
-          "#000e15",
-          "#002c39",
-          "#004d62",
-          "#06718d",
-          "#3d95b2",
-          "#65bbd9",
-          "#89dffe",
-          "#d8f4ff"
+          "#000d18",
+          "#102733",
+          "#2c4350",
+          "#4a616f",
+          "#698190",
+          "#89a3b2",
+          "#aec9d8",
+          "#d8f3ff"
         ]
       },
-      "accent-soft": {
-        "role": "primary",
-        "displayName": "Reading-light Wash",
-        "canonical": "oklch(95.1% 0.025 237)",
+      "blue": {
+        "role": "secondary",
+        "displayName": "Blue Pencil",
+        "canonical": "#1c5e8b",
+        "oklch": "oklch(46.4% 0.098 243)",
         "tonalRamp": [
-          "#020d14",
-          "#1b2831",
-          "#394751",
-          "#596973",
-          "#7b8c97",
-          "#a0b1bc",
-          "#c2d4e0",
-          "#e0f2fe"
+          "#000c21",
+          "#00264a",
+          "#00436f",
+          "#226390",
+          "#4583b3",
+          "#66a5d7",
+          "#8cccff",
+          "#d7f3ff"
         ]
       },
-      "on-accent": {
+      "blue-wash": {
+        "role": "secondary",
+        "displayName": "Blue Wash",
+        "canonical": "#ddeff7",
+        "oklch": "oklch(94.1% 0.022 226)",
+        "tonalRamp": [
+          "#020d12",
+          "#18262c",
+          "#344249",
+          "#516067",
+          "#708087",
+          "#91a2a9",
+          "#b6c7cf",
+          "#e0f2fa"
+        ]
+      },
+      "red": {
         "role": "primary",
-        "displayName": "On Reading-light",
-        "canonical": "oklch(100.0% 0.000 90)",
+        "displayName": "Red Pencil",
+        "canonical": "#c0212b",
+        "oklch": "oklch(52.3% 0.192 25)",
+        "tonalRamp": [
+          "#220000",
+          "#4d0004",
+          "#7e000e",
+          "#b1041e",
+          "#d83c3f",
+          "#ff625f",
+          "#ffa79f",
+          "#ffe6e3"
+        ]
+      },
+      "red-wash": {
+        "role": "primary",
+        "displayName": "Red Wash",
+        "canonical": "#f9e3e1",
+        "oklch": "oklch(93.3% 0.024 24)",
+        "tonalRamp": [
+          "#140707",
+          "#2f1f1e",
+          "#4c3b39",
+          "#6b5957",
+          "#8b7876",
+          "#ad9997",
+          "#d4bebc",
+          "#ffe9e7"
+        ]
+      },
+      "green": {
+        "role": "tertiary",
+        "displayName": "Tick Green",
+        "canonical": "#2c6a39",
+        "oklch": "oklch(47.0% 0.101 148)",
+        "tonalRamp": [
+          "#001100",
+          "#002f05",
+          "#084d1e",
+          "#2f6d3c",
+          "#508e5a",
+          "#71b07b",
+          "#96d79f",
+          "#c0ffc9"
+        ]
+      },
+      "green-wash": {
+        "role": "tertiary",
+        "displayName": "Green Wash",
+        "canonical": "#e1f0e2",
+        "oklch": "oklch(94.0% 0.024 147)",
+        "tonalRamp": [
+          "#050e06",
+          "#1c271d",
+          "#374338",
+          "#556256",
+          "#748175",
+          "#95a396",
+          "#bac9bb",
+          "#e4f3e5"
+        ]
+      },
+      "flag": {
+        "role": "tertiary",
+        "displayName": "Flag Ink",
+        "canonical": "#17191c",
+        "oklch": "oklch(21.3% 0.007 258)",
+        "tonalRamp": [
+          "#090b0e",
+          "#222427",
+          "#3e4043",
+          "#5b5e61",
+          "#7b7d81",
+          "#9c9fa3",
+          "#c1c4c8",
+          "#eceff3"
+        ]
+      },
+      "on-flag": {
+        "role": "tertiary",
+        "displayName": "On Flag",
+        "canonical": "#fbfbf8",
+        "oklch": "oklch(98.7% 0.004 106)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#242422",
+          "#40403d",
+          "#5e5e5b",
+          "#7d7d7b",
+          "#9e9e9c",
+          "#c4c4c1",
+          "#efefec"
+        ]
+      },
+      "on-fill": {
+        "role": "neutral",
+        "displayName": "On Fill",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 90)",
         "tonalRamp": [
           "#0b0b0b",
-          "#262626",
-          "#454545",
-          "#666666",
-          "#898989",
-          "#aeaeae",
-          "#d1d1d1",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#7d7d7d",
+          "#9e9e9e",
+          "#c4c4c4",
           "#eeeeee"
         ]
       },
-      "ok": {
-        "role": "secondary",
-        "displayName": "Shelf Green",
-        "canonical": "oklch(52.7% 0.137 150)",
-        "tonalRamp": [
-          "#001002",
-          "#003011",
-          "#005423",
-          "#097b38",
-          "#3fa05b",
-          "#67c67f",
-          "#8beaa1",
-          "#c8ffd2"
-        ]
-      },
-      "ok-soft": {
-        "role": "secondary",
-        "displayName": "Shelf Green Wash",
-        "canonical": "oklch(96.2% 0.043 157)",
-        "tonalRamp": [
-          "#001005",
-          "#122d1e",
-          "#314c3c",
-          "#526e5c",
-          "#74917f",
-          "#98b7a3",
-          "#bbdac6",
-          "#d8f8e3"
-        ]
-      },
-      "warn": {
-        "role": "tertiary",
-        "displayName": "Bookplate Amber",
-        "canonical": "oklch(55.5% 0.146 49)",
-        "tonalRamp": [
-          "#1a0400",
-          "#411900",
-          "#6f3000",
-          "#a14902",
-          "#cd6a2c",
-          "#f78f54",
-          "#fec2a1",
-          "#feeadf"
-        ]
-      },
-      "warn-soft": {
-        "role": "tertiary",
-        "displayName": "Bookplate Amber Wash",
-        "canonical": "oklch(96.2% 0.058 96)",
-        "tonalRamp": [
-          "#100b00",
-          "#2f2600",
-          "#4e451e",
-          "#70663f",
-          "#948961",
-          "#b9ae84",
-          "#dcd1a6",
-          "#faefc3"
-        ]
-      },
-      "err": {
-        "role": "tertiary",
-        "displayName": "Margin Red",
-        "canonical": "oklch(51.4% 0.198 17)",
-        "tonalRamp": [
-          "#200003",
-          "#4f0012",
-          "#840225",
-          "#bc0f3b",
-          "#e8455d",
-          "#ff828b",
-          "#ffbdbf",
-          "#fee9e9"
-        ]
-      },
-      "track": {
+      "ground-dark": {
         "role": "neutral",
-        "displayName": "Track",
-        "canonical": "oklch(91.7% 0.023 261)",
+        "displayName": "Galley Stock (dark)",
+        "canonical": "#0f1114",
+        "oklch": "oklch(17.7% 0.007 258)",
         "tonalRamp": [
-          "#060b15",
-          "#202732",
-          "#3e4551",
-          "#5f6773",
-          "#818a97",
-          "#a6aebd",
-          "#c9d2e0",
-          "#e6effe"
+          "#090b0e",
+          "#222427",
+          "#3d4043",
+          "#5b5e62",
+          "#7b7d81",
+          "#9c9fa3",
+          "#c1c4c9",
+          "#eceff3"
         ]
       },
-      "bg-dark": {
+      "sheet-dark": {
         "role": "neutral",
-        "displayName": "Night Desk",
-        "canonical": "oklch(20.8% 0.040 266)",
+        "displayName": "Proof Sheet (dark)",
+        "canonical": "#171a1e",
+        "oklch": "oklch(21.6% 0.009 256)",
         "tonalRamp": [
-          "#040a1c",
-          "#1d263a",
-          "#3b455b",
-          "#5b667e",
-          "#7e89a2",
-          "#a2aec8",
-          "#c5d1ec",
-          "#e7efff"
+          "#090b0f",
+          "#212428",
+          "#3d4045",
+          "#5a5e63",
+          "#7a7e83",
+          "#9b9fa4",
+          "#c0c4ca",
+          "#eaeff5"
         ]
       },
-      "surface-dark": {
+      "margin-dark": {
         "role": "neutral",
-        "displayName": "Slate Sheet",
-        "canonical": "oklch(23.0% 0.043 266)",
+        "displayName": "Margin Tint (dark)",
+        "canonical": "#1b1f24",
+        "oklch": "oklch(23.7% 0.011 254)",
         "tonalRamp": [
-          "#040a1d",
-          "#1c263c",
-          "#3a455c",
-          "#5a667f",
-          "#7d89a4",
-          "#a1aeca",
-          "#c4d1ee",
-          "#e7efff"
-        ]
-      },
-      "surface-2-dark": {
-        "role": "neutral",
-        "displayName": "Ruled Tint, night",
-        "canonical": "oklch(19.3% 0.035 263)",
-        "tonalRamp": [
-          "#040b1a",
-          "#1d2638",
-          "#3b4558",
-          "#5c667b",
-          "#7e8a9f",
-          "#a3aec5",
-          "#c5d1e9",
-          "#e6efff"
+          "#080b10",
+          "#20242a",
+          "#3c4046",
+          "#595e64",
+          "#797e84",
+          "#9a9fa5",
+          "#bfc5cb",
+          "#e9eff6"
         ]
       },
       "ink-dark": {
         "role": "neutral",
-        "displayName": "Log Ink, night",
-        "canonical": "oklch(92.9% 0.013 256)",
+        "displayName": "Proof Ink (dark)",
+        "canonical": "#e7e9e4",
+        "oklch": "oklch(93.1% 0.007 124)",
         "tonalRamp": [
-          "#080b10",
-          "#22272d",
-          "#41454c",
-          "#61676d",
-          "#848a91",
-          "#a9aeb6",
-          "#ccd1d9",
-          "#e9eff7"
+          "#0a0c09",
+          "#232521",
+          "#3f403c",
+          "#5d5e5a",
+          "#7c7e79",
+          "#9d9f9a",
+          "#c3c5c0",
+          "#edefea"
         ]
       },
-      "muted-dark": {
+      "graphite-dark": {
         "role": "neutral",
-        "displayName": "Pencil Grey, night",
-        "canonical": "oklch(71.1% 0.035 257)",
+        "displayName": "Graphite (dark)",
+        "canonical": "#aeb4bb",
+        "oklch": "oklch(76.7% 0.012 252)",
         "tonalRamp": [
-          "#030b1a",
-          "#1b2738",
-          "#394658",
-          "#59677a",
-          "#7c8a9f",
-          "#a0afc5",
-          "#c3d2e8",
-          "#e4f0ff"
+          "#080c10",
+          "#20242a",
+          "#3b4046",
+          "#595e64",
+          "#787e84",
+          "#999fa6",
+          "#bfc5cc",
+          "#e9eff7"
         ]
       },
       "faint-dark": {
         "role": "neutral",
-        "displayName": "Faint Pencil, night",
-        "canonical": "oklch(65.3% 0.039 259)",
+        "displayName": "Faint Graphite (dark)",
+        "canonical": "#959ca4",
+        "oklch": "oklch(69.0% 0.014 252)",
         "tonalRamp": [
-          "#030b1b",
-          "#1b2739",
-          "#39465a",
-          "#59677d",
-          "#7b8aa1",
-          "#a0afc7",
-          "#c2d2eb",
-          "#e5efff"
+          "#070c11",
+          "#1f252b",
+          "#3a4047",
+          "#585e66",
+          "#777e86",
+          "#989fa7",
+          "#bec5cd",
+          "#e8eff8"
         ]
       },
-      "line-dark": {
+      "rule-dark": {
         "role": "neutral",
-        "displayName": "Rule, night",
-        "canonical": "oklch(34.7% 0.052 261)",
+        "displayName": "Rule (dark)",
+        "canonical": "#30353c",
+        "oklch": "oklch(32.7% 0.014 257)",
         "tonalRamp": [
-          "#010a21",
-          "#172640",
-          "#354561",
-          "#556784",
-          "#778aa9",
-          "#9bafd0",
-          "#bed2f4",
-          "#e6efff"
+          "#070b11",
+          "#20242b",
+          "#3b4047",
+          "#595e66",
+          "#787e86",
+          "#999fa7",
+          "#bec5cd",
+          "#e9eff8"
         ]
       },
-      "line-soft-dark": {
+      "rule-soft-dark": {
         "role": "neutral",
-        "displayName": "Soft Rule, night",
-        "canonical": "oklch(28.5% 0.044 262)",
+        "displayName": "Soft Rule (dark)",
+        "canonical": "#24282e",
+        "oklch": "oklch(27.5% 0.013 258)",
         "tonalRamp": [
-          "#030a1d",
-          "#1a263c",
-          "#38455d",
-          "#586680",
-          "#7b8aa4",
-          "#9fafcb",
-          "#c2d2ef",
-          "#e6efff"
+          "#080b10",
+          "#20242a",
+          "#3c4046",
+          "#595e65",
+          "#797e85",
+          "#9a9fa6",
+          "#bfc4cc",
+          "#e9eff7"
         ]
       },
       "edge-dark": {
         "role": "neutral",
-        "displayName": "Field Edge, night",
-        "canonical": "oklch(55.4% 0.041 257)",
+        "displayName": "Field Edge (dark)",
+        "canonical": "#6e757e",
+        "oklch": "oklch(56.0% 0.016 255)",
         "tonalRamp": [
-          "#020b1c",
-          "#19273a",
-          "#37465b",
-          "#58677e",
-          "#7a8aa2",
-          "#9eafc8",
-          "#c1d2ec",
-          "#e5efff"
+          "#070c12",
+          "#1f252c",
+          "#3a4048",
+          "#585e67",
+          "#777e87",
+          "#989fa9",
+          "#bdc5cf",
+          "#e7effa"
         ]
       },
-      "accent-dark": {
-        "role": "primary",
-        "displayName": "Reading-light Cyan, night",
-        "canonical": "oklch(79.7% 0.134 212)",
-        "tonalRamp": [
-          "#000e12",
-          "#002c34",
-          "#024e5a",
-          "#087383",
-          "#029aaf",
-          "#0ac3dd",
-          "#5fe6fe",
-          "#cff7ff"
-        ]
-      },
-      "accent-fill-dark": {
-        "role": "primary",
-        "displayName": "Reading-light Deep, night",
-        "canonical": "oklch(79.7% 0.134 212)",
-        "tonalRamp": [
-          "#000e12",
-          "#002c34",
-          "#024e5a",
-          "#087383",
-          "#029aaf",
-          "#0ac3dd",
-          "#5fe6fe",
-          "#cff7ff"
-        ]
-      },
-      "accent-ink-dark": {
-        "role": "primary",
-        "displayName": "Reading-light Ink, night",
-        "canonical": "oklch(86.5% 0.115 207)",
-        "tonalRamp": [
-          "#000e11",
-          "#002d32",
-          "#004f57",
-          "#04747f",
-          "#039baa",
-          "#39c2d3",
-          "#65e6f7",
-          "#caf8ff"
-        ]
-      },
-      "accent-soft-dark": {
-        "role": "primary",
-        "displayName": "Reading-light Wash, night",
-        "canonical": "rgba(34, 211, 238, 0.12)",
-        "tonalRamp": [
-          "#000e12",
-          "#002c34",
-          "#024e5a",
-          "#087383",
-          "#029aaf",
-          "#0ac3dd",
-          "#5fe6fe",
-          "#cff7ff"
-        ]
-      },
-      "on-accent-dark": {
-        "role": "primary",
-        "displayName": "On Reading-light, night",
-        "canonical": "oklch(18.3% 0.031 263)",
-        "tonalRamp": [
-          "#050b18",
-          "#1f2636",
-          "#3c4556",
-          "#5d6678",
-          "#7f899c",
-          "#a4aec2",
-          "#c7d1e6",
-          "#e6efff"
-        ]
-      },
-      "ok-dark": {
-        "role": "secondary",
-        "displayName": "Shelf Green, night",
-        "canonical": "oklch(77.3% 0.153 163)",
-        "tonalRamp": [
-          "#001007",
-          "#002f1e",
-          "#005338",
-          "#007954",
-          "#01a271",
-          "#27cb92",
-          "#5bf0b4",
-          "#c1ffe1"
-        ]
-      },
-      "ok-soft-dark": {
-        "role": "secondary",
-        "displayName": "Shelf Green Wash, night",
-        "canonical": "rgba(52, 211, 153, 0.14)",
-        "tonalRamp": [
-          "#001007",
-          "#002f1e",
-          "#005338",
-          "#007954",
-          "#01a271",
-          "#27cb92",
-          "#5bf0b4",
-          "#c1ffe1"
-        ]
-      },
-      "warn-dark": {
-        "role": "tertiary",
-        "displayName": "Bookplate Amber, night",
-        "canonical": "oklch(83.7% 0.164 84)",
-        "tonalRamp": [
-          "#120900",
-          "#332400",
-          "#594101",
-          "#826001",
-          "#ad8102",
-          "#dba402",
-          "#ffc84a",
-          "#ffecc8"
-        ]
-      },
-      "warn-soft-dark": {
-        "role": "tertiary",
-        "displayName": "Bookplate Amber Wash, night",
-        "canonical": "rgba(251, 191, 36, 0.14)",
-        "tonalRamp": [
-          "#120900",
-          "#332400",
-          "#594101",
-          "#826001",
-          "#ad8102",
-          "#dba402",
-          "#ffc84a",
-          "#ffecc8"
-        ]
-      },
-      "err-dark": {
-        "role": "tertiary",
-        "displayName": "Margin Red, night",
-        "canonical": "oklch(71.9% 0.169 13)",
-        "tonalRamp": [
-          "#200004",
-          "#4f0016",
-          "#83012c",
-          "#b12c49",
-          "#db546b",
-          "#fe8292",
-          "#ffbdc2",
-          "#fde9ea"
-        ]
-      },
-      "track-dark": {
+      "rail-dark": {
         "role": "neutral",
-        "displayName": "Track, night",
-        "canonical": "oklch(30.9% 0.049 262)",
+        "displayName": "Non-repro Blue (dark)",
+        "canonical": "#123040",
+        "oklch": "oklch(29.4% 0.046 235)",
         "tonalRamp": [
-          "#020a1f",
-          "#19263e",
-          "#364560",
-          "#566783",
-          "#798aa8",
-          "#9dafce",
-          "#bfd2f2",
-          "#e6efff"
+          "#000d1b",
+          "#082737",
+          "#264455",
+          "#446274",
+          "#638295",
+          "#83a4b7",
+          "#a8cade",
+          "#d2f4ff"
+        ]
+      },
+      "rail-ink-dark": {
+        "role": "neutral",
+        "displayName": "Rail Ink (dark)",
+        "canonical": "#e3f1f7",
+        "oklch": "oklch(94.9% 0.017 225)",
+        "tonalRamp": [
+          "#040d11",
+          "#1b262a",
+          "#364247",
+          "#546065",
+          "#738085",
+          "#94a1a6",
+          "#b9c7cc",
+          "#e3f1f7"
+        ]
+      },
+      "rail-graphite-dark": {
+        "role": "neutral",
+        "displayName": "Rail Graphite (dark)",
+        "canonical": "#a9c6d4",
+        "oklch": "oklch(81.0% 0.037 229)",
+        "tonalRamp": [
+          "#000e17",
+          "#0e2732",
+          "#2a444f",
+          "#48626e",
+          "#67828f",
+          "#87a3b1",
+          "#acc9d7",
+          "#d6f4ff"
+        ]
+      },
+      "blue-dark": {
+        "role": "secondary",
+        "displayName": "Blue Pencil (dark)",
+        "canonical": "#86c5ea",
+        "oklch": "oklch(79.4% 0.083 235)",
+        "tonalRamp": [
+          "#000d1c",
+          "#002840",
+          "#004665",
+          "#256586",
+          "#4785a8",
+          "#69a7cb",
+          "#8ecdf3",
+          "#d0f5ff"
+        ]
+      },
+      "blue-wash-dark": {
+        "role": "secondary",
+        "displayName": "Blue Wash (dark)",
+        "canonical": "#173444",
+        "oklch": "oklch(31.0% 0.045 235)",
+        "tonalRamp": [
+          "#000d1b",
+          "#092737",
+          "#274454",
+          "#446274",
+          "#638295",
+          "#84a4b7",
+          "#a9cade",
+          "#d2f4ff"
+        ]
+      },
+      "red-dark": {
+        "role": "primary",
+        "displayName": "Red Pencil (dark)",
+        "canonical": "#ff8077",
+        "oklch": "oklch(74.3% 0.156 26)",
+        "tonalRamp": [
+          "#220000",
+          "#4e0002",
+          "#7e0009",
+          "#a42c2b",
+          "#c9504a",
+          "#f0726a",
+          "#ffa79e",
+          "#ffe6e2"
+        ]
+      },
+      "red-wash-dark": {
+        "role": "primary",
+        "displayName": "Red Wash (dark)",
+        "canonical": "#3b1f1f",
+        "oklch": "oklch(27.7% 0.044 20)",
+        "tonalRamp": [
+          "#1a0304",
+          "#361b1b",
+          "#553636",
+          "#755453",
+          "#967372",
+          "#b89493",
+          "#dfb9b8",
+          "#ffe6e5"
+        ]
+      },
+      "green-dark": {
+        "role": "tertiary",
+        "displayName": "Tick Green (dark)",
+        "canonical": "#86cf95",
+        "oklch": "oklch(79.1% 0.110 150)",
+        "tonalRamp": [
+          "#001100",
+          "#002f08",
+          "#004f1c",
+          "#246e3a",
+          "#488f59",
+          "#6ab279",
+          "#8fd89e",
+          "#b9ffc7"
+        ]
+      },
+      "green-wash-dark": {
+        "role": "tertiary",
+        "displayName": "Green Wash (dark)",
+        "canonical": "#18301e",
+        "oklch": "oklch(28.3% 0.045 151)",
+        "tonalRamp": [
+          "#001003",
+          "#122a18",
+          "#2e4733",
+          "#4b6551",
+          "#6a8570",
+          "#8ba790",
+          "#b0cdb5",
+          "#daf8df"
+        ]
+      },
+      "flag-dark": {
+        "role": "tertiary",
+        "displayName": "Flag Ink (dark)",
+        "canonical": "#e7e9e4",
+        "oklch": "oklch(93.1% 0.007 124)",
+        "tonalRamp": [
+          "#0a0c09",
+          "#232521",
+          "#3f403c",
+          "#5d5e5a",
+          "#7c7e79",
+          "#9d9f9a",
+          "#c3c5c0",
+          "#edefea"
+        ]
+      },
+      "on-flag-dark": {
+        "role": "tertiary",
+        "displayName": "On Flag (dark)",
+        "canonical": "#0f1114",
+        "oklch": "oklch(17.7% 0.007 258)",
+        "tonalRamp": [
+          "#090b0e",
+          "#222427",
+          "#3d4043",
+          "#5b5e62",
+          "#7b7d81",
+          "#9c9fa3",
+          "#c1c4c9",
+          "#eceff3"
+        ]
+      },
+      "on-fill-dark": {
+        "role": "neutral",
+        "displayName": "On Fill (dark)",
+        "canonical": "#0f1114",
+        "oklch": "oklch(17.7% 0.007 258)",
+        "tonalRamp": [
+          "#090b0e",
+          "#222427",
+          "#3d4043",
+          "#5b5e62",
+          "#7b7d81",
+          "#9c9fa3",
+          "#c1c4c9",
+          "#eceff3"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "The name, once, set on the photograph."
+        "purpose": "The name, once; 1.25rem below 1024px."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "A page's title: Settings, Admin, the help dialog."
-      },
-      "title": {
-        "displayName": "Title",
-        "purpose": "A book's title; card and dialog headings in the same face."
-      },
-      "body": {
-        "displayName": "Body",
-        "purpose": "Everything you operate or read as a fact."
-      },
-      "label": {
-        "displayName": "Label",
-        "purpose": "Table heads, field labels, small headings inside a card. Sentence case."
-      },
-      "display-sidebar": {
-        "displayName": "Display, sidebar",
-        "purpose": "The name in the sidebar: the size at which three words fit on one line."
+        "purpose": "A page's title; 1.6rem below 1024px."
       },
       "dialog-title": {
         "displayName": "Dialog title",
-        "purpose": "The title of the help dialog."
+        "purpose": "The title of Help; 1.2rem at 520px and below."
       },
       "card-heading": {
         "displayName": "Card heading",
-        "purpose": "A card's heading, a help section, the book's title at the top of Details."
+        "purpose": "The heading of a card."
       },
-      "secondary": {
-        "displayName": "Secondary",
-        "purpose": "Second lines, authors, controls, the sidebar's status."
+      "book-title": {
+        "displayName": "Book title",
+        "purpose": "A book in the list. Source Serif 4 is for book titles only."
       },
-      "caption": {
-        "displayName": "Caption",
-        "purpose": "Filter group names, the phone's navigation, the names above a phone card's switches."
+      "book-title-details": {
+        "displayName": "Book title in Details",
+        "purpose": "The title at the top of Details."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Everything else. Running text held to 62ch to 64ch."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Buttons at 600; fields and selects at 400."
+      },
+      "mark": {
+        "displayName": "Mark",
+        "purpose": "The first line of a mark in the proof margin, in the mark's colour."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Table heads and filter group names. Sentence case."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Facts under a gauge, the legend, hints, the edition line."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Short technical values and tokens shown once."
+      },
+      "sign-in-code": {
+        "displayName": "Sign-in code",
+        "purpose": "The code compared by eye with Hardcover."
       }
     },
     "shadows": [
       {
-        "name": "panel-day",
-        "value": "0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.07)",
-        "purpose": "Atmosphere under the sheet and cards in the day theme. None at night."
+        "name": "lift",
+        "value": "0 1px 0 #cdd1cb, 0 18px 40px -28px rgba(23, 25, 28, 0.38)",
+        "purpose": "Light only, under the sheet and cards. none in dark, and the list's sheet dissolves below 1024px."
       },
       {
         "name": "cover",
-        "value": "0 1px 2px rgba(15, 23, 42, 0.2), 0 4px 10px rgba(15, 23, 42, 0.12)",
-        "purpose": "A book cover lying on the sheet, in both themes."
+        "value": "0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1)",
+        "purpose": "A book cover lying on the sheet."
       },
       {
         "name": "dialog",
         "value": "0 24px 64px rgba(0, 0, 0, 0.35)",
-        "purpose": "Help and Details, over a dimmed page."
+        "purpose": "Help and Details, over a backdrop of rgba(10, 12, 14, 0.6)."
       },
       {
-        "name": "lightbox-cover",
+        "name": "lightbox",
         "value": "0 24px 64px rgba(0, 0, 0, 0.55)",
-        "purpose": "The cover shown large."
+        "purpose": "A large cover, over a backdrop of rgba(10, 12, 14, 0.88)."
+      },
+      {
+        "name": "nav-current",
+        "value": "0 1px 0 var(--rule)",
+        "purpose": "A hairline under the current page in the desk navigation."
       }
     ],
     "motion": [
       {
+        "name": "ease-proof",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Expo ease-out for the strike, the write-in and the disclosure chevron."
+      },
+      {
+        "name": "strike",
+        "value": "0.5s",
+        "purpose": "The red strike draws across the old value."
+      },
+      {
+        "name": "write",
+        "value": "0.6s, 0.2s after the strike",
+        "purpose": "The new value writes in from the left after its caret."
+      },
+      {
+        "name": "row-stagger",
+        "value": "70ms per row, up to 12 steps",
+        "purpose": "Each row's strike and write-in start 70ms after the row above."
+      },
+      {
         "name": "landed",
         "value": "1.8s ease-out",
-        "purpose": "The row you came back to after an action fades from Reading-light Wash. Static wash under reduced motion."
+        "purpose": "Coming back to a row after an action: a Blue Wash that fades."
       },
       {
         "name": "cover-in",
         "value": "0.18s ease-out",
-        "purpose": "The large cover fades and grows in. Off under reduced motion."
+        "purpose": "A large cover fades and grows in."
+      },
+      {
+        "name": "disclosure",
+        "value": "0.2s",
+        "purpose": "The chevron of 'Paste a token instead' turns."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "none",
+        "purpose": "Under prefers-reduced-motion every animation is off; a row you came back to keeps a steady wash."
       }
     ],
     "breakpoints": [
       {
-        "name": "phone-narrow",
-        "value": "520px"
+        "name": "narrow",
+        "value": "520px",
+        "purpose": "At 520px and below: term lists and Help's terms go to one column, filter group names go above their chips."
       },
       {
         "name": "tablet",
-        "value": "720px"
+        "value": "720px-1023px",
+        "purpose": "Two book cards per row; the rail's status in three columns."
+      },
+      {
+        "name": "one-column",
+        "value": "below 1024px",
+        "purpose": "Rail as a top band with .bandhelp, bottom navigation, filters behind one button, book cards with a margin strip, 2.75rem controls."
       },
       {
         "name": "desk",
-        "value": "1024px"
+        "value": "1024px",
+        "purpose": "The 17.25rem rail and the sheet in one window; the list scrolls in its sheet under a sticky head."
+      },
+      {
+        "name": "coarse-pointer",
+        "value": "(pointer: coarse)",
+        "purpose": "Everything operated is 2.75rem, chips and theme switch included."
       }
     ]
   },
@@ -701,173 +833,174 @@
       "name": "Button",
       "kind": "button",
       "refersTo": "button",
-      "description": "The ordinary action: bordered, quiet, cyan border when pointed at.",
-      "html": "<button class=\"ds-btn\">Refresh</button>",
-      "css": ".ds-btn { font: 500 0.875rem/1.55 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 0.4rem 0.9rem; min-height: 2.25rem; cursor: pointer; } .ds-btn:hover { border-color: var(--accent); } .ds-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+      "description": "The default control: sheet, Field Edge border, ink words; 2.375rem, 2.75rem below 1024px and under a finger.",
+      "html": "<button class=\"ds-btn\" type=\"button\">Refresh</button>",
+      "css": ".ds-btn{font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;font-size:0.875rem;font-weight:600;cursor:pointer;border-radius:4px;padding:0.4rem 0.9rem;min-height:2.375rem;color:#17191c;background:#fbfbf8;border:1px solid #80868e} .ds-btn:hover{border-color:#17191c} .ds-btn:focus-visible{outline:2px solid #1c5e8b;outline-offset:2px;border-radius:2px}"
     },
     {
-      "name": "Primary button",
+      "name": "Primary button (red fill)",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The one filled button of a page: Sync now, Check and save.",
-      "html": "<button class=\"ds-btn-primary\">Sync now</button>",
-      "css": ".ds-btn-primary { font: 600 0.875rem/1.55 var(--sans); color: var(--on-accent); background: var(--accent-fill); border: 1px solid var(--accent-fill); border-radius: var(--r-ctl); padding: 0.4rem 0.9rem; min-height: 2.25rem; cursor: pointer; } .ds-btn-primary:hover { filter: brightness(1.08); } .ds-btn-primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+      "description": "Red fills only what sends to Hardcover: Sync now and Go live.",
+      "html": "<button class=\"ds-btn ds-primary\" type=\"button\">Sync now</button>",
+      "css": ".ds-btn{font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;font-size:0.875rem;font-weight:600;cursor:pointer;border-radius:4px;padding:0.4rem 0.9rem;min-height:2.375rem;color:#17191c;background:#fbfbf8;border:1px solid #80868e} .ds-primary{background:#c0212b;border-color:#c0212b;color:#ffffff} .ds-primary:hover{filter:brightness(1.07)} .ds-btn:focus-visible{outline:2px solid #1c5e8b;outline-offset:2px;border-radius:2px}"
     },
     {
-      "name": "Removing button",
+      "name": "Solid button (ink fill)",
+      "kind": "button",
+      "refersTo": "button-solid",
+      "description": "Every other filled button: a choice that changes nothing on Hardcover yet (Use, Connect to Hardcover, I have approved it, a confirmation).",
+      "html": "<button class=\"ds-btn ds-solid\" type=\"button\">I have approved it</button>",
+      "css": ".ds-btn{font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;font-size:0.875rem;font-weight:600;cursor:pointer;border-radius:4px;padding:0.4rem 0.9rem;min-height:2.375rem;color:#17191c;background:#fbfbf8;border:1px solid #80868e} .ds-solid{background:#17191c;border-color:#17191c;color:#fbfbf8} .ds-btn:focus-visible{outline:2px solid #1c5e8b;outline-offset:2px;border-radius:2px}"
+    },
+    {
+      "name": "Danger button (removing)",
       "kind": "button",
       "refersTo": "button-danger",
-      "description": "Takes something away: red words, no box, beside the safe action.",
-      "html": "<button class=\"ds-btn-danger\">Remove the token</button>",
-      "css": ".ds-btn-danger { font: 500 0.875rem/1.55 var(--sans); color: var(--err); background: none; border: 1px solid transparent; border-radius: var(--r-ctl); padding: 0.4rem 0.9rem 0.4rem 0; min-height: 2.25rem; cursor: pointer; } .ds-btn-danger:hover { text-decoration: underline; } .ds-btn-danger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+      "description": "Removing actions: ink, no box, underlined; never red.",
+      "html": "<button class=\"ds-btn ds-danger\" type=\"button\">Remove the token</button>",
+      "css": ".ds-btn{font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;font-size:0.875rem;font-weight:600;cursor:pointer;border-radius:4px;padding:0.4rem 0.9rem;min-height:2.375rem;color:#17191c;background:#fbfbf8;border:1px solid #80868e} .ds-danger{color:#17191c;background:none;border-color:transparent;padding-inline:0.15rem;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px} .ds-danger:hover{text-decoration-thickness:2px} .ds-btn:focus-visible{outline:2px solid #1c5e8b;outline-offset:2px;border-radius:2px}"
     },
     {
-      "name": "Field",
+      "name": "Field and select",
       "kind": "input",
-      "refersTo": "input",
-      "description": "A labelled input with its button, as on the Settings cards.",
-      "html": "<div class=\"ds-field\"><label class=\"ds-label\" for=\"ds-name\">Name</label><div class=\"ds-inputs\"><input class=\"ds-input\" id=\"ds-name\" type=\"text\" value=\"sam\"><button class=\"ds-field-btn\">Save</button></div></div>",
-      "css": ".ds-field { display: grid; gap: 0.3rem; font-family: var(--sans); } .ds-label { font-size: 0.8125rem; font-weight: 600; color: var(--muted); } .ds-inputs { display: flex; gap: 0.5rem; } .ds-input { flex: 1 1 14rem; min-width: 0; font: 400 0.875rem/1.55 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--edge); border-radius: var(--r-ctl); padding: 0.4rem 0.65rem; min-height: 2.25rem; } .ds-input:hover { border-color: var(--muted); } .ds-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-field-btn { font: 500 0.875rem/1.55 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 0.4rem 0.9rem; min-height: 2.25rem; cursor: pointer; } .ds-field-btn:hover { border-color: var(--accent); }"
-    },
-    {
-      "name": "Row switch",
-      "kind": "input",
-      "refersTo": "row-select",
-      "description": "A select inside a book's row: no frame until pointed at.",
-      "html": "<select class=\"ds-row-select\" aria-label=\"Sync\"><option>Auto</option><option selected>On</option><option>Off</option></select>",
-      "css": ".ds-row-select { appearance: none; -webkit-appearance: none; font: 400 0.875rem/1.55 var(--sans); color: var(--ink); background-color: var(--surface-2); border: 1px solid transparent; border-radius: var(--r-ctl); padding: 0.4rem 1.9rem 0.4rem 0.65rem; min-height: 2.25rem; width: 7rem; cursor: pointer; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 0.95rem) 50%, calc(100% - 0.95rem + 5px) 50%; background-size: 5px 5px; background-repeat: no-repeat; } .ds-row-select:hover, .ds-row-select:focus { border-color: var(--line); } .ds-row-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+      "refersTo": "field",
+      "description": "Sheet, 1px Field Edge, 4px; one drawn chevron for every select; the text caret is red.",
+      "html": "<div class=\"ds-find\"><input class=\"ds-in\" type=\"search\" placeholder=\"Search title or author\" aria-label=\"Search title or author\"><select class=\"ds-in ds-sel\" aria-label=\"Sort by\"><option>Last read</option><option>Author</option><option>Title</option></select></div>",
+      "css": ".ds-find{display:flex;flex-wrap:wrap;gap:0.5rem} .ds-in{font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;font-size:0.875rem;color:#17191c;background-color:#fbfbf8;border:1px solid #80868e;border-radius:4px;padding:0.4rem 0.7rem;min-height:2.375rem;caret-color:#c0212b} .ds-in::placeholder{color:#5f656e} .ds-in:hover{border-color:#17191c} .ds-in:focus-visible{outline:2px solid #1c5e8b;outline-offset:2px;border-radius:2px} .ds-sel{appearance:none;-webkit-appearance:none;padding-right:2rem;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,#4a4f57 50%),linear-gradient(135deg,#4a4f57 50%,transparent 50%);background-position:calc(100% - 1rem) 52%,calc(100% - 1rem + 5px) 52%;background-size:5px 5px;background-repeat:no-repeat}"
     },
     {
       "name": "Filter chips",
       "kind": "chip",
       "refersTo": "chip",
-      "description": "One choice at a time from a named group; the chosen one is filled.",
-      "html": "<div class=\"ds-fgroup\"><span class=\"ds-gname\">Reading progress</span><a class=\"ds-chip\" href=\"#\" aria-current=\"true\">All <b>34</b></a><a class=\"ds-chip\" href=\"#\">Reading <b>29</b></a><a class=\"ds-chip\" href=\"#\">Finished <b>3</b></a><a class=\"ds-chip ds-chip-attn\" href=\"#\">Needs a match <b>1</b></a></div>",
-      "css": ".ds-fgroup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem; font-family: var(--sans); } .ds-gname { color: var(--faint); font-size: 0.75rem; margin-right: 0.3rem; } .ds-chip { font-size: 0.8125rem; text-decoration: none; color: var(--muted); border-radius: 999px; padding: 0.25rem 0.65rem; white-space: nowrap; } .ds-chip b { font-weight: 600; color: var(--ink); margin-left: 0.3rem; } .ds-chip:hover { background: var(--accent-soft); color: var(--accent-ink); } .ds-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-chip[aria-current=\"true\"] { background: var(--accent-fill); color: var(--on-accent); font-weight: 600; } .ds-chip[aria-current=\"true\"] b { color: inherit; } .ds-chip-attn b { color: var(--warn); }"
+      "description": "Borderless, graphite words with an ink count; the current one filled Blue Pencil. One choice at a time, in named groups.",
+      "html": "<div class=\"ds-fgroup\"><span class=\"ds-gname\">Reading progress</span><a class=\"ds-chip\" href=\"#\" aria-current=\"true\">All <b>34</b></a><a class=\"ds-chip\" href=\"#\">Reading <b>29</b></a><a class=\"ds-chip\" href=\"#\">Finished <b>3</b></a><a class=\"ds-chip ds-attn\" href=\"#\">Needs a match <b>1</b></a></div>",
+      "css": ".ds-fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:0.1rem;font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif} .ds-gname{color:#4a4f57;font-size:0.78rem;font-weight:650;margin-right:0.4rem} .ds-chip{display:inline-flex;align-items:center;gap:0.35rem;min-height:2rem;font-size:0.875rem;font-weight:500;text-decoration:none;color:#4a4f57;border-radius:4px;padding:0.2rem 0.6rem;white-space:nowrap} .ds-chip b{font-weight:650;color:#17191c;font-variant-numeric:tabular-nums} .ds-chip:hover{background:#ddeff7;color:#17191c} .ds-chip[aria-current=\"true\"]{background:#1c5e8b;color:#ffffff} .ds-chip[aria-current=\"true\"] b{color:inherit} .ds-attn:not([aria-current=\"true\"]) b{color:#1c5e8b} .ds-chip:focus-visible{outline:2px solid #1c5e8b;outline-offset:2px;border-radius:2px}"
     },
     {
-      "name": "The reading line",
+      "name": "Legend of the marks",
       "kind": "custom",
-      "refersTo": "panel",
-      "description": "Signature: a book as a line in the log. Title, author, how far, when.",
-      "html": "<div class=\"ds-book\"><span class=\"ds-cover\"></span><div><div class=\"ds-title\">Moby-Dick; or, The Whale<span class=\"ds-tag\">New</span></div><div class=\"ds-author\">Herman Melville</div><div class=\"ds-bar\" role=\"img\" aria-label=\"37% read\"><span style=\"width:37%\"></span></div><div class=\"ds-meta\"><span>37%</span><span>last read 30 Sep 2026</span><span>30 min read</span></div></div></div>",
-      "css": ".ds-book { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 1rem; align-items: start; padding: 0.85rem 0.8rem 0.85rem 1rem; background: var(--surface); box-shadow: inset 3px 0 0 var(--accent); font-family: var(--sans); min-width: 22rem; } .ds-cover { display: block; width: 56px; height: 84px; border-radius: 3px; background: linear-gradient(90deg, rgba(15, 23, 42, 0.1) 0 4px, transparent 4px 5px, rgba(15, 23, 42, 0.05) 5px 6px, transparent 6px) var(--track); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2), 0 4px 10px rgba(15, 23, 42, 0.12); } .ds-title { font-family: var(--serif); font-size: 1.0625rem; font-weight: 600; line-height: 1.3; color: var(--ink); } .ds-tag { font-family: var(--sans); font-size: 0.75rem; font-weight: 600; color: var(--accent-ink); background: var(--accent-soft); border-radius: 999px; padding: 0.1rem 0.5rem; margin-left: 0.4rem; vertical-align: 0.1em; } .ds-author { color: var(--muted); font-size: 0.875rem; margin-top: 0.1rem; } .ds-bar { height: 4px; max-width: 26rem; margin: 0.6rem 0 0.4rem; background: var(--track); border-radius: 2px; overflow: hidden; } .ds-bar span { display: block; height: 100%; background: var(--accent); border-radius: 2px; } .ds-meta { display: flex; gap: 0.2rem 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }"
+      "refersTo": "proof-margin",
+      "description": "The seven marks, in the strings' words, above the list.",
+      "html": "<ul class=\"ds-legend\"><li class=\"ds-next\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg>Next sync changes this</li><li class=\"ds-wait\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 15.5 10 5l6 10.5\" stroke-dasharray=\"2.2 2.6\"/></svg>Nothing to send yet</li><li class=\"ds-ok\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 10.5l4 4.5L16.5 5\"/></svg>Up to date</li><li class=\"ds-stet\"><span class=\"ds-mk ds-stet\" aria-hidden=\"true\">stet</span>Kept as on Hardcover</li><li class=\"ds-warn\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"10\" cy=\"10\" r=\"7.6\" stroke-width=\"1.7\"/><path d=\"M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.7\" stroke-width=\"1.7\"/><circle cx=\"10\" cy=\"14.1\" r=\".6\" fill=\"currentColor\"/></svg>Needs you</li><li class=\"ds-err\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2.5\" y=\"2.5\" width=\"15\" height=\"15\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M7 7l6 6M13 7l-6 6\" stroke-width=\"1.8\" style=\"stroke:#fbfbf8\"/></svg>Failed</li><li class=\"ds-none\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 10h10\"/></svg>Not syncing</li></ul>",
+      "css": ".ds-legend{list-style:none;display:flex;flex-wrap:wrap;gap:0.2rem 1.1rem;margin:0;padding:0;font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;font-size:0.8125rem;color:#4a4f57} .ds-legend li{display:flex;align-items:center;gap:0.35rem} .ds-mk{flex:none;width:17px;height:17px} .ds-stet{width:auto;height:auto;line-height:1;font-style:italic;font-weight:800;font-size:0.8125rem;color:#1c5e8b} .ds-ok .ds-mk{color:#2c6a39} .ds-next .ds-mk{color:#c0212b} .ds-warn .ds-mk{color:#1c5e8b} .ds-err .ds-mk{color:#17191c} .ds-wait .ds-mk,.ds-none .ds-mk{color:#5f656e}"
     },
     {
-      "name": "The status line",
+      "name": "Proof margin cell",
       "kind": "custom",
-      "refersTo": "panel",
-      "description": "Signature: a dot carries the colour, the words stay plain. The same everywhere.",
-      "html": "<div class=\"ds-status\"><div class=\"ds-act ds-next\"><span class=\"ds-dot\"></span>Next sync: progress 35% to 37%</div><div class=\"ds-act ds-ok\"><span class=\"ds-dot\"></span>Up to date on Hardcover</div><div class=\"ds-act ds-warn\"><span class=\"ds-dot\"></span>Needs a Hardcover match</div><div class=\"ds-act ds-err\"><span class=\"ds-dot\"></span>Last sync failed</div><div class=\"ds-act ds-none\"><span class=\"ds-dot\"></span>Not syncing</div><a class=\"ds-details\" href=\"#\">Details</a></div>",
-      "css": ".ds-status { display: grid; gap: 0.45rem; justify-items: start; font: 400 0.875rem/1.55 var(--sans); } .ds-act { display: flex; align-items: center; gap: 0.5rem; color: var(--ink); } .ds-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); } .ds-ok .ds-dot { background: var(--ok); } .ds-next .ds-dot { background: var(--accent); } .ds-warn .ds-dot { background: var(--warn); } .ds-err .ds-dot { background: var(--err); } .ds-none { color: var(--muted); } .ds-details { margin: 0.2rem 0 0 calc(8px + 0.5rem); font-size: 0.8125rem; font-weight: 500; color: var(--accent-ink); text-decoration: none; border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 0.2rem 0.65rem; } .ds-details:hover { border-color: var(--accent); } .ds-details:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }"
+      "refersTo": "proof-margin",
+      "description": "The signature: the Hardcover column behind a double rule; a status line, the correction (old value struck, new after a caret), the edition line with stet, one Details button.",
+      "html": "<div class=\"ds-hc\"><div class=\"ds-act ds-next\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg><span>Next sync</span></div><div class=\"ds-fix\">Currently reading, <s>35%</s> <ins><svg viewBox=\"0 0 10 10\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M1.5 8.5 5 2l3.5 6.5\"/></svg>37%</ins></div><div class=\"ds-sub\"><span class=\"ds-stet\" aria-hidden=\"true\">stet</span>Moby-Dick, Paperback</div><a class=\"ds-details\" href=\"#\">Details</a></div>",
+      "css": ".ds-hc{max-width:22rem;padding:1rem 0.9rem;border-left:3px double #cdd1cb;background:#f4f5f1;font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;font-size:0.875rem;color:#17191c} .ds-act{display:grid;grid-template-columns:1.6rem minmax(0,1fr);column-gap:0.5rem;align-items:start} .ds-act .ds-mk{width:20px;height:20px;margin-top:-0.05em;color:#c0212b} .ds-act>span{font-weight:650;font-size:0.8125rem;color:#c0212b} .ds-fix,.ds-sub,.ds-details{margin-left:2.1rem} .ds-fix{margin-top:0.1rem;font-size:0.9375rem} .ds-fix s{color:#4a4f57;text-decoration:none;background:linear-gradient(#c0212b,#c0212b) no-repeat 0 58%/100% 1.5px;animation:ds-strike 0.5s cubic-bezier(0.16,1,0.3,1) both} .ds-fix ins{display:inline-flex;align-items:baseline;gap:1px;color:#c0212b;font-weight:650;text-decoration:none;animation:ds-write 0.6s cubic-bezier(0.16,1,0.3,1) 0.2s both} .ds-fix ins svg{width:10px;height:10px;align-self:flex-end;margin-bottom:-4px} .ds-sub{color:#4a4f57;font-size:0.8125rem;margin-top:0.2rem} .ds-stet{display:inline;margin-right:0.3rem;font-style:italic;font-weight:800;font-size:0.78rem;color:#1c5e8b} .ds-details{display:inline-flex;align-items:center;min-height:2rem;margin-top:0.55rem;font-size:0.8125rem;font-weight:600;color:#17191c;text-decoration:none;background:#fbfbf8;border:1px solid #80868e;border-radius:4px;padding:0.15rem 0.65rem} .ds-details:hover{border-color:#17191c} .ds-details:focus-visible{outline:2px solid #1c5e8b;outline-offset:2px;border-radius:2px} @keyframes ds-strike{from{background-size:0 1.5px}} @keyframes ds-write{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}} @media (prefers-reduced-motion:reduce){.ds-fix s,.ds-fix ins{animation:none}}"
     },
     {
-      "name": "Navigation",
+      "name": "Book line: cover, title, gauge",
+      "kind": "custom",
+      "refersTo": "book-title",
+      "description": "The crossed box for a missing cover, the title in Source Serif 4, the New tag, the printer's line gauge with a tick per tenth, tabular facts.",
+      "html": "<div class=\"ds-bk\"><span class=\"ds-cover\" aria-hidden=\"true\"></span><div><div class=\"ds-title\">De avonden<span class=\"ds-tag\">New</span></div><div class=\"ds-author\">Author</div><div class=\"ds-bar\" aria-hidden=\"true\"><span style=\"width:54%\"></span></div><div class=\"ds-meta\"><span>54%</span><span>last read 28 Sep 2026</span><span>3 h read</span></div></div></div>",
+      "css": ".ds-bk{display:grid;grid-template-columns:48px minmax(0,1fr);gap:0.95rem;align-items:start;font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;color:#17191c} .ds-cover{display:block;width:48px;height:72px;border-radius:1px 3px 3px 1px;background-color:#fbfbf8;border:1px solid #80868e;background-image:linear-gradient(to top right,transparent calc(50% - 0.6px),#80868e 50%,transparent calc(50% + 0.6px)),linear-gradient(to top left,transparent calc(50% - 0.6px),#80868e 50%,transparent calc(50% + 0.6px))} .ds-title{font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;font-size:1.0625rem;font-weight:600;line-height:1.25;letter-spacing:-0.005em} .ds-tag{display:inline-block;font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;font-size:0.75rem;font-weight:700;line-height:1.1rem;color:#4a4f57;border:1px solid currentColor;border-radius:3px;padding:0 0.3rem;margin-left:0.45rem;vertical-align:0.12em} .ds-author{color:#4a4f57;font-size:0.875rem;margin-top:0.1rem} .ds-bar{position:relative;height:9px;max-width:16rem;margin:0.7rem 0 0.35rem;background:repeating-linear-gradient(to right,#80868e 0 1px,transparent 1px 10%) left bottom/100% 4px no-repeat,linear-gradient(#80868e,#80868e) left bottom/100% 1px no-repeat} .ds-bar::after{content:\"\";position:absolute;right:0;bottom:0;width:1px;height:4px;background:#80868e} .ds-bar span{position:absolute;left:0;bottom:1px;height:4px;background:#17191c} .ds-meta{display:flex;gap:0.1rem 0.9rem;flex-wrap:wrap;color:#4a4f57;font-size:0.8125rem;font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Rail navigation and theme switch",
       "kind": "nav",
       "refersTo": "nav-item-current",
-      "description": "The sidebar's list on a desk: the current page is a sheet-coloured box with a cyan icon.",
-      "html": "<nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3.5\" width=\"4\" height=\"13\" rx=\"1\"/><rect x=\"8\" y=\"5.5\" width=\"3.5\" height=\"11\" rx=\"1\"/><path d=\"M13.2 7.2l2.9-.8 2.4 9-2.9.8z\"/></svg>Books</a><a href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 6h7M14 6h3M3 14h3M10 14h7\"/><circle cx=\"12\" cy=\"6\" r=\"2\"/><circle cx=\"8\" cy=\"14\" r=\"2\"/></svg>Settings</a><a href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"7.5\" cy=\"7\" r=\"2.6\"/><path d=\"M2.5 16c.4-2.8 2.4-4.3 5-4.3s4.6 1.5 5 4.3\"/><path d=\"M13 4.6a2.6 2.6 0 010 4.9M14.8 11.9c1.5.5 2.5 1.9 2.7 4.1\"/></svg>Admin</a></nav>",
-      "css": ".ds-nav { display: grid; gap: 2px; width: 17.5rem; font-family: var(--sans); } .ds-nav a { display: flex; align-items: center; gap: 0.7rem; padding: 0.5rem 0.7rem; border: 1px solid transparent; border-radius: var(--r-ctl); text-decoration: none; color: var(--muted); font-size: 0.9375rem; font-weight: 500; } .ds-nav a:hover { background: var(--surface); color: var(--ink); } .ds-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-nav a[aria-current=\"page\"] { background: var(--surface); color: var(--ink); border-color: var(--line); font-weight: 600; } .ds-nav a[aria-current=\"page\"] svg { color: var(--accent); }"
+      "description": "The desk rail in Non-repro Blue: the navigation as a list, the current page a sheet box; the theme switch at its foot.",
+      "html": "<div class=\"ds-rail\"><nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\">Books</a><a href=\"#\">Settings</a><a href=\"#\">Admin</a></nav><div class=\"ds-theme\" role=\"group\" aria-label=\"Theme\"><button type=\"button\" aria-pressed=\"false\">Light</button><button type=\"button\" aria-pressed=\"true\">Auto</button><button type=\"button\" aria-pressed=\"false\">Dark</button></div></div>",
+      "css": ".ds-rail{display:grid;gap:1.6rem;width:17.25rem;padding:1.75rem 1.4rem 1rem;background:#c3e2ef;color:#14222b;font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif} .ds-nav{display:grid;gap:2px} .ds-nav a{display:flex;align-items:center;gap:0.75rem;min-height:2.6rem;padding:0 0.75rem;border-radius:4px;text-decoration:none;color:#14222b;font-size:0.9375rem;font-weight:600} .ds-nav a:hover{background:color-mix(in srgb,#fbfbf8 50%,transparent)} .ds-nav a[aria-current=\"page\"]{background:#fbfbf8;color:#17191c;box-shadow:0 1px 0 #cdd1cb} .ds-nav a:focus-visible,.ds-theme button:focus-visible{outline:2px solid #1c5e8b;outline-offset:2px;border-radius:2px} .ds-theme{justify-self:start;display:inline-flex;gap:2px;padding:2px;border:1px solid color-mix(in srgb,#14222b 32%,transparent);border-radius:4px} .ds-theme button{font-family:inherit;font-size:0.8125rem;font-weight:500;color:#14222b;background:none;border:0;min-height:2rem;padding:0.2rem 0.7rem;border-radius:3px;cursor:pointer} .ds-theme button:hover{background:color-mix(in srgb,#fbfbf8 45%,transparent)} .ds-theme button[aria-pressed=\"true\"]{background:#fbfbf8;color:#17191c;font-weight:650}"
     },
     {
-      "name": "Theme switch",
-      "kind": "chip",
-      "refersTo": "chip-hover",
-      "description": "A choice from a set of three, so it is a pill: Light, Auto, Dark.",
-      "html": "<div class=\"ds-theme\" role=\"group\" aria-label=\"Theme\"><button aria-pressed=\"false\">Light</button><button aria-pressed=\"true\">Auto</button><button aria-pressed=\"false\">Dark</button></div>",
-      "css": ".ds-theme { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--surface); } .ds-theme button { font: 400 0.8125rem/1.55 var(--sans); color: var(--muted); background: none; border: 0; min-height: 1.9rem; padding: 0.2rem 0.8rem; border-radius: 999px; cursor: pointer; } .ds-theme button:hover { color: var(--ink); } .ds-theme button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-theme button[aria-pressed=\"true\"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }"
-    },
-    {
-      "name": "Sign-in steps",
+      "name": "Sign-in code",
       "kind": "custom",
-      "refersTo": "panel",
-      "description": "Signing in on Hardcover: three steps, the code large enough to compare at a glance, pasting a token one click away.",
-      "html": "<div class=\"ds-signin\"><ol><li>Open Hardcover. It asks whether Kobo Hardcover Sync may use your account.<div><a class=\"ds-link\" href=\"#\">Open Hardcover to approve</a></div></li><li>Check that it shows this code: <code class=\"ds-code\">QWRT-7XKP</code></li><li>Approve there, then come back here.</li></ol><div class=\"ds-row\"><button class=\"ds-primary\">I have approved it</button><button class=\"ds-btn\">Cancel</button></div><details class=\"ds-paste\"><summary>Paste a token instead</summary></details></div>",
-      "css": ".ds-signin { font: 400 0.9375rem/1.55 var(--sans); color: var(--ink); } .ds-signin ol { margin: 0.6rem 0 0.9rem; padding-left: 1.3rem; max-width: 64ch; } .ds-signin li { margin: 0.5rem 0; } .ds-signin li > div { margin-top: 0.4rem; } .ds-code { font: 1.125rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.08em; color: var(--ink); padding: 0.1rem 0.45rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-ctl); user-select: all; white-space: nowrap; } .ds-link { display: inline-block; font-size: 0.8125rem; font-weight: 500; color: var(--accent-ink); text-decoration: none; border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 0.2rem 0.65rem; } .ds-link:hover { border-color: var(--accent); } .ds-row { display: flex; gap: 0.5rem 0.75rem; flex-wrap: wrap; } .ds-btn, .ds-primary { font: 500 0.875rem var(--sans); min-height: 2.25rem; padding: 0.4rem 0.9rem; border-radius: var(--r-ctl); border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; } .ds-primary { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); font-weight: 600; } .ds-btn:hover { border-color: var(--accent); } .ds-link:focus-visible, .ds-btn:focus-visible, .ds-primary:focus-visible, .ds-paste summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; } .ds-paste { margin-top: 0.9rem; } .ds-paste summary { cursor: pointer; color: var(--muted); font-size: 0.875rem; padding: 0.4rem 0; } .ds-paste summary:hover { color: var(--ink); }"
-    },
-    {
-      "name": "Check list",
-      "kind": "custom",
-      "refersTo": "panel",
-      "description": "The Check card: the status line as a list, grouped by what it is about, what to do under the line.",
-      "html": "<div class=\"ds-found\"><div class=\"ds-act ds-warn\"><span class=\"ds-dot\"></span>One thing to look at.</div></div><ul class=\"ds-checks\"><li class=\"ds-group\">Your Kobo</li><li><div class=\"ds-act ds-ok\"><span class=\"ds-dot\"></span><span><b>Database</b> found and readable.</span></div></li><li><div class=\"ds-act ds-warn\"><span class=\"ds-dot\"></span><span><b>Software version</b> not one that was tested.</span></div><div class=\"ds-sub\">To do: sync as usual; the Kobo is only read.</div></li><li class=\"ds-group\">Hardcover</li><li><div class=\"ds-act ds-none\"><span class=\"ds-dot\"></span><span><b>Mode</b> dry run.</span></div></li></ul>",
-      "css": ".ds-found { font: 600 0.9375rem/1.55 var(--sans); } .ds-checks { list-style: none; margin: 0.35rem 0 0.75rem; padding: 0; font: 400 0.9375rem/1.55 var(--sans); color: var(--ink); } .ds-checks li { margin: 0; padding: 0.5rem 0; border-bottom: 1px solid var(--line-soft); overflow-wrap: anywhere; } .ds-checks li:last-child { border-bottom: 0; } .ds-checks li.ds-group { padding: 0.9rem 0 0.2rem; border-bottom: 0; font-size: 0.8125rem; font-weight: 600; color: var(--muted); } .ds-act { display: flex; align-items: flex-start; gap: 0.5rem; color: var(--ink); } .ds-dot { flex: none; width: 8px; height: 8px; margin-top: 0.45em; border-radius: 50%; background: var(--faint); } .ds-ok .ds-dot { background: var(--ok); } .ds-warn .ds-dot { background: var(--warn); } .ds-err .ds-dot { background: var(--err); } .ds-sub { margin-left: calc(8px + 0.5rem); margin-top: 0.15rem; font-size: 0.8125rem; color: var(--muted); }"
+      "refersTo": "sign-in-code",
+      "description": "The code to compare with Hardcover: system monospace, large, spaced, selected whole with one click.",
+      "html": "<code class=\"ds-code\">WXQT-4KRP</code>",
+      "css": ".ds-code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-size:min(1.375rem,7vw);font-weight:600;letter-spacing:0.12em;font-variant-numeric:tabular-nums;color:#17191c;padding:0.2rem 0.7rem;background:#f4f5f1;border:1px solid #80868e;border-radius:4px;user-select:all;white-space:nowrap}"
     }
   ],
   "narrative": {
-    "northStar": "The Reading Log",
-    "overview": "A reader's own ledger. Each book is a line: its title set like a title, a thin rule that shows how far you are, when you last read it, and what Hardcover was or will be told. The page is the notebook that holds those lines, and everything else on it (the filters, the switches, the settings) is the margin. The mood is calm, plain and bookish: unhurried, a little domestic, with the book titles carrying the character and the interface staying out of the way.\n\nIt is dense where a log is dense, in the list, and roomy where someone reads, in the help dialog and on the settings cards. It has two lights, a day theme and a night theme, each with its own photograph of a real Kobo: on linen by day, at dusk by night. The photograph sits once, at the top of the sidebar, and dissolves into the page.\n\nThree looks were considered and turned down, and stay turned down: a dashboard of tiles and big numbers, a photograph across the full width above the list, and filters in the sidebar like mail folders. The list of books is the page; nothing is allowed to push it down or stand in front of it.",
+    "northStar": "The Galley Proof",
+    "overview": "The list of books is a galley proof of your Hardcover shelf. Each book is a line set on the sheet, and the Hardcover column is the proof margin: what the next sync will change is marked there in proofreaders' marks, on the row itself. The old value is struck through in red, the new value is written in after a caret. A reader who looks at the page sees, per book, what Hardcover will be told and why.\n\nThe world is a print shop's, made of paper, pencil and rule. A cool grey galley stock for the page; a near-white sheet for the list; a pale non-repro blue rail that is \"your Kobo\" (the name, the navigation, and on Books what the Kobo and Hardcover last did, with the button that sends). Two pencils do the marking: red for what a sync sends, blue for what the reader chose or is asked. Everything else is ink and graphite. The page is dense where a proof is dense, in the list, and only the book titles are set in a book face.\n\nIt turns down the usual look for this kind of tool: a neutral list with coloured status dots and badges. A mark is drawn beside plain words, never pinned on as a badge. There are no pill shapes and no photographs; book covers are the only pictures, and the tool fetches them itself.",
     "keyCharacteristics": [
-      "One frame for every page: a sidebar that is \"your Kobo\", a sheet that is \"your books\".",
-      "Two typefaces with one job each: Literata for anything that is a title, Sora for the interface.",
-      "One accent, Reading-light Cyan, spent on where you are in a book and on what you chose.",
-      "Readable by the numbers: WCAG 2.2 AA for words, edges and marks, in both lights.",
-      "Status is a dot and plain words, the same everywhere.",
-      "Controls are quiet until pointed at; one filled button per page.",
-      "Surfaces are told apart by tone and a hairline, not by shadow."
+      "The Hardcover column is a proof margin: a tinted column behind a double hairline rule, holding one status line per book.",
+      "Seven marks, all in the legend above the list: red caret, dashed caret, tick, *stet*, circled query, ink square with a cross, dash.",
+      "Two pencils with one job each: red for what a sync sends, blue for the reader's own choice or a question for them.",
+      "Two typefaces with one job each: Source Serif 4 for book titles, Schibsted Grotesk for everything else.",
+      "Square-cut: 2px to 4px corners, no pills.",
+      "Light and dark share every role; WCAG 2.2 AA in both.",
+      "One authored motion: the strike draws, the new value writes in."
     ],
     "rules": [
       {
-        "name": "The One Light Rule",
-        "body": "There is one accent. Cyan means \"your place\" or \"your choice\" and nothing else; green, amber and red appear only as status, never as decoration.",
+        "name": "The Two Pencils Rule",
+        "body": "Red fills only *Sync now* and *Go live*, and marks only what a sync sends. Every other filled button is an ink fill (*Start using Kobo Hardcover Sync*, *Connect to Hardcover*, *I have approved it*, *Use*, a confirmation, *Check and save*). Blue is only for the reader's own choice or a question for them; a label that states a fact (*New*, *Admin*) is grey. A removing action is ink, never red.",
         "section": "colors"
       },
       {
-        "name": "The Dot Rule",
-        "body": "Colour carries status only through an 8px dot; the words beside it stay in ink. No coloured text for status, no coloured row backgrounds, no badges.",
+        "name": "The Legend Rule",
+        "body": "Every mark the margin can hold is in the legend above the list, drawn and coloured the same, with the words of the page's strings: *Next sync changes this*, *Nothing to send yet*, *Up to date*, *Kept as on Hardcover*, *Needs you*, *Failed*, *Not syncing*. Help explains each one under *Hardcover status*. A new mark is not used until it is in both.",
         "section": "colors"
       },
       {
         "name": "The Two Lights Rule",
-        "body": "Every colour has a day and a night value with the same role. A colour that exists in one theme only is a mistake.",
+        "body": "Every colour has a light and a dark value with the same role. A colour that exists in one theme only is a mistake. In dark the red and blue are lighter and fills carry dark words (`on-fill-dark`).",
         "section": "colors"
       },
       {
         "name": "The Legible Rule",
-        "body": "Words stand at 4.5:1 or more on whatever they are on, the edge of a field and every mark at 3:1 (WCAG 2.2 AA). The bright cyan cannot carry white words by day, which is why fills are Reading-light Deep. `tests/test_design_tokens.py` checks the pairs.",
+        "body": "Words stand at 4.5:1 or more on whatever they are on, the edge of a field and every mark at 3:1 (WCAG 2.2 AA), in both themes. `tests/test_design_tokens.py` checks the pairs from `kobo.css`.",
         "section": "colors"
       },
       {
-        "name": "The Title Rule",
-        "body": "Literata is for things that are titles: the name, page and card headings, book titles. Anything you operate or read as a fact is Sora. A serif button or a sans book title is wrong.",
+        "name": "The Book Face Rule",
+        "body": "Source Serif 4 is for book titles and nothing else: in the list, at the top of Details, under a large cover. The name, headings, buttons and every fact are Schibsted Grotesk.",
         "section": "typography"
       },
       {
         "name": "The Figures Rule",
-        "body": "Numbers are tabular everywhere, so percentages and dates line up down the list.",
+        "body": "Tabular figures go only where numbers stand in columns or are compared: the facts under a gauge (`.meta`), the counts on chips, the count on the Filter button, and code. Never on the root or on running text: in Schibsted Grotesk `tabular-nums` widens full stops and commas too. `tests/test_design_tokens.py` holds this.",
         "section": "typography"
       },
       {
-        "name": "The List First Rule",
-        "body": "Nothing sits above the list that is taller than the toolbar. A new element earns a place in the sidebar, in a row, or in the Details dialog, not between the reader and their books.",
+        "name": "The Finger Rule",
+        "body": "Below 1024px fields, selects, buttons and *Details* are 2.75rem (44px), and the theme switch 2.5rem. Under a coarse pointer, at any width, everything you operate is 2.75rem, chips and the theme switch included.",
         "section": "layout"
       },
       {
-        "name": "The Tone Rule",
-        "body": "If two surfaces need telling apart, change the tone or draw a rule. Reach for a shadow only for something that is physically on top: a cover, a dialog.",
+        "name": "The Flat Paper Rule",
+        "body": "Surfaces are told apart by tone and a rule. A shadow is never needed to read the page; the dark theme proves it.",
         "section": "elevation"
+      },
+      {
+        "name": "The No Pills Rule",
+        "body": "No pill-shaped buttons, chips, tags or switches. The largest corner on anything you operate is 4px.",
+        "section": "shapes"
       }
     ],
     "dos": [
-      "Do set every title in Literata at 600 and everything you operate in Sora.",
-      "Do give every new colour a day and a night value with the same role.",
-      "Do show status as an 8px dot and plain words in ink.",
-      "Do keep one filled button per page; everything else is a bordered or borderless control.",
-      "Do use 16px for what holds content, 9px for what you operate, and a pill only for a choice from a set.",
-      "Do put a new fact about a book in its row's small grey line or in Details, and a new fact about the installation in the sidebar.",
-      "Do make every motion stop under `prefers-reduced-motion`, and every action work without JavaScript.",
-      "Do fill with Reading-light Deep and draw with Reading-light Cyan; check any new pair of colours against 4.5:1 for words and 3:1 for edges and marks."
+      "**Do** put what a sync will do with a book in its proof margin, as one status line with one of the seven marks.",
+      "**Do** strike the old value in red and write the new value after a red caret when the next sync changes something.",
+      "**Do** fill red only *Sync now* and *Go live*; give every other filled button the ink fill.",
+      "**Do** keep blue for the reader's own choice or a question for them.",
+      "**Do** add any new mark to the legend and to Help's *Hardcover status*, drawn and coloured the same, before it appears in a row.",
+      "**Do** set book titles in Source Serif 4 at 600 and everything else in Schibsted Grotesk.",
+      "**Do** put `tabular-nums` only on numbers that stand in columns or are compared: the facts, chip counts, the Filter count, code.",
+      "**Do** use 2px for sheets, cards and dialogs, 4px for what you operate, and the 3px double rule where the margin begins.",
+      "**Do** make every control 2.75rem below 1024px and under a finger.",
+      "**Do** give every new colour a light and a dark value with the same role, and check it: 4.5:1 for words, 3:1 for field edges and marks.",
+      "**Do** make every action work without JavaScript, and stop every motion under `prefers-reduced-motion`.",
+      "**Do** draw a missing cover as the crossed box."
     ],
     "donts": [
-      "Don't build a dashboard of tiles and big numbers. The list of books is the page.",
-      "Don't put a photograph across the full width above the list; the photograph lives once, in the sidebar.",
-      "Don't move the filters into the sidebar like mail folders.",
-      "Don't colour status text, tint whole rows, or add badges; the dot carries the colour.",
-      "Don't set words in a grey lighter than Faint Pencil, or white words on the bright cyan.",
-      "Don't use cyan for decoration. If it is not your place in a book or your choice, it is not cyan.",
-      "Don't rely on a shadow to separate surfaces; the night theme has none.",
-      "Don't set labels in capitals or track them out.",
-      "Don't load a font, a script, a style or a picture from elsewhere; the tool serves everything, book covers included."
+      "**Don't** show status as coloured dots or badges on a neutral list; the mark is drawn beside plain words.",
+      "**Don't** use red for decoration, for a warning, or for a button that removes something; a removing action is ink, underlined.",
+      "**Don't** use pill shapes, for buttons, chips, tags or switches.",
+      "**Don't** set `tabular-nums` on the root or on running text.",
+      "**Don't** set anything but a book title in Source Serif 4.",
+      "**Don't** rely on a shadow to separate surfaces; the dark theme has none.",
+      "**Don't** set labels in capitals or track them out.",
+      "**Don't** add a second authored motion; the strike and the write-in are the one.",
+      "**Don't** load a font, a script, a style or a picture from elsewhere; the tool serves everything, the two fonts and the book covers included."
     ]
   }
 }

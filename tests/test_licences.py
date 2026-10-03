@@ -25,25 +25,21 @@ def test_the_licence_is_mit_and_the_package_says_so():
 
 def test_every_font_travels_with_its_full_licence():
     fonts = sorted((STATIC / "fonts").glob("*.woff2"))
-    assert len(fonts) == 4
+    assert len(fonts) == 6
     for f in fonts:
         family = f.name.split("-")[0]
         licence = (STATIC / "fonts" / f"{family}-LICENSE.txt").read_text()
-        assert licence.startswith("Copyright ") and family in licence.splitlines()[0], f.name
+        # "SourceSerif4" in the file name is "Source Serif 4" in its notice, "SchibstedGrotesk" "Schibsted-Grotesk".
+        assert licence.startswith("Copyright ") and family in re.sub(r"[ -]", "", licence.splitlines()[0]), f.name
         assert "SIL OPEN FONT LICENSE Version 1.1" in licence and "PERMISSION & CONDITIONS" in licence and "TERMINATION" in licence
         assert f.name in NOTICES and licence.splitlines()[0] in NOTICES and f.name in (STATIC / "fonts" / "README.txt").read_text()
     assert not {p.suffix for p in (STATIC / "fonts").iterdir()} - {".woff2", ".txt"}  # nothing in there without a notice
 
 
-def test_every_picture_that_is_not_ours_is_credited():
-    credits = (STATIC / "img" / "CREDITS.txt").read_text()
-    pictures = sorted(p.name for p in (STATIC / "img").iterdir() if p.name != "CREDITS.txt")
-    assert pictures == ["kobo-day.webp", "kobo-night.webp"]
-    for name in pictures:
-        line = next(ln for ln in credits.splitlines() if ln.startswith(name))
-        url = re.search(r"https://unsplash\.com/photos/\S+", line).group(0)
-        assert name in NOTICES and url in NOTICES
-    assert "Unsplash License" in credits and "Unsplash License" in NOTICES and "not under its MIT licence" in credits
+def test_the_page_carries_no_pictures_but_its_own_icon():
+    # The page has no photographs (DESIGN.md): nothing under another licence
+    # but the fonts. Book covers are fetched while it runs, not shipped.
+    assert not list(STATIC.glob("img/*")) and "Unsplash" not in NOTICES
     # The project's own artwork is the icon, and only that.
     assert sorted(p.name for p in STATIC.iterdir() if p.is_file()) == ["apple-touch-icon.png", "favicon.svg", "kobo.css", "kobo.js"]
 

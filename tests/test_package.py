@@ -19,7 +19,7 @@ def test_the_engine_imports_nothing_from_the_page_the_server_or_the_command():
 
 def test_the_page_files_are_part_of_the_package():
     static = PKG / "web" / "static"
-    for name in ("kobo.css", "kobo.js", "favicon.svg", "fonts/Sora-latin.woff2", "img/kobo-day.webp"):
+    for name in ("kobo.css", "kobo.js", "favicon.svg", "fonts/SchibstedGrotesk-latin.woff2", "fonts/SourceSerif4-latin.woff2"):
         assert (static / name).is_file(), name
 
 
