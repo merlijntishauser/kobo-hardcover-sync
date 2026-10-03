@@ -16,8 +16,10 @@ kobo-hardcover-sync token [--remove]
     keep it in the Keychain. (The page's Settings does the same.)
 
 kobo-hardcover-sync sync [--verbose]
-    One sync now. --verbose shows the log while it runs, with a line per
-    book (book titles are in it).
+    One sync now. It says each step as it finishes, and then names the
+    books that went to Hardcover, each with how far it is read. Those
+    titles are shown in the terminal and written nowhere. --verbose also
+    shows the log while it runs.
 
 kobo-hardcover-sync status
     What is set up, and what it sees. Quick, and never uses the network.
@@ -59,13 +61,60 @@ import sqlite3
 import sys
 import tempfile
 
-from . import __version__
+from . import __version__, term
 from .engine import kobo_db, state
 from .env import env
+from .term import FAIL, NOTE, OK, WARN, Row, plural
+
+HOME_PAGE = "https://github.com/merlijntishauser/kobo-hardcover-sync"
+COMMANDS = (
+    (
+        "On the computer you plug the Kobo into",
+        (
+            ("setup", "Make this computer sync a plugged-in Kobo"),
+            ("token", "Store your Hardcover token (when everything runs on this computer)"),
+            ("sync", "One sync now"),
+            ("status", "What is set up, and what it sees"),
+            ("doctor", "Check everything a sync depends on; changes nothing"),
+            ("open", "Open the page with your books"),
+            ("uninstall", "Remove the trigger"),
+        ),
+    ),
+    (
+        "On a server",
+        (
+            ("serve", "Run the server: the page and the upload endpoint"),
+            ("import", "Import a KoboReader.sqlite by hand"),
+        ),
+    ),
+)
+SHOWN_BOOKS = 12  # a run by hand names this many books, and counts the rest
+
+
+class _Parser(argparse.ArgumentParser):
+    """argparse, with a first page written for a reader instead of drawn up from the parser."""
+
+    def format_help(self) -> str:
+        if self.prog != "kobo-hardcover-sync":
+            return super().format_help()
+        out: list[str] = []
+        screen = term.Screen.of(sys.stdout)
+        screen._write = out.append
+        screen.heading(f"Kobo Hardcover Sync {__version__}")
+        screen.say("Keeps your shelf on Hardcover in step with what you read on a Kobo.")
+        for title, commands in COMMANDS:
+            screen.line()
+            screen.heading(title)
+            for name, what in commands:
+                screen.line(f"  {screen.style(f'{name:<10}', term.CYAN)} {what}")
+        screen.line()
+        screen.say("kobo-hardcover-sync <command> --help says more about one command.")
+        screen.line(screen.style(HOME_PAGE, term.DIM))
+        return "".join(out)
 
 
 def main(argv: list[str] | None = None, computer=None) -> None:
-    p = argparse.ArgumentParser(prog="kobo-hardcover-sync")
+    p = _Parser(prog="kobo-hardcover-sync")
     p.add_argument("--version", action="version", version=f"kobo-hardcover-sync {__version__}")
     sub = p.add_subparsers(dest="cmd", required=True, metavar="{setup,token,sync,status,doctor,open,uninstall,serve,import}")
     stp = sub.add_parser("setup", help="make this computer sync a plugged-in Kobo")
@@ -76,10 +125,10 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     stp.add_argument("--no-trigger", action="store_true", help="only the settings: you run `sync` yourself")
     tok = sub.add_parser("token", help="local mode: store your Hardcover token")
     tok.add_argument("--remove", action="store_true", help="forget the token (and go back to dry run)")
-    sub.add_parser("page", help=argparse.SUPPRESS)  # what `open` starts in local mode
+    sub.add_parser("page")  # what `open` starts in local mode; no help text, so it is not listed
     syn = sub.add_parser("sync", help="one sync now")
     syn.add_argument("--trigger", default="", help=argparse.SUPPRESS)  # "mount": started by the plug-in trigger
-    syn.add_argument("--verbose", action="store_true", help="show the log while it runs, a line per book (with titles)")
+    syn.add_argument("--verbose", action="store_true", help="also show the log while it runs: a line per book and per request")
     sub.add_parser("status", help="what is set up, and what it sees")
     sub.add_parser("doctor", help="check everything a sync depends on; changes nothing")
     sub.add_parser("open", help="open the page")
@@ -172,33 +221,61 @@ def _setup(a, computer) -> None:
     cfg.server = server.rstrip("/")
     config.save(cfg)
 
+    screen = term.Screen.of()
+    rows = [
+        Row(
+            OK,
+            "Mode",
+            f"Server mode: this computer uploads to {cfg.server}." if cfg.server else "Local mode: everything happens on this computer.",
+        )
+    ]
     digest = ""
     if cfg.server:
         token = computer.secret(UPLOAD)
         if a.new_token or not token:
             token = secrets.token_hex(32)
             computer.set_secret(UPLOAD, token)
-            print("New upload token stored on this computer.")
+            rows.append(Row(OK, "Token", "New upload token stored on this computer."))
         else:
-            print("Keeping the existing upload token.")
+            rows.append(Row(OK, "Token", "Keeping the existing upload token."))
         digest = _token_hash(token)
         del token
 
+    said: list[str] = []
     if a.no_trigger:
-        print("No trigger installed: run `kobo-hardcover-sync sync` with the Kobo plugged in.")
+        rows.append(Row(NOTE, "Trigger", "No trigger installed: run `kobo-hardcover-sync sync` with the Kobo plugged in."))
     else:
-        command = _own_path()
-        for line in computer.install_trigger(command, a.rebuild_app):
-            print(line)
-    print()
+        said = computer.install_trigger(_own_path(), a.rebuild_app)
+        works, found = computer.trigger_state()
+        if works:
+            rows.append(Row(OK, "Trigger", found))
+        else:  # what went wrong installing it says more than what is found afterwards
+            rows.append(Row(WARN, "Trigger", " ".join(line.strip() for line in said) or found))
+            said = []
+    screen.heading("Setup")
+    screen.rows(rows)
+    if said:
+        screen.line()
+        for line in said:  # what the computer did, and what it asks of you; a path stays on its own line, whole
+            screen.line(line) if line.startswith(" ") else screen.say(line, indent=2)
+
+    screen.line()
+    screen.heading("Next")
     if cfg.server:
-        print(f"Server: {cfg.server}")
-        print(f"This computer's hash (paste it at {cfg.server}/settings under Devices, unless it is there already):")
-        print(digest)
+        screen.say(f"1. Paste this computer's hash at {cfg.server}/settings under Devices, unless it is there already:", indent=2, hang=3)
+        screen.line(f"     {screen.style(digest, term.CYAN)}")
+        screen.say("2. Plug in the Kobo and tap Connect on it.", indent=2, hang=3)
     else:
-        print("Local mode: everything happens on this computer.")
-        print("Next: `kobo-hardcover-sync token` to store your Hardcover token, then plug in the Kobo.")
-        print("`kobo-hardcover-sync open` shows your books; nothing goes to Hardcover until you go live under Settings.")
+        screen.say("1. `kobo-hardcover-sync token` stores your Hardcover token.", indent=2, hang=3)
+        screen.say("2. Plug in the Kobo and tap Connect on it.", indent=2, hang=3)
+        screen.say(
+            "3. `kobo-hardcover-sync open` shows your books. Nothing goes to Hardcover until you go live under Settings.", indent=2, hang=3
+        )
+
+
+def _one(state: str, text: str, todo: str = "") -> None:
+    """One line of result: a mark and a sentence."""
+    term.Screen.of().rows([Row(state, "", text, todo)], label_width=0)
 
 
 def _token(a, computer) -> None:
@@ -220,7 +297,7 @@ def _token(a, computer) -> None:
     try:
         if a.remove:
             accounts.clear_token(con, reader["name"])
-            print("Hardcover token removed. Syncing is back in dry run.")
+            _one(OK, "Hardcover token removed. Syncing is back in dry run.")
             return
         if sys.stdin.isatty():
             import getpass
@@ -238,7 +315,7 @@ def _token(a, computer) -> None:
             sys.exit(f"kobo-hardcover-sync: {ex}. Nothing was stored.")
         accounts.set_token(con, reader["name"], token, str(who.get("username") or ""))
         del token, raw
-        print(f"Stored. Hardcover knows you as @{who.get('username')}." if who.get("username") else "Stored.")
+        _one(OK, f"Stored. Hardcover knows you as @{who.get('username')}." if who.get("username") else "Stored.")
         assert computer.secret(HARDCOVER)
     finally:
         accounts.token_store = None
@@ -248,16 +325,50 @@ def _token(a, computer) -> None:
 def _sync(a, computer) -> None:
     from .computer import runner
 
-    out = runner.sync(computer, trigger=a.trigger, verbose=a.verbose)
-    if out.message:
-        if a.trigger:  # started by the plug-in trigger or the small app: tell the person there
+    if a.trigger:  # started by the plug-in trigger or the small app: one notification, there
+        out = runner.sync(computer, trigger=a.trigger, verbose=a.verbose)
+        if out.message:
             computer.notify(out.title, out.message)
-        else:
-            print(f"{out.title}: {out.message}")
-    elif not a.trigger:
-        print("Nothing new." if computer.find_kobo() else "No Kobo found: plug it in and tap Connect on the Kobo.")
+        if not out.ok:
+            sys.exit(1)
+        return
+
+    # By hand: each step as it finishes, then the books it was about.
+    screen = term.Screen.of()
+    width = len("Collection")
+
+    def step(row: Row) -> None:
+        screen.rows([row], label_width=width)
+        sys.stdout.flush()
+
+    screen.line()
+    out = runner.sync(computer, verbose=a.verbose, on_step=step)
     if not out.ok:
+        step(Row(FAIL, out.about, out.message))
         sys.exit(1)
+    _books(screen, out.books, out.live)
+    if out.closing:
+        screen.line()
+        screen.say(out.closing)
+
+
+def _books(screen: term.Screen, books: list[dict], live: bool) -> None:
+    """The books of a run, as lines of the reading log. Titles are shown
+    here, to the person at the terminal, and written nowhere."""
+    for went, heading in (
+        ("sent", "Sent to Hardcover"),
+        ("planned", "Would be sent to Hardcover (dry run)"),
+        ("failed", "Not sent"),
+    ):
+        some = [b for b in books if b["went"] == went]
+        if not some:
+            continue
+        screen.line()
+        screen.heading(heading)
+        for b in some[:SHOWN_BOOKS]:
+            screen.book(b["title"], b["percent"], b["finished"], b["error"] or b["what"])
+        if len(some) > SHOWN_BOOKS:
+            screen.say(f"and {plural(len(some) - SHOWN_BOOKS, 'more book')}; the page lists them all.", indent=2, style=(term.DIM,))
 
 
 def _status(a, computer) -> None:
@@ -266,25 +377,42 @@ def _status(a, computer) -> None:
     from .engine import collection
 
     cfg = config.load()
-    print(f"Mode:    {'server, ' + cfg.server if cfg.server else cfg.mode or 'not set up'}")
-    print(f"State:   {config.state_dir()}")
+    rows = []
+    if not cfg.mode:
+        rows.append(Row(FAIL, "Mode", "Not set up on this computer yet.", "Run `kobo-hardcover-sync setup`."))
+    else:
+        rows.append(Row(OK, "Mode", f"Server mode: uploads to {cfg.server}" if cfg.server else "Local mode: everything on this computer"))
+    rows.append(Row(OK, "Folder", config.state_dir()))
     if cfg.mode == "local":
         con = state.connect(os.path.join(config.state_dir(), "state.db"))
         row = con.execute("select hardcover_live, hardcover_user, kobo_collection from reader where name = 'me'").fetchone()
         books = con.execute("select count(*), sum(mode = 'on' or (mode = 'auto' and history = 0)) from book where reader = 'me'").fetchone()
         con.close()
-        has = bool(computer.secret(HARDCOVER))
-        place = f", kept in {computer.secret_place(HARDCOVER)}" if has else ""
-        print(f"Token:   {'Hardcover token present' + place if has else 'no Hardcover token yet (kobo-hardcover-sync token)'}")
-        print(f"Sending: {'live' if row and row[0] else 'dry run'}; {books[1] or 0} of {books[0]} books switched on")
-        print(f"Collection on the Kobo: {(row[2] if row else '') or 'none'}")
-    else:
+        if computer.secret(HARDCOVER):
+            rows.append(Row(OK, "Token", f"Hardcover token present, kept in {computer.secret_place(HARDCOVER)}"))
+        else:
+            rows.append(Row(NOTE, "Token", "No Hardcover token yet", "`kobo-hardcover-sync token` stores one."))
+        live = bool(row and row[0])
+        rows.append(
+            Row(
+                OK if live else NOTE,
+                "Sending",
+                f"{'Live' if live else 'Dry run'}; {books[1] or 0} of {plural(books[0], 'book')} switched on",
+            )
+        )
+        name = (row[2] if row else "") or ""
+        rows.append(Row(OK if name else NOTE, "Collection", f"'{name}' on the Kobo" if name else "None on the Kobo"))
+    elif cfg.mode:
         token = computer.secret(UPLOAD)
-        print(f"Token:   {'present, hash ' + _token_hash(token) if token else 'none'}")
+        rows.append(
+            Row(OK, "Token", f"Upload token present; its hash is {_token_hash(token)}")
+            if token
+            else Row(FAIL, "Token", "No upload token", "Run `kobo-hardcover-sync setup` again.")
+        )
         del token
     mount = computer.find_kobo()
     if not mount:
-        print("Kobo:    not found")
+        rows.append(Row(NOTE, "Kobo", "Not found"))
     else:
         try:
             with tempfile.TemporaryDirectory(prefix="khs-") as tmp:
@@ -296,15 +424,16 @@ def _status(a, computer) -> None:
             tested = "tested" if version in collection.KNOWN_VERSIONS else "not tested yet: the collection will not be written"
             dev = kobo_db.device(mount)
             what = ", ".join(x for x in (dev.model, f"software {dev.software}" if dev.software else "") if x)
-            print(f"Kobo:    {mount}{' (' + what + ')' if what else ''}, database version {version} ({tested})")
+            rows.append(Row(OK, "Kobo", f"{mount}{' (' + what + ')' if what else ''}, database version {version} ({tested})"))
         except (OSError, sqlite3.Error, TypeError) as ex:
-            print(f"Kobo:    {mount}, but its database could not be read ({ex})")
+            rows.append(Row(WARN, "Kobo", f"{mount}, but its database could not be read ({ex})", "`kobo-hardcover-sync doctor` says more."))
     try:
         with open(os.path.join(config.state_dir(), "last-message.txt")) as fh:
             lines = [line.strip() for line in fh if line.strip()]
-        print(f"Last:    {lines[-1]}: {' '.join(lines[:-1])}")
+        rows.append(Row(OK, "Last sync", f"{lines[-1]}: {lines[0]}: {' '.join(lines[1:-1])}"))
     except (FileNotFoundError, IndexError):
-        print("Last:    nothing synced yet")
+        rows.append(Row(NOTE, "Last sync", "Nothing synced yet"))
+    term.Screen.of().rows(rows)
 
 
 def _doctor(a, computer) -> None:
@@ -312,9 +441,12 @@ def _doctor(a, computer) -> None:
 
     from . import doctor
 
-    print(f"kobo-hardcover-sync {__version__}, Python {os_platform.python_version()}, {os_platform.platform(terse=True)}\n")
+    screen = term.Screen.of()
+    screen.heading(f"Kobo Hardcover Sync {__version__}")
+    screen.say(f"Python {os_platform.python_version()}, {os_platform.platform(terse=True)}", style=(term.DIM,))
+    screen.line()
     checks = doctor.computer_checks(computer)
-    print(doctor.report(checks))
+    doctor.show(checks, screen)
     if doctor.problems(checks):
         sys.exit(1)
 
@@ -333,15 +465,17 @@ def _uninstall(a, computer) -> None:
     from .computer.platform import HARDCOVER, UPLOAD
 
     server = config.load().server
-    for line in computer.remove_trigger():
-        print(line)
+    rows = [Row(OK, "", line) for line in computer.remove_trigger()]
     if a.purge:
         computer.delete_secret(UPLOAD)
         computer.delete_secret(HARDCOVER)
         shutil.rmtree(config.state_dir(), ignore_errors=True)
-        print("State and tokens removed." + (" Remove the device on the page under Settings, Devices." if server else ""))
+        rows.append(Row(OK, "", "State and tokens removed.", "Remove the device on the page under Settings, Devices." if server else ""))
     else:
-        print(f"State and tokens kept ({config.state_dir()}); --purge removes them.")
+        rows.append(
+            Row(NOTE, "", f"State and tokens kept ({config.state_dir()}).", "`kobo-hardcover-sync uninstall --purge` removes them.")
+        )
+    term.Screen.of().rows(rows, label_width=0)
 
 
 if __name__ == "__main__":

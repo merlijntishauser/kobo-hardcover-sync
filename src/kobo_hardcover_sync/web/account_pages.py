@@ -83,11 +83,15 @@ def check_card(checks: list | None, local: bool) -> str:
     if checks is not None:
         worst = "err" if doctor.problems(checks) else "warn" if any(c.state == doctor.WARN for c in checks) else "ok"
         rows = "".join(
-            f'<li><div class="act {CHECK_DOT[c.state]}"><span class="dot"></span><span><span class="sr">{e(doctor.WORDS[c.state])}: </span>'
-            f"<b>{e(c.what)}</b> {_with_code(c.found)}</span></div>"
-            + (f'<div class="sub">{T["s_check_todo"]} {_with_code(c.todo)}</div>' if c.todo else "")
-            + "</li>"
-            for c in checks
+            f'<li class="group">{e(group)}</li>'
+            + "".join(
+                f'<li><div class="act {CHECK_DOT[c.state]}"><span class="dot"></span><span><span class="sr">{e(doctor.WORDS[c.state])}: </span>'
+                f"<b>{e(c.what)}</b> {_with_code(c.found)}</span></div>"
+                + (f'<div class="sub">{T["s_check_todo"]} {_with_code(c.todo)}</div>' if c.todo else "")
+                + "</li>"
+                for c in some
+            )
+            for group, some in doctor.grouped(checks)
         )
         result = f'<div class="found" role="status">{line(worst, doctor.summary(checks))}</div><ul class="checks">{rows}</ul>'
     return (

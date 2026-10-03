@@ -6,6 +6,11 @@ PROXY = ("192.0.2.10", 50000)
 ELSEWHERE = ("203.0.113.5", 50000)
 
 
+def said(capsys) -> str:
+    """What a command printed, as one run of words: where a line was folded is the screen's business."""
+    return " ".join(capsys.readouterr().out.split())
+
+
 def client_at(app, address=PROXY) -> TestClient:
     """A test client whose requests reach the app from `address`."""
 

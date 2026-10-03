@@ -17,12 +17,13 @@ import logging
 import os
 import shutil
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from .. import ISSUES, logs
 from ..engine import collection, job, kobo_db, state
 from ..server import accounts
+from ..term import FAIL, NOTE, OK, WARN, Row, plural
 from . import config, remote
 from .platform import HARDCOVER, KOBO_DB, UPLOAD, Computer
 
@@ -41,9 +42,17 @@ DAMAGED = (
 
 @dataclass
 class Outcome:
+    """What a sync has to say. title and message are the notification. The
+    rest is for someone watching a run by hand: the steps were told as they
+    happened (on_step), and these come at the end."""
+
     ok: bool
     title: str = NAME
     message: str = ""  # "" = nothing worth telling
+    about: str = "Sync"  # what a failure is about: the label of its line
+    books: list = field(default_factory=list)  # what went, or would go, to Hardcover (job.run)
+    live: bool = False
+    closing: str = ""  # the last word: eject, or safe to unplug
 
 
 def unreadable(computer: Computer, ex: OSError, by_hand: bool) -> str:
@@ -87,12 +96,20 @@ def copy_database(db: str, folder: str) -> str:
 
 
 def sync(
-    computer: Computer, cfg: config.Config | None = None, opener=None, trigger: str = "", hardcover_client=None, verbose: bool = False
+    computer: Computer,
+    cfg: config.Config | None = None,
+    opener=None,
+    trigger: str = "",
+    hardcover_client=None,
+    verbose: bool = False,
+    on_step=None,
 ) -> Outcome:
     """trigger "mount": started because some volume was mounted, so without
     a Kobo there is nothing to do. verbose: this run logs every book, and
-    shows the log while it runs. opener and hardcover_client let tests stand
-    in for the network."""
+    shows the log while it runs. on_step: called with a term.Row as each
+    step finishes, for a terminal that is watching. opener and
+    hardcover_client let tests stand in for the network."""
+    step = on_step or (lambda row: None)
     cfg = cfg or config.load()
     state_dir = config.state_dir()
     os.makedirs(state_dir, mode=0o700, exist_ok=True)
@@ -101,19 +118,21 @@ def sync(
         return Outcome(False, message="Not set up yet: run `kobo-hardcover-sync setup`.")
     mount = computer.find_kobo()
     if not mount and (cfg.server or trigger == "mount"):
+        step(Row(NOTE, "Kobo", "No Kobo found: plug it in and tap Connect on the Kobo."))
         return Outcome(True)  # every volume that mounts starts us; most are not a Kobo
     lock = open(os.path.join(state_dir, "sync.lock"), "w")  # noqa: SIM115 (held until the end)
     try:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:
+            step(Row(NOTE, "Sync", "Another sync is running; it carries on."))
             return Outcome(True)  # a sync is already running; it wins
         log.debug("sync started (%s), Kobo: %s", f"by {trigger}" if trigger else "by hand", _describe(mount))
         try:
             if cfg.server:
-                out = _sync_to_server(computer, cfg, mount, state_dir, opener, by_hand=not trigger)
+                out = _sync_to_server(computer, cfg, mount, state_dir, opener, by_hand=not trigger, step=step)
             else:
-                out = _sync_here(computer, cfg, mount, state_dir, hardcover_client, by_hand=not trigger)
+                out = _sync_here(computer, cfg, mount, state_dir, hardcover_client, by_hand=not trigger, step=step)
         except Exception as ex:  # nothing this tool knows what to say about
             log.exception("sync stopped by something unexpected")
             out = Outcome(
@@ -136,12 +155,30 @@ def _describe(mount: str | None) -> str:
     return ", ".join(x for x in (mount, dev.model, f"software {dev.software}" if dev.software else "") if x)
 
 
+def _model(mount: str) -> str:
+    return kobo_db.device(mount).model or "Kobo"
+
+
 def _finish(computer: Computer, cfg: config.Config, mount: str | None, said: list[str], wrote: bool) -> Outcome:
+    closing = ""
     if mount and (said or wrote) and cfg.eject_after_sync:
-        said.append("Ejected: safe to unplug." if computer.eject(mount) else "Could not eject; eject before unplugging.")
+        closing = "Ejected: safe to unplug." if computer.eject(mount) else "Could not eject; eject before unplugging."
     elif wrote:
-        said.append("Eject before unplugging.")
-    return Outcome(True, "Kobo synced", " ".join(said))
+        closing = "Eject before unplugging."
+    return Outcome(True, "Kobo synced", " ".join([*said, closing] if closing else said), closing=closing)
+
+
+def _collection_step(step, name: str, told: list[str]) -> None:
+    """The collection's line for a terminal, from what the notification says about it."""
+    if not told:
+        step(
+            Row(OK, "Collection", f"'{name}' is up to date")
+            if name
+            else Row(NOTE, "Collection", "None wanted: nothing is written to the Kobo")
+        )
+        return
+    text = " ".join(t.removeprefix("Collection ") for t in told)
+    step(Row(WARN if "not updated" in text else OK, "Collection", text[:1].upper() + text[1:]))
 
 
 def _keep_collection(db: str, copy: str, name: str, ids: list[str], state_dir: str, cfg: config.Config, said: list[str]) -> bool:
@@ -168,23 +205,28 @@ def _keep_collection(db: str, copy: str, name: str, ids: list[str], state_dir: s
     return wrote
 
 
-def _sync_here(computer: Computer, cfg: config.Config, mount: str | None, state_dir: str, client=None, by_hand: bool = False) -> Outcome:
+def _sync_here(
+    computer: Computer, cfg: config.Config, mount: str | None, state_dir: str, client=None, by_hand: bool = False, step=lambda row: None
+) -> Outcome:
     """Local mode: the books are imported here and the engine runs here."""
     db_path = os.path.join(state_dir, "state.db")
     con = state.connect(db_path)
     reader = accounts.local_reader(con, getpass.getuser())
     said, wrote, imported = [], False, False
+    books, live = [], False
     hash_file = os.path.join(state_dir, "last-import.sha256")
     with tempfile.TemporaryDirectory(prefix="khs-") as tmp:
         copy = db = None
-        if mount:
+        if not mount:
+            step(Row(NOTE, "Kobo", "Not plugged in: only Hardcover is brought up to date"))
+        else:
             db = os.path.join(mount, KOBO_DB)
             try:
                 seen = fingerprint(db)
                 copy = copy_database(db, tmp)
             except OSError as ex:
                 log.error("cannot read the Kobo's database: %s", ex)
-                return Outcome(False, message=unreadable(computer, ex, by_hand))
+                return Outcome(False, message=unreadable(computer, ex, by_hand), about="Kobo")
             try:
                 with open(hash_file) as fh:
                     unchanged = fh.read().strip() == seen
@@ -192,44 +234,62 @@ def _sync_here(computer: Computer, cfg: config.Config, mount: str | None, state_
                 unchanged = False
             if unchanged:
                 log.info("unchanged since last import, import skipped")
+                step(Row(OK, "Kobo", f"{_model(mount)}: nothing new since the last sync"))
             else:
                 try:
                     kobo = kobo_db.open_db(copy, allow_user_table=True)  # the copy never leaves this folder
                     try:
-                        books = kobo_db.read_books(kobo)
+                        on_kobo = kobo_db.read_books(kobo)
                     finally:
                         kobo.close()
                 except kobo_db.NotAKoboDatabase as ex:
                     log.error("not a Kobo database: %s", ex)
-                    return Outcome(False, FAILED, DAMAGED)
-                result = state.import_books(con, reader["name"], kobo_db.device(mount).name, books, source="usb")
+                    return Outcome(False, FAILED, DAMAGED, about="Kobo")
+                result = state.import_books(con, reader["name"], kobo_db.device(mount).name, on_kobo, source="usb")
                 with open(hash_file, "w") as fh:
                     fh.write(seen + "\n")
                 log.info("imported: %s", result)
                 imported = True
                 n = int(result.get("changed", 0)) + int(result.get("tracked_added", 0))
                 if n:
-                    said.append(f"{n} book(s) updated.")
+                    said.append(f"{plural(n, 'book')} updated.")
+                step(Row(OK, "Kobo", f"{_model(mount)}: {plural(n, 'book')} updated" if n else f"{_model(mount)}: read, nothing changed"))
 
         # Hardcover: the same run as on the server. Dry run until the reader goes live.
         token = computer.secret(HARDCOVER)
         if token or client:
             live = bool(reader["hardcover_live"])
             r = job.run(db_path, reader["name"], live, client=client, token=token)
+            books = r.get("books", [])
             if r.get("status") == "failed":
                 said.append(f"{r.get('fatal', 'The sync to Hardcover failed')}.")
+                step(Row(FAIL, "Hardcover", said[-1]))
             elif live:
                 said += [
                     f"{r[k]} {text}"
                     for k, text in (("sent", "sent to Hardcover."), ("adopted", "taken over from Hardcover."), ("errors", "failed."))
                     if r.get(k)
                 ]
+                did = [f"{r[k]} {text}" for k, text in (("sent", "sent"), ("adopted", "taken over"), ("errors", "failed")) if r.get(k)]
+                step(Row(WARN if r.get("errors") else OK, "Hardcover", ", ".join(did) if did else "Up to date: nothing to send"))
             elif r.get("planned"):
                 said.append(f"{r['planned']} would be sent to Hardcover (dry run).")
+                step(Row(NOTE, "Hardcover", f"Dry run: {r['planned']} would be sent"))
+            else:
+                step(Row(NOTE, "Hardcover", "Dry run: nothing to send"))
             if r.get("uncertain"):
                 said.append(f"{r['uncertain']} need a match on the page.")
-        elif imported:
-            said.append("No Hardcover token yet: add one on the page.")
+                step(
+                    Row(
+                        WARN,
+                        "Matches",
+                        f"{plural(r['uncertain'], 'book')} {'needs' if r['uncertain'] == 1 else 'need'} a match on the page",
+                    )
+                )
+        else:
+            if imported:
+                said.append("No Hardcover token yet: add one on the page.")
+            step(Row(NOTE, "Hardcover", "No token yet: add one on the page"))
 
         name = (reader["kobo_collection"] or "").strip()
         if mount:
@@ -238,7 +298,9 @@ def _sync_here(computer: Computer, cfg: config.Config, mount: str | None, state_
                 for b in con.execute("select * from book where reader=? order by last_read desc", (reader["name"],))
                 if state.syncs(b)
             ]
+            before = len(said)
             wrote = _keep_collection(db, copy, name, ids, state_dir, cfg, said)
+            _collection_step(step, name, said[before:])
             if wrote:
                 try:
                     with open(hash_file, "w") as fh:  # our own write is not a reason to import again
@@ -246,22 +308,26 @@ def _sync_here(computer: Computer, cfg: config.Config, mount: str | None, state_
                 except OSError:
                     pass
     con.close()
-    return _finish(computer, cfg, mount, said, wrote)
+    out = _finish(computer, cfg, mount, said, wrote)
+    out.books, out.live = books, live
+    return out
 
 
-def _sync_to_server(computer: Computer, cfg: config.Config, mount: str, state_dir: str, opener, by_hand: bool = False) -> Outcome:
+def _sync_to_server(
+    computer: Computer, cfg: config.Config, mount: str, state_dir: str, opener, by_hand: bool = False, step=lambda row: None
+) -> Outcome:
     db = os.path.join(mount, KOBO_DB)
     token = computer.secret(UPLOAD)
     if not token:
         log.error("no upload token in the secret store")
-        return Outcome(False, message="No upload token on this computer; run `kobo-hardcover-sync setup` again.")
+        return Outcome(False, message="No upload token on this computer; run `kobo-hardcover-sync setup` again.", about="Setup")
     server = remote.Server(cfg.server, token, opener)
     hash_file = os.path.join(state_dir, "last-upload.sha256")
     try:
         seen = fingerprint(db)
     except OSError as ex:
         log.error("cannot read the Kobo's database: %s", ex)
-        return Outcome(False, message=unreadable(computer, ex, by_hand))
+        return Outcome(False, message=unreadable(computer, ex, by_hand), about="Kobo")
     try:
         with open(hash_file) as fh:
             unchanged = fh.read().strip() == seen
@@ -274,9 +340,11 @@ def _sync_to_server(computer: Computer, cfg: config.Config, mount: str, state_di
             copy = copy_database(db, tmp)
         except OSError as ex:
             log.error("cannot copy the Kobo's database: %s", ex)
-            return Outcome(False, message=unreadable(computer, ex, by_hand))
+            return Outcome(False, message=unreadable(computer, ex, by_hand), about="Kobo")
+        step(Row(OK, "Kobo", _model(mount)))
         if unchanged:
             log.info("unchanged since last upload, upload skipped")
+            step(Row(OK, "Upload", f"Nothing new for {server.host} since the last upload"))
         else:
             try:
                 small = os.path.join(tmp, "upload.sqlite")
@@ -286,14 +354,16 @@ def _sync_to_server(computer: Computer, cfg: config.Config, mount: str, state_di
                 result = server.upload(small + ".gz")
             except kobo_db.NotAKoboDatabase as ex:
                 log.error("not a Kobo database: %s", ex)
-                return Outcome(False, FAILED, DAMAGED)
+                return Outcome(False, FAILED, DAMAGED, about="Kobo")
             except remote.ServerError as ex:
                 log.error("upload failed: %s", ex)
-                return Outcome(False, FAILED, str(ex))
+                return Outcome(False, FAILED, str(ex), about="Upload")
             with open(hash_file, "w") as fh:
                 fh.write(seen + "\n")
             log.info("uploaded: %s", result)
-            said.append(f"{int(result.get('changed', 0)) + int(result.get('tracked_added', 0))} book(s) updated.")
+            n = int(result.get("changed", 0)) + int(result.get("tracked_added", 0))
+            said.append(f"{plural(n, 'book')} updated.")
+            step(Row(OK, "Upload", f"Sent to {server.host}: {plural(n, 'book')} updated"))
 
         # The collection on the Kobo: checked on every plug-in.
         wrote = False
@@ -302,8 +372,11 @@ def _sync_to_server(computer: Computer, cfg: config.Config, mount: str, state_di
         except remote.ServerError as ex:
             log.warning("collection request failed: %s", ex)
             wanted = None  # not known: leave the Kobo as it is
+            step(Row(WARN, "Collection", f"Left as it is: {server.host} could not be asked which books belong in it"))
         if wanted is not None:
+            before = len(said)
             wrote = _keep_collection(db, copy, wanted[0], wanted[1], state_dir, cfg, said)
+            _collection_step(step, wanted[0], said[before:])
             if wrote:
                 with open(hash_file, "w") as fh:  # our own write is not a reason to upload again
                     fh.write(fingerprint(db) + "\n")

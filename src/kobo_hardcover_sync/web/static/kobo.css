@@ -377,6 +377,8 @@ dialog .close { position: absolute; top: 0.9rem; right: 0.9rem; }
 .checks { list-style: none; margin: 0.35rem 0 0.75rem; padding: 0; }
 .checks li { margin: 0; padding: 0.5rem 0; border-bottom: 1px solid var(--line-soft); overflow-wrap: anywhere; }
 .checks li:last-child { border-bottom: 0; }
+/* The thing a few checks are about: This computer, Your Kobo, Hardcover. */
+.checks li.group { padding: 0.9rem 0 0.2rem; border-bottom: 0; font-size: 0.8125rem; font-weight: 600; color: var(--muted); }
 .checks .act { align-items: flex-start; }
 .checks .act .dot { margin-top: 0.45em; }
 .checks .act.none { color: var(--ink); }

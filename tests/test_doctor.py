@@ -15,6 +15,7 @@ from kobo_hardcover_sync.computer import config, runner
 from kobo_hardcover_sync.computer.platform import HARDCOVER
 from kobo_hardcover_sync.engine import collection, hardcover, state
 from kobo_hardcover_sync.server import accounts
+from tests import said
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer
 from tests.test_hardcover import FakeHC
@@ -96,7 +97,11 @@ def test_everything_in_order_and_nothing_touched(home):
         ": Kobo synced: 3 sent to Hardcover. Collection 'On Hardcover': 3 books (+3, -0). Eject before unplugging."
     )
     text = doctor.report(checks)
-    assert "ok       Kobo: Found at" in text and text.endswith("\n\nEverything a sync depends on is in order.")
+    assert text.startswith("This computer\n  ok       Setup          Local mode: everything happens on this computer.\n")
+    assert "\n\nYour Kobo\n  ok       Kobo           Found at" in text and "\n\nHardcover\n  ok       Token " in text
+    assert text.endswith("\n\nEverything a sync depends on is in order.")
+    # It fits an ordinary terminal; only a path is never folded, so that it can be copied whole.
+    assert all(len(line) <= 80 for line in text.splitlines() if "/" not in line)
     assert TOKEN not in text and "Made-up Book" not in text  # no token, no book
 
 
@@ -107,8 +112,11 @@ def test_not_set_up_is_a_problem_and_the_command_says_so(home, capsys):
     with pytest.raises(SystemExit) as ex:
         cli.main(["doctor"], computer=mac)
     out = capsys.readouterr().out
-    assert ex.value.code == 1 and out.startswith("kobo-hardcover-sync ") and ", Python 3." in out.splitlines()[0]
-    assert "problem  Setup: This computer is not set up yet.\n         To do: Run `kobo-hardcover-sync setup`." in out
+    assert ex.value.code == 1 and out.startswith("Kobo Hardcover Sync ") and out.splitlines()[1].startswith("Python 3.")
+    assert (
+        "\nThis computer\n  problem  Setup  This computer is not set up yet.\n                  To do: Run `kobo-hardcover-sync setup`.\n"
+        in out
+    )
     assert out.endswith("1 problem: its line says what to do.\n")
     assert not os.path.exists(home / "state")  # looking made nothing
 
@@ -118,9 +126,9 @@ def test_the_command_ends_well_when_nothing_stops_syncing(home, capsys, monkeypa
     config.save(config.Config())
     monkeypatch.setattr(hardcover, "Client", lambda token, **kw: hc)
     cli.main(["doctor"], computer=mac)  # no SystemExit: a dry run is a note, not a problem
-    out = capsys.readouterr().out
-    assert "note     Sending: Dry run: the page shows what would be sent, and nothing goes to Hardcover." in out
-    assert "         To do: Go live under Settings when the plan looks right." in out and TOKEN not in out
+    out = said(capsys)
+    assert "note Sending Dry run: the page shows what would be sent, and nothing goes to Hardcover." in out
+    assert "To do: Go live under Settings when the plan looks right." in out and TOKEN not in out
 
 
 def test_set_up_and_nothing_else_yet(home):

@@ -130,7 +130,7 @@ class Result:
             return f"collection '{name}': removed"
         if self.action == "absent":
             return f"collection '{name}': nothing to remove"
-        return f"collection '{name}': {self.books} books (+{self.added}, -{self.removed})"
+        return f"collection '{name}': {self.books} book{'' if self.books == 1 else 's'} (+{self.added}, -{self.removed})"
 
 
 # ---------- the gate ----------

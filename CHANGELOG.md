@@ -7,7 +7,21 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Changed
+
+- What the commands print. `doctor`, `status` and `setup` use the page's
+  status language: a coloured mark and plain words, grouped under *This
+  computer*, *Your Kobo* and *Hardcover*, folded to the width of the
+  terminal. `sync` run by hand says each step as it finishes and then
+  names the books that went to Hardcover (or would, in a dry run), each
+  with its reading line. Those titles are shown in the terminal and
+  written nowhere.
+- Colour only on a terminal, and never the only sign: the marks differ in
+  shape, and piped output carries the word (`ok`, `note`, `warning`,
+  `problem`). `NO_COLOR` switches colour off.
+- `kobo-hardcover-sync --help` lists the commands by where you use them.
+- Counts read "1 book", "9 books", in notifications too.
+- The Check card under Settings groups its lines the same way.
 
 ## 0.2.1 - 2026-10-03
 

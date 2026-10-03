@@ -22,6 +22,7 @@ from kobo_hardcover_sync import cli, doctor
 from kobo_hardcover_sync.computer import config, macos, remote, runner
 from kobo_hardcover_sync.computer.platform import UPLOAD, Computer
 from kobo_hardcover_sync.engine import collection, kobo_db
+from tests import said
 from tests.kobo_fixture import BOOKS, make
 
 SAM = {"Remote-User": "sam"}
@@ -197,7 +198,7 @@ def test_plug_in_upload_then_collection_then_nothing(home, server):
     cfg = config.Config(server=server.url)
 
     first = runner.sync(mac, cfg)
-    assert (first.ok, first.title, first.message) == (True, "Kobo synced", "9 book(s) updated.")
+    assert (first.ok, first.title, first.message) == (True, "Kobo synced", "9 books updated.")
     assert "Made-up Book 3" in server.page.get("/").text
     # What arrived on the server is the small database, not the Kobo's.
     assert len(snapshots(server)) == 1 and uploads(server) == 1
@@ -231,7 +232,7 @@ def test_plug_in_upload_then_collection_then_nothing(home, server):
     con.close()
     server.page.post("/mode", data={"ids": BOOKS[4], "mode": "on"})
     fourth = runner.sync(mac, cfg)
-    assert fourth.message == f"1 book(s) updated. Collection '{COLLECTION}': 4 books (+1, -0). Eject before unplugging."
+    assert fourth.message == f"1 book updated. Collection '{COLLECTION}': 4 books (+1, -0). Eject before unplugging."
     assert uploads(server) == 2 and mac.ejected == []
 
 
@@ -250,7 +251,7 @@ def test_in_server_mode_a_cleared_name_removes_the_collection_but_a_server_out_o
     assert members(db) == {BOOKS[0]} and "Collection" not in out.message
     server.page.post("/settings/collection", data={"collection": "Another name"})
     out = runner.sync(mac, cfg)
-    assert out.message == f"Collection '{COLLECTION}' removed. Collection 'Another name': 1 books (+1, -0). Eject before unplugging."
+    assert out.message == f"Collection '{COLLECTION}' removed. Collection 'Another name': 1 book (+1, -0). Eject before unplugging."
     server.page.post("/settings/collection", data={"collection": ""})
     assert runner.sync(mac, cfg).message == "Collection 'Another name' removed. Eject before unplugging."
     assert members(db, "Another name") == set() and runner.sync(mac, cfg).message == ""
@@ -262,7 +263,7 @@ def test_eject_after_sync_when_asked(home, server):
     register(server, mac)
     server.page.post("/settings/collection", data={"collection": COLLECTION})
     out = runner.sync(mac, config.Config(server=server.url, eject_after_sync=True))
-    assert out.message == "9 book(s) updated. Ejected: safe to unplug." and mac.ejected == [os.path.dirname(os.path.dirname(db))]
+    assert out.message == "9 books updated. Ejected: safe to unplug." and mac.ejected == [os.path.dirname(os.path.dirname(db))]
 
 
 def test_a_computer_the_server_does_not_know(home, server):
@@ -301,7 +302,7 @@ def test_a_second_sync_at_the_same_time_leaves_quietly(home, server):
         fcntl.flock(held, fcntl.LOCK_EX)
         assert runner.sync(mac, config.Config(server=server.url)) == runner.Outcome(True)
         assert snapshots(server) == []
-    assert runner.sync(mac, config.Config(server=server.url)).message == "9 book(s) updated."
+    assert runner.sync(mac, config.Config(server=server.url)).message == "9 books updated."
 
 
 def test_an_untested_kobo_still_syncs_but_its_collection_is_left_alone(home, server):
@@ -311,13 +312,13 @@ def test_an_untested_kobo_still_syncs_but_its_collection_is_left_alone(home, ser
     server.page.post("/settings/collection", data={"collection": COLLECTION})
     out = runner.sync(mac, config.Config(server=server.url))
     assert out.ok and out.message == (
-        "9 book(s) updated. Collection not updated: This Kobo's software has not been tested with kobo-hardcover-sync yet "
+        "9 books updated. Collection not updated: This Kobo's software has not been tested with kobo-hardcover-sync yet "
         "(its database is version 300; tested: 222, Kobo software 6.0.274403)."
     )
     assert "Eject" not in out.message and members(db) == set()
     server.page.post("/mode", data={"ids": BOOKS[0], "mode": "on"})
     out = runner.sync(mac, config.Config(server=server.url, allow_untested_kobo=True))
-    assert out.message.startswith(f"Collection '{COLLECTION}': 1 books") and members(db) == {BOOKS[0]}
+    assert out.message.startswith(f"Collection '{COLLECTION}': 1 book (") and members(db) == {BOOKS[0]}
 
 
 def test_doctor_on_a_computer_that_uploads_to_a_server(home, server, capsys):
@@ -469,7 +470,7 @@ def test_setup_on_a_mac_builds_the_app_once_and_loads_the_trigger(home, capsys):
     fake = FakeMac()
     mac = macos.MacOS(run=fake, home=str(home), volumes=str(home / "Volumes"))
     cli.main(["setup", "--server", "https://kobo.example.org/"], computer=mac)
-    out = capsys.readouterr().out
+    out = said(capsys)
     token = fake.keychain[("kobo-hardcover-sync", "upload")]
     assert len(token) == 64 and token not in out and hashlib.sha256(token.encode()).hexdigest() in out
     assert "New upload token" in out and "Full Disk Access" in out and "https://kobo.example.org/settings" in out
@@ -489,11 +490,12 @@ def test_setup_on_a_mac_builds_the_app_once_and_loads_the_trigger(home, capsys):
         plist = plistlib.load(fh)
     assert plist["StartOnMount"] is True and plist["EnvironmentVariables"] == {"KHS_TRIGGER": "mount"}
     assert plist["ProgramArguments"] == [str(state / "KoboHardcoverSync.app/Contents/MacOS/applet")]
-    assert [a[1] for a in fake.ran("launchctl")] == ["bootout", "bootstrap"]
+    assert [a[1] for a in fake.ran("launchctl")] == ["bootout", "bootstrap", "print"]  # loaded, and then looked at
+    assert "ok Mode Server mode: this computer uploads to https://kobo.example.org." in out and "Next 1. Paste this computer's hash" in out
 
     # Again: same token, same hash, the app is not rebuilt (its permission stays).
     cli.main(["setup"], computer=mac)
-    again = capsys.readouterr().out
+    again = said(capsys)
     assert "Keeping the existing upload token" in again and hashlib.sha256(token.encode()).hexdigest() in again and "kept" in again
     assert len(fake.ran("osacompile")) == 1 and fake.keychain[("kobo-hardcover-sync", "upload")] == token
     # On purpose: a new app, a new token.
@@ -532,28 +534,35 @@ def test_the_commands_around_a_sync(home, server, capsys):
     assert digest in capsys.readouterr().out and mac.triggers and mac.triggers[0][1] is False
     server.page.post("/settings/devices/add", data={"device": "kobo-sam", "hash": digest})
 
-    cli.main(["sync"], computer=mac)  # in a terminal: printed
-    assert capsys.readouterr().out == "Kobo synced: 9 book(s) updated.\n" and mac.told == []
+    cli.main(["sync"], computer=mac)  # in a terminal: each step, printed
+    assert capsys.readouterr().out == (
+        "\n"
+        "  ok       Kobo        Kobo\n"
+        "  ok       Upload      Sent to 127.0.0.1: 9 books updated\n"
+        "  note     Collection  None wanted: nothing is written to the Kobo\n"
+    )
+    assert mac.told == []
     cli.main(["sync"], computer=mac)
-    assert capsys.readouterr().out == "Nothing new.\n"
+    assert "ok Upload Nothing new for 127.0.0.1 since the last upload" in said(capsys)
     server.page.post("/settings/collection", data={"collection": COLLECTION})
     server.page.post("/mode", data={"ids": BOOKS[0], "mode": "on"})
     cli.main(["sync", "--trigger", "mount"], computer=mac)  # from the plug-in trigger: a notification
     assert capsys.readouterr().out == "" and mac.told == [
-        ("Kobo synced", f"Collection '{COLLECTION}': 1 books (+1, -0). Eject before unplugging.")
+        ("Kobo synced", f"Collection '{COLLECTION}': 1 book (+1, -0). Eject before unplugging.")
     ]
     assert members(db) == {BOOKS[0]}
 
     cli.main(["status"], computer=mac)
-    status = capsys.readouterr().out
-    assert f"server, {server.url}" in status and f"hash {digest}" in status and "database version 222 (tested)" in status
+    status = said(capsys)
+    assert f"ok Mode Server mode: uploads to {server.url}" in status and f"its hash is {digest}" in status
+    assert "database version 222 (tested)" in status
     assert "Collection 'On Hardcover'" in status and mac.secrets[UPLOAD] not in status
     cli.main(["open"], computer=mac)
     assert mac.opened == [server.url]
 
     shutil.rmtree(home / "Volumes" / "KOBOeReader")
     cli.main(["sync"], computer=mac)
-    assert "No Kobo found" in capsys.readouterr().out
+    assert "note Kobo No Kobo found: plug it in and tap Connect on the Kobo." in said(capsys)
     cli.main(["sync", "--trigger", "mount"], computer=mac)  # some other volume: silent
     assert capsys.readouterr().out == "" and len(mac.told) == 1
     cli.main(["uninstall"], computer=mac)

@@ -16,6 +16,7 @@ import pytest
 from kobo_hardcover_sync import cli
 from kobo_hardcover_sync.computer import config, linux, page, platform
 from kobo_hardcover_sync.computer.platform import HARDCOVER, UPLOAD
+from tests import said
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import plug_in
 
@@ -223,18 +224,18 @@ def test_the_whole_tool_on_this_machine(home, monkeypatch, capsys):
     monkeypatch.setattr(pc, "volume_roots", lambda: [])
     cli.main(["setup", "--local", "--no-trigger"], computer=pc)
     cli.main(["sync"], computer=pc)
-    out = capsys.readouterr().out
-    assert "Local mode" in out and "Kobo synced: 9 book(s) updated. No Hardcover token yet: add one on the page." in out
+    out = said(capsys)
+    assert "Local mode" in out and "ok Kobo Kobo: 9 books updated note Hardcover No token yet: add one on the page" in out
     cli.main(["status"], computer=pc)
-    status = capsys.readouterr().out
-    assert "Mode:    local" in status and "no Hardcover token yet" in status and f"Kobo:    {home / 'Volumes' / 'KOBOeReader'}" in status
+    status = said(capsys)
+    assert "ok Mode Local mode" in status and "note Token No Hardcover token yet" in status
+    assert f"ok Kobo {home / 'Volumes' / 'KOBOeReader'}" in status
     assert os.path.getsize(db) > 0 and config.load().mode == "local"
     cli.main(["doctor"], computer=pc)  # ends well: no trigger and no token are a warning and a note, not problems
-    seen = capsys.readouterr().out
-    assert "warning  Trigger: No trigger on this computer" in seen and "note     Hardcover: No Hardcover token yet" in seen
-    assert "ok       Database: The Kobo's database can be read: 9 books on it." in seen and seen.endswith(
-        "1 warning: its line says what to do.\n"
-    )
+    seen = said(capsys)
+    assert "warning Trigger No trigger on this computer" in seen and "note Hardcover No Hardcover token yet" in seen
+    assert "ok Database The Kobo's database can be read: 9 books on it." in seen
+    assert seen.endswith("1 warning: its line says what to do.")
 
     link = page.link()  # starts the page, as `open` does
     try:

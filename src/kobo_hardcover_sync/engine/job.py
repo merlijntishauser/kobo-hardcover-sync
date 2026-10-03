@@ -39,6 +39,22 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
     con.execute("insert into job (reader, started, live, status) values (?,?,?,?)", (reader, started, int(live), "running"))
     con.commit()
     counts = {"matched": 0, "uncertain": 0, "sent": 0, "planned": 0, "errors": 0, "adopted": 0, "removed": 0, "editions": 0}
+    # The books this run was about, for a reader watching it (the command, by hand). They are handed back
+    # and nowhere else: not kept with the run, not logged.
+    books = []
+
+    def about(r, what, went, error=""):
+        books.append(
+            {
+                "title": r["hc_title"] or r["title"],
+                "percent": r["percent"],
+                "finished": desired(r)["status"] == "read",
+                "what": what,
+                "went": went,
+                "error": error,
+            }
+        )
+
     try:
         client = client or hardcover.Client(token)
         shelf = client.shelf() if live else []
@@ -82,6 +98,7 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
             if not live:
                 counts["planned"] += 1
                 log.debug("would send %r: %s", r["title"], what)
+                about(r, what, "planned")
                 continue
             try:
                 sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
@@ -91,6 +108,7 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
                 con.execute("update book set hc_error=null where reader=? and content_id=?", (reader, r["content_id"]))
                 counts["sent"] += 1
                 log.debug("sent %r: %s", r["title"], what)
+                about(r, what, "sent")
             except hardcover.HardcoverError as e:
                 if e.stops_the_run:  # no token, no connection, too many requests: the next book would hear the same
                     con.commit()
@@ -99,6 +117,7 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
                 counts["errors"] += 1
                 log.warning("a book could not be sent (%s); its row on the page says why", e.kind)
                 log.debug("not sent %r: %s", r["title"], e)
+                about(r, what, "failed", str(e))
             con.commit()
         status = "ok" if not counts["errors"] else "errors"
     except hardcover.HardcoverError as e:
@@ -118,7 +137,7 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
         reader,
         {"status": status, **counts},
     )
-    return {"status": status, **counts}
+    return {"status": status, **counts, "books": books}
 
 
 EDITION_RECHECK_DAYS = 30

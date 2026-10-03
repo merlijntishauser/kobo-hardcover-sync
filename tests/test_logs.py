@@ -148,4 +148,4 @@ def test_something_nobody_expected_is_said_and_written_down(home, monkeypatch, c
     config.save(config.Config())
     with pytest.raises(SystemExit) as ex:
         cli.main(["sync"], computer=mac)
-    assert ex.value.code == 1 and "Kobo sync failed: Something went wrong" in capsys.readouterr().out
+    assert ex.value.code == 1 and "problem  Sync        Something went wrong that this tool did not expect" in capsys.readouterr().out

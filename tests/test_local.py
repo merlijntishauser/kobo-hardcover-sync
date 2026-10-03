@@ -19,7 +19,7 @@ from kobo_hardcover_sync.computer import config, macos, page, runner
 from kobo_hardcover_sync.computer.platform import HARDCOVER, UPLOAD
 from kobo_hardcover_sync.engine import hardcover, job, kobo_db, state
 from kobo_hardcover_sync.server import accounts
-from tests import client_at
+from tests import client_at, said
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer, FakeMac, members, plug_in
 from tests.test_hardcover import FakeHC
@@ -86,7 +86,7 @@ def test_plug_in_dry_run_live_collection_and_then_nothing(home):
 
     # No token yet: the books are imported, nothing else.
     first = runner.sync(mac, LOCAL)
-    assert (first.ok, first.message) == (True, "9 book(s) updated. No Hardcover token yet: add one on the page.")
+    assert (first.ok, first.message) == (True, "9 books updated. No Hardcover token yet: add one on the page.")
     con = st(home)
     assert tuple(con.execute("select count(*), count(distinct device) from book where reader = 'me'").fetchone()) == (9, 1)
     assert con.execute("select device from device").fetchone()[0] == kobo_db.device(str(home / "Volumes" / "KOBOeReader")).name
@@ -202,7 +202,7 @@ def test_hardcover_trouble_is_said_and_the_books_are_still_imported(home):
                 "Hardcover could not be reached (timed out). Nothing is lost: the next sync carries on", "unreachable"
             )
 
-    assert runner.sync(mac, LOCAL, hardcover_client=FakeHC()).message == "9 book(s) updated."
+    assert runner.sync(mac, LOCAL, hardcover_client=FakeHC()).message == "9 books updated."
     st(home).execute("update book set mode = 'on' where reader = 'me'").connection.commit()
     out = runner.sync(mac, LOCAL, hardcover_client=Down())
     assert out.ok and out.message == "Hardcover could not be reached (timed out). Nothing is lost: the next sync carries on."
@@ -495,8 +495,9 @@ def test_setup_token_status_open_in_local_mode(home, monkeypatch, capsys):
     with pytest.raises(SystemExit, match="run setup first"):
         cli.main(["token"], computer=mac)
     cli.main(["setup"], computer=mac)  # no server anywhere: local mode
-    out = capsys.readouterr().out
-    assert "Local mode: everything happens on this computer." in out and mac.triggers and UPLOAD not in mac.secrets
+    out = said(capsys)
+    assert "ok Mode Local mode: everything happens on this computer." in out and mac.triggers and UPLOAD not in mac.secrets
+    assert "ok Trigger Plugging in the Kobo starts a sync." in out and "Next 1. `kobo-hardcover-sync token` stores" in out
     assert config.load().mode == "local"
 
     class Stub(FakeHC):
@@ -517,21 +518,22 @@ def test_setup_token_status_open_in_local_mode(home, monkeypatch, capsys):
     assert mac.secrets == {}
     monkeypatch.setattr("sys.stdin", io.StringIO(f"Bearer {TOKEN}\n"))
     cli.main(["token"], computer=mac)
-    said = capsys.readouterr().out
-    assert said == "Stored. Hardcover knows you as @sam.\n" and mac.secrets == {HARDCOVER: TOKEN} and accounts.token_store is None
+    assert said(capsys) == "ok Stored. Hardcover knows you as @sam."
+    assert mac.secrets == {HARDCOVER: TOKEN} and accounts.token_store is None
 
     cli.main(["sync"], computer=mac)  # the real engine, with the stub for Hardcover: matching fails softly
     capsys.readouterr()
     cli.main(["status"], computer=mac)
-    status = capsys.readouterr().out
-    assert "Mode:    local" in status and "Hardcover token present" in status and "dry run; 0 of 9 books switched on" in status
+    status = said(capsys)
+    assert "ok Mode Local mode: everything on this computer" in status and "ok Token Hardcover token present" in status
+    assert "note Sending Dry run; 0 of 9 books switched on" in status
     assert "(Kobo Clara Colour, software 6.0.274403), database version 222 (tested)" in status and TOKEN not in status
     monkeypatch.setattr(page, "link", lambda: "http://127.0.0.1:4000/?k=abc")
     cli.main(["open"], computer=mac)
     assert mac.opened == ["http://127.0.0.1:4000/?k=abc"]
 
     cli.main(["token", "--remove"], computer=mac)
-    assert mac.secrets == {} and "back in dry run" in capsys.readouterr().out
+    assert mac.secrets == {} and "back in dry run" in said(capsys)
     # Switching to a server and back keeps the two apart.
     cli.main(["setup", "--server", "https://kobo.example.org"], computer=mac)
     assert config.load().mode == "server" and UPLOAD in mac.secrets
@@ -541,7 +543,7 @@ def test_setup_token_status_open_in_local_mode(home, monkeypatch, capsys):
     assert config.load().mode == "local"
     installed = len(mac.triggers)
     cli.main(["setup", "--no-trigger"], computer=mac)  # only the settings
-    assert len(mac.triggers) == installed and "No trigger installed" in capsys.readouterr().out
+    assert len(mac.triggers) == installed and "note Trigger No trigger installed" in said(capsys)
     mac.set_secret(HARDCOVER, TOKEN)
     cli.main(["uninstall", "--purge"], computer=mac)
     assert mac.secrets == {} and not os.path.exists(home / "state")

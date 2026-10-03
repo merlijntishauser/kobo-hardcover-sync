@@ -25,12 +25,18 @@ from dataclasses import dataclass
 from datetime import datetime
 from urllib.parse import quote
 
+from . import term
 from .engine import collection, hardcover, kobo_db, state
+from .term import FAIL, NOTE, OK, WARN, WORDS  # noqa: F401 (the page asks for them here)
 from .web.fmt import fmt_dt
 
-OK, NOTE, WARN, FAIL = "ok", "note", "warn", "fail"
-# The same four, as the command prints them.
-WORDS = {OK: "ok", NOTE: "note", WARN: "warning", FAIL: "problem"}
+# What is looked at belongs to one of three things, and is shown under it.
+COMPUTER, KOBO, HARDCOVER = "This computer", "Your Kobo", "Hardcover"
+GROUPS = {
+    COMPUTER: ("Setup", "Trigger", "Folder", "Upload token", "Server", "Last sync", "Log"),
+    KOBO: ("Kobo", "Database", "Kobo software", "Collection", "Backups", "Computers", "Computer"),
+    HARDCOVER: ("Token", "Hardcover", "Books", "Sending", "Matches", "Errors", "Last run"),
+}
 ON_THE_COMPUTER = "The Kobo itself is checked on the computer it is plugged into: run `kobo-hardcover-sync doctor` there."
 
 
@@ -396,12 +402,25 @@ def _backups(collection_dir: str) -> Check:
     )
 
 
-# ---------- as text, for the command ----------
-def report(checks: list[Check]) -> str:
-    width = max(len(w) for w in WORDS.values())
-    lines = []
-    for c in checks:
-        lines.append(f"{WORDS[c.state]:<{width}}  {c.what}: {c.found}")
-        if c.todo:
-            lines.append(f"{'':<{width}}  To do: {c.todo}")
-    return "\n".join([*lines, "", summary(checks)])
+# ---------- shown ----------
+def grouped(checks: list[Check]) -> list[tuple[str, list[Check]]]:
+    """The checks under the thing they are about, in the order found."""
+    out = [(name, [c for c in checks if c.what in whats]) for name, whats in GROUPS.items()]
+    return [(name, some) for name, some in out if some]
+
+
+def show(checks: list[Check], screen: term.Screen) -> None:
+    """The check as the command prints it."""
+    width = max(len(c.what) for c in checks)
+    for name, some in grouped(checks):
+        screen.heading(name)
+        screen.rows([term.Row(c.state, c.what, c.found, c.todo) for c in some], label_width=width)
+        screen.line()
+    screen.say(summary(checks))
+
+
+def report(checks: list[Check], width: int = 80) -> str:
+    """The same as plain text: what a pipe, a file or a bug report gets."""
+    out: list[str] = []
+    show(checks, term.Screen(out.append, colour=False, width=width))
+    return "".join(out).rstrip("\n")

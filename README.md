@@ -149,10 +149,26 @@ kobo-hardcover-sync open
 
 Plug in the Kobo. A notification says what happened, for example:
 
-> Kobo synced. 8 book(s) updated.
+> Kobo synced. 8 books updated.
 
 That is all. Nothing runs in between: the sync starts when the Kobo is
-mounted and exits when it is done. Open the page when you want to switch a
+mounted and exits when it is done. Run by hand in a terminal, the same sync
+shows what it did:
+
+```
+  ●  Kobo        Kobo Clara Colour: 3 books updated
+  ●  Hardcover   2 sent, 1 taken over
+  ●  Collection  'On Hardcover': 38 books (+1, -0).
+
+Sent to Hardcover
+  Moby-Dick; or, The Whale
+  ━━━━━━━━━━━━━───────────────────────  progress 35% to 37%
+  Middlemarch
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  mark Read, finished 2026-09-21
+
+Eject before unplugging.
+```
+ Open the page when you want to switch a
 book on or off, fix a match, set a finish date, or see why something did
 not sync.
 
@@ -160,7 +176,7 @@ Other commands:
 
 | | |
 |---|---|
-| `kobo-hardcover-sync sync` | One sync now, from a terminal. Without a Kobo it still exchanges changes with Hardcover (local mode). `--verbose` shows what it does, book by book. |
+| `kobo-hardcover-sync sync` | One sync now, from a terminal: it says each step, then names the books that went to Hardcover. Without a Kobo it still exchanges changes with Hardcover (local mode). `--verbose` also shows the log as it runs. |
 | `kobo-hardcover-sync status` | What is set up, the Kobo it sees, its model and software, the last message. Quick, and never uses the network. |
 | `kobo-hardcover-sync doctor` | Checks everything a sync depends on and says what to do about what is wrong. Changes nothing. |
 | `kobo-hardcover-sync open` | The page. |
@@ -321,12 +337,27 @@ Hardcover token, the collection, the backups), changes nothing, and says
 per item what it found and what to do:
 
 ```
-ok       Kobo: Found at /Volumes/KOBOeReader (Kobo Clara Colour, software 6.0.274403).
-ok       Database: The Kobo's database can be read: 412 books on it.
-problem  Hardcover: Hardcover does not accept your token. It has expired, was removed or is not complete: make a new one on Hardcover and put it under Settings.
-note     Sending: Dry run: the page shows what would be sent, and nothing goes to Hardcover.
-         To do: Go live under Settings when the plan looks right.
+Your Kobo
+  ●  Kobo           Found at /Volumes/KOBOeReader (Kobo Clara Colour, software
+                    6.0.274403).
+  ●  Database       The Kobo's database can be read: 412 books on it.
+
+Hardcover
+  ✗  Hardcover      Hardcover does not accept your token. It has expired, was
+                    removed or is not complete: make a new one on Hardcover and
+                    put it under Settings.
+  ○  Sending        Dry run: the page shows what would be sent, and nothing
+                    goes to Hardcover.
+                    Go live under Settings when the plan looks right.
+
+1 problem: its line says what to do.
 ```
+
+In a terminal the marks are coloured as on the page: green for fine, amber
+for something that needs you, red for a problem, grey for a note. Piped
+into a file or pasted into a bug report, the same lines carry the word
+instead (`ok`, `note`, `warning`, `problem`), and `NO_COLOR` switches the
+colour off.
 
 The page has the same check under Settings, in the *Check* card. With a
 server each side sees its own half: the card on the server's page checks
