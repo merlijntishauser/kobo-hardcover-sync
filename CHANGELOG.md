@@ -5,7 +5,9 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.5.1 - 2026-10-03
+
+*Sync now* shows the sync while it runs, and says what it did.
 
 ### Changed
 
@@ -15,7 +17,6 @@ minor version may change behaviour; the notes will say so.
   the button says what happened ("Done: 1 change sent to Hardcover.", or
   why it stopped). Before, the page came back at once, still showing the
   change as waiting while the sync had in fact sent it.
-
 - Help says what *stet* means: Latin for "let it stand", the word a
   proofreader writes to keep the original.
 
