@@ -16,8 +16,26 @@ the address and SHA-256 that `uv.lock` pins. What Homebrew installs is
 what the tests ran with.
 
 Two of those packages (pydantic-core, cryptography) are written in Rust,
-so Rust is a build dependency and the first install takes several minutes.
-`make_formula.py` writes the formula; nobody edits it by hand.
+so Rust is a build dependency and a build from source takes several
+minutes. `make_formula.py` writes the formula; nobody edits it by hand.
+
+## Bottles
+
+So that not every Mac has to do that build, the tap builds it once. Its
+workflow (`.github/workflows/bottles.yml` there) runs when a formula on
+`main` has no `bottle do` block, which is the state right after a release.
+It builds and tests the formula on macOS 26 and macOS 15 (Apple silicon),
+puts the two bottles on a release of the tap, and commits the bottle block
+to the formula. That commit is made by GitHub's robot account.
+
+Homebrew uses a bottle on the macOS it was built on and on every later
+one, so those two serve Apple-silicon Macs from macOS 15 on. Intel Macs
+and older systems build from source: Homebrew itself no longer has
+bottles of Python, Rust and OpenSSL for Intel, and does not bottle what
+depends on them.
+
+Between the release and the end of that workflow (about a quarter of an
+hour) the formula has no bottle, and an install builds from source.
 
 | | |
 |---|---|
@@ -39,9 +57,12 @@ is no service to keep.
    uv run python packaging/homebrew/make_formula.py --url <address of the .tar.gz> --sha256 <its sha256> > kobo-hardcover-sync.rb
    ```
 
-3. Put it in the tap as `Formula/kobo-hardcover-sync.rb`, and there:
-   `brew audit --strict --online kobo-hardcover-sync`, `brew install
-   --build-from-source kobo-hardcover-sync`, `brew test kobo-hardcover-sync`.
+3. Put it in the tap as `Formula/kobo-hardcover-sync.rb` and push. The
+   tap's workflow audits, builds and tests it on two versions of macOS and
+   adds the bottles; when it is green, the formula on `main` has a
+   `bottle do` block. To check by hand on a Mac: `brew audit --strict
+   --online kobo-hardcover-sync`, `brew install kobo-hardcover-sync`,
+   `brew test kobo-hardcover-sync`.
 
 A dependency bump changes `uv.lock`, and with it the formula the next
 release writes.

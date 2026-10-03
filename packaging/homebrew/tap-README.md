@@ -12,8 +12,10 @@ brew install merlijntishauser/tap/kobo-hardcover-sync
 kobo-hardcover-sync setup
 ```
 
-It is built from source on your Mac, which takes a few minutes the first
-time. What it does, and everything after installing:
+On a Mac with Apple silicon and macOS 15 or newer Homebrew fetches a
+ready-made build (a bottle), made by the workflow in this repository. On
+other Macs it builds from source, which takes several minutes. What the
+tool does, and everything after installing:
 <https://github.com/merlijntishauser/kobo-hardcover-sync>
 
 Before `brew uninstall kobo-hardcover-sync`, run `kobo-hardcover-sync

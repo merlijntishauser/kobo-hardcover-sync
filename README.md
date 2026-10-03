@@ -99,8 +99,10 @@ On a Mac, with Homebrew:
 brew install merlijntishauser/tap/kobo-hardcover-sync
 ```
 
-It is built on your Mac from source, which takes a few minutes the first
-time. On any computer, with uv, which brings the Python it needs:
+On a Mac with Apple silicon and macOS 15 or newer that takes seconds:
+Homebrew fetches a ready-made build. On other Macs it builds from source,
+which takes several minutes. On any computer, with uv, which brings the
+Python it needs:
 
 ```
 uv tool install kobo-hardcover-sync

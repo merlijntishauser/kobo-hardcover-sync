@@ -36,7 +36,8 @@ links pointing at the tag on GitHub.
 1. The Homebrew formula: see
    [packaging/homebrew/README.md](../packaging/homebrew/README.md). The
    address and SHA-256 of the source package are on the PyPI page of the
-   release, under *Download files*.
+   release, under *Download files*. Pushing the formula to the tap is the
+   whole job: the tap builds the bottles and adds them to the formula.
 2. Set the version in `pyproject.toml` to the next one with `.dev0`, and
    open a new heading in `CHANGELOG.md`.
 
