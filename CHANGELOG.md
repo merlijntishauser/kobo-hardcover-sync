@@ -5,6 +5,10 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
+## Unreleased
+
+Nothing yet.
+
 ## 0.4.0 - 2026-10-03
 
 You connect to Hardcover on Hardcover itself: no token to make or paste.
