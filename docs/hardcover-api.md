@@ -78,11 +78,14 @@ code to compare. Hardcover publishes what it needs
 authorize page at `hardcover.app/oauth2/authorize`, PKCE with S256, public
 clients without a secret, and its own name (`iss`) in the answer, which
 the tool checks. Both the `token` command (a moment's server on a free
-port) and the local page (its own address) use it. It needs that address
-registered for the app at Hardcover, with any port accepted, so it is off
-until it is: `LOOPBACK_READY` in `engine/oauth.py`, and
-`KHS_HARDCOVER_LOOPBACK=1` to try it before. `token --code` keeps the
-device flow at hand.
+port) and the local page (its own address) use it. The address is
+registered for the app at Hardcover as `http://127.0.0.1/oauth/callback`;
+Hardcover ignores the port of a loopback address, so one registration
+covers every port. Seen working against Hardcover on 2026-10-03, from the
+`token` command and from the local page. It is on (`LOOPBACK_READY` in
+`engine/oauth.py`); `KHS_HARDCOVER_LOOPBACK=0` switches it off, and
+`token --code` keeps the device flow at hand. A fork with its own app
+(`KHS_HARDCOVER_CLIENT_ID`) needs the address registered for that app too.
 
 The local page's cookie is `SameSite=Strict`, so it does not come along
 when Hardcover sends the browser back. The way back is checked on its
@@ -123,9 +126,9 @@ and the sync after it), and the check that asks whose token it is. Not
 seen yet: disconnecting (the revoke), a sign-in that is refused, the
 `token` command on a real computer.
 
-Settled (2026-10-03): Hardcover is content with the device flow for
-self-hosted servers. Open: whether they accept the loopback address with
-any port for a public app, so that the browser sign-in can be switched on.
+Settled (2026-10-03, with Hardcover): the device flow for self-hosted
+servers, and the loopback address with the port left open for a reader's
+own computer.
 
 ## What the live API does (2026-10-02)
 

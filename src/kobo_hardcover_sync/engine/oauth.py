@@ -30,9 +30,11 @@ On a reader's own computer there is a smoother way, Hardcover's suggestion
 to an address on this computer (RFC 8252): the browser opens Hardcover, the
 reader approves, and Hardcover sends the browser back to the tool. Nothing
 to type, no code to compare. It needs that address registered for the app
-at Hardcover, with any port allowed, so it is off until it is
-(LOOPBACK_READY); KHS_HARDCOVER_LOOPBACK=1 switches it on to try it. The
-device flow stays, for a server and as the way back.
+at Hardcover; Hardcover ignores the port of a loopback address, so one
+registration covers every port. It is on (LOOPBACK_READY);
+KHS_HARDCOVER_LOOPBACK=0 switches it off, and an app named by
+KHS_HARDCOVER_CLIENT_ID needs the address registered too. The device flow
+stays, for a server and as the way back.
 """
 
 from __future__ import annotations
@@ -63,9 +65,10 @@ DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
 AUTHORIZE_URL = os.environ.get("HARDCOVER_OAUTH_AUTHORIZE", "https://hardcover.app/oauth2/authorize")
 ISSUER = os.environ.get("HARDCOVER_OAUTH_ISSUER", "https://api.hardcover.app")
 CALLBACK = "/oauth/callback"  # where Hardcover sends the browser back: http://127.0.0.1:<port>/oauth/callback
-# Whether Hardcover has the loopback address registered for this project's app. Until it has, the
-# browser would end on an error at Hardcover, so the tool keeps to the device flow.
-LOOPBACK_READY = False
+# Whether Hardcover has the loopback address registered for this project's app: it has
+# (http://127.0.0.1/oauth/callback; Hardcover ignores the port), seen working 2026-10-03 from the
+# token command and from the local page. KHS_HARDCOVER_LOOPBACK=0 goes back to the device flow.
+LOOPBACK_READY = True
 
 RENEW_BEFORE = 24 * 3600  # an access token is renewed when it has less than a day left
 PREFIX = "oauth."  # how a kept OAuth connection is told from a pasted token

@@ -129,9 +129,11 @@ kobo-hardcover-sync open
 
    On Linux no permission is needed.
 
-2. **`token`** connects the tool to your Hardcover account. It shows an
-   address and a short code and opens the address in your browser; you
-   approve on Hardcover, and that is all. The tool may then read your
+2. **`token`** connects the tool to your Hardcover account. It opens
+   Hardcover in your browser; you approve there, Hardcover sends the
+   browser back to the tool, and that is all. (No browser on this
+   computer? `token --code` shows an address and a short code to approve
+   from anywhere.) The tool may then read your
    profile name, the catalogue and your library, and change your library,
    and nothing more. The connection is kept in your computer's secret
    store (the Keychain on a Mac) and renews itself. You can end it with
@@ -177,6 +179,7 @@ Other commands:
 | `kobo-hardcover-sync status` | What is set up, the Kobo it sees, its model and software, the last message. Quick, and never uses the network. |
 | `kobo-hardcover-sync doctor` | Checks everything a sync depends on and says what to do about what is wrong. Changes nothing. |
 | `kobo-hardcover-sync open` | The page. |
+| `kobo-hardcover-sync token --code` | Connect to Hardcover with a short code to approve, instead of in this computer's browser. |
 | `kobo-hardcover-sync token --remove` | End the connection to Hardcover and go back to dry run. |
 | `kobo-hardcover-sync uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
 

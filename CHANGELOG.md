@@ -9,11 +9,11 @@ minor version may change behaviour; the notes will say so.
 
 ### Added
 
-- Signing in on Hardcover in the browser, on your own computer: Hardcover
-  sends the browser back to the tool, with no code to compare. Ready, but
-  off until Hardcover has the tool's address registered;
-  `KHS_HARDCOVER_LOOPBACK=1` switches it on to try it. `token --code` keeps
-  the sign-in with a code. A server keeps signing in with a code.
+- On your own computer you connect to Hardcover in the browser: `token`
+  and *Connect to Hardcover* on the page open Hardcover, you approve, and
+  Hardcover sends the browser back to the tool. No code to compare.
+  `token --code` keeps the sign-in with a code, for a computer without a
+  browser. A server keeps signing in with a code.
 
 ## 0.5.1 - 2026-10-03
 

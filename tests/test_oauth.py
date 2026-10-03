@@ -359,8 +359,11 @@ def test_the_check_renews_nothing(tmp_path, monkeypatch, hc):
 
 
 # ---------- the browser sign-in, back to this computer ----------
-def test_the_browser_sign_in_is_off_until_hardcover_has_the_address_and_can_be_switched_on(hc, monkeypatch):
-    assert oauth.LOOPBACK_READY is False and oauth.loopback() is False  # the device flow, until Hardcover confirms
+def test_the_browser_sign_in_is_on_and_can_be_switched_off(hc, monkeypatch):
+    # On since Hardcover has the address registered (and ignores its port): seen working 2026-10-03.
+    assert oauth.LOOPBACK_READY is True and oauth.loopback() is True
+    monkeypatch.setenv("KHS_HARDCOVER_LOOPBACK", "0")
+    assert oauth.loopback() is False  # back to the device flow
     monkeypatch.setenv("KHS_HARDCOVER_LOOPBACK", "1")
     assert oauth.loopback() is True
     monkeypatch.setenv("KHS_HARDCOVER_CLIENT_ID", "")
@@ -397,6 +400,7 @@ def test_the_browser_sign_in_sends_a_challenge_and_takes_only_its_own_answer(hc)
 
 # ---------- on your own computer ----------
 def test_the_token_command_connects_at_a_terminal_and_still_takes_a_pasted_one(home, monkeypatch, capsys, hc):
+    monkeypatch.setenv("KHS_HARDCOVER_LOOPBACK", "0")  # the device flow, as `token --code` gives it too
     mac = FakeComputer(home / "Volumes")
     cli.main(["setup", "--local", "--no-trigger"], computer=mac)
     capsys.readouterr()
