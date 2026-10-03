@@ -140,6 +140,20 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
     return {"status": status, **counts, "books": books}
 
 
+def could_not_start(db_path: str, reader: str, live: bool, why: str) -> None:
+    """Record a run that never began, so that the page can say why: the
+    reader's connection to Hardcover has ended, for one."""
+    con = state.connect(db_path)
+    at = state.now()
+    con.execute(
+        "insert into job (reader, started, finished, live, status, detail) values (?,?,?,?,?,?)",
+        (reader, at, at, int(live), "failed", json.dumps({"fatal": why[:300]})),
+    )
+    con.commit()
+    con.close()
+    log.error("hardcover (%s) for %s did not start: %s", "live" if live else "dry run", reader, why)
+
+
 EDITION_RECHECK_DAYS = 30
 
 

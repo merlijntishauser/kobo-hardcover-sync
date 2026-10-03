@@ -14,6 +14,12 @@ The Hardcover token is encrypted with the key in KHS_SECRET_KEY
 or its backups. Without a key no token can be stored on the page, and the
 older HARDCOVER_TOKEN_<READER> environment variable keeps working.
 
+"Token" is either a token the reader pasted, or an OAuth connection made
+with "Connect to Hardcover" (engine/oauth.py): an access token that lasts
+a week and a refresh token to get the next one. Both are kept in the same
+place, as one encrypted text. `token_for` is the only way to the token to
+use: it renews an OAuth one when needed, one reader at a time.
+
 A reader only ever reads or changes their own rows. An admin sees who the
 readers are and how their sync is doing (counts), never a token or a book.
 """
@@ -27,11 +33,12 @@ import os
 import re
 import secrets
 import shutil
+import threading
 
 import yaml
 from cryptography.fernet import Fernet, InvalidToken
 
-from ..engine import state
+from ..engine import oauth, state
 from ..env import env
 from .upload import safe
 
@@ -153,7 +160,7 @@ def set_collection(con, name: str, collection: str) -> None:
 
 
 def set_live(con, name: str, live: bool) -> None:
-    if live and not token_for(con, name):
+    if live and not has_token(con, name):  # looks only: going live asks Hardcover nothing
         raise AccountError("err_live_needs_token")
     con.execute("update reader set hardcover_live=? where name=?", (int(bool(live)), name))
     con.commit()
@@ -238,9 +245,10 @@ def token_state(con, name: str) -> str:
     return "env" if f is None and _env_token(name) else "none"
 
 
-def token_for(con, name: str) -> str:
-    """The reader's Hardcover token, or "". With a key the database is the
-    only source; without one the legacy environment variable is."""
+def _kept(con, name: str) -> str:
+    """What is kept for the reader, as it is: a pasted token, an OAuth
+    connection, or "". With a key the database is the only source; without
+    one the legacy environment variable is."""
     if token_store is not None:
         return token_store.get() or ""
     f = _fernet()
@@ -253,6 +261,51 @@ def token_for(con, name: str) -> str:
         return f.decrypt(row["hardcover_token_enc"].encode()).decode()
     except InvalidToken:
         return ""
+
+
+def token_peek(con, name: str) -> str:
+    """The token as it is kept, for a check that changes nothing: nothing
+    is renewed. "" when there is none, or an OAuth one that has run out."""
+    return oauth.peek(_kept(con, name))
+
+
+def has_token(con, name: str) -> bool:
+    """Is there a token to use? Looks only; asks Hardcover nothing."""
+    return bool(_kept(con, name))
+
+
+def token_kind(con, name: str) -> str:
+    """ "oauth" (connected through Hardcover), "pasted", or "" for none."""
+    kept = _kept(con, name)
+    return "" if not kept else "oauth" if oauth.unpack(kept) else "pasted"
+
+
+_renewing: dict[str, threading.Lock] = {}
+_renewing_guard = threading.Lock()
+
+
+def _lock_for(name: str) -> threading.Lock:
+    with _renewing_guard:
+        return _renewing.setdefault(name, threading.Lock())
+
+
+def token_for(con, name: str) -> str:
+    """The reader's Hardcover token to use now, or "". An OAuth connection
+    is renewed first when it is about to run out, one reader at a time
+    (the hourly sync, an upload and the page can all come here at once),
+    and the new one is kept before this returns. Raises
+    hardcover.HardcoverError when a connection can no longer be used."""
+    if token_store is not None:
+        return token_store.usable()
+
+    def keep(text: str) -> None:
+        f = _fernet()
+        if f is None:  # cannot be: an OAuth connection is only ever kept with a key
+            raise AccountError("err_no_key")
+        con.execute("update reader set hardcover_token_enc=? where name=?", (f.encrypt(text.encode()).decode(), name))
+        con.commit()
+
+    return oauth.usable(lambda: _kept(con, name), keep, _lock_for(name))
 
 
 def set_token(con, name: str, token: str, hardcover_user: str = "") -> None:
@@ -281,7 +334,10 @@ def set_hardcover_user(con, name: str, hardcover_user: str) -> None:
 
 
 def clear_token(con, name: str) -> None:
-    """Without a token nothing can go to Hardcover: back to dry run too."""
+    """Without a token nothing can go to Hardcover: back to dry run too.
+    An OAuth connection is ended at Hardcover as well, so that it does not
+    stay listed there."""
+    oauth.revoke(_kept(con, name))
     if token_store is not None:
         token_store.delete()
     con.execute("update reader set hardcover_token_enc=null, hardcover_user=null, hardcover_live=0 where name=?", (name,))

@@ -9,6 +9,7 @@ gets a sign-up page; admins get /admin."""
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
 import secrets
@@ -23,7 +24,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
 from .. import doctor
-from ..engine import hardcover, job, state
+from ..engine import hardcover, job, oauth, state
 from ..engine.plan import action, desired, quiet_for
 from ..env import env
 from ..server import accounts, proxy, upload
@@ -226,13 +227,24 @@ def start_hourly_sync():
             try:
                 con = db()
                 for r in accounts.all_readers(con):
-                    token = accounts.token_for(con, r["name"])
-                    if r["hardcover_live"] and token:
+                    if r["hardcover_live"] and (token := token_to_use(con, r["name"], True)):
                         job.run(os.path.join(DATA, "state.db"), r["name"], True, token=token)
             except Exception:  # a bad hour must not end the loop
                 pass
 
     threading.Thread(target=loop, daemon=True, name="hourly-sync").start()
+
+
+def token_to_use(con, reader: str, live: bool) -> str | None:
+    """The reader's token for a run; "" when they have none. None when
+    there is a connection that cannot be used: that is written down as a
+    run that could not start, so that the page says so instead of staying
+    quiet, and there is nothing left to start."""
+    try:
+        return accounts.token_for(con, reader)
+    except hardcover.HardcoverError as ex:
+        job.could_not_start(os.path.join(DATA, "state.db"), reader, live, str(ex))
+        return None
 
 
 @app.get("/healthz")
@@ -636,7 +648,7 @@ def status_items(con, reader: str, live: bool, last_upload, j) -> str:
         kobo = item("ok" if age < 3 else "warn", T["kobo_read" if local else "kobo_uploaded"], fmt_dt(last_upload))
     else:
         kobo = item("none", T["kobo_never_local" if local else "kobo_never"])
-    if not accounts.token_for(con, reader):
+    if not accounts.has_token(con, reader):
         hc = item("warn", T["hc_no_token"])
     elif not live:
         hc = item("warn", T["hc_dry"], job_line(j))
@@ -868,7 +880,7 @@ async def put_upload(request: Request):
             os.unlink(tmp)
     except upload.UploadError as ex:
         return JSONResponse({"ok": False, "error": str(ex)}, status_code=ex.status)
-    if token := accounts.token_for(db(), reader):
+    if token := token_to_use(db(), reader, live_for(reader)):
         job.start(os.path.join(DATA, "state.db"), reader, live_for(reader), token)
     return JSONResponse({"ok": True, **result})
 
@@ -956,8 +968,8 @@ def sync_now(request: Request, back: str = Form("")):
         return PlainTextResponse(T["unknown_user"], status_code=403)
     if local:  # the whole sync, with the Kobo if it is plugged in
         threading.Thread(target=runner.sync, args=(local.computer,), daemon=True).start()
-    else:
-        job.start(os.path.join(DATA, "state.db"), reader, live_for(reader), accounts.token_for(db(), reader))
+    elif (token := token_to_use(db(), reader, live_for(reader))) is not None:
+        job.start(os.path.join(DATA, "state.db"), reader, live_for(reader), token)  # without a token the run says so itself
     return RedirectResponse("/?" + back if back else "/", status_code=303)  # the same filtered view
 
 
@@ -1027,8 +1039,21 @@ def signup(request: Request):
     return RedirectResponse("/settings?ok=signed_up", status_code=303)
 
 
+# Sign-ins that wait for the reader to approve on Hardcover, per reader. In
+# memory: one lasts a quarter of an hour, and a restart only means starting again.
+_signins: dict[str, oauth.Device] = {}
+
+
 def settings_page(
-    con, me, ok: str = "", err: str = "", detail: str = "", status: int = 200, new_stats_token: str = "", checks: list | None = None
+    con,
+    me,
+    ok: str = "",
+    err: str = "",
+    detail: str = "",
+    status: int = 200,
+    new_stats_token: str = "",
+    checks: list | None = None,
+    waiting: bool = False,
 ) -> HTMLResponse:
     me = accounts.get(con, me["name"])  # after a change: the row as it is now
     body = account_pages.settings(
@@ -1041,6 +1066,9 @@ def settings_page(
         new_stats_token,
         {"eject": computer_config.load().eject_after_sync, "kept_in": local.computer.secret_place(local_page.HARDCOVER)} if local else None,
         checks,
+        {"kind": accounts.token_kind(con, me["name"]), "signin": _signins.get(me["name"]), "waiting": waiting}
+        if oauth.available()
+        else None,
     )
     return HTMLResponse(frame_for(me, "settings", body), status_code=status)
 
@@ -1143,6 +1171,66 @@ def settings_token(request: Request, token: str = Form("")):
     return RedirectResponse("/settings?ok=token", status_code=303)
 
 
+@app.post("/settings/connect")
+def settings_connect(request: Request):
+    """Start signing in to Hardcover (engine/oauth.py): ask for a code, and
+    show the reader where to approve it."""
+    con, me, bad = guard(request)
+    if bad:
+        return bad
+    try:
+        if not accounts.can_store_tokens():
+            raise accounts.AccountError("err_no_key")
+        _signins[me["name"]] = oauth.start()
+    except accounts.AccountError as ex:
+        return settings_page(con, me, err=ex.key, status=400)
+    except oauth.OAuthError as ex:
+        return settings_page(con, me, err="err_connect", detail=f"{ex}.", status=502)
+    resp = settings_page(con, me)
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
+@app.post("/settings/connect/check")
+def settings_connect_check(request: Request):
+    """Ask Hardcover once whether the reader has approved. The page does
+    this every few seconds by itself (and gets a short answer); the button
+    does it for a browser without JavaScript (and gets the page)."""
+    con, me, bad = guard(request)
+    if bad:
+        return bad
+    name, quiet = me["name"], request.headers.get("x-requested-with") == "fetch"
+    device = _signins.get(name)
+    if device is None:  # nothing waiting: done in another tab, cancelled, or the server restarted
+        return JSONResponse({"done": True}) if quiet else RedirectResponse("/settings", status_code=303)
+    try:
+        got = oauth.collect(device)
+        if isinstance(got, int):  # not yet; ask again after this many seconds
+            _signins[name] = dataclasses.replace(device, interval=got)
+            return JSONResponse({"done": False, "wait": got}) if quiet else settings_page(con, me, waiting=True)
+        who = hardcover.Client(got.access, tries=1).whoami()
+        accounts.set_token(con, name, got.pack(), str(who.get("username") or ""))
+    except (oauth.OAuthError, hardcover.HardcoverError, accounts.AccountError) as ex:
+        _signins.pop(name, None)
+        if quiet:  # the page reloads and the reader starts again
+            return JSONResponse({"done": True})
+        detail = T[ex.key] if isinstance(ex, accounts.AccountError) else f"{ex}."
+        return settings_page(con, me, err="err_connect", detail=detail, status=400)
+    _signins.pop(name, None)
+    if quiet:
+        return JSONResponse({"done": True, "to": "/settings?ok=connected"})
+    return RedirectResponse("/settings?ok=connected", status_code=303)
+
+
+@app.post("/settings/connect/cancel")
+def settings_connect_cancel(request: Request):
+    con, me, bad = guard(request)
+    if bad:
+        return bad
+    _signins.pop(me["name"], None)
+    return RedirectResponse("/settings", status_code=303)
+
+
 @app.post("/settings/check")
 def settings_check(request: Request):
     """The Check card (doctor.py): look at everything a sync depends on,
@@ -1155,13 +1243,15 @@ def settings_check(request: Request):
         checks = doctor.computer_checks(local.computer, by_hand=False)
     else:
         name = me["name"]
+        token = accounts.token_peek(con, name)  # as it is kept: the check renews nothing
         checks = doctor.server_checks(
             con,
             name,
             accounts.token_state(con, name),
-            accounts.token_for(con, name),
+            token,
             accounts.can_store_tokens(),
             accounts.devices(con, name),
+            run_out=accounts.has_token(con, name) and not token,
         )
     resp = settings_page(con, me, checks=checks)
     resp.headers["Cache-Control"] = "no-store"

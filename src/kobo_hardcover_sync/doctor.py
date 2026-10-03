@@ -26,7 +26,7 @@ from datetime import datetime
 from urllib.parse import quote
 
 from . import term
-from .engine import collection, hardcover, kobo_db, state
+from .engine import collection, hardcover, kobo_db, oauth, state
 from .term import FAIL, NOTE, OK, WARN, WORDS  # noqa: F401 (the page asks for them here)
 from .web.fmt import fmt_dt
 
@@ -61,9 +61,13 @@ def summary(checks: list[Check]) -> str:
 
 
 # ---------- Hardcover ----------
-def hardcover_check(token: str, add_one: str, client=None) -> Check:
+def hardcover_check(token: str, add_one: str, client=None, run_out: bool = False) -> Check:
     """Is Hardcover there, and does it accept the token. One request.
-    add_one: where a token is entered, for the reader who has none."""
+    add_one: where a token is entered, for the reader who has none.
+    run_out: there is a connection, and its access token has run out; a
+    check renews nothing, so there is nothing to ask Hardcover with."""
+    if run_out and client is None:
+        return Check("Hardcover", NOTE, "The connection to Hardcover is renewed at the next sync; it was not asked about now.")
     if not token and client is None:
         return Check("Hardcover", NOTE, "No Hardcover token yet, so nothing is sent to Hardcover.", add_one)
     try:
@@ -145,15 +149,20 @@ def _when(stamp: str) -> str:
 
 
 # ---------- the server's half (the page in server mode) ----------
-def server_checks(con, reader: str, token_state: str, token: str, can_store: bool, devices: list, client=None) -> list[Check]:
+def server_checks(
+    con, reader: str, token_state: str, token: str, can_store: bool, devices: list, client=None, run_out: bool = False
+) -> list[Check]:
+    """token: the reader's token as it is kept, nothing renewed
+    (accounts.token_peek). run_out: a connection whose access token has
+    run out."""
     out = []
     if token_state == "unreadable":
         out.append(Check("Token", FAIL, "The stored Hardcover token cannot be read any more.", "Enter it again under Hardcover, above."))
     elif not can_store and token_state != "env":
         out.append(Check("Token", FAIL, "Tokens cannot be stored: the server has no KHS_SECRET_KEY.", "Ask the admin."))
     if token_state != "unreadable":
-        out.append(hardcover_check(token, "Add one under Hardcover, above.", client))
-    out += reader_checks(con, reader, bool(token))
+        out.append(hardcover_check(token, "Add one under Hardcover, above.", client, run_out))
+    out += reader_checks(con, reader, bool(token) or run_out)
     if not devices:
         out.append(
             Check(
@@ -234,12 +243,16 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
             Check("Hardcover", NOTE, f"Your Hardcover token and your books are checked on the server: {cfg.server}/settings, Check.")
         )
     else:
-        token = computer.secret(HARDCOVER)
-        if token:
-            out.append(Check("Token", OK, f"A Hardcover token is kept in {computer.secret_place(HARDCOVER)}."))
-        out.append(hardcover_check(token, "`kobo-hardcover-sync token`, or Settings on the page.", client))
-        has_token = bool(token) or client is not None
-        del token
+        kept = computer.secret(HARDCOVER)
+        token = oauth.peek(kept)  # as it is kept: a check renews nothing
+        if kept:
+            what = "The connection to Hardcover" if oauth.unpack(kept) else "A Hardcover token"
+            out.append(Check("Token", OK, f"{what} is kept in {computer.secret_place(HARDCOVER)}."))
+        out.append(
+            hardcover_check(token, "`kobo-hardcover-sync token`, or Settings on the page.", client, run_out=bool(kept) and not token)
+        )
+        has_token = bool(kept) or client is not None
+        del token, kept
         own = os.path.join(folder, "state.db")
         if not os.path.isfile(own):
             wanted = ""

@@ -7,11 +7,16 @@ browser; run them where one exists:
 The app runs locally with made-up books; no login and no Hardcover involved.
 """
 
+import json
 import os
 import socket
 import subprocess
 import sys
+import threading
 import time
+import urllib.parse
+import urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 from playwright.sync_api import sync_playwright
@@ -22,8 +27,63 @@ DARK_BG, LIGHT_BG = "rgb(15, 23, 42)", "rgb(240, 244, 255)"
 IMAGE_IDS = [i for i in os.environ.get("KOBO_TEST_IMAGE_IDS", "").split(",") if i]
 
 
+class PretendHardcover(BaseHTTPRequestHandler):
+    """Hardcover's sign-in, for the browser to go through: a code that waits
+    until someone "approves" (GET /approve), then tokens, and a whoami."""
+
+    approved: set = set()
+
+    def log_message(self, *a):
+        pass
+
+    def answer(self, status, body):
+        raw = json.dumps(body).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(raw)))
+        self.end_headers()
+        self.wfile.write(raw)
+
+    def do_GET(self):  # the test, playing the reader on hardcover.app
+        PretendHardcover.approved.add(urllib.parse.urlparse(self.path).query)
+        self.answer(200, {})
+
+    def do_POST(self):
+        sent = self.rfile.read(int(self.headers.get("Content-Length") or 0)).decode()
+        fields = dict(urllib.parse.parse_qsl(sent))
+        if self.path == "/device":
+            code = f"CODE-{len(PretendHardcover.approved) + int(time.time() * 1000) % 9000 + 1000}"
+            return self.answer(
+                200,
+                {
+                    "device_code": "secret-" + code,
+                    "user_code": code,
+                    "verification_uri": "https://hardcover.app/link",
+                    "verification_uri_complete": f"https://hardcover.app/link?code={code}",
+                    "expires_in": 900,
+                    "interval": 1,
+                },
+            )
+        if self.path == "/token":
+            code = fields.get("device_code", "").removeprefix("secret-")
+            if code not in PretendHardcover.approved:
+                return self.answer(400, {"error": "authorization_pending"})
+            return self.answer(200, {"access_token": "hc_at_browser", "refresh_token": "hc_rt_browser", "expires_in": 604800})
+        if self.path == "/graphql":
+            return self.answer(200, {"data": {"me": [{"id": 7, "username": "ada_reads"}]}})
+        self.answer(200, {})
+
+
 @pytest.fixture(scope="module")
-def base_url(tmp_path_factory):
+def pretend_hardcover():
+    server = ThreadingHTTPServer(("127.0.0.1", 0), PretendHardcover)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{server.server_address[1]}"
+    server.shutdown()
+
+
+@pytest.fixture(scope="module")
+def base_url(tmp_path_factory, pretend_hardcover):
     d = tmp_path_factory.mktemp("kobo")
     (d / "readers.yaml").write_text("readers:\n  sam:\n    identities: [sam]\n")
     from kobo_hardcover_sync.engine import state
@@ -54,6 +114,12 @@ def base_url(tmp_path_factory):
         KHS_TRUSTED_PROXIES="127.0.0.1",
         KHS_SECRET_KEY=Fernet.generate_key().decode(),
         KHS_INTERVAL="0",
+        # Signing in goes to the pretend Hardcover of this file, never to the real one.
+        KHS_HARDCOVER_CLIENT_ID="an-app-id",
+        HARDCOVER_OAUTH_DEVICE=pretend_hardcover + "/device",
+        HARDCOVER_OAUTH_TOKEN=pretend_hardcover + "/token",
+        HARDCOVER_OAUTH_REVOKE=pretend_hardcover + "/revoke",
+        HARDCOVER_API=pretend_hardcover + "/graphql",
     )
     proc = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "kobo_hardcover_sync.web.app:app", "--host", "127.0.0.1", "--port", str(port)],
@@ -495,4 +561,66 @@ def test_under_a_finger_every_control_is_44px(browser, base_url):
     )
     assert small == [], small[:5]
     shot(page, "kobo-touch.png")
+    ctx.close()
+
+
+def signed_up(browser, base_url, user, **kw):
+    ctx = browser.new_context(viewport={"width": 1280, "height": 900}, extra_http_headers={"Remote-User": user}, **kw)
+    page = ctx.new_page()
+    page.goto(base_url)
+    page.click("form[action='/signup'] button")
+    page.goto(base_url + "/settings")
+    return ctx, page
+
+
+def approve_on_hardcover(pretend_hardcover, page):
+    code = page.inner_text(".signin code.code")
+    assert page.get_attribute(".signin a.details", "href") == f"https://hardcover.app/link?code={code}"
+    urllib.request.urlopen(f"{pretend_hardcover}/approve?{code}").read()
+
+
+def test_connecting_to_hardcover_the_page_notices_the_approval_by_itself(browser, base_url, pretend_hardcover):
+    ctx, page = signed_up(browser, base_url, "ada")
+    assert page.inner_text("#hardcover .act") == "No token yet" and page.locator("#hardcover details.paste").count() == 1
+    assert not page.is_visible("#hardcover details.paste input")  # pasting a token is folded away
+    page.click("#hardcover form[action^='/settings/connect'] button")
+    page.wait_for_selector(".signin code.code")
+    assert page.url.endswith("/settings/connect#hardcover") and page.inner_text(".signin .btnrow .primary") == "I have approved it"
+    assert page.evaluate("document.querySelector('#hardcover').getBoundingClientRect().top") < 400
+    assert page.evaluate("scrollY") == 0  # the panel scrolled to the card; the page itself stayed
+    shot(page, "kobo-connect.png")
+    approve_on_hardcover(pretend_hardcover, page)
+    page.wait_for_url("**/settings?ok=connected", timeout=10000)  # nobody pressed anything: the page asked by itself
+    assert page.inner_text("#hardcover .act") == "Connected to Hardcover as @ada_reads"
+    assert page.inner_text("#hardcover .btnrow .danger") == "Disconnect" and page.locator(".signin").count() == 0
+    assert "hc_at_browser" not in page.content() and "hc_rt_browser" not in page.content()
+    shot(page, "kobo-connected.png")
+    ctx.close()
+
+
+def test_connecting_to_hardcover_without_javascript_and_on_a_phone(browser, base_url, pretend_hardcover):
+    ctx, page = signed_up(browser, base_url, "bea", java_script_enabled=False)
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.click("#hardcover form[action^='/settings/connect'] button")
+    page.wait_for_selector(".signin code.code")
+    page.click(".signin .btnrow .primary")  # too early
+    assert "Not approved on Hardcover yet." in page.inner_text(".signin")
+    approve_on_hardcover(pretend_hardcover, page)
+    page.click(".signin .btnrow .primary")
+    page.wait_for_url("**/settings?ok=connected#hardcover")  # back on the card it was started from
+    assert page.inner_text("#hardcover .act") == "Connected to Hardcover as @ada_reads"
+    ctx.close()
+    # On a phone, with text twice the size, the waiting sign-in still fits.
+    ctx, page = signed_up(browser, base_url, "cas")
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.click("#hardcover form[action^='/settings/connect'] button")
+    page.wait_for_selector(".signin code.code")
+    page.add_style_tag(content="html { font-size: 200% !important; }")
+    page.wait_for_timeout(200)
+    sticking_out = page.evaluate(
+        "() => [...document.querySelectorAll('main *')].filter(e => e.getBoundingClientRect().right > innerWidth + 1).map(e => e.tagName + '.' + e.className)"
+    )
+    assert sticking_out == [], sticking_out[:6]
+    page.click(".signin form[action='/settings/connect/cancel'] button")
+    assert page.locator(".signin").count() == 0
     ctx.close()

@@ -39,7 +39,7 @@ the future", and tokens may be reset without notice.
   book on the shelf and sent its progress, without an error. A missing
   permission would be reported by name.
 
-## The open question: OAuth
+## OAuth: what was decided
 
 Hardcover added OAuth on 2026-09-24 and is plain about when to use it:
 
@@ -52,23 +52,51 @@ Hardcover added OAuth on 2026-09-24 and is plain about when to use it:
 and, about tokens pasted by hand: "great for scripts and tools you run
 yourself".
 
-What that means here:
+This tool is something other people install, so it signs in with OAuth,
+and keeps the pasted token as a second way.
 
-- **Local mode** (one person, their own computer, their own token) is the
-  case a pasted token is meant for. Hardcover's own examples of tools that
-  take a pasted token are of this kind (an e-reader plugin). For a tool
-  "other people install" they would rather see OAuth; for a command-line
-  tool that is the browser flow with a loopback address, or the device
-  flow.
-- **Server mode** (several readers each paste a token into a web page) is
-  what they ask not to do. For a household on its own server it harms
-  nobody, but it is not how they want a multi-user app built. The fitting
-  flow is the confidential web app one.
+**Which kind of app.** Hardcover has three: a web app on a server (it
+gets a secret, and Hardcover sends the reader back to a registered https
+address), a single-page app, and "mobile, desktop, or CLI" (public: no
+secret). This tool runs on a reader's own computer, or on a household's
+own server at an address only they know, and its code is public. It
+cannot keep a secret and has no one address to register. So it is a
+public app, for both ways of running it.
 
-Both need an app registered on Hardcover by whoever publishes the tool, and
-a decision on what happens to installations that hold a pasted token. That
-is a decision, not a fix: it has its own ticket and is to be settled before
-the first public release.
+**Which flow.** The device flow (RFC 8628), everywhere: the tool shows a
+link and a short code, the reader approves on hardcover.app, the tool
+collects the tokens. It needs no address to come back to, so it works the
+same on a laptop and on a server that is only reachable at home. The other
+flow for a public app, a redirect to a loopback address, would have been
+one click smoother on a reader's own computer and no use on a server; one
+flow is one thing to keep working. Hardcover warns that both can be
+misused by someone who copies the app's public id; no redirect address is
+registered, which leaves the device flow as the only way in.
+
+**The tokens.** An access token lasts a week and is used like a pasted
+one. A refresh token lasts six months and is replaced on every use; one
+that is used twice ends the whole connection. So renewing happens in one
+place (`engine/oauth.py`, `usable`), for one reader at a time: a lock in
+the server's process, and on a reader's own computer a lock on a file,
+because a sync and the page are two programs. The new pair is kept before
+it is used. A renewal that got no answer is not sent again while the old
+access token still works. The connection is kept where a pasted token is
+kept: encrypted in the server's database, or in the computer's secret
+store.
+
+**What a reader sees when it ends** (revoked on Hardcover, or six months
+without a sync): the run is recorded as one that could not start, with
+"Connect again under Settings".
+
+**The app.** Registered at Hardcover by this project; its id is in
+`engine/oauth.py` and is public by design. `KHS_HARDCOVER_CLIENT_ID` names
+another app, for a fork. Without an id the tool offers only the pasted
+token.
+
+Not settled: Hardcover describes the device flow for devices without a
+browser or a keyboard. Whether they are content with it for self-hosted
+servers is still to be confirmed with them. If they are not, the server
+half changes and the rest stands.
 
 ## What the live API does (2026-10-02)
 

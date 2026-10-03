@@ -497,7 +497,7 @@ def test_setup_token_status_open_in_local_mode(home, monkeypatch, capsys):
     cli.main(["setup"], computer=mac)  # no server anywhere: local mode
     out = said(capsys)
     assert "ok Mode Local mode: everything happens on this computer." in out and mac.triggers and UPLOAD not in mac.secrets
-    assert "ok Trigger Plugging in the Kobo starts a sync." in out and "Next 1. `kobo-hardcover-sync token` stores" in out
+    assert "ok Trigger Plugging in the Kobo starts a sync." in out and "Next 1. `kobo-hardcover-sync token` connects to Hardcover." in out
     assert config.load().mode == "local"
 
     class Stub(FakeHC):

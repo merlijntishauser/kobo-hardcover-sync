@@ -21,11 +21,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from .. import ISSUES, logs
-from ..engine import collection, job, kobo_db, state
+from ..engine import collection, hardcover, job, kobo_db, state
 from ..server import accounts
 from ..term import FAIL, NOTE, OK, WARN, Row, plural
-from . import config, remote
-from .platform import HARDCOVER, KOBO_DB, UPLOAD, Computer
+from . import config, page, remote
+from .platform import KOBO_DB, UPLOAD, Computer
 
 NAME = "Kobo Hardcover Sync"
 FAILED = "Kobo sync failed"
@@ -256,8 +256,17 @@ def _sync_here(
                 step(Row(OK, "Kobo", f"{_model(mount)}: {plural(n, 'book')} updated" if n else f"{_model(mount)}: read, nothing changed"))
 
         # Hardcover: the same run as on the server. Dry run until the reader goes live.
-        token = computer.secret(HARDCOVER)
-        if token or client:
+        ended = False
+        try:
+            token = page.KeptToken(computer).usable()  # an OAuth connection is renewed here when it is about to run out
+        except hardcover.HardcoverError as ex:
+            token, ended = "", True
+            job.could_not_start(db_path, reader["name"], bool(reader["hardcover_live"]), str(ex))
+            said.append(f"{ex}.")
+            step(Row(FAIL, "Hardcover", said[-1]))
+        if ended:
+            pass  # said above: the connection to Hardcover cannot be used
+        elif token or client:
             live = bool(reader["hardcover_live"])
             r = job.run(db_path, reader["name"], live, client=client, token=token)
             books = r.get("books", [])

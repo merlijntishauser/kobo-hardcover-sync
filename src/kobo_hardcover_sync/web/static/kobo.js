@@ -65,6 +65,24 @@ document.addEventListener('submit', ev => {
   }
 });
 
+// A sign-in that waits for approval on Hardcover: ask every few seconds
+// whether it has come, and show the page again when it has. Without JS the
+// "I have approved it" button asks the same question.
+(function () {
+  const box = document.querySelector('[data-poll]');
+  if (!box) return;
+  const ask = async wait => {
+    await new Promise(r => setTimeout(r, wait * 1000));
+    try {
+      const r = await fetch(box.dataset.poll, { method: 'POST', headers: { 'X-Requested-With': 'fetch' } });
+      const d = r.ok ? await r.json() : { done: true };
+      if (d.done) { location.href = d.to || '/settings#hardcover'; return; }
+      ask(d.wait || wait);
+    } catch (e) { ask(wait); }
+  };
+  ask(Number(box.dataset.every) || 5);
+})();
+
 // Help: a static dialog.
 document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => {
   const d = document.getElementById(b.dataset.open);

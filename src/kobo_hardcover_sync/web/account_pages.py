@@ -101,6 +101,22 @@ def check_card(checks: list | None, local: bool) -> str:
     )
 
 
+def _signin(device, waiting: bool) -> str:
+    """A sign-in that waits for the reader: where to approve, the code to
+    recognise it by, and a button for when they have. The page asks by
+    itself every few seconds (kobo.js); the button does the same without."""
+    return (
+        f'<div class="signin" data-poll="/settings/connect/check" data-every="{int(device.interval)}">'
+        f"<ol><li>{e(T['s_connect_step1'])}"
+        f'<div><a class="details" href="{e(device.link_with_code)}" target="_blank" rel="noopener noreferrer">{T["s_connect_open"]}</a></div></li>'
+        f'<li>{e(T["s_connect_step2"])} <code class="code">{e(device.user_code)}</code></li>'
+        f"<li>{e(T['s_connect_step3'])}</li></ol>"
+        + (line("warn", T["s_connect_waiting"]) if waiting else "")
+        + f'<div class="btnrow"><form method="post" action="/settings/connect/check#hardcover"><button class="primary">{T["s_connect_done"]}</button></form>'
+        f'<form method="post" action="/settings/connect/cancel"><button>{T["s_connect_cancel"]}</button></form></div></div>'
+    )
+
+
 def _token_line(token_state: str, can_store: bool, hc_user: str) -> str:
     if token_state == "stored":
         return line("ok", T["tok_stored_as"].format(user="@" + hc_user) if hc_user else T["tok_stored"])
@@ -121,11 +137,15 @@ def settings(
     new_stats_token: str = "",
     local: dict | None = None,
     checks: list | None = None,
+    connect: dict | None = None,
 ) -> str:
     """local: None in server mode; in local mode what this computer does
     ({"eject": bool, "kept_in": where the token is kept}). Local mode has no
     logins, devices or stats. checks: what the Check card found, when its
-    button was just pressed."""
+    button was just pressed. connect: None when this installation has no
+    Hardcover app to connect through; else {"kind": "oauth" | "pasted" | "",
+    "signin": a sign-in that waits for the reader (oauth.Device) or None,
+    "waiting": the reader said they approved and Hardcover has not seen it}."""
     has_token = token_state in ("stored", "env")
     you = (
         f'<section class="card"><h2>{T["s_profile"]}</h2>'
@@ -143,20 +163,36 @@ def settings(
         + "</section>"
     )
 
+    connected = connect is not None and connect["kind"] == "oauth"
     if can_store:
-        token_form = (
-            f'<form method="post" action="/settings/token" class="field"><label for="token">{T["s_token_replace"] if token_state == "stored" else T["s_token"]}</label>'
+        # With a way to connect, pasting a token is the second way: folded away, and its button is not the filled one.
+        filled = "" if connect is not None else ' class="primary"'
+        paste = (
+            f'<form method="post" action="/settings/token" class="field"><label for="token">{T["s_token_replace"] if token_state == "stored" and not connected else T["s_token"]}</label>'
             f'<div class="inputs"><input type="password" id="token" name="token" autocomplete="off" spellcheck="false" required>'
-            f'<button class="primary">{T["s_token_save"]}</button></div>'
+            f"<button{filled}>{T['s_token_save']}</button></div>"
             f'<p class="hint">{e(T["s_token_help_local" if local is not None else "s_token_help"])} <a href="{e(NEW_TOKEN_URL)}" target="_blank" rel="noopener noreferrer">{T["s_token_link"]}</a></p></form>'
         )
+        if connect is None:
+            token_form = paste
+        elif connect["signin"] is not None:
+            token_form = _signin(connect["signin"], connect.get("waiting", False))
+        else:
+            start = (
+                ""
+                if connected
+                else f'<form method="post" action="/settings/connect#hardcover"><button class="primary">{T["s_connect"]}</button></form>'
+                f'<p class="hint">{e(T["s_connect_help"])}</p>'
+            )
+            token_form = f'{start}<details class="paste"><summary>{T["s_paste_instead"]}</summary>{paste}</details>'
     else:
         token_form = line("warn", T["tok_no_key"])
     token_actions = ""
     if token_state == "stored":  # whether it still works is the Check card's business
+        confirm, label = ("s_disconnect_confirm", "s_disconnect") if connected else ("s_token_remove_confirm", "s_token_remove")
         token_actions = (
-            f'<div class="btnrow"><form method="post" action="/settings/token/remove" data-confirm="{e(T["s_token_remove_confirm"])}">'
-            f'<button class="danger">{T["s_token_remove"]}</button></form></div>'
+            f'<div class="btnrow"><form method="post" action="/settings/token/remove" data-confirm="{e(T[confirm])}">'
+            f'<button class="danger">{T[label]}</button></form></div>'
         )
     if me["hardcover_live"]:
         mode = (
@@ -170,7 +206,7 @@ def settings(
         )
     kept = f'<p class="hint">{e(T["s_token_kept"].format(place=local["kept_in"]))}</p>' if local is not None and has_token else ""
     hardcover = (
-        f'<section class="card"><h2>{T["s_hardcover"]}</h2>{_token_line(token_state, can_store, me["hardcover_user"] or "")}{kept}'
+        f'<section class="card" id="hardcover"><h2>{T["s_hardcover"]}</h2>{_token_line(token_state, can_store, me["hardcover_user"] or "")}{kept}'
         f'{token_actions}{token_form}<h3>{T["s_mode"]}</h3><div class="moderow">{mode}</div></section>'
     )
 

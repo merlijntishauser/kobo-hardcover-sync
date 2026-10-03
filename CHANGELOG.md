@@ -7,6 +7,20 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- Signing in on Hardcover itself instead of pasting a token: *Connect to
+  Hardcover* under Settings, and `kobo-hardcover-sync token`. The tool
+  shows a link and a short code, you approve on Hardcover, and that is
+  all. The connection renews itself; it is kept where a pasted token was
+  kept, and ended at Hardcover when you disconnect. This is switched on
+  once the project's app is registered at Hardcover; until then, and
+  always as a second way, a pasted token works as before
+  (`token --paste`).
+- Homebrew installs a ready-made build on Macs with Apple silicon and
+  macOS 15 or newer, in seconds instead of minutes. Other Macs build from
+  source as before.
+
 ### Changed
 
 - What the commands print. `doctor`, `status` and `setup` use the page's

@@ -372,6 +372,15 @@ dialog .close { position: absolute; top: 0.9rem; right: 0.9rem; }
 .devices li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 0; padding: 0.55rem 0; border-bottom: 1px solid var(--line-soft); }
 .devices li:last-child { border-bottom: 0; }
 .devices form { margin: 0; }
+/* Signing in to Hardcover: three steps, the code set large enough to compare at a glance. */
+.signin ol { margin: 0.6rem 0 0.9rem; padding-left: 1.3rem; max-width: 64ch; }
+.signin li { margin: 0.5rem 0; }
+.signin li > div { margin-top: 0.4rem; }
+.signin code.code { font-size: 1.125rem; letter-spacing: 0.08em; color: var(--ink); padding: 0.1rem 0.45rem; background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: var(--r-ctl); user-select: all; white-space: nowrap; }
+details.paste { margin-top: 0.9rem; }
+details.paste summary { cursor: pointer; color: var(--muted); font-size: 0.875rem; padding: 0.4rem 0; }
+details.paste summary:hover { color: var(--ink); }
 /* What the check found: one line per thing looked at, what to do under it. */
 .found { font-weight: 600; }
 .checks { list-style: none; margin: 0.35rem 0 0.75rem; padding: 0; }

@@ -11,9 +11,11 @@ kobo-hardcover-sync setup [--server URL | --local] [--no-trigger] [--new-token] 
     again; takes over an older installation. --no-trigger leaves the
     trigger out: you run `sync` yourself.
 
-kobo-hardcover-sync token [--remove]
-    Local mode: ask for your Hardcover token, check it with Hardcover, and
-    keep it in the Keychain. (The page's Settings does the same.)
+kobo-hardcover-sync token [--paste] [--remove]
+    Local mode: connect to Hardcover. It shows an address and a code, you
+    approve on Hardcover, and the connection is kept in the Keychain. (The
+    page's Settings does the same.) --paste takes a token you made on
+    Hardcover yourself instead; --remove ends the connection.
 
 kobo-hardcover-sync sync [--verbose]
     One sync now. It says each step as it finishes, and then names the
@@ -52,6 +54,7 @@ kobo-hardcover-sync import <file> --reader NAME --device NAME [--raw]
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import hashlib
 import json
 import os
@@ -60,6 +63,7 @@ import shutil
 import sqlite3
 import sys
 import tempfile
+import time
 
 from . import __version__, term
 from .engine import kobo_db, state
@@ -72,7 +76,7 @@ COMMANDS = (
         "On the computer you plug the Kobo into",
         (
             ("setup", "Make this computer sync a plugged-in Kobo"),
-            ("token", "Store your Hardcover token (when everything runs on this computer)"),
+            ("token", "Connect to Hardcover (when everything runs on this computer)"),
             ("sync", "One sync now"),
             ("status", "What is set up, and what it sees"),
             ("doctor", "Check everything a sync depends on; changes nothing"),
@@ -125,6 +129,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     stp.add_argument("--no-trigger", action="store_true", help="only the settings: you run `sync` yourself")
     tok = sub.add_parser("token", help="local mode: store your Hardcover token")
     tok.add_argument("--remove", action="store_true", help="forget the token (and go back to dry run)")
+    tok.add_argument("--paste", action="store_true", help="paste a token made on Hardcover, instead of connecting there")
     sub.add_parser("page")  # what `open` starts in local mode; no help text, so it is not listed
     syn = sub.add_parser("sync", help="one sync now")
     syn.add_argument("--trigger", default="", help=argparse.SUPPRESS)  # "mount": started by the plug-in trigger
@@ -266,7 +271,7 @@ def _setup(a, computer) -> None:
         screen.line(f"     {screen.style(digest, term.CYAN)}")
         screen.say("2. Plug in the Kobo and tap Connect on it.", indent=2, hang=3)
     else:
-        screen.say("1. `kobo-hardcover-sync token` stores your Hardcover token.", indent=2, hang=3)
+        screen.say("1. `kobo-hardcover-sync token` connects to Hardcover.", indent=2, hang=3)
         screen.say("2. Plug in the Kobo and tap Connect on it.", indent=2, hang=3)
         screen.say(
             "3. `kobo-hardcover-sync open` shows your books. Nothing goes to Hardcover until you go live under Settings.", indent=2, hang=3
@@ -281,7 +286,7 @@ def _one(state: str, text: str, todo: str = "") -> None:
 def _token(a, computer) -> None:
     from .computer import config, page
     from .computer.platform import HARDCOVER
-    from .engine import hardcover
+    from .engine import hardcover, oauth
     from .server import accounts
 
     cfg = config.load()
@@ -297,29 +302,66 @@ def _token(a, computer) -> None:
     try:
         if a.remove:
             accounts.clear_token(con, reader["name"])
-            _one(OK, "Hardcover token removed. Syncing is back in dry run.")
+            _one(OK, "Disconnected from Hardcover. Syncing is back in dry run.")
             return
-        if sys.stdin.isatty():
-            import getpass
-
-            print(f"Make a token with the permissions this tool needs:\n  {hardcover.NEW_TOKEN_URL}", file=sys.stderr)
-            raw = getpass.getpass("Hardcover token: ")
+        # At a terminal, and with an app to connect through: sign in on Hardcover. A token that is
+        # piped in, or asked for with --paste, is taken as before.
+        if oauth.available() and sys.stdin.isatty() and not a.paste:
+            token, keep = _connect(computer, oauth)
         else:
-            raw = sys.stdin.readline()
-        token = hardcover.bare(raw)
+            if sys.stdin.isatty():
+                import getpass
+
+                print(f"Make a token with the permissions this tool needs:\n  {hardcover.NEW_TOKEN_URL}", file=sys.stderr)
+                raw = getpass.getpass("Hardcover token: ")
+            else:
+                raw = sys.stdin.readline()
+            token = keep = hardcover.bare(raw)
+            del raw
         if not token:
             sys.exit("kobo-hardcover-sync: no token given.")
         try:
             who = hardcover.Client(token).whoami()
         except hardcover.HardcoverError as ex:
             sys.exit(f"kobo-hardcover-sync: {ex}. Nothing was stored.")
-        accounts.set_token(con, reader["name"], token, str(who.get("username") or ""))
-        del token, raw
-        _one(OK, f"Stored. Hardcover knows you as @{who.get('username')}." if who.get("username") else "Stored.")
+        accounts.set_token(con, reader["name"], keep, str(who.get("username") or ""))
+        connected = oauth.unpack(keep) is not None
+        del token, keep
+        done = "Connected" if connected else "Stored"
+        _one(OK, f"{done}. Hardcover knows you as @{who.get('username')}." if who.get("username") else f"{done}.")
         assert computer.secret(HARDCOVER)
     finally:
         accounts.token_store = None
         con.close()
+
+
+def _connect(computer, oauth) -> tuple[str, str]:
+    """Sign in on Hardcover by the device flow: show where to approve,
+    wait until it is done. Returns the token to use now and the connection
+    to keep."""
+    screen = term.Screen.of()
+    try:
+        device = oauth.start()
+    except oauth.OAuthError as ex:
+        sys.exit(f"kobo-hardcover-sync: {ex}. `kobo-hardcover-sync token --paste` takes a pasted token instead.")
+    screen.heading("Connect to Hardcover")
+    screen.say("1. Open this address (it is being opened for you) and approve:", indent=2, hang=3)
+    screen.line(f"     {screen.style(device.link_with_code, term.CYAN)}")
+    screen.say(f"2. Check that Hardcover shows this code: {screen.style(device.user_code, term.BOLD)}", indent=2, hang=3)
+    screen.line()
+    screen.say("Waiting for your approval. Ctrl-C stops.", style=(term.DIM,))
+    sys.stdout.flush()
+    computer.open_page(device.link_with_code)
+    wait = device.interval
+    while True:
+        time.sleep(wait)
+        try:
+            got = oauth.collect(dataclasses.replace(device, interval=wait))
+        except oauth.OAuthError as ex:
+            sys.exit(f"kobo-hardcover-sync: {ex}. Nothing was stored.")
+        if not isinstance(got, int):
+            return got.access, got.pack()
+        wait = got
 
 
 def _sync(a, computer) -> None:

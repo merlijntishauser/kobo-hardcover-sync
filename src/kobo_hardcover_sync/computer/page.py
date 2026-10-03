@@ -19,6 +19,8 @@ The page stops by itself after half an hour without a request.
 
 from __future__ import annotations
 
+import contextlib
+import fcntl
 import getpass
 import hashlib
 import hmac
@@ -27,8 +29,10 @@ import os
 import secrets
 import subprocess
 import sys
+import threading
 import time
 
+from ..engine import oauth
 from . import config
 from .platform import HARDCOVER, Computer
 
@@ -68,11 +72,29 @@ def take_key(key: str) -> bool:
 
 
 # ---------- what the app needs to know in local mode ----------
+_token_lock = threading.Lock()
+
+
 class KeptToken:
-    """The Hardcover token, kept in the computer's secret store."""
+    """The Hardcover token, kept in the computer's secret store: a pasted
+    token, or an OAuth connection (engine/oauth.py)."""
 
     def __init__(self, source):
         self._source = source  # a Computer, or something that has one (.computer)
+
+    @contextlib.contextmanager
+    def lock(self):
+        """Held while the tokens are read, renewed and kept again. A sync
+        and the page are two programs that can both want to renew, and a
+        refresh token may be used once: so a lock on a file, which both see."""
+        os.makedirs(config.state_dir(), mode=0o700, exist_ok=True)
+        with _token_lock, open(os.path.join(config.state_dir(), "hardcover.lock"), "w") as fh:
+            fcntl.flock(fh, fcntl.LOCK_EX)
+            yield
+
+    def usable(self) -> str:
+        """The token to send to Hardcover now; an OAuth one is renewed first when it is about to run out."""
+        return oauth.usable(self.get, self.set, self.lock())
 
     @property
     def computer(self) -> Computer:
