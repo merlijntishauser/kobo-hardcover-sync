@@ -5,7 +5,10 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.6.0 - 2026-10-04
+
+On your own computer you connect to Hardcover in the browser, with no code
+to compare.
 
 ### Added
 

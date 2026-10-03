@@ -1,6 +1,6 @@
 [project]
 name = "kobo-hardcover-sync"
-version = "0.6.0.dev0"
+version = "0.6.0"
 description = "Reading progress from a stock Kobo e-reader to Hardcover, on your own computer or your own server"
 dynamic = ["readme"]
 requires-python = ">=3.12"
