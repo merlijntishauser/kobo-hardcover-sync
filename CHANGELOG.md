@@ -5,6 +5,8 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
+## Unreleased
+
 ## 0.5.1 - 2026-10-03
 
 *Sync now* shows the sync while it runs, and says what it did.
