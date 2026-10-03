@@ -5,7 +5,9 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.2.1 - 2026-10-03
+
+Two fixes for 0.2.0, and fewer books that wait for a match.
 
 ### Changed
 
