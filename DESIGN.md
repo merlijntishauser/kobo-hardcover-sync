@@ -274,7 +274,7 @@ Deep. `tests/test_design_tokens.py` checks the pairs.
 
 **Display Font:** Literata (with Georgia, Times New Roman)
 **Body Font:** Sora (with the system sans-serif)
-**Label/Mono Font:** the system monospace, for tokens and hashes only
+**Label/Mono Font:** the system monospace, for tokens, hashes and the sign-in code only
 
 **Character:** Literata was made for reading ebooks, so the titles on the
 page look the way they do on the device. Sora is a plain, slightly wide
@@ -329,7 +329,10 @@ the page, the navigation is a bar fixed at the bottom under the thumb, the
 filters fold behind one line that names the chosen one, and each book is a
 card: cover and title across, the two switches side by side under their
 names, then what Hardcover gets. From 720px a tablet shows two cards per
-row. At 520px and below, the help dialog and term lists go to one column.
+row. At 520px and below, the help dialog and its list of terms go to one
+column. Elsewhere a term and its value (in Details, on a card) sit side by
+side, the term 8.5rem wide (6.75rem at 520px and below), and the value
+drops under its term when there is no room left beside it.
 
 The list is a table with fixed columns: the book takes what is left, Sync
 7.25rem, State 10.5rem, Hardcover status 29%. Rows are padded 0.85rem;
@@ -338,7 +341,8 @@ the frame's gutter is 1.5rem. Controls are 2.25rem tall, 2.5rem below
 1024px, and 2.75rem (44px) under a finger, whatever the width. What takes
 keyboard focus is scrolled clear of the two bars that stay put: the
 navigation at the bottom of a phone, the table's head on a desk. With text
-at twice its size, rows of controls wrap; nothing scrolls sideways.
+at twice its size, rows of controls wrap; nothing scrolls sideways, and a
+card or a field is as wide as the page, never as wide as its longest word.
 
 **The List First Rule.** Nothing sits above the list that is taller than
 the toolbar. A new element earns a place in the sidebar, in a row, or in
@@ -403,6 +407,18 @@ framed boxes would be louder than the books.
 - **In a row:** selects lose their border and sit on Ruled Tint; the border comes back on hover and focus. Their chevron and their words identify them. Without JavaScript each gets a *Set* button.
 - **Focus:** the 2px cyan outline; hover darkens the border to Pencil Grey.
 - **Error:** shown as a message, not on the field: a panel-coloured box with a Margin Red border, the reason in Pencil Grey beneath. Success is a Shelf Green wash.
+
+### Steps to follow (sign-in on Hardcover)
+- **Style:** a numbered list of three short steps, held to 64ch; under the first, a link that opens Hardcover; in the second, the code to compare.
+- **The code:** the system monospace at 1.125rem, spaced out (0.08em), ink on Ruled Tint with a Rule border and the 9px of a control, selected whole with one click and never broken across lines. It is set large because the reader compares it by eye with what Hardcover shows.
+- **Waiting:** an amber status line under the steps; the page asks by itself every few seconds, and a primary button (*I have approved it*) does the same without JavaScript, next to a plain *Cancel*.
+- **The second way:** pasting a token sits behind a disclosure under the button that starts signing in, its summary in Pencil Grey at 0.875rem that turns to ink on hover. The usual way is shown; the other is one click away.
+
+### The check list (Check card)
+- **Style:** the status line used as a list: one line per thing looked at, the name of the thing in bold, what was found after it, a Soft Rule between lines. Above the list, one summary line in 600 that carries the worst state.
+- **Groups:** small labels (0.8125rem, 600, Pencil Grey) name what a few checks are about: *This computer*, *Your Kobo*, *Hardcover*.
+- **To do:** what to do about a line goes under it in Pencil Grey, indented to start under the words rather than under the dot.
+- **States:** the dot carries it, as everywhere; a note (grey dot) keeps its words in ink here, because a fact the check found is still a fact to read. For someone who does not see the dot, the state is also a word before the line.
 
 ### Navigation
 - **Desk:** a list in the sidebar, icon and word, Pencil Grey; the current page is a Sheet White box with a Rule border, ink text and a cyan icon.
