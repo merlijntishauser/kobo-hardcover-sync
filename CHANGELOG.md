@@ -9,6 +9,13 @@ minor version may change behaviour; the notes will say so.
 
 ### Changed
 
+- *Sync now* shows the sync running: the button says *Syncing* and what it
+  is doing ("Sending 2 of 5"), with a line that fills as the books go out.
+  When it is done the list comes back with its new marks, and a line under
+  the button says what happened ("Done: 1 change sent to Hardcover.", or
+  why it stopped). Before, the page came back at once, still showing the
+  change as waiting while the sync had in fact sent it.
+
 - Help says what *stet* means: Latin for "let it stand", the word a
   proofreader writes to keep the original.
 

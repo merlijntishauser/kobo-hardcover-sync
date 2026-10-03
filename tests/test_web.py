@@ -1,4 +1,5 @@
 import importlib
+import json
 import re
 
 from kobo_hardcover_sync.engine import kobo_db, state
@@ -65,6 +66,37 @@ def test_the_first_run_says_what_to_do_until_the_reader_goes_live(tmp_path, monk
     st.execute("update reader set hardcover_live=1 where name='robin'")
     st.commit()
     assert "firstrun" not in c.get("/", headers=h).text
+
+
+def test_sync_now_shows_the_sync_running_and_then_what_it_did(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    h = {"Remote-User": "robin"}
+    import kobo_hardcover_sync.web.app as web
+
+    # While it runs: Syncing, what it is doing, a gauge that is that far; the page looks again by itself without JS.
+    web.job.progress["robin"] = {"phase": "send", "done": 1, "total": 4}
+    try:
+        page = c.get("/", headers=h).text
+        assert '<form class="syncnow" data-running="/sync/status">' in page and 'aria-busy="true"' in page
+        assert "<span>Syncing</span>" in page and '<div class="bar syncbar" aria-hidden="true"><span style="--p:0.25">' in page
+        assert '<noscript><meta http-equiv="refresh" content="3"></noscript>' in page
+        d = c.get("/sync/status", headers=h).json()
+        assert d == {"running": True, "text": "Checking 2 of 4", "part": 0.25}  # a dry run checks, a live one sends
+        web.job.progress["robin"] = {"phase": "shelf", "done": 0, "total": 0}
+        assert c.get("/sync/status", headers=h).json() == {"running": True, "text": "Reading your Hardcover shelf", "part": None}
+    finally:
+        web.job.progress.pop("robin", None)
+    # Done: what it did, said once the list is back (kobo.js shows it after the reload it asked for).
+    st = state.connect(str(tmp_path / "state.db"))
+    st.execute(
+        "insert into job (reader, started, finished, live, status, detail) values ('robin', '2026-10-03T20:26:14Z', '2026-10-03T20:26:21Z', 1, 'ok', ?)",
+        (json.dumps({"sent": 1, "errors": 0}),),
+    )
+    st.commit()
+    assert c.get("/sync/status", headers=h).json() == {"running": False, "kind": "ok", "text": "Done: 1 change sent to Hardcover."}
+    page = c.get("/", headers=h).text
+    assert "<span>Sync now</span>" in page and "refresh" not in page.split("</head>")[0]
+    assert '<div class="syncdone" role="status" hidden>' in page and "Done: 1 change sent to Hardcover." in page
 
 
 def test_row_mode_via_fetch_returns_json(tmp_path, monkeypatch):

@@ -166,6 +166,23 @@ button.linkbtn { min-height: 0; font: inherit; background: none; border: 0; padd
 .statusactions .primary { min-height: 2.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1rem; line-height: 1.2; }
 .statusactions .marked { font-size: 0.75rem; font-weight: 500; }
 .statusactions .marked:empty { display: none; }
+/* While a sync runs the button stays red and says what it is doing; the line
+   gauge under it fills as the books go out, or sweeps while that is not known. */
+.statusactions .primary[aria-busy="true"] { opacity: 1; filter: none; cursor: progress; }
+.syncbar { max-width: none; margin: 0.5rem 0 0; }
+/* Scaled, not resized: the fill moves by transform alone. */
+.bar.syncbar span { width: 100%; background: var(--red); transform-origin: left; transform: scaleX(var(--p, 0));
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes sweep { from { transform: translateX(0); } to { transform: translateX(233%); } }
+.bar.syncbar.wait span { width: 30%; transform: none; animation: sweep 1.1s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) {
+  .bar.syncbar.wait span { animation: none; width: 100%; opacity: 0.35; }
+  .bar.syncbar span { transition: none; }
+}
+/* What the sync said, once, when the list comes back after it. */
+.syncdone { margin-top: 0.55rem; font-size: 0.875rem; }
+.syncdone .act { color: var(--rail-ink); }
+.syncdone .act.ok .mk { color: var(--green); }
 
 /* ---------- controls ---------- */
 input[type="search"], input[type="text"], input[type="password"], input[type="date"], select {

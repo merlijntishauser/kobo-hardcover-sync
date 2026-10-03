@@ -53,6 +53,41 @@ document.querySelectorAll('form.stateform').forEach(f => {
   f.querySelector('.rowstate').addEventListener('change', save);
   f.querySelector('.rowdate').addEventListener('change', save);
 });
+// Sync now while it runs: ask where it is, fill the line gauge, and when it
+// is done show the list again (with its new marks) and what the sync said.
+// A press of Sync now is remembered across the page loads it causes, so that
+// what the sync said is shown whether it was still running or already done.
+(function () {
+  const box = document.querySelector('.syncnow[data-running]');
+  const said = document.querySelector('.syncdone');
+  const store = (on) => { try { if (on) sessionStorage.setItem('kobo-synced', '1'); else sessionStorage.removeItem('kobo-synced'); } catch (e) {} };
+  let pressed = false;
+  try { pressed = !!sessionStorage.getItem('kobo-synced'); } catch (e) {}
+  const form = document.querySelector('form.syncnow[action="/sync"]');
+  if (form) form.addEventListener('submit', () => store(true));
+  if (!box) {
+    if (said && pressed) said.hidden = false;
+    store(false);
+    return;
+  }
+  const text = box.querySelector('.marked'), bar = box.querySelector('.syncbar');
+  const ask = async () => {
+    try {
+      const r = await fetch(box.dataset.running, { headers: { 'X-Requested-With': 'fetch' } });
+      const d = await r.json();
+      if (!d.running) {
+        if (pressed) store(true);
+        location.reload();
+        return;
+      }
+      text.textContent = d.text;
+      if (typeof d.part === 'number') { bar.classList.remove('wait'); bar.firstElementChild.style.setProperty('--p', d.part); }
+    } catch (e) {}
+    setTimeout(ask, 800);
+  };
+  setTimeout(ask, 800);
+})();
+
 // Confirmations, delegated: forms inside the details dialog arrive later.
 // The question names the chosen setting where the form has one ({mode}).
 function ask(f) {

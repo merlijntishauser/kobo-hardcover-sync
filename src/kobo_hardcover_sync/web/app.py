@@ -393,6 +393,66 @@ def first_run(con, reader: str, live: bool) -> str:
     )
 
 
+def sync_progress(reader: str) -> dict | None:
+    """While a sync for this reader runs: what it is doing, in the page's words,
+    and how far it is (0 to 1, or None while that is not known yet)."""
+    p = job.progress.get(reader)
+    if p is None:
+        return None
+    if p["phase"] == "send" and p["total"]:
+        key = "sp_send" if live_for(reader) else "sp_check"
+        return {"text": T[key].format(i=min(p["done"] + 1, p["total"]), n=p["total"]), "part": p["done"] / p["total"]}
+    return {"text": T["sp_" + p["phase"]], "part": None}
+
+
+def sync_button(con, reader: str, live: bool, back: str, j) -> str:
+    """Sync now. While a sync runs: Syncing, what it is doing, and a line gauge
+    that fills as the books go out; kobo.js asks /sync/status until it is done
+    and then shows the list again with what the sync said. Without JS the
+    page refreshes itself while it runs."""
+    p = sync_progress(reader)
+    kind, said = sync_result(j)
+    done = f'<div class="syncdone" role="status" hidden>{marks.line(kind, said)}</div>' if said else ""
+    if p is None:
+        return (
+            f'<form method="post" action="/sync" class="syncnow"><input type="hidden" name="back" value="{e(back)}">'
+            f'<button class="primary"><span>{T["sync_now"]}</span><small class="marked">{e(marked_line(con, reader, live))}</small></button>'
+            f"{done}</form>"
+        )
+    part = p["part"]
+    bar = (
+        f'<div class="bar syncbar" aria-hidden="true"><span style="--p:{round(part, 3)}"></span></div>'
+        if part is not None
+        else '<div class="bar syncbar wait" aria-hidden="true"><span></span></div>'
+    )
+    return (
+        f'<form class="syncnow" data-running="/sync/status"><button class="primary" type="button" disabled aria-busy="true">'
+        f'<span>{T["syncing"]}</span><small class="marked" aria-live="polite">{e(p["text"])}</small></button>{bar}</form>'
+    )
+
+
+def sync_result(j) -> tuple[str, str]:
+    """(kind, text) of the last sync, said the way the person who pressed Sync now asked it."""
+    if not j or j["status"] == "running":
+        return "", ""
+    try:
+        d = json.loads(j["detail"] or "{}")
+    except ValueError:
+        d = {}
+
+    def n(key, count):
+        one, many = T[key]
+        return (one if count == 1 else many).format(n=count)
+
+    if d.get("fatal"):
+        return "err", T["sd_failed"].format(why=d["fatal"])
+    if d.get("errors"):
+        return "err", n("sd_errors", d["errors"])
+    if not j["live"]:
+        return "ok", n("sd_planned", d["planned"]) if d.get("planned") else T["sd_none"]
+    return "ok", n("sd_sent", d["sent"]) if d.get("sent") else T["sd_none"]
+
+
 def marked_line(con, reader: str, live: bool) -> str:
     """The second line of Sync now: how many books carry the red mark, so the
     button says what it is about to send. Empty when there are none."""
@@ -661,13 +721,13 @@ THEME_COLOR = (
 )
 
 
-def shell(body: str, cls: str = "") -> str:
+def shell(body: str, cls: str = "", head: str = "") -> str:
     return (
         f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
         f'<meta name="viewport" content="width=device-width,initial-scale=1"><title>{T["title"]}</title>'
         f'{THEME_COLOR}{HEAD_SCRIPT}<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">'
         f'<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">'
-        f'<link rel="stylesheet" href="/static/kobo.css?v={ASSET_V}"></head><body{f' class="{cls}"' if cls else ""}>{body}'
+        f'<link rel="stylesheet" href="/static/kobo.css?v={ASSET_V}">{head}</head><body{f' class="{cls}"' if cls else ""}>{body}'
         f'<script src="/static/kobo.js?v={ASSET_V}"></script></body></html>'
     )
 
@@ -764,7 +824,7 @@ def status_items(con, reader: str, live: bool, last_upload, j) -> str:
     return kobo + hc + books
 
 
-def frame(name: str, main: str, current: str = "", is_admin: bool = False, nav: bool = True, side: str = "") -> str:
+def frame(name: str, main: str, current: str = "", is_admin: bool = False, nav: bool = True, side: str = "", head: str = "") -> str:
     """Every page, one frame: the sidebar (what this is, where to go, and on
     Books the sync status), the page itself, and a footer with who is signed
     in and the page tools. On a phone the sidebar is the top of the page and
@@ -787,11 +847,12 @@ def frame(name: str, main: str, current: str = "", is_admin: bool = False, nav: 
         f' aria-label="{T["help"]}" title="{T["help"]}">{marks.HELP}</button></div>'
         f'<p class="indep">{e(T["disclaimer"])}</p></footer>' + help_html(),
         "app",
+        head,
     )
 
 
-def frame_for(me, current: str, main: str, side: str = "") -> str:
-    return frame(me["display_name"] or me["name"], main, current, bool(me["is_admin"]), side=side)
+def frame_for(me, current: str, main: str, side: str = "", head: str = "") -> str:
+    return frame(me["display_name"] or me["name"], main, current, bool(me["is_admin"]), side=side, head=head)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -884,7 +945,7 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
 {status_items(con, reader, live, dev, j)}
 <div class="statusactions">
 <form method="get" action="/">{keep}<button>{T["refresh"]}</button></form>
-<form method="post" action="/sync"><input type="hidden" name="back" value="{e(back)}"><button class="primary"><span>{T["sync_now"]}</span><small class="marked">{e(marked_line(con, reader, live))}</small></button></form>
+{sync_button(con, reader, live, back, j)}
 </div>
 </section>"""
     # The sheet: find, filter, and the list. On a phone the filters fold
@@ -913,6 +974,8 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
 <figure><img alt=""><figcaption></figcaption></figure>
 </dialog>""",
         side,
+        # Without JS the page looks again by itself while a sync runs.
+        '<noscript><meta http-equiv="refresh" content="3"></noscript>' if sync_progress(reader) else "",
     )
 
 
@@ -1075,10 +1138,36 @@ def sync_now(request: Request, back: str = Form("")):
     if reader is None:
         return PlainTextResponse(T["unknown_user"], status_code=403)
     if local:  # the whole sync, with the Kobo if it is plugged in
-        threading.Thread(target=runner.sync, args=(local.computer,), daemon=True).start()
+        job.begin(reader)
+
+        def whole():
+            try:
+                runner.sync(local.computer)
+            finally:  # also when it ended before Hardcover (no Kobo, another sync holding the lock)
+                job.progress.pop(reader, None)
+
+        threading.Thread(target=whole, daemon=True).start()
     elif (token := token_to_use(db(), reader, live_for(reader))) is not None:
         job.start(os.path.join(DATA, "state.db"), reader, live_for(reader), token)  # without a token the run says so itself
     return RedirectResponse("/?" + back if back else "/", status_code=303)  # the same filtered view
+
+
+@app.get("/sync/status")
+def sync_status(request: Request):
+    """For kobo.js while a sync runs: where it is, and when it is over, what it said."""
+    reader = reader_for(request)
+    if reader is None:
+        return PlainTextResponse(T["unknown_user"], status_code=403)
+    p = sync_progress(reader)
+    if p is not None:
+        return JSONResponse({"running": True, "text": p["text"], "part": p["part"]})
+    j = (
+        db()
+        .execute("select started, finished, status, detail, live from job where reader=? order by started desc limit 1", (reader,))
+        .fetchone()
+    )
+    kind, said = sync_result(j)
+    return JSONResponse({"running": False, "kind": kind, "text": said})
 
 
 @app.post("/pick")

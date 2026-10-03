@@ -203,6 +203,20 @@ def test_sync_switch_saves_in_place_and_keeps_scroll(browser, base_url):
     ctx.close()
 
 
+def test_sync_now_says_when_it_is_done_and_what_it_did(browser, base_url):
+    ctx, page = new_page(browser, base_url)
+    assert not page.locator(".syncdone").is_visible()  # nothing said before anyone asked
+    page.click("form.syncnow button")
+    # Running or already over when the list comes back: either way it ends with what the sync said.
+    page.locator(".syncdone").wait_for(state="visible", timeout=15000)
+    # This reader has not connected to Hardcover yet, and the sync says so in so many words.
+    assert page.inner_text(".syncdone") == "The sync stopped: Not connected to Hardcover yet: connect under Settings"
+    assert page.inner_text("form.syncnow button span") == "Sync now"  # ready for the next one
+    page.reload()
+    assert not page.locator(".syncdone").is_visible()  # said once, not on every visit
+    ctx.close()
+
+
 def test_state_finished_shows_date_and_full_reading_line(browser, base_url):
     ctx, page = new_page(browser, base_url)
     row = page.locator("tr#b-b03")

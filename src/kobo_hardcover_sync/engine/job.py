@@ -23,6 +23,15 @@ from .plan import action, desired, quiet
 log = logging.getLogger(__name__)  # titles only at debug level (see logs.py)
 _running: set[str] = set()
 _lock = threading.Lock()
+# Where a reader's sync is, for the page to show while it runs: {"phase": "start" | "shelf" | "match" | "send",
+# "done": books sent so far, "total": books to send}. Set before the work begins, gone when it ends.
+progress: dict[str, dict] = {}
+
+
+def begin(reader: str) -> None:
+    """Say a sync for this reader is on its way, before its thread is started: the page drawn
+    right after a click then already shows it running."""
+    progress[reader] = {"phase": "start", "done": 0, "total": 0}
 
 
 def syncing_rows(con, reader):
@@ -34,6 +43,7 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
         if reader in _running:
             return {"status": "already running"}
         _running.add(reader)
+    progress[reader] = {"phase": "shelf" if live else "match", "done": 0, "total": 0}
     con = state.connect(db_path)
     started = state.now()
     con.execute("insert into job (reader, started, live, status) values (?,?,?,?)", (reader, started, int(live), "running"))
@@ -60,6 +70,7 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
         shelf = client.shelf() if live else []
         if live:
             counts.update(syncback.pull(con, reader, shelf))
+        progress[reader] = {"phase": "match", "done": 0, "total": 0}
         # Not looked up yet, or waiting for the reader since rules that have changed since: those get one more look.
         todo = [
             r
@@ -92,9 +103,11 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
         existing = {u["book_id"]: u for u in shelf}
         rows = syncing_rows(con, reader)
         silent = quiet(rows)
-        for r in rows:
-            if not r["hc_book_id"] or (r["device"], r["content_id"]) in silent or not (what := action(r)):
-                continue
+        rows = [r for r in rows if r["hc_book_id"] and (r["device"], r["content_id"]) not in silent and action(r)]
+        progress[reader] = {"phase": "send", "done": 0, "total": len(rows)}
+        for i, r in enumerate(rows):
+            progress[reader] = {"phase": "send", "done": i, "total": len(rows)}
+            what = action(r)
             if not live:
                 counts["planned"] += 1
                 log.debug("would send %r: %s", r["title"], what)
@@ -130,6 +143,7 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
         (state.now(), status, json.dumps(counts), reader, started),
     )
     con.commit()
+    progress.pop(reader, None)  # after the job is recorded: the page then finds the result where it looks
     log.log(
         logging.INFO if status == "ok" else logging.ERROR,
         "hardcover (%s) for %s: %s",
@@ -203,6 +217,7 @@ def choose_editions(con, reader: str, client) -> int:
 
 
 def start(db_path: str, reader: str, live: bool, token: str) -> None:
+    begin(reader)
     threading.Thread(target=run, args=(db_path, reader, live), kwargs={"token": token}, daemon=True).start()
 
 
