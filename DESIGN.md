@@ -116,6 +116,7 @@ rounded:
   sheet: "2px"
   inner: "3px"
   ctl: "4px"
+  step: "50%"
 spacing:
   control-gap: "0.5rem"
   card-gap: "0.75rem"
@@ -440,7 +441,8 @@ shadow is never needed to read the page; the dark theme proves it.
 
 ## Shapes
 
-Square-cut, like paper and type. The sheet, cards and dialogs are 2px;
+Square-cut, like paper and type, with one exception: the step numbers of
+the first run sit in circles, as a proofreader rings a number. The sheet, cards and dialogs are 2px;
 small inner parts (a tag, a theme-switch button, a cover's fore-edge) are
 3px; buttons, fields, selects, chips, *Details* and navigation items are
 4px. Covers are 1px at the spine and 3px at the fore-edge, the one 1px
@@ -535,6 +537,22 @@ Kobo, *Admin* beside a reader who is one (Settings, the Admin page).
 0.75rem at 700, Pencil Grey words in a 1px outline of the same grey, 3px
 corners; not a pill. It is grey because it is neither the reader's choice
 nor a question for them, so it takes neither pencil.
+
+### The first run
+While the reader is in dry run and has books, the top of the Books sheet
+says what to do with a Kobo full of books read before: a heading (*Pick the
+books that are yours*, 1.25rem at 800), one paragraph held to 62ch, and the
+count of books switched on so far (1.75rem at 800, ink, tabular, kept
+current as rows change) with "Nothing is sent while this is a dry run".
+Beside it on a wide desk (from 1100px), under it otherwise, three numbered
+steps: *Connect to Hardcover* (a green tick when done, else a link to
+Settings), *Pick your books* (the current step: its number filled blue,
+its name blue, because it is the reader's), *Go live*. Numbers sit in
+1.6rem circles with a Field Edge ring, the one round shape on the page.
+A double rule closes it off from the toolbar; on a phone it is a card of
+its own above the search. Going live is the last step, so going live
+removes it. While it shows, the line under *Books* is left out: it would
+say the same.
 
 ### Sign-in steps
 A numbered list held to 64ch. The code is the sign-in code style on

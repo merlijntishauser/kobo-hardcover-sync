@@ -186,6 +186,13 @@ def main():
 
             p = page("light", 1280)
             p.goto(url)  # first request takes over readers.yaml
+            # Before Hardcover is connected and live: the first run above the list.
+            p.goto(url)
+            snap(p, "firstrun-light")
+            p = page("dark", 390, 844)
+            p.goto(url)
+            snap(p, "phone-firstrun-dark")
+            snap(p, "phone-firstrun-dark-full", full=True)
             from kobo_hardcover_sync.engine import state
             from kobo_hardcover_sync.server import accounts
 

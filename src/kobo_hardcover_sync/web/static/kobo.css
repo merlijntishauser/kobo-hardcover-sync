@@ -258,6 +258,31 @@ button:disabled:hover { border-color: var(--edge); }
 .bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: var(--graphite); font-size: 0.8125rem;
   margin-top: 0.35rem; padding-top: 0.75rem; border-top: 1px solid var(--rule-soft); }
 
+/* The first run: until the reader goes live, the top of the sheet says what
+   to do with a Kobo full of books read before, and the three steps from here
+   to a live shelf. The current step is filled blue (it is the reader's); the
+   count is ink, because nothing is sent yet. */
+.firstrun { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem 2.5rem; padding: 1.3rem 1.25rem 1.25rem;
+  border-bottom: 3px double var(--rule); }
+.firstrun h3 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+.firstrun p { margin: 0.55rem 0 0; max-width: 62ch; color: var(--graphite); }
+.firstrun .tally { display: flex; align-items: baseline; gap: 0.6rem; margin-top: 0.85rem; }
+.firstrun .tally strong { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.firstrun .tally span { font-size: 0.875rem; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; align-content: start; }
+.steps li { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); column-gap: 0.7rem; padding: 0.65rem 0; border-top: 1px solid var(--rule-soft); }
+.steps li:first-child { border-top: 0; padding-top: 0.1rem; }
+.steps .n, .steps .mk { grid-row: 1 / span 2; }
+.steps .n { display: flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border: 1.5px solid var(--edge);
+  border-radius: 50%; font-size: 0.8125rem; font-weight: 700; color: var(--graphite); font-variant-numeric: tabular-nums; }
+.steps .mk { color: var(--green); margin: 0.15rem 0 0 0.15rem; }
+.steps b { font-weight: 650; }
+.steps .s { grid-column: 2; font-size: 0.875rem; color: var(--graphite); }
+.steps .here .n { border-color: var(--blue); background: var(--blue); color: var(--on-fill); }
+.steps .here b { color: var(--blue); }
+.steps .done b { color: var(--graphite); font-weight: 500; }
+@media (min-width: 1100px) { .firstrun { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); padding: 1.4rem 1.5rem; } }
+
 /* ---------- books ---------- */
 table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0; }
 th { text-align: left; font-size: 0.78rem; font-weight: 650; color: var(--graphite);
@@ -482,6 +507,7 @@ code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color
   .toolbar.js .filters:not(.open) { display: none; }
   .sheet { background: none; border: 0; box-shadow: none; overflow: visible; }
   .toolbar { padding: 0 0 0.85rem; border-bottom: 0; }
+  .firstrun { margin-bottom: 0.85rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); padding: 1.1rem 1rem; }
   table, tbody, tr, td { display: block; width: auto; }
   thead { display: none; }
   td { border-bottom: 0; padding: 0; }

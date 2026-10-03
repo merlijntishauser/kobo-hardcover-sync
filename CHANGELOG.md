@@ -20,6 +20,11 @@ minor version may change behaviour; the notes will say so.
 
 ### Added
 
+- A first-run guide at the top of the Books page, for as long as you are
+  in dry run: what to do with a Kobo full of books read before (search,
+  then switch on everything shown), how many you have switched on so far,
+  and the three steps to a live shelf (connect, pick, go live). It goes
+  away when you go live.
 - A container image for the server, built for amd64 and arm64 at every
   release: `ghcr.io/merlijntishauser/kobo-hardcover-sync`. The example
   compose file pulls it. Building it yourself from the repository keeps

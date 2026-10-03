@@ -367,6 +367,32 @@ def status_html(status: tuple[str, str]) -> str:
     return marks.line(*status)
 
 
+def first_run(con, reader: str, live: bool) -> str:
+    """Above the list until the reader goes live: what to do with a Kobo full
+    of books read before, and the three steps from here to a live shelf. Going
+    live is the last step, so going live ends it. Empty when there is nothing
+    to show."""
+    total, history = con.execute("select count(*), coalesce(sum(history), 0) from book where reader=?", (reader,)).fetchone()
+    if live or not total:
+        return ""
+    on = sum(1 for r in con.execute("select mode, history from book where reader=?", (reader,)) if state.syncs(r))
+    if accounts.has_token(con, reader):
+        connect = f'<li class="done">{marks.mark("ok")}<b>{T["fr_connect"]}</b><span class="s">{T["fr_connect_done"]}</span></li>'
+    else:
+        connect = (
+            f'<li><span class="n">1</span><b>{T["fr_connect"]}</b><span class="s">{T["fr_connect_todo"]} '
+            f'<a href="/settings#hardcover">{T["fr_connect_link"]}</a></span></li>'
+        )
+    return (
+        f'<section class="firstrun" aria-labelledby="fr-h"><div><h3 id="fr-h">{T["fr_title"]}</h3>'
+        f"<p>{e(T['fr_text'].format(n=total, h=history))}</p>"
+        f'<p class="tally"><strong>{on}</strong> <span>{T["fr_tally"]} {T["fr_dry"]}</span></p></div>'
+        f'<ol class="steps" aria-label="{T["fr_steps"]}">{connect}'
+        f'<li class="here" aria-current="step"><span class="n">2</span><b>{T["fr_pick"]}</b><span class="s">{T["fr_pick_here"]}</span></li>'
+        f'<li><span class="n">3</span><b>{T["fr_live"]}</b><span class="s">{T["fr_live_when"]}</span></li></ol></section>'
+    )
+
+
 def marked_line(con, reader: str, live: bool) -> str:
     """The second line of Sync now: how many books carry the red mark, so the
     button says what it is about to send. Empty when there are none."""
@@ -421,6 +447,7 @@ def row_json(con, reader, cid, back: str = "", with_details: bool = False):
     status = hc_status(row, live_for(reader), quiet_for(con, reader))
     d = {
         "marked": marked_line(con, reader, live_for(reader)),
+        "on": sum(1 for r in con.execute("select mode, history from book where reader=?", (reader,)) if state.syncs(r)),
         "syncs": state.syncs(row),
         "action": action(row),
         "book": book_cell(row),
@@ -851,6 +878,7 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
     )
     fcur = f if f in FILTERS else "all"
     total = con.execute("select count(*) from book where reader=?", (reader,)).fetchone()[0]
+    first = first_run(con, reader, live)  # says what the line under the title would, and more
     # The sidebar: what the Kobo and Hardcover last did, and the buttons that act on it.
     side = f"""<section class="status" aria-label="{T["status"]}">
 {status_items(con, reader, live, dev, j)}
@@ -865,8 +893,8 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
         me,
         "books",
         f"""<main><div class="head"><h2 class="pagehead">{T["nav_books"]}</h2>
-<p class="intro">{e(T["books_meta"].format(n=total))}</p>{LEGEND}</div>
-<div class="sheet">
+{"" if first else f'<p class="intro">{e(T["books_meta"].format(n=total))}</p>'}{LEGEND}</div>
+<div class="sheet">{first}
 <nav class="toolbar" aria-label="{T["filter"]}">
 <form class="find" method="get"><input type="search" name="q" value="{e(q)}" placeholder="{T["search"]}" aria-label="{T["search"]}">
 <input type="hidden" name="f" value="{e(f)}"><button>{T["apply"]}</button>

@@ -28,6 +28,9 @@ function redraw(tr, d) {
   // Sync now says how many marked changes it sends: that count moves with the row.
   const n = document.querySelector('.statusactions .marked');
   if (n && typeof d.marked === 'string') n.textContent = d.marked;
+  // The first run counts the books switched on so far.
+  const t = document.querySelector('.firstrun .tally strong');
+  if (t && typeof d.on === 'number') t.textContent = d.on;
   tr.querySelector('td.book').innerHTML = d.book;
   if (d.hc) tr.querySelector('td.hc > div').innerHTML = d.hc;
   else tr.querySelector('.act').outerHTML = d.status;

@@ -45,6 +45,28 @@ def test_mode_post_and_cross_origin_refusal(tmp_path, monkeypatch):
     assert "mark Read, finished 2021-05-01" in c.get("/", headers=h).text
 
 
+def test_the_first_run_says_what_to_do_until_the_reader_goes_live(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    h = {"Remote-User": "robin"}
+    page = c.get("/", headers=h).text
+    # Dry run with books: above the list, what to do with them and the three steps.
+    assert '<section class="firstrun" aria-labelledby="fr-h">' in page and "Pick the books that are yours" in page
+    assert "Your Kobo sent 2 books." in page
+    assert '<a href="/settings#hardcover">Connect in Settings</a>' in page  # step 1 not done: no token yet
+    assert '<li class="here" aria-current="step"><span class="n">2</span><b>Pick your books</b>' in page
+    before = int(re.search(r'<p class="tally"><strong>(\d+)</strong>', page).group(1))
+    # Switching a book on counts at once, for the row redrawn in place.
+    d = c.post(
+        "/mode", data={"ids": "old", "mode": "on"}, headers={**h, "X-Requested-With": "fetch", "Origin": "https://kobo.example.org"}
+    ).json()
+    assert d["on"] == before + 1
+    # Going live is the last step, so the first run is over.
+    st = state.connect(str(tmp_path / "state.db"))
+    st.execute("update reader set hardcover_live=1 where name='robin'")
+    st.commit()
+    assert "firstrun" not in c.get("/", headers=h).text
+
+
 def test_row_mode_via_fetch_returns_json(tmp_path, monkeypatch):
     c = client(tmp_path, monkeypatch)
     r = c.post(
