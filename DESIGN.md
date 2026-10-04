@@ -121,7 +121,9 @@ spacing:
   control-gap: "0.5rem"
   card-gap: "0.75rem"
   cell: "1rem 0.9rem"
-  toolbar: "0.95rem 1.1rem"
+  toolbar: "0.85rem 1rem"
+  toolbar-phone: "0 0 0.85rem"
+  toolbar-desk: "0.95rem 1.1rem"
   card: "1.2rem 1.35rem 1.35rem"
   column-gap: "2rem"
   rail-w: "17.25rem"
@@ -191,7 +193,7 @@ components:
     padding: "0.2rem 0.7rem"
     height: "2rem"
   tag:
-    textColor: "{colors.blue}"
+    textColor: "{colors.graphite}"
     rounded: "{rounded.inner}"
     padding: "0 0.3rem"
   sheet:
@@ -259,7 +261,7 @@ covers are the only pictures, and the tool fetches them itself.
 - Seven marks, all in the legend above the list: red caret, dashed caret, tick, *stet*, circled query, ink square with a cross, dash.
 - Two pencils with one job each: red for what a sync sends, blue for the reader's own choice or a question for them.
 - Two typefaces with one job each: Source Serif 4 for book titles, Schibsted Grotesk for everything else.
-- Square-cut: 2px to 4px corners, no pills.
+- Square-cut: 2px to 4px corners, no pills; the one round shape is the ring around a first-run step number.
 - Light and dark share every role; WCAG 2.2 AA in both.
 - One authored motion: the strike draws, the new value writes in.
 
@@ -363,7 +365,8 @@ headings, buttons and every fact are Schibsted Grotesk.
 
 **The Figures Rule.** Tabular figures go only where numbers stand in
 columns or are compared: the facts under a gauge (`.meta`), the counts on
-chips, the count on the Filter button, and code. Never on the root or on
+chips, the count on the Filter button, the first run's tally and step
+numbers, and code. Never on the root or on
 running text: in Schibsted Grotesk `tabular-nums` widens full stops and
 commas too. `tests/test_design_tokens.py` holds this.
 
@@ -412,7 +415,7 @@ to one column, and filter group names go above their chips.
 
 The table has fixed columns: the book takes what is left, *Sync* 7.5rem,
 *State* 10.75rem, *Hardcover status* 34%. Cells are padded 1rem 0.9rem
-(1.1rem on the left edge from 1024px); the toolbar 0.95rem 1.1rem. Controls
+(1.1rem on the left edge from 1024px); the toolbar 0.85rem 1rem (0.95rem 1.1rem on a desk; below 1024px, where the sheet is not drawn, only 0.85rem under it). Controls
 are 2.375rem tall and sit 0.5rem apart. What takes keyboard focus is
 scrolled clear of the bottom bar on a phone and the table head on a desk.
 
@@ -534,7 +537,7 @@ Edge and two hairline diagonals.
 ### Labels: *New* and *Admin*
 A small label states a fact: *New* after the title of a book new on this
 Kobo, *Admin* beside a reader who is one (Settings, the Admin page).
-0.75rem at 700, Pencil Grey words in a 1px outline of the same grey, 3px
+0.75rem at 700, Graphite words in a 1px outline of the same grey, 3px
 corners; not a pill. It is grey because it is neither the reader's choice
 nor a question for them, so it takes neither pencil.
 
@@ -549,8 +552,8 @@ steps: *Connect to Hardcover* (a green tick when done, else a link to
 Settings), *Pick your books* (the current step: its number filled blue,
 its name blue, because it is the reader's), *Go live*. Numbers sit in
 1.6rem circles with a Field Edge ring, the one round shape on the page.
-A double rule closes it off from the toolbar; on a phone it is a card of
-its own above the search. Going live is the last step, so going live
+A double rule closes it off from the toolbar on a desk; below 1024px
+(tablet and phone) it is a card of its own above the search. Going live is the last step, so going live
 removes it. While it shows, the line under *Books* is left out: it would
 say the same.
 
@@ -575,10 +578,14 @@ One authored moment. When the list loads, and whenever a row is redrawn,
 the strike draws across the old value (0.5s) and the new value writes in
 from the left (0.6s, 0.2s later), both on an expo ease-out
 (`cubic-bezier(0.16, 1, 0.3, 1)`), each row 70ms after the one above (up
-to the thirteenth). Two small functional motions remain: coming back to a
-row washes it Blue Wash for 1.8s, and a large cover fades and grows in for
-0.18s. Under `prefers-reduced-motion` all of them are off; the row you
-came back to keeps a steady wash.
+to the thirteenth). The rest is functional: coming back to a row washes
+it Blue Wash for 1.8s; a large cover fades and grows in for 0.18s; while
+a sync runs, its red line gauge grows by `transform: scaleX` (0.4s, the
+same expo ease-out), or sweeps across by `translateX` (1.1s, ease-in-out,
+back and forth) while the count is not known yet; the *Paste a token
+instead* arrow turns in 0.2s. Under `prefers-reduced-motion` all of them
+stop: the row you came back to keeps a steady wash, and the sweeping gauge
+becomes a faint full line instead of moving.
 
 ## Do's and Don'ts
 
@@ -589,7 +596,7 @@ came back to keeps a steady wash.
 - **Do** keep blue for the reader's own choice or a question for them.
 - **Do** add any new mark to the legend and to Help's *Hardcover status*, drawn and coloured the same, before it appears in a row.
 - **Do** set book titles in Source Serif 4 at 600 and everything else in Schibsted Grotesk.
-- **Do** put `tabular-nums` only on numbers that stand in columns or are compared: the facts, chip counts, the Filter count, code.
+- **Do** put `tabular-nums` only on numbers that stand in columns or are compared: the facts, chip counts, the Filter count, the first run's tally and step numbers, code.
 - **Do** use 2px for sheets, cards and dialogs, 4px for what you operate, and the 3px double rule where the margin begins.
 - **Do** make every control 2.75rem below 1024px and under a finger.
 - **Do** give every new colour a light and a dark value with the same role, and check it: 4.5:1 for words, 3:1 for field edges and marks.
