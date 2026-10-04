@@ -154,6 +154,16 @@ def set_display_name(con, name: str, display: str) -> None:
     con.commit()
 
 
+LIST_SIZES = (25, 50, 100, 0)  # books the Books page shows at first; 0: all of them
+
+
+def set_list_size(con, name: str, size: int) -> None:
+    if size not in LIST_SIZES:
+        raise AccountError("err_list_size")
+    con.execute("update reader set list_size=? where name=?", (size, name))
+    con.commit()
+
+
 def set_collection(con, name: str, collection: str) -> None:
     con.execute("update reader set kobo_collection=? where name=?", (" ".join((collection or "").split())[:60] or None, name))
     con.commit()

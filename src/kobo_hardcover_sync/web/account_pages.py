@@ -221,6 +221,15 @@ def settings(
         f'{token_actions}{token_form}<h3>{T["s_mode"]}</h3><div class="moderow">{mode}</div></section>'
     )
 
+    size = me["list_size"] if me["list_size"] is not None else 100
+    sizes = "".join(f'<option value="{n}"{" selected" if n == size else ""}>{n or T["s_list_all"]}</option>' for n in (25, 50, 100, 0))
+    booklist = (
+        f'<section class="card" id="list"><h2>{T["s_list"]}</h2>'
+        f'<form method="post" action="/settings/list" class="field"><label for="listsize">{T["s_list_size"]}</label>'
+        f'<div class="inputs"><select id="listsize" name="size">{sizes}</select>'
+        f'<button>{T["save"]}</button></div><p class="hint">{e(T["s_list_help"])}</p></form></section>'
+    )
+
     collection = (
         f'<section class="card"><h2>{T["s_collection"]}</h2>'
         f'<form method="post" action="/settings/collection" class="field"><label for="collection">{T["s_collection_name"]}</label>'
@@ -278,11 +287,11 @@ def settings(
             f'<p class="hint">{e(T["s_eject_help"])}</p></section>'
         )
         return (
-            f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{collection}{computer}'
+            f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{booklist}{collection}{computer}'
             f"{check_card(checks, True)}</main>"
         )
     return (
-        f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{collection}{devs}{stats}'
+        f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{booklist}{collection}{devs}{stats}'
         f"{check_card(checks, False)}</main>"
     )
 

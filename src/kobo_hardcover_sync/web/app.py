@@ -288,7 +288,13 @@ SORTS = {
     "title": "title collate nocase, content_id",
     "title_za": "title collate nocase desc, content_id",
 }
-PAGE = 100  # books shown at first, and added by each "Show more"
+PAGE = 100  # books shown at first, and added by each "Show more", unless the reader chose otherwise
+
+
+def list_size(me) -> int:
+    """How many books the reader's list shows at first (Settings): 25, 50, 100, or 0 for all of them."""
+    size = me["list_size"] if "list_size" in me.keys() else None
+    return PAGE if size is None else size
 
 
 def _where(reader, q, f):
@@ -878,11 +884,11 @@ def frame_for(me, current: str, main: str, side: str = "", head: str = "") -> st
     return frame(me["display_name"] or me["name"], main, current, bool(me["is_admin"]), side=side, head=head)
 
 
-def view_query(query: str, show: int) -> str:
+def view_query(query: str, show: int, size: int = PAGE) -> str:
     """The view's own query, to come back to after an action: as it came, without at=, and with
-    show= when more than the first books are shown."""
+    show= when more than the first books are shown (size: how many those are; 0, all)."""
     pairs = [(k, v) for k, v in parse_qsl(query, keep_blank_values=False) if k not in ("at", "show")]
-    if show > PAGE:
+    if size and show > size:
         pairs.append(("show", str(show)))
     return urlencode(pairs)
 
@@ -905,14 +911,14 @@ def book_rows(rows, live: bool, quiet: dict, back: str, start: int = 0) -> str:
     return "".join(out)
 
 
-def more_row(total: int, shown: int, href: str, next_cid: str, rows_href: str) -> str:
+def more_row(total: int, shown: int, size: int, href: str, next_cid: str, rows_href: str) -> str:
     """The end of a list that holds more than is shown: how many of how many, and the next ones.
     Without JS a link to the same view with more of it, landing on the first new book; kobo.js
     adds them to this list instead (rows_href)."""
     left = total - shown
     if left <= 0:
         return ""
-    label = T["more_btn"].format(n=PAGE) if left > PAGE else T["more_last"].format(n=left)
+    label = T["more_btn"].format(n=size) if left > size else T["more_last"].format(n=left)
     return (
         f'<div class="more"><span class="shown">{T["more_shown"].format(shown=shown, total=total)}</span>'
         f'<a class="morelink" href="{e(href)}#b-{e(next_cid)}" data-rows="{e(rows_href)}">{label}</a></div>'
@@ -930,20 +936,21 @@ def more_rows(request: Request, q: str = "", f: str = "all", sort: str = "last_r
     reader = me["name"]
     sort = sort if sort in SORTS else "last_read"
     start = max(0, start)
+    size = list_size(me) or PAGE  # with all of them there is no Show more; asked anyway, a lot as usual
     counts = filter_counts(con, reader, q)
     total = counts.get(f, counts["all"])
-    rows = query_rows(con, reader, q, f, sort, limit=PAGE + 1, offset=start)
-    next_cid = rows[PAGE]["content_id"] if len(rows) > PAGE else ""
-    rows = rows[:PAGE]
+    rows = query_rows(con, reader, q, f, sort, limit=size + 1, offset=start)
+    next_cid = rows[size]["content_id"] if len(rows) > size else ""
+    rows = rows[:size]
     shown = start + len(rows)
     view = urlencode([(k, v) for k, v in (("q", q), ("f", f), ("sort", sort)) if v and (k, v) not in (("f", "all"), ("sort", "last_read"))])
-    back = view_query(view, shown)
+    back = view_query(view, shown, size)
     url = "/?" + back if back else "/"
     rows_href = "/rows?" + urlencode([*parse_qsl(view), ("start", str(shown))])
     return JSONResponse(
         {
             "rows": book_rows(rows, bool(me["hardcover_live"]), quiet_for(con, reader), back, start=start),
-            "more": more_row(total, shown, "/?" + view_query(view, shown + PAGE), next_cid, rows_href),
+            "more": more_row(total, shown, size, "/?" + view_query(view, shown + size, size), next_cid, rows_href),
             "url": url,
             "said": T["more_said"].format(n=len(rows)),
         }
@@ -951,7 +958,7 @@ def more_rows(request: Request, q: str = "", f: str = "all", sort: str = "last_r
 
 
 @app.get("/", response_class=HTMLResponse)
-def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read", show: int = PAGE, at: str = ""):
+def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read", show: int = 0, at: str = ""):
     con = db()
     me = me_for(request, con)
     if me is None:
@@ -966,14 +973,18 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read",
     sort = sort if sort in SORTS else "last_read"
     counts = filter_counts(con, reader, q)
     total = counts.get(f, counts["all"])
-    # As many as were shown before (show=), and enough to hold the book an action came back to (at=).
-    show = max(PAGE, show)
-    if at and (pos := place_of(con, reader, q, f, sort, at)) >= show:
-        show = (pos // PAGE + 1) * PAGE
-    rows = query_rows(con, reader, q, f, sort, limit=show + 1)
-    next_cid = rows[show]["content_id"] if len(rows) > show else ""
-    rows = rows[:show]
-    back = view_query(request.url.query, show)
+    size = list_size(me)
+    if size:
+        # As many as were shown before (show=), and enough to hold the book an action came back to (at=).
+        show = max(size, show)
+        if at and (pos := place_of(con, reader, q, f, sort, at)) >= show:
+            show = (pos // size + 1) * size
+        rows = query_rows(con, reader, q, f, sort, limit=show + 1)
+        next_cid = rows[show]["content_id"] if len(rows) > show else ""
+        rows = rows[:show]
+    else:  # all of them
+        rows, next_cid = query_rows(con, reader, q, f, sort), ""
+    back = view_query(request.url.query, len(rows), size)
     dev = con.execute("select max(last_import) from device where reader=?", (reader,)).fetchone()[0]
     j = con.execute(
         "select started, finished, status, detail, live from job where reader=? order by started desc limit 1", (reader,)
@@ -998,7 +1009,7 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read",
     sort_opts = "".join(f'<option value="{k}"{" selected" if k == sort else ""}>{T["sort_" + k]}</option>' for k in SORTS)
     mode_opts = "".join(f'<option value="{m}">{T[m]}</option>' for m in state.MODES)
     body = book_rows(rows, live, quiet_for(con, reader), back)
-    more = more_row(total, len(rows), link(show=len(rows) + PAGE), next_cid, link(_rows=1, start=len(rows)))
+    more = more_row(total, len(rows), size, link(show=len(rows) + size), next_cid, link(_rows=1, start=len(rows))) if size else ""
     table = (
         (
             # The roles say what the tags say already: below 1024px the stylesheet lays the
@@ -1443,6 +1454,12 @@ def change(request: Request, ok: str, fn):
 @app.post("/settings/profile")
 def settings_profile(request: Request, display_name: str = Form("")):
     return change(request, "profile", lambda con, name: accounts.set_display_name(con, name, display_name))
+
+
+@app.post("/settings/list")
+def settings_list(request: Request, size: str = Form("")):
+    """How many books the list shows at first."""
+    return change(request, "list", lambda con, name: accounts.set_list_size(con, name, int(size) if size.lstrip("-").isdigit() else -1))
 
 
 @app.post("/settings/collection")

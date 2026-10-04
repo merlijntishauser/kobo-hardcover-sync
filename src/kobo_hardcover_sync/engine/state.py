@@ -124,8 +124,11 @@ def connect(path: str) -> sqlite3.Connection:
     ):
         if col not in have:  # state.db from before 2026-09-30 12:xx
             con.execute(f"alter table book add column {col} {decl}")
-    if "stats_token_sha256" not in {r[1] for r in con.execute("pragma table_info(reader)")}:
+    reader_cols = {r[1] for r in con.execute("pragma table_info(reader)")}
+    if "stats_token_sha256" not in reader_cols:
         con.execute("alter table reader add column stats_token_sha256 text")
+    if "list_size" not in reader_cols:  # books the list shows at first: null the usual 100, 0 all of them (2026-10-04)
+        con.execute("alter table reader add column list_size integer")
     return con
 
 

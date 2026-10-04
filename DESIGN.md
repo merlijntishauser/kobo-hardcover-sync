@@ -548,9 +548,12 @@ read, newest first* (the default) and *oldest first*, *Author, A to Z* and
 either way. No separate direction control and no sortable column heads:
 the select works the same on a desk, a phone and without JavaScript.
 
-A list shows its first 100 books. When it holds more, its end says how
+A list shows its first 100 books, or the 25, 50 or all of them a reader
+chose under Settings, *The list of books* (a preference kept per reader,
+so it is in Settings and not in the toolbar, which a phone has no room to
+grow). When it holds more, its end says how
 many of how many are shown, in graphite (tabular), with *Show 100 more*
-(or *Show the last 37*) as a bordered control on the right, under a 3px
+(as many as the reader's number; or *Show the last 37*) as a bordered control on the right, under a 3px
 double rule: the proof goes on past here. Below 1024px it is a card of
 its own after the last book. With JavaScript the next books join the same
 list in place, focus moves to the first of them, a screen reader hears how

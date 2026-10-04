@@ -14,7 +14,8 @@ minor version may change behaviour; the notes will say so.
   comes last either way.
 - A long list shows its first 100 books, with *Show 100 more* at its end;
   the next ones join the same list. On a phone the page with 450 books is
-  ready about three times sooner.
+  ready about three times sooner. How many it shows is yours to choose
+  under Settings, *The list of books*: 25, 50, 100 or all of them.
 
 ### Changed
 

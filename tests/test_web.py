@@ -393,8 +393,30 @@ def test_a_long_list_shows_a_hundred_and_the_rest_on_asking(tmp_path, monkeypatc
     )
     assert back.headers["location"] == f"/?at={deep}#b-{deep}"
     there = c.get(back.headers["location"].split("#")[0], headers=h).text
-    # It stood 231st: the page shows up to the 300th, which on this shelf is all 254.
-    assert f'<tr id="b-{deep}"' in there and there.count('<tr id="b-') == 254 and 'name="back" value="show=300"' in there
+    # It stood 231st: the page shows up to the 300th, which on this shelf is all 254, and the way back keeps that.
+    assert f'<tr id="b-{deep}"' in there and there.count('<tr id="b-') == 254 and 'name="back" value="show=254"' in there
+
+
+def test_how_many_books_the_list_shows_at_first_is_the_readers_choice(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    shelf_of(tmp_path, 60)
+    h = {"Remote-User": "robin", "Origin": "https://kobo.example.org"}
+    settings = c.get("/settings", headers=h).text
+    assert '<option value="100" selected>100</option><option value="0">All of them</option>' in settings  # the usual 100
+    r = c.post("/settings/list", data={"size": "25"}, headers=h, follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/settings?ok=list"
+    page = c.get("/", headers=h).text
+    assert page.count('<tr id="b-') == 25 and "25 of 60 shown" in page and ">Show 25 more</a>" in page
+    assert "Set all 60 in this list to" in page  # Set all still takes the whole list
+    more = c.get("/rows?start=25", headers=h).json()
+    assert more["rows"].count('<tr id="b-') == 25 and "Show the last 10" in more["more"] and more["url"] == "/?show=50"
+    # All of them: no end of the list to ask more from.
+    c.post("/settings/list", data={"size": "0"}, headers=h)
+    page = c.get("/", headers=h).text
+    assert page.count('<tr id="b-') == 60 and 'class="more"' not in page
+    # Only the four choices.
+    assert c.post("/settings/list", data={"size": "7"}, headers=h).status_code == 400
+    assert "Choose 25, 50, 100 or all of them." in c.post("/settings/list", data={"size": "lots"}, headers=h).text
 
 
 def test_set_all_in_this_list_asks_first_without_js_and_takes_the_whole_list(tmp_path, monkeypatch):
