@@ -7,6 +7,14 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- Admin says which version the server runs (in the card *This server*,
+  which was *Storage*), and per reader which version of the tool sent the
+  last upload, and whether that is the server's. A computer says its
+  version from this release on; an upload from an older one shows as
+  such.
+
 ## 0.7.0 - 2026-10-04
 
 A long list of books is quicker, and sorts either way round.

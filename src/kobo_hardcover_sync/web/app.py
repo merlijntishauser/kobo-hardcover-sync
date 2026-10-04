@@ -12,6 +12,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import os
+import re
 import secrets
 import threading
 import time
@@ -23,7 +24,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTex
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
-from .. import doctor
+from .. import __version__, doctor
 from ..engine import hardcover, job, oauth, state
 from ..engine.plan import action, desired, quiet_for
 from ..env import env
@@ -1175,9 +1176,19 @@ async def put_upload(request: Request):
             os.unlink(tmp)
     except upload.UploadError as ex:
         return JSONResponse({"ok": False, "error": str(ex)}, status_code=ex.status)
+    note_client(reader, device, request.headers.get("user-agent", ""))
     if token := token_to_use(db(), reader, live_for(reader)):
         job.start(os.path.join(DATA, "state.db"), reader, live_for(reader), token)
     return JSONResponse({"ok": True, **result})
+
+
+def note_client(reader: str, device: str, user_agent: str) -> None:
+    """Which version of the tool sent this upload, for Admin. Its User-Agent says
+    kobo-hardcover-sync/<version> from 0.8 on; "" for an older one, which says no version."""
+    said = re.match(r"kobo-hardcover-sync/([0-9A-Za-z.+-]{1,40})$", user_agent.strip())
+    con = db()
+    con.execute("update device set client_version=? where reader=? and device=?", (said.group(1) if said else "", reader, device))
+    con.commit()
 
 
 @app.get("/api/stats/{reader}")
@@ -1678,6 +1689,7 @@ def admin_page(con, me, ok: str = "", err: str = "", status: int = 200) -> HTMLR
         accounts.storage(DATA),
         accounts.can_store_tokens(),
         account_pages.flash(ok, err),
+        version=__version__,
     )
     return HTMLResponse(frame_for(me, "admin", body), status_code=status)
 

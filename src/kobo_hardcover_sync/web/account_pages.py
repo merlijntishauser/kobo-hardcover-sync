@@ -78,6 +78,13 @@ def bulk_changed(was: int, now: int, back: str) -> str:
     )
 
 
+def _client(client: str, server: str) -> str:
+    """The version of the tool that sent a reader's last upload, and whether it is the server's."""
+    if not client:
+        return T["a_client_old"]
+    return T["a_client"].format(v=client) if client == server else T["a_client_other"].format(v=client, server=server)
+
+
 def _with_code(text: str) -> str:
     """Escaped, with `a command` set as code."""
     return re.sub(r"`([^`]+)`", r"<code>\1</code>", e(text))
@@ -304,7 +311,7 @@ def _problem(j) -> str:
     return str(d.get("fatal") or plural("a_books_failed", int(d.get("errors") or 0)))
 
 
-def admin(me, rows: list[dict], problems: list, storage: dict, can_store: bool, msg: str = "") -> str:
+def admin(me, rows: list[dict], problems: list, storage: dict, can_store: bool, msg: str = "", version: str = "") -> str:
     body = []
     n_admins = sum(1 for r in rows if r["is_admin"])
     for r in rows:
@@ -325,6 +332,7 @@ def admin(me, rows: list[dict], problems: list, storage: dict, can_store: bool, 
                 T["a_uploaded"].format(when=fmt_dt(r["last_upload"])) if r["last_upload"] else T["a_no_upload"],
             )
             + f'<div class="sub">{e(plural("a_devices", r["devices"]))}</div>'
+            + (f'<div class="sub">{e(_client(r["client"], version))}</div>' if r["client"] is not None else "")
         )
         name = f'<input type="hidden" name="name" value="{e(r["name"])}">'
         role = (
@@ -364,7 +372,7 @@ def admin(me, rows: list[dict], problems: list, storage: dict, can_store: bool, 
         + "</section>"
     )
     store = (
-        f'<section class="card"><h2>{T["a_storage"]}</h2><dl>'
+        f'<section class="card"><h2>{T["a_server"]}</h2><dl><div><dt>{T["a_version"]}</dt><dd>{e(version)}</dd></div>'
         + "".join(f"<div><dt>{T['a_' + k]}</dt><dd>{e(fmt_bytes(storage[k]))}</dd></div>" for k in ("database", "snapshots", "covers"))
         + f"</dl><h3>{T['a_key']}</h3>{line('ok', T['a_key_ok']) if can_store else line('warn', T['a_key_missing'])}</section>"
     )

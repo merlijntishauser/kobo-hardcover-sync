@@ -40,7 +40,10 @@ def seed(d, reader="sam"):
     from kobo_hardcover_sync.engine import state
 
     st = state.connect(os.path.join(d, "state.db"))
-    st.execute("insert into device values (?,'kobo','2026-09-01T08:00:00Z','2026-10-01T09:36:16Z')", (reader,))
+    st.execute(
+        "insert into device (reader, device, first_import, last_import) values (?,'kobo','2026-09-01T08:00:00Z','2026-10-01T09:36:16Z')",
+        (reader,),
+    )
     for i in range(34):
         title, author, pct, status, mode, stt, how, sent = (
             SHELF[i]

@@ -8,6 +8,8 @@ import urllib.error
 import urllib.request
 from urllib.parse import urlparse
 
+from .. import __version__
+
 
 class ServerError(Exception):
     """Something the person can act on; str() is the message."""
@@ -25,7 +27,7 @@ class Server:
         self._open = opener or urllib.request.urlopen
 
     def _request(self, method: str, path: str, body: bytes | None = None, timeout: int = 60, content_type: str = ""):
-        headers = {"Authorization": "Bearer " + self._token, "User-Agent": "kobo-hardcover-sync"}
+        headers = {"Authorization": "Bearer " + self._token, "User-Agent": f"kobo-hardcover-sync/{__version__}"}  # the server notes it
         if content_type:
             headers["Content-Type"] = content_type
         req = urllib.request.Request(self.url + path, data=body, method=method, headers=headers)

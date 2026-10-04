@@ -7,7 +7,9 @@ import importlib
 import os
 import re
 import sqlite3
+import urllib.error
 
+import pytest
 from cryptography.fernet import Fernet
 
 from kobo_hardcover_sync import doctor
@@ -286,6 +288,42 @@ def test_env_token_moves_into_the_database_once(tmp_path, monkeypatch):
     c.post("/settings/token/remove", headers=ROBIN)
     accounts.bootstrap(st, str(tmp_path / "readers.yaml"), str(tmp_path / "devices.yaml"))
     assert accounts.token_for(st, "robin") == ""
+
+
+def test_admin_says_the_servers_version_and_which_version_uploaded_last(tmp_path, monkeypatch):
+    from kobo_hardcover_sync import __version__
+    from kobo_hardcover_sync.computer import remote
+
+    c, st = client(tmp_path, monkeypatch)
+    c.post("/signup", headers=ANNA)
+    c.post("/settings/devices/add", data={"device": "kobo-anna", "hash": hashlib.sha256(b"anna-token").hexdigest()}, headers=ANNA)
+    page = c.get("/admin", headers=ROBIN).text
+    assert f"<dt>Version</dt><dd>{__version__}</dd>" in page and "This server" in page
+    assert "Last upload from" not in page  # no upload yet: nothing to say
+    k = tmp_path / "anna.sqlite"
+    make_kobo(k, [MINE], [])
+    body = gzip.compress(k.read_bytes())
+
+    def upload(agent):
+        h = {"Authorization": "Bearer anna-token", "Content-Type": "application/gzip", "User-Agent": agent}
+        assert c.put("/upload", content=body, headers=h).status_code == 200
+
+    upload("kobo-hardcover-sync")  # a computer from before 0.8 says no version
+    assert "Last upload from a version before 0.8, which does not say its version" in c.get("/admin", headers=ROBIN).text
+    upload("kobo-hardcover-sync/0.7.9")
+    assert f"Last upload from version 0.7.9; this server runs {__version__}" in c.get("/admin", headers=ROBIN).text
+    upload(f"kobo-hardcover-sync/{__version__}")
+    assert f"Last upload from version {__version__}, the same as this server" in c.get("/admin", headers=ROBIN).text
+    # And a computer of this version does say it.
+    seen = []
+
+    def network(req, timeout):  # what the tool sends, and then no server
+        seen.append(req.get_header("User-agent"))
+        raise urllib.error.URLError("no server here")
+
+    with pytest.raises(remote.ServerError):
+        remote.Server("https://kobo.example.org", "t", opener=network).upload(str(k))
+    assert seen == [f"kobo-hardcover-sync/{__version__}"]
 
 
 def test_admin_page_is_for_admins_and_shows_counts_only(tmp_path, monkeypatch):

@@ -388,6 +388,8 @@ def overview(con) -> list[dict]:
     for r in all_readers(con):
         n = r["name"]
         job = con.execute("select started, status from job where reader=? order by started desc limit 1", (n,)).fetchone()
+        # The computer that uploaded last, and the version of the tool on it (None: no upload has said).
+        client = con.execute("select client_version from device where reader=? order by last_import desc limit 1", (n,)).fetchone()
         out.append(
             {
                 "name": n,
@@ -398,6 +400,7 @@ def overview(con) -> list[dict]:
                 "token": token_state(con, n),
                 "devices": con.execute("select count(*) from device_token where reader=?", (n,)).fetchone()[0],
                 "last_upload": con.execute("select max(last_import) from device where reader=?", (n,)).fetchone()[0],
+                "client": client[0] if client else None,
                 "last_sync": job["started"] if job else None,
                 "sync_status": job["status"] if job else None,
                 "books": con.execute("select count(*) from book where reader=?", (n,)).fetchone()[0],

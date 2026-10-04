@@ -89,7 +89,9 @@ def base_url(tmp_path_factory, pretend_hardcover):
     from kobo_hardcover_sync.engine import state
 
     st = state.connect(str(d / "state.db"))
-    st.execute("insert into device values ('sam','kobo','2026-09-01T08:00:00Z','2026-09-30T10:24:16Z')")
+    st.execute(
+        "insert into device (reader, device, first_import, last_import) values ('sam','kobo','2026-09-01T08:00:00Z','2026-09-30T10:24:16Z')"
+    )
     for i in range(30):  # enough rows to scroll
         st.execute(
             """insert into book (reader, device, content_id, title, author, isbn, percent, status, last_read,

@@ -127,6 +127,9 @@ def connect(path: str) -> sqlite3.Connection:
     reader_cols = {r[1] for r in con.execute("pragma table_info(reader)")}
     if "stats_token_sha256" not in reader_cols:
         con.execute("alter table reader add column stats_token_sha256 text")
+    if "client_version" not in {r[1] for r in con.execute("pragma table_info(device)")}:
+        # The version of the tool on the computer that uploaded last: "" for one too old to say (2026-10-04).
+        con.execute("alter table device add column client_version text")
     if "list_size" not in reader_cols:  # books the list shows at first: null the usual 100, 0 all of them (2026-10-04)
         con.execute("alter table reader add column list_size integer")
     return con
@@ -218,7 +221,7 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
             (reader, device, local_day(), read_seconds),
         )
     if is_first:
-        con.execute("insert into device values (?,?,?,?)", (reader, device, at, at))
+        con.execute("insert into device (reader, device, first_import, last_import) values (?,?,?,?)", (reader, device, at, at))
     else:
         con.execute("update device set last_import=? where reader=? and device=?", (at, reader, device))
     con.execute("insert into import values (?,?,?,?,?,?)", (reader, device, at, len(books), new_auto, source))
