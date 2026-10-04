@@ -308,8 +308,8 @@ def test_admin_says_the_servers_version_and_which_version_uploaded_last(tmp_path
         h = {"Authorization": "Bearer anna-token", "Content-Type": "application/gzip", "User-Agent": agent}
         assert c.put("/upload", content=body, headers=h).status_code == 200
 
-    upload("kobo-hardcover-sync")  # a computer from before 0.8 says no version
-    assert "Last upload from a version before 0.8, which does not say its version" in c.get("/admin", headers=ROBIN).text
+    upload("kobo-hardcover-sync")  # a computer from before 0.7.1 says no version
+    assert "Last upload from a version before 0.7.1, which does not say its version" in c.get("/admin", headers=ROBIN).text
     upload("kobo-hardcover-sync/0.7.9")
     assert f"Last upload from version 0.7.9; this server runs {__version__}" in c.get("/admin", headers=ROBIN).text
     upload(f"kobo-hardcover-sync/{__version__}")

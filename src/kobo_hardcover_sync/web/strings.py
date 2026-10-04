@@ -366,7 +366,7 @@ T = {
     "a_version": "Version",
     "a_client": "Last upload from version {v}, the same as this server",
     "a_client_other": "Last upload from version {v}; this server runs {server}",
-    "a_client_old": "Last upload from a version before 0.8, which does not say its version",
+    "a_client_old": "Last upload from a version before 0.7.1, which does not say its version",
     "a_database": "Database",
     "a_snapshots": "Kobo snapshots",
     "a_covers": "Covers",

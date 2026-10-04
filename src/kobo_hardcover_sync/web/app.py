@@ -1184,7 +1184,7 @@ async def put_upload(request: Request):
 
 def note_client(reader: str, device: str, user_agent: str) -> None:
     """Which version of the tool sent this upload, for Admin. Its User-Agent says
-    kobo-hardcover-sync/<version> from 0.8 on; "" for an older one, which says no version."""
+    kobo-hardcover-sync/<version> from 0.7.1 on; "" for an older one, which says no version."""
     said = re.match(r"kobo-hardcover-sync/([0-9A-Za-z.+-]{1,40})$", user_agent.strip())
     con = db()
     con.execute("update device set client_version=? where reader=? and device=?", (said.group(1) if said else "", reader, device))
