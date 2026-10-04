@@ -378,6 +378,16 @@ a.details { color: var(--ink); }
 .pickrow select { flex: 1 1 12rem; min-width: 0; width: 100%; text-overflow: ellipsis; }
 .pickrow input { flex: 1 1 10rem; min-width: 0; }
 .empty { padding: 3rem 1rem; text-align: center; color: var(--graphite); }
+/* The end of a list that holds more than is shown: how many of how many, and the next lot.
+   A double rule, as where the margin begins: the proof goes on past here. */
+.more { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem 1rem;
+  padding: 0.9rem 1.1rem; border-top: 3px double var(--rule); font-size: 0.875rem; color: var(--graphite); }
+.more .shown { font-variant-numeric: tabular-nums; }
+.morelink { display: inline-flex; align-items: center; min-height: 2.375rem; padding: 0.4rem 0.9rem; border: 1px solid var(--edge);
+  border-radius: var(--r-ctl); background: var(--sheet); font-weight: 600; text-decoration: none; }
+a.morelink { color: var(--ink); }
+a.morelink:hover { border-color: var(--ink); text-decoration: none; }
+a.morelink[aria-busy="true"] { cursor: progress; opacity: 0.6; }
 
 /* Coming back to a row after Use / Search / Remove: show which one. */
 @keyframes landed { from { background: var(--blue-wash); } to { background: transparent; } }
@@ -525,6 +535,8 @@ code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color
   .sheet { background: none; border: 0; box-shadow: none; overflow: visible; }
   .toolbar { padding: 0 0 0.85rem; border-bottom: 0; }
   .firstrun { margin-bottom: 0.85rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); padding: 1.1rem 1rem; }
+  .more { margin-top: 0.75rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); }
+  .morelink { min-height: 2.75rem; }
   table, tbody, tr, td { display: block; width: auto; }
   thead { display: none; }
   td { border-bottom: 0; padding: 0; }
@@ -558,7 +570,8 @@ code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color
    and Sort share a row. */
 @media (max-width: 719.98px) {
   .head .intro, .status > .act:nth-child(3) { display: none; }
-  .toolbar.js { grid-template-columns: minmax(0, 1fr) auto; }
+  .toolbar.js { grid-template-columns: minmax(0, 1fr) minmax(0, auto); }
+  .toolbar.js .sortby select { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
   .toolbar.js .find { display: contents; }
   .toolbar.js .find input[type="search"] { grid-column: 1; }
   .toolbar.js .ftoggle { grid-column: 1; grid-row: 2; }
@@ -580,6 +593,7 @@ code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color
   .helpbtn { width: 2.75rem; }
   .chip { min-height: 2.75rem; }
   .details, td.hc .details { min-height: 2.75rem; padding-inline: 0.9rem; }
+  .morelink { min-height: 2.75rem; }
 }
 /* A tablet has room for two books side by side. */
 @media (min-width: 720px) and (max-width: 1023.98px) {

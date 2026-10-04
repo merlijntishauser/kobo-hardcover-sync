@@ -53,18 +53,28 @@ def start(local: bool = False) -> str:
     )
 
 
-def confirm_bulk(n: int, mode: str, ids: str, back: str) -> str:
-    """The question before "Set all shown", for a browser without JS (with
-    JS, kobo.js asks the same in a dialog)."""
+def confirm_bulk(n: int, mode: str, q: str, f: str, back: str) -> str:
+    """The question before "Set all in this list", for a browser without JS
+    (with JS, kobo.js asks the same in a dialog). The list goes on as its
+    search and filter, with the count asked about."""
     keep = "".join(
         f'<input type="hidden" name="{k}" value="{e(v)}">'
-        for k, v in (("ids", ids), ("mode", mode), ("back", back), ("bulk", "1"), ("confirmed", "1"))
+        for k, v in (("q", q), ("f", f), ("n", str(n)), ("mode", mode), ("back", back), ("bulk", "1"), ("confirmed", "1"))
     )
     return (
-        f'<main class="cards"><section class="card"><h2>{e(T["confirm_bulk"].format(n=n, mode=T[mode]))}</h2>'
+        f'<main class="cards"><section class="card"><h2>{e(T["confirm_bulk"][n != 1].format(n=n, mode=T[mode]))}</h2>'
         f"<p>{e(T['confirm_bulk_what'])}</p>"
         f'<div class="btnrow"><form method="post" action="/mode">{keep}<button class="solid">{e(T["confirm_bulk_yes"].format(mode=T[mode]))}</button></form>'
         f'<a class="details" href="{e("/?" + back if back else "/")}">{T["cancel"]}</a></div></section></main>'
+    )
+
+
+def bulk_changed(was: int, now: int, back: str) -> str:
+    """Why "Set all" changed nothing: the list no longer holds the books the reader saw counted."""
+    return (
+        f'<main class="cards"><section class="card"><h2>{e(T["bulk_changed"])}</h2>'
+        f"<p>{e(T['bulk_changed_why'].format(was=was, now=now))}</p>"
+        f'<div class="btnrow"><a class="details" href="{e("/?" + back if back else "/")}">{T["bulk_changed_back"]}</a></div></section></main>'
     )
 
 

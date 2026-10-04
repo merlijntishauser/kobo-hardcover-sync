@@ -7,6 +7,22 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- Sorting either way round: *Sort by* now offers *Last read, oldest
+  first*, *Author, Z to A* and *Title, Z to A* as well. A book never opened
+  comes last either way.
+- A long list shows its first 100 books, with *Show 100 more* at its end;
+  the next ones join the same list. On a phone the page with 450 books is
+  ready about three times sooner.
+
+### Changed
+
+- *Set all shown* is now *Set all in this list* and acts on every book the
+  search and filter match, also the ones not shown yet. It changes nothing
+  when the list has changed since you looked (a sync, another tab), and
+  says so.
+
 ## 0.6.0 - 2026-10-04
 
 On your own computer you connect to Hardcover in the browser, with no code

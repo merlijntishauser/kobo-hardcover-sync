@@ -136,7 +136,7 @@ def test_pick_returns_to_the_row_with_filters(tmp_path, monkeypatch):
         headers={"Remote-User": "robin", "Origin": "https://kobo.example.org"},
         follow_redirects=False,
     )
-    assert r.status_code == 303 and r.headers["location"] == "/?f=reading&q=mine#b-mine"
+    assert r.status_code == 303 and r.headers["location"] == "/?f=reading&q=mine&at=mine#b-mine"
 
 
 def test_page_has_theme_switch_chips_and_static_assets(tmp_path, monkeypatch):
@@ -323,26 +323,111 @@ def test_a_copy_that_does_not_speak_for_its_hardcover_book_says_so(tmp_path, mon
     assert "Hardcover follows the copy" not in c.get("/details/mine", headers=h).text
 
 
-def test_set_all_shown_asks_first_without_js(tmp_path, monkeypatch):
+def shelf_of(tmp_path, n):
+    """The reader's shelf grown to n books, copies of 'old' with their own ids, titles and last-read
+    dates (b000 read longest ago); one book never opened."""
+    st = state.connect(str(tmp_path / "state.db"))
+    cols = [r[1] for r in st.execute("pragma table_info(book)")]
+    old = dict(zip(cols, st.execute("select * from book where content_id='old'").fetchone(), strict=True))
+    for i in range(n - 2):
+        row = {
+            **old,
+            "content_id": f"b{i:03d}",
+            "title": f"Title {i:03d}",
+            "author": f"Author {i % 7}",
+            "last_read": f"2026-01-01T00:{i // 60:02d}:{i % 60:02d}Z",
+        }
+        st.execute(f"insert into book ({','.join(cols)}) values ({','.join('?' * len(cols))})", [row[c] for c in cols])
+    st.execute("update book set last_read=null where content_id='b005'")
+    st.commit()
+
+
+def test_the_list_sorts_either_way_and_a_book_never_opened_comes_last(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    shelf_of(tmp_path, 12)
+    h = {"Remote-User": "robin"}
+
+    def order(sort):
+        return re.findall(r'<tr id="b-([^"]+)"', c.get(f"/?sort={sort}", headers=h).text)
+
+    newest, oldest = order("last_read"), order("last_read_old")
+    assert newest[-1] == oldest[-1] == "b005"  # never opened: last both ways
+    assert newest[:-1] == list(reversed(oldest[:-1]))
+    assert order("title_za") == list(reversed(order("title")))
+    page = c.get("/", headers=h).text
+    assert (
+        '<option value="last_read" selected>Last read, newest first</option><option value="last_read_old">Last read, oldest first</option>'
+        in page
+    )
+    assert order("nonsense") == newest  # an unknown order is the usual one
+
+
+def test_a_long_list_shows_a_hundred_and_the_rest_on_asking(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    shelf_of(tmp_path, 254)
+    h = {"Remote-User": "robin"}
+    page = c.get("/", headers=h).text
+    assert page.count('<tr id="b-') == 100 and "Set all 254 in this list to" in page  # Set all counts the whole list
+    first = re.findall(r'<tr id="b-([^"]+)"', page)
+    assert '<span class="shown">100 of 254 shown</span>' in page
+    # Without JS: a link to the same view with more of it, landing on the first new book.
+    link = re.search(r'<a class="morelink" href="([^"]+)" data-rows="([^"]+)">Show 100 more</a>', page)
+    assert link and link.group(1).startswith("/?show=200#b-")
+    two = c.get(link.group(1).split("#")[0], headers=h).text
+    assert two.count('<tr id="b-') == 200 and "Show the last 54" in two
+    assert re.findall(r'<tr id="b-([^"]+)"', two)[:100] == first  # the same list, longer
+    assert '<input type="hidden" name="back" value="show=200">' in two  # an action from here comes back to 200
+    # With JS: the next rows, the new end of the list, and the address the view now has.
+    more = c.get(link.group(2).replace("&amp;", "&"), headers=h).json()
+    assert more["rows"].count('<tr id="b-') == 100 and more["url"] == "/?show=200" and more["said"] == "100 more books shown."
+    assert "Show the last 54" in more["more"]
+    last = c.get("/rows?start=200", headers=h).json()
+    assert last["rows"].count('<tr id="b-') == 54 and last["more"] == ""  # the end: no more to ask for
+    # Back to a book beyond the first hundred, after an action: the list holds it.
+    deep = re.findall(r'<tr id="b-([^"]+)"', c.get("/?show=300", headers=h).text)[230]
+    back = c.post(
+        "/pick",
+        data={"id": deep, "choice": "9||Mine Now", "back": ""},
+        headers={**h, "Origin": "https://kobo.example.org"},
+        follow_redirects=False,
+    )
+    assert back.headers["location"] == f"/?at={deep}#b-{deep}"
+    there = c.get(back.headers["location"].split("#")[0], headers=h).text
+    # It stood 231st: the page shows up to the 300th, which on this shelf is all 254.
+    assert f'<tr id="b-{deep}"' in there and there.count('<tr id="b-') == 254 and 'name="back" value="show=300"' in there
+
+
+def test_set_all_in_this_list_asks_first_without_js_and_takes_the_whole_list(tmp_path, monkeypatch):
     c = client(tmp_path, monkeypatch)
     h = {"Remote-User": "robin", "Origin": "https://kobo.example.org"}
-    assert '<input type="hidden" name="bulk" value="1">' in c.get("/", headers=h).text
+    page = c.get("/?f=history", headers=h).text
+    # The list goes as its search and filter, with the count the reader saw; no list of ids.
+    assert '<input type="hidden" name="f" value="history"><input type="hidden" name="n" value="2">' in page
+    assert "Set all 2 in this list to" in page and 'name="ids" value="old,mine"' not in page
     # No "confirmed": a page with the question, and nothing changed yet.
-    r = c.post("/mode", data={"ids": "old,mine", "mode": "on", "back": "f=history", "bulk": "1"}, headers=h, follow_redirects=False)
-    assert r.status_code == 200 and "Change sync to On for all books shown (2)?" in r.text
-    assert '<input type="hidden" name="ids" value="old,mine">' in r.text and '<input type="hidden" name="confirmed" value="1">' in r.text
+    r = c.post("/mode", data={"f": "history", "n": "2", "mode": "on", "back": "f=history", "bulk": "1"}, headers=h, follow_redirects=False)
+    assert r.status_code == 200 and "Change sync to On for all 2 books in this list?" in r.text
+    assert '<input type="hidden" name="n" value="2">' in r.text and '<input type="hidden" name="confirmed" value="1">' in r.text
     assert '<a class="details" href="/?f=history">Cancel</a>' in r.text
+    assert "mark Read, finished 2021-05-01" not in c.get("/", headers=h).text
+    # The list no longer holds what was counted: nothing changes, and the page says why.
+    r = c.post("/mode", data={"f": "history", "n": "3", "mode": "on", "back": "f=history", "bulk": "1", "confirmed": "1"}, headers=h)
+    assert (
+        r.status_code == 409
+        and "The list changed, so nothing was set" in r.text
+        and "It held 3 books when you chose, and holds 2 now" in r.text
+    )
     assert "mark Read, finished 2021-05-01" not in c.get("/", headers=h).text
     # Confirmed (the page's button, or kobo.js after its dialog): changed, back to the same view.
     r = c.post(
         "/mode",
-        data={"ids": "old,mine", "mode": "on", "back": "f=history", "bulk": "1", "confirmed": "1"},
+        data={"f": "history", "n": "2", "mode": "on", "back": "f=history", "bulk": "1", "confirmed": "1"},
         headers=h,
         follow_redirects=False,
     )
     assert r.status_code == 303 and r.headers["location"] == "/?f=history"
     assert "mark Read, finished 2021-05-01" in c.get("/", headers=h).text
-    assert c.post("/mode", data={"ids": "old", "mode": "nonsense", "bulk": "1"}, headers=h).status_code == 400
+    assert c.post("/mode", data={"mode": "nonsense", "bulk": "1"}, headers=h).status_code == 400
 
 
 def test_a_rows_switches_have_a_button_when_there_is_no_javascript(tmp_path, monkeypatch):

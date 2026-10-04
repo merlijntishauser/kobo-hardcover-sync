@@ -365,7 +365,7 @@ headings, buttons and every fact are Schibsted Grotesk.
 
 **The Figures Rule.** Tabular figures go only where numbers stand in
 columns or are compared: the facts under a gauge (`.meta`), the counts on
-chips, the count on the Filter button, the first run's tally and step
+chips, the count on the Filter button, the end of the list's count, the first run's tally and step
 numbers, and code. Never on the root or on
 running text: in Schibsted Grotesk `tabular-nums` widens full stops and
 commas too. `tests/test_design_tokens.py` holds this.
@@ -541,6 +541,25 @@ Kobo, *Admin* beside a reader who is one (Settings, the Admin page).
 corners; not a pill. It is grey because it is neither the reader's choice
 nor a question for them, so it takes neither pencil.
 
+### Sorting, and the end of the list
+*Sort by* is one native select with both directions as its options: *Last
+read, newest first* (the default) and *oldest first*, *Author, A to Z* and
+*Z to A*, *Title, A to Z* and *Z to A*. A book never opened comes last
+either way. No separate direction control and no sortable column heads:
+the select works the same on a desk, a phone and without JavaScript.
+
+A list shows its first 100 books. When it holds more, its end says how
+many of how many are shown, in graphite (tabular), with *Show 100 more*
+(or *Show the last 37*) as a bordered control on the right, under a 3px
+double rule: the proof goes on past here. Below 1024px it is a card of
+its own after the last book. With JavaScript the next books join the same
+list in place, focus moves to the first of them, a screen reader hears how
+many came, and the address keeps the longer list; without it the control
+is a link to the same view with more of it, landing on the first new book.
+*Set all* counts and changes everything the search and filter match,
+shown or not yet ("Set all 162 in this list to"; "Set the 1 book in this
+list to").
+
 ### The first run
 While the reader is in dry run and has books, the top of the Books sheet
 says what to do with a Kobo full of books read before: a heading (*Pick the
@@ -596,7 +615,7 @@ becomes a faint full line instead of moving.
 - **Do** keep blue for the reader's own choice or a question for them.
 - **Do** add any new mark to the legend and to Help's *Hardcover status*, drawn and coloured the same, before it appears in a row.
 - **Do** set book titles in Source Serif 4 at 600 and everything else in Schibsted Grotesk.
-- **Do** put `tabular-nums` only on numbers that stand in columns or are compared: the facts, chip counts, the Filter count, the first run's tally and step numbers, code.
+- **Do** put `tabular-nums` only on numbers that stand in columns or are compared: the facts, chip counts, the Filter count, the end of the list's count, the first run's tally and step numbers, code.
 - **Do** use 2px for sheets, cards and dialogs, 4px for what you operate, and the 3px double rule where the margin begins.
 - **Do** make every control 2.75rem below 1024px and under a finger.
 - **Do** give every new colour a light and a dark value with the same role, and check it: 4.5:1 for words, 3:1 for field edges and marks.

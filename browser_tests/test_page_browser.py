@@ -470,7 +470,7 @@ def test_set_all_shown_asks_first(browser, base_url):
     page.select_option("#bulkmode", "on")
     page.click("form.bulk button")
     page.wait_for_timeout(300)
-    assert asked == ["Change sync to On for all books shown (1)?"]
+    assert asked == ["Change sync to On for the 1 book in this list?"]
     assert "off" in page.locator("tr#b-b07").get_attribute("class")
     page.reload()
     assert "off" in page.locator("tr#b-b07").get_attribute("class")
@@ -491,7 +491,7 @@ def test_set_all_shown_asks_on_a_page_without_js(browser, base_url):
     page.goto(base_url + "/?q=Book+09")
     page.select_option("#bulkmode", "on")
     page.click("form.bulk button")
-    assert "Change sync to On for all books shown (1)?" in page.inner_text("main h2")
+    assert "Change sync to On for the 1 book in this list?" in page.inner_text("main h2")
     shot(page, "kobo-confirm.png")
     page.click("main a.details")  # Cancel: back to the same search, unchanged
     assert "q=Book+09" in page.url and "off" in page.locator("tr#b-b09").get_attribute("class")
@@ -732,3 +732,79 @@ def test_on_your_own_computer_connecting_goes_through_the_browser_and_comes_back
     finally:
         proc.terminate()
         server.shutdown()
+
+
+@pytest.fixture(scope="module")
+def long_url(tmp_path_factory):
+    """A shelf of 130 books: more than the 100 the list shows at first."""
+    d = tmp_path_factory.mktemp("long")
+    (d / "readers.yaml").write_text("readers:\n  sam:\n    identities: [sam]\n")
+    from kobo_hardcover_sync.engine import state
+
+    st = state.connect(str(d / "state.db"))
+    for i in range(130):
+        st.execute(
+            """insert into book (reader, device, content_id, title, author, isbn, percent, status, last_read,
+                      seconds_read, first_event, history, mode, state, hc_how, hc_book_id, hc_pages, hc_title)
+                      values ('sam','kobo',?,?,?,'978',?,1,?,3600,'',1,'off','kobo','isbn',?,300,?)""",
+            (f"l{i:03d}", f"Long {i:03d}", "An Author", 10, f"2026-01-01T00:{i // 60:02d}:{i % 60:02d}Z", 100 + i, f"Long {i:03d}"),
+        )
+    st.commit()
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    from cryptography.fernet import Fernet
+
+    env = dict(
+        os.environ,
+        KHS_DATA=str(d),
+        KHS_CONFIG=str(d / "readers.yaml"),
+        KHS_HOST="127.0.0.1",
+        KHS_TRUSTED_PROXIES="127.0.0.1",
+        KHS_SECRET_KEY=Fernet.generate_key().decode(),
+        KHS_INTERVAL="0",
+    )
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "uvicorn", "kobo_hardcover_sync.web.app:app", "--host", "127.0.0.1", "--port", str(port)],
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    url = f"http://127.0.0.1:{port}"
+    for _ in range(100):
+        try:
+            urllib.request.urlopen(url + "/healthz", timeout=1)
+            break
+        except OSError:
+            time.sleep(0.1)
+    yield url
+    proc.terminate()
+
+
+def test_show_more_adds_the_next_books_to_the_same_list_and_keeps_them(browser, long_url):
+    ctx, page = new_page(browser, long_url, width=390)
+    rows = page.locator("table.books tbody tr")
+    assert rows.count() == 100 and page.inner_text(".more .shown") == "100 of 130 shown"
+    assert page.inner_text("form.bulk label") == "Set all 130 in this list to"  # the whole list, shown or not
+    page.click("a.morelink")
+    page.wait_for_function("document.querySelectorAll('table.books tbody tr').length === 130")
+    assert page.locator(".more").count() == 0  # nothing left to ask for
+    assert page.inner_text("#listsaid") == "30 more books shown."
+    assert page.evaluate("document.activeElement.closest('tr').id") == "b-l029"  # the first new one: the oldest-read come last
+    assert page.url.endswith("/?show=130") and page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+    # A new row works like the first ones, and its way back keeps the longer list.
+    new = page.locator("tr#b-l000")
+    assert new.locator('input[name="back"]').first.input_value() == "show=130"
+    new.locator("select.rowmode").select_option("on")
+    page.wait_for_function("document.querySelector('tr#b-l000').className === 'on'")
+    page.reload()
+    assert rows.count() == 130
+    ctx.close()
+    # Without JavaScript: a link to the same view with more of it, landing on the first new book.
+    ctx = browser.new_context(java_script_enabled=False, extra_http_headers={"Remote-User": "sam"})
+    page = ctx.new_page()
+    page.goto(long_url)
+    page.click("a.morelink")
+    page.wait_for_url("**/?show=200#b-l029")
+    assert page.locator("table.books tbody tr").count() == 130
+    ctx.close()

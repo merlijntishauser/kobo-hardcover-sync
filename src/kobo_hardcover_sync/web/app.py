@@ -16,7 +16,7 @@ import secrets
 import threading
 import time
 from datetime import UTC, datetime
-from urllib.parse import quote, urlencode, urlparse
+from urllib.parse import parse_qsl, quote, urlencode, urlparse
 
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
@@ -278,11 +278,17 @@ FUNNEL = (
     '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"'
     ' stroke-linejoin="round"><path d="M1.5 2.5h13l-5 6v4.5l-3 1.5V8.5z"/></svg>'
 )
+# Each way round. A book never opened has no last-read date: it comes last either way. content_id ends
+# every order, so that the list is the same list from one "Show more" to the next.
 SORTS = {
-    "last_read": "last_read desc",
-    "author": "author collate nocase, title collate nocase",
-    "title": "title collate nocase",
+    "last_read": "last_read is null, last_read desc, content_id",
+    "last_read_old": "last_read is null, last_read asc, content_id",
+    "author": "author collate nocase, title collate nocase, content_id",
+    "author_za": "author collate nocase desc, title collate nocase desc, content_id",
+    "title": "title collate nocase, content_id",
+    "title_za": "title collate nocase desc, content_id",
 }
+PAGE = 100  # books shown at first, and added by each "Show more"
 
 
 def _where(reader, q, f):
@@ -295,9 +301,22 @@ def _where(reader, q, f):
     return " and ".join(where), args
 
 
-def query_rows(con, reader, q, f, sort):
+def query_rows(con, reader, q, f, sort, limit: int = -1, offset: int = 0):
+    """The books of a view, in its order; `limit` of them from `offset` (-1: all)."""
     where, args = _where(reader, q, f)
-    return con.execute(f"select * from book where {where} order by {SORTS.get(sort, SORTS['last_read'])}", args).fetchall()
+    order = SORTS.get(sort, SORTS["last_read"])
+    return con.execute(f"select * from book where {where} order by {order} limit ? offset ?", [*args, limit, offset]).fetchall()
+
+
+def place_of(con, reader, q, f, sort, cid: str) -> int:
+    """Where a book stands in a view (0 = first), or -1 when the view does not hold it."""
+    where, args = _where(reader, q, f)
+    order = SORTS.get(sort, SORTS["last_read"])
+    found = con.execute(
+        f"select n from (select content_id, row_number() over (order by {order}) - 1 as n from book where {where}) where content_id=?",
+        [*args, cid],
+    ).fetchone()
+    return found[0] if found else -1
 
 
 def filter_counts(con, reader, q):
@@ -859,8 +878,80 @@ def frame_for(me, current: str, main: str, side: str = "", head: str = "") -> st
     return frame(me["display_name"] or me["name"], main, current, bool(me["is_admin"]), side=side, head=head)
 
 
+def view_query(query: str, show: int) -> str:
+    """The view's own query, to come back to after an action: as it came, without at=, and with
+    show= when more than the first books are shown."""
+    pairs = [(k, v) for k, v in parse_qsl(query, keep_blank_values=False) if k not in ("at", "show")]
+    if show > PAGE:
+        pairs.append(("show", str(show)))
+    return urlencode(pairs)
+
+
+def book_rows(rows, live: bool, quiet: dict, back: str, start: int = 0) -> str:
+    """The list's rows: the book, its two switches, and its margin. `start`: where these rows stand
+    in the list, so that only the first ones on the page draw their marks in one after another."""
+    out = []
+    for i, r in enumerate(rows, start=start):
+        cid = e(r["content_id"])
+        mode_sel = "".join(f'<option value="{m}"{" selected" if m == r["mode"] else ""}>{T[m]}</option>' for m in state.MODES)
+        out.append(
+            f'<tr id="b-{cid}" class="{"on" if state.syncs(r) else "off"}" style="--d:{min(i - start, 12) * 70}ms" role="row"><td class="book" role="cell">{book_cell(r)}</td>'
+            f'<td data-label="{T["col_mode"]}" role="cell"><form method="post" action="/mode"><input type="hidden" name="ids" value="{cid}">'
+            f'<input type="hidden" name="back" value="{e(back)}">'
+            f'<select name="mode" class="rowmode" aria-label="{T["col_mode"]}">{mode_sel}</select>{NOSCRIPT_SET}</form></td>'
+            f'<td data-label="{T["col_state"]}" role="cell">{state_cell(r, back)}</td>'
+            f'<td class="hc" data-label="{T["col_hardcover"]}" role="cell"><div>{hc_cell(r, back, hc_status(r, live, quiet))}</div></td></tr>'
+        )
+    return "".join(out)
+
+
+def more_row(total: int, shown: int, href: str, next_cid: str, rows_href: str) -> str:
+    """The end of a list that holds more than is shown: how many of how many, and the next ones.
+    Without JS a link to the same view with more of it, landing on the first new book; kobo.js
+    adds them to this list instead (rows_href)."""
+    left = total - shown
+    if left <= 0:
+        return ""
+    label = T["more_btn"].format(n=PAGE) if left > PAGE else T["more_last"].format(n=left)
+    return (
+        f'<div class="more"><span class="shown">{T["more_shown"].format(shown=shown, total=total)}</span>'
+        f'<a class="morelink" href="{e(href)}#b-{e(next_cid)}" data-rows="{e(rows_href)}">{label}</a></div>'
+    )
+
+
+@app.get("/rows")
+def more_rows(request: Request, q: str = "", f: str = "all", sort: str = "last_read", start: int = 0):
+    """The next books of a view, for kobo.js to add to the list it shows: their rows, the new end
+    of the list, and the address the view now has."""
+    con = db()
+    me = me_for(request, con)
+    if me is None:
+        return PlainTextResponse(T["unknown_user"], status_code=403)
+    reader = me["name"]
+    sort = sort if sort in SORTS else "last_read"
+    start = max(0, start)
+    counts = filter_counts(con, reader, q)
+    total = counts.get(f, counts["all"])
+    rows = query_rows(con, reader, q, f, sort, limit=PAGE + 1, offset=start)
+    next_cid = rows[PAGE]["content_id"] if len(rows) > PAGE else ""
+    rows = rows[:PAGE]
+    shown = start + len(rows)
+    view = urlencode([(k, v) for k, v in (("q", q), ("f", f), ("sort", sort)) if v and (k, v) not in (("f", "all"), ("sort", "last_read"))])
+    back = view_query(view, shown)
+    url = "/?" + back if back else "/"
+    rows_href = "/rows?" + urlencode([*parse_qsl(view), ("start", str(shown))])
+    return JSONResponse(
+        {
+            "rows": book_rows(rows, bool(me["hardcover_live"]), quiet_for(con, reader), back, start=start),
+            "more": more_row(total, shown, "/?" + view_query(view, shown + PAGE), next_cid, rows_href),
+            "url": url,
+            "said": T["more_said"].format(n=len(rows)),
+        }
+    )
+
+
 @app.get("/", response_class=HTMLResponse)
-def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read"):
+def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read", show: int = PAGE, at: str = ""):
     con = db()
     me = me_for(request, con)
     if me is None:
@@ -872,17 +963,26 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
         return HTMLResponse(frame(who, account_pages.signup(who), nav=False))
     reader = me["name"]
     live = bool(me["hardcover_live"])
-    back = request.url.query
-    rows = query_rows(con, reader, q, f, sort)
+    sort = sort if sort in SORTS else "last_read"
     counts = filter_counts(con, reader, q)
+    total = counts.get(f, counts["all"])
+    # As many as were shown before (show=), and enough to hold the book an action came back to (at=).
+    show = max(PAGE, show)
+    if at and (pos := place_of(con, reader, q, f, sort, at)) >= show:
+        show = (pos // PAGE + 1) * PAGE
+    rows = query_rows(con, reader, q, f, sort, limit=show + 1)
+    next_cid = rows[show]["content_id"] if len(rows) > show else ""
+    rows = rows[:show]
+    back = view_query(request.url.query, show)
     dev = con.execute("select max(last_import) from device where reader=?", (reader,)).fetchone()[0]
     j = con.execute(
         "select started, finished, status, detail, live from job where reader=? order by started desc limit 1", (reader,)
     ).fetchone()
 
     def link(**kw):
+        path = "/rows" if kw.pop("_rows", None) else "/"
         p = {k: v for k, v in {"q": q, "f": f, "sort": sort, **kw}.items() if v and (k, v) not in (("f", "all"), ("sort", "last_read"))}
-        return "/?" + urlencode(p) if p else "/"
+        return path + ("?" + urlencode(p) if p else "")
 
     def chip(k):
         return (
@@ -897,20 +997,8 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
     )
     sort_opts = "".join(f'<option value="{k}"{" selected" if k == sort else ""}>{T["sort_" + k]}</option>' for k in SORTS)
     mode_opts = "".join(f'<option value="{m}">{T[m]}</option>' for m in state.MODES)
-    body = []
-    quiet = quiet_for(con, reader)
-    for i, r in enumerate(rows):
-        cid = e(r["content_id"])
-        mode_sel = "".join(f'<option value="{m}"{" selected" if m == r["mode"] else ""}>{T[m]}</option>' for m in state.MODES)
-        body.append(
-            f'<tr id="b-{cid}" class="{"on" if state.syncs(r) else "off"}" style="--d:{min(i, 12) * 70}ms" role="row"><td class="book" role="cell">{book_cell(r)}</td>'
-            f'<td data-label="{T["col_mode"]}" role="cell"><form method="post" action="/mode"><input type="hidden" name="ids" value="{cid}">'
-            f'<input type="hidden" name="back" value="{e(back)}">'
-            f'<select name="mode" class="rowmode" aria-label="{T["col_mode"]}">{mode_sel}</select>{NOSCRIPT_SET}</form></td>'
-            f'<td data-label="{T["col_state"]}" role="cell">{state_cell(r, back)}</td>'
-            f'<td class="hc" data-label="{T["col_hardcover"]}" role="cell"><div>{hc_cell(r, back, hc_status(r, live, quiet))}</div></td></tr>'
-        )
-    ids = ",".join(r["content_id"] for r in rows)
+    body = book_rows(rows, live, quiet_for(con, reader), back)
+    more = more_row(total, len(rows), link(show=len(rows) + PAGE), next_cid, link(_rows=1, start=len(rows)))
     table = (
         (
             # The roles say what the tags say already: below 1024px the stylesheet lays the
@@ -918,16 +1006,19 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
             f'<div class="tablewrap"><table class="books" role="table" aria-label="{T["nav_books"]}"><thead role="rowgroup"><tr role="row">'
             f'<th class="c-book" role="columnheader">{T["col_book"]}</th><th class="c-mode" role="columnheader">{T["col_mode"]}</th>'
             f'<th class="c-state" role="columnheader">{T["col_state"]}</th><th class="c-hc" role="columnheader">{T["col_hardcover"]}</th>'
-            f'</tr></thead><tbody role="rowgroup">{"".join(body)}</tbody></table></div>'
+            f'</tr></thead><tbody role="rowgroup">{body}</tbody></table>{more}<p class="sr" role="status" id="listsaid"></p></div>'
         )
         if rows
         else f'<p class="empty">{T["empty"]} <a href="/">{T["empty_reset"]}</a></p>'
     )
     bulk = (
         (
-            f'<form class="bulk" method="post" action="/mode" data-confirm="{T["confirm_bulk"].format(n=len(rows), mode="{mode}")}">'
-            f'<input type="hidden" name="ids" value="{e(ids)}"><input type="hidden" name="back" value="{e(back)}">'
-            f'<input type="hidden" name="bulk" value="1"><label for="bulkmode">{T["set_shown"].format(n=len(rows))}</label>'
+            # Everything the search and filter match, shown or not yet: the server works the list out again
+            # from them, and changes nothing when it no longer holds the count the reader saw.
+            f'<form class="bulk" method="post" action="/mode" data-confirm="{T["confirm_bulk"][total != 1].format(n=total, mode="{mode}")}">'
+            f'<input type="hidden" name="q" value="{e(q)}"><input type="hidden" name="f" value="{e(f)}">'
+            f'<input type="hidden" name="n" value="{total}"><input type="hidden" name="back" value="{e(back)}">'
+            f'<input type="hidden" name="bulk" value="1"><label for="bulkmode">{T["set_shown"][total != 1].format(n=total)}</label>'
             f'<select id="bulkmode" name="mode">{mode_opts}</select><button>{T["apply_bulk"]}</button></form>'
         )
         if rows
@@ -985,7 +1076,15 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read")
 
 @app.post("/mode")
 def set_mode(
-    request: Request, ids: str = Form(...), mode: str = Form(...), back: str = Form(""), bulk: str = Form(""), confirmed: str = Form("")
+    request: Request,
+    mode: str = Form(...),
+    ids: str = Form(""),
+    back: str = Form(""),
+    bulk: str = Form(""),
+    confirmed: str = Form(""),
+    q: str = Form(""),
+    f: str = Form("all"),
+    n: str = Form(""),
 ):
     # Same-origin check: a form posted from another site carries its own Origin.
     origin = request.headers.get("origin") or request.headers.get("referer") or ""
@@ -999,10 +1098,20 @@ def set_mode(
     if mode not in state.MODES:
         return PlainTextResponse("unknown sync setting", status_code=400)
     id_list = [i for i in ids.split(",") if i]
-    # "Set all shown" asks first. kobo.js asks in a dialog and says so
+    if bulk:
+        # "Set all in this list": every book the search and filter match, shown or not yet. The
+        # count the reader saw (n) must still hold, or nothing changes: the list moved meanwhile
+        # (a sync, another tab), and they set again on what they can see.
+        where, args = _where(reader, q, f)
+        id_list = [r[0] for r in con.execute(f"select content_id from book where {where}", args)]
+        if n and n != str(len(id_list)):
+            return HTMLResponse(
+                frame_for(me, "books", account_pages.bulk_changed(int(n) if n.isdigit() else 0, len(id_list), back)), status_code=409
+            )
+    # "Set all" asks first. kobo.js asks in a dialog and says so
     # (confirmed); without JS the question is a page of its own.
     if bulk and not confirmed:
-        return HTMLResponse(frame_for(me, "books", account_pages.confirm_bulk(len(id_list), mode, ids, back)))
+        return HTMLResponse(frame_for(me, "books", account_pages.confirm_bulk(len(id_list), mode, q, f, back)))
     state.set_mode(con, reader, id_list, mode)
     if request.headers.get("x-requested-with") == "fetch" and len(id_list) == 1:
         return JSONResponse(row_json(con, reader, id_list[0], back))
@@ -1076,8 +1185,9 @@ def api_stats(request: Request, reader: str):
 
 
 def to_row(back: str, cid: str) -> RedirectResponse:
-    """Back to the same filtered view, scrolled to the book's row."""
-    return RedirectResponse(("/?" + back if back else "/") + f"#b-{cid}", status_code=303)
+    """Back to the same filtered view, scrolled to the book's row, with enough of the list
+    shown to hold it (at=)."""
+    return RedirectResponse("/?" + (back + "&" if back else "") + urlencode({"at": cid}) + f"#b-{cid}", status_code=303)
 
 
 @app.get("/cover/{content_id:path}")

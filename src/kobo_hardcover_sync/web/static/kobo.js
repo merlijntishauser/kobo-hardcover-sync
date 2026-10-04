@@ -38,20 +38,56 @@ function redraw(tr, d) {
 async function post(form, url) {
   return fetch(url, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'fetch' } });
 }
-document.querySelectorAll('select.rowmode').forEach(sel => sel.addEventListener('change', async () => {
-  const r = await post(sel.form, '/mode');
-  if (!r.ok) { sel.form.submit(); return; }
-  redraw(sel.closest('tr'), await r.json());
-}));
-document.querySelectorAll('form.stateform').forEach(f => {
-  const save = async () => {
-    f.querySelector('.rowdate').hidden = !['finished', 'rereading'].includes(f.state.value);
-    const r = await post(f, '/state');
-    if (!r.ok) { alert(await r.text()); return; }
-    redraw(f.closest('tr'), await r.json());
-  };
-  f.querySelector('.rowstate').addEventListener('change', save);
-  f.querySelector('.rowdate').addEventListener('change', save);
+// For the rows of the page, and again for each lot that Show more adds.
+function bindRows(root) {
+  root.querySelectorAll('select.rowmode').forEach(sel => sel.addEventListener('change', async () => {
+    const r = await post(sel.form, '/mode');
+    if (!r.ok) { sel.form.submit(); return; }
+    redraw(sel.closest('tr'), await r.json());
+  }));
+  root.querySelectorAll('form.stateform').forEach(f => {
+    const save = async () => {
+      f.querySelector('.rowdate').hidden = !['finished', 'rereading'].includes(f.state.value);
+      const r = await post(f, '/state');
+      if (!r.ok) { alert(await r.text()); return; }
+      redraw(f.closest('tr'), await r.json());
+    };
+    f.querySelector('.rowstate').addEventListener('change', save);
+    f.querySelector('.rowdate').addEventListener('change', save);
+  });
+}
+bindRows(document);
+
+// Show more: the next books are added to this list, in place. Focus goes to the first of them,
+// a screen reader hears how many came, and the address (and every way back to this view) now
+// holds the longer list, so a reload or an action comes back to it. Without JS the link opens
+// the same view with more of it.
+document.addEventListener('click', async ev => {
+  const a = ev.target.closest && ev.target.closest('a.morelink');
+  if (!a || ev.metaKey || ev.ctrlKey || ev.shiftKey) return;
+  ev.preventDefault();
+  if (a.getAttribute('aria-busy') === 'true') return;
+  a.setAttribute('aria-busy', 'true');
+  let d;
+  try {
+    const r = await fetch(a.dataset.rows, { headers: { 'X-Requested-With': 'fetch' } });
+    if (!r.ok) throw new Error(r.status);
+    d = await r.json();
+  } catch (e) { location.href = a.href; return; }
+  const body = document.querySelector('table.books tbody');
+  const before = body.rows.length;
+  body.insertAdjacentHTML('beforeend', d.rows);
+  const added = Array.from(body.rows).slice(before);
+  added.forEach(tr => bindRows(tr));
+  a.closest('.more').outerHTML = d.more;
+  const said = document.getElementById('listsaid'); if (said) said.textContent = d.said;
+  const query = d.url.includes('?') ? d.url.split('?')[1] : '';
+  history.replaceState(null, '', d.url + location.hash.replace(/^#.*/, ''));
+  document.querySelectorAll('input[name="back"]').forEach(i => { i.value = query; });
+  document.querySelectorAll('a.details').forEach(l => {
+    const u = new URL(l.href); if (query) u.searchParams.set('back', query); else u.searchParams.delete('back'); l.href = u.pathname + u.search;
+  });
+  if (added[0]) { const cell = added[0].querySelector('td.book'); cell.tabIndex = -1; cell.focus(); }
 });
 // Sync now while it runs: ask where it is, fill the line gauge, and when it
 // is done show the list again (with its new marks) and what the sync said.
