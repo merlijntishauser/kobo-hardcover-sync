@@ -15,7 +15,7 @@ from kobo_hardcover_sync.engine import export, kobo_db, state
 from tests import said
 from tests.test_computer import FakeComputer
 from tests.test_core import FAMILY, MINE, OLD, UNTOUCHED, make_kobo
-from tests.test_local import LOCAL, TOKEN, kobo
+from tests.test_local import LOCAL, TOKEN, kobo, st
 
 
 def test_the_whole_shelf_without_hardcover(home, capsys):
@@ -97,3 +97,39 @@ def test_a_computer_that_sends_to_a_server_says_where_the_books_are(home):
     config.save(config.Config(server="https://kobo.example.org"))
     with pytest.raises(SystemExit, match="your books are on https://kobo.example.org; export there"):
         cli.main(["export"], computer=FakeComputer(home / "Volumes"))
+
+
+def test_every_sync_keeps_the_file_up_to_date(home, capsys):
+    kobo(home)
+    mac = FakeComputer(home / "Volumes")
+    config.save(LOCAL)
+    runner.sync(mac, LOCAL)
+    out = home / "reading.json"
+    with pytest.raises(SystemExit, match="--every-sync needs --output FILE"):
+        cli.main(["export", "--every-sync"], computer=mac)
+    cli.main(["export", "--output", str(out), "--every-sync"], computer=mac)
+    assert "ok Every sync Written again after every sync." in said(capsys)
+    assert config.load().export_to == str(out)
+
+    out.unlink()
+    st(home).execute("update book set percent = 3").connection.commit()  # the Kobo is read again, and differs
+    os.unlink(home / "state" / "last-import.sha256")
+    synced = runner.sync(mac, config.load())
+    assert synced.ok and "Export" not in synced.message  # a file that was written is not news
+    assert len(json.loads(out.read_text())["books"]) == 9 and stat.S_IMODE(os.stat(out).st_mode) == 0o600
+    cli.main(["status"], computer=mac)
+    assert f"ok Export Written to {out} after every sync" in said(capsys)
+
+    # A folder that went away: said, and the sync is still done.
+    cfg = config.load()
+    cfg.export_to = str(home / "gone" / "reading.json")
+    config.save(cfg)
+    broken = runner.sync(mac, config.load())
+    assert broken.ok and "Export not written (No such file or directory)." in broken.message
+    assert os.listdir(home / "scratch") == []
+
+    cli.main(["export", "--stop"], computer=mac)
+    assert "No longer written after a sync" in said(capsys) and config.load().export_to == "" and out.exists()
+    config.save(config.Config(server="https://kobo.example.org"))
+    with pytest.raises(SystemExit, match="--every-sync is for local mode"):
+        cli.main(["export", "--output", str(out), "--every-sync"], computer=mac)

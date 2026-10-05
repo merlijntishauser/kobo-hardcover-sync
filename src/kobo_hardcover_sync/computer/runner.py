@@ -20,9 +20,9 @@ import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from .. import ISSUES, logs
-from ..engine import collection, hardcover, job, kobo_db, state
-from ..server import accounts
+from .. import ISSUES, __version__, logs
+from ..engine import collection, export, hardcover, job, kobo_db, state
+from ..server import accounts, stats
 from ..term import FAIL, NOTE, OK, WARN, Row, plural
 from . import config, page, remote
 from .platform import KOBO_DB, UPLOAD, Computer
@@ -316,10 +316,26 @@ def _sync_here(
                         fh.write(fingerprint(db) + "\n")
                 except OSError:
                     pass
+    if cfg.export_to:
+        _keep_export(con, reader["name"], cfg.export_to, said, step)
     con.close()
     out = _finish(computer, cfg, mount, said, wrote)
     out.books, out.live = books, live
     return out
+
+
+def _keep_export(con, reader: str, path: str, said: list[str], step) -> None:
+    """`export --every-sync`: the file a dashboard reads, after every sync.
+    Quiet when it works, as the sync's own notification is; a file that
+    cannot be written is said, and the sync still counts as done."""
+    try:
+        export.write(path, export.document(con, reader, f"kobo-hardcover-sync {__version__}", stats.stats(con, reader)))
+    except OSError as ex:
+        log.warning("export not written to %s: %s", path, ex)
+        said.append(f"Export not written ({ex.strerror or ex}).")
+        step(Row(WARN, "Export", f"Not written to {path}: {ex.strerror or ex}"))
+        return
+    step(Row(OK, "Export", f"Written to {path}"))
 
 
 def _sync_to_server(

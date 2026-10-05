@@ -34,11 +34,12 @@ kobo-hardcover-sync doctor
 kobo-hardcover-sync open
     Open the page (local mode: it is started for the occasion).
 
-kobo-hardcover-sync export [--output FILE]
+kobo-hardcover-sync export [--output FILE [--every-sync]] [--stop]
     Your reading as JSON: every book the Kobo has seen touched, how far,
     the dates, minutes per day, and what syncs to Hardcover. To standard
     output, or to FILE (readable by you only). For a database or a
-    dashboard of your own; Hardcover is not needed for it.
+    dashboard of your own; Hardcover is not needed for it. --every-sync
+    writes FILE again after every sync (local mode); --stop ends that.
 
 kobo-hardcover-sync uninstall [--purge]
     Remove the trigger; --purge also the state and the tokens.
@@ -152,6 +153,8 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     exp = sub.add_parser("export", help="your reading as JSON, for a database or dashboard of your own")
     exp.add_argument("--output", default="", metavar="FILE", help="write to FILE (readable by you only) instead of the screen")
     exp.add_argument("--reader", default="", metavar="NAME", help="on the server: the reader to export")
+    exp.add_argument("--every-sync", action="store_true", help="with --output: write the file again after every sync")
+    exp.add_argument("--stop", action="store_true", help="stop writing it after every sync (the file stays)")
     uni = sub.add_parser("uninstall", help="remove the trigger")
     uni.add_argument("--purge", action="store_true", help="also remove the state and the upload token")
     srv = sub.add_parser("serve", help="run the server: the page and the upload endpoint")
@@ -531,6 +534,8 @@ def _status(a, computer) -> None:
         )
         name = (row[2] if row else "") or ""
         rows.append(Row(OK if name else NOTE, "Collection", f"'{name}' on the Kobo" if name else "None on the Kobo"))
+        if cfg.export_to:
+            rows.append(Row(OK, "Export", f"Written to {cfg.export_to} after every sync"))
     elif cfg.mode:
         token = computer.secret(UPLOAD)
         rows.append(
@@ -595,6 +600,19 @@ def _export(a) -> None:
     from .server import accounts
     from .server.stats import stats
 
+    if a.stop or a.every_sync:
+        cfg = config.load()
+        if cfg.mode != "local":
+            sys.exit("kobo-hardcover-sync: --every-sync is for local mode, where the sync runs on this computer.")
+        if a.stop:
+            was, cfg.export_to = cfg.export_to, ""
+            config.save(cfg)
+            term.Screen.of().rows(
+                [Row(OK, "Export", f"No longer written after a sync; {was} is left as it is." if was else "Was not written after a sync.")]
+            )
+            return
+        if not a.output or a.output == "-":
+            sys.exit("kobo-hardcover-sync: --every-sync needs --output FILE: the file to keep up to date.")
     if a.reader:  # on the server, where `import` puts things too
         path, reader = os.path.join(env("DATA", "/data"), "state.db"), a.reader
     else:
@@ -610,28 +628,22 @@ def _export(a) -> None:
     try:
         if not con.execute("select 1 from reader where name=?", (reader,)).fetchone():
             sys.exit(f"kobo-hardcover-sync: no reader called {reader}." if a.reader else "kobo-hardcover-sync: nothing to export yet.")
-        summary = {k: v for k, v in stats(con, reader).items() if k != "reader"}
-        data = {
-            "format": export.FORMAT,
-            "tool": f"kobo-hardcover-sync {__version__}",
-            "made": state.now(),
-            "reader": reader,
-            "summary": summary,
-            **export.reading(con, reader),
-        }
+        data = export.document(con, reader, f"kobo-hardcover-sync {__version__}", stats(con, reader))
     finally:
         con.close()
-    text = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
     if not a.output or a.output == "-":
-        sys.stdout.write(text)
+        sys.stdout.write(export.text(data))
         return
-    # Titles and reading times are nobody else's business: the file is the reader's alone, and appears whole or not at all.
-    tmp = f"{a.output}.{os.getpid()}.tmp"
-    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, "w", encoding="utf-8") as fh:
-        fh.write(text)
-    os.replace(tmp, a.output)
-    term.Screen.of().rows([Row(OK, "Export", f"{plural(len(data['books']), 'book')} written to {a.output}")])
+    # Titles and reading times are nobody else's business: the file is the reader's alone.
+    target = os.path.abspath(os.path.expanduser(a.output))
+    export.write(target, data)
+    rows = [Row(OK, "Export", f"{plural(len(data['books']), 'book')} written to {a.output}")]
+    if a.every_sync:
+        cfg = config.load()
+        cfg.export_to = target
+        config.save(cfg)
+        rows.append(Row(OK, "Every sync", "Written again after every sync. `kobo-hardcover-sync export --stop` stops that."))
+    term.Screen.of().rows(rows)
 
 
 def _uninstall(a, computer) -> None:

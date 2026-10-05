@@ -9,10 +9,15 @@ them apart, as it does for the minutes. Nothing about a token is in it.
 
 FORMAT goes up when a field changes meaning or goes away; a new field does
 not change it.
+
+The summary (/api/stats) is the caller's to give: it lives with the server,
+and the engine does not reach into that.
 """
 
 from __future__ import annotations
 
+import json
+import os
 import sqlite3
 
 from . import state
@@ -68,3 +73,34 @@ def reading(con: sqlite3.Connection, reader: str) -> dict:
         "books": [_book(b) for b in books],
         "reading_days": [{"day": d["day"], "device": d["device"], "seconds": d["seconds"]} for d in days],
     }
+
+
+def document(con: sqlite3.Connection, reader: str, tool: str, summary: dict) -> dict:
+    """The whole export: what made it and when, the summary, and the reading."""
+    return {
+        "format": FORMAT,
+        "tool": tool,
+        "made": state.now(),
+        "reader": reader,
+        "summary": {k: v for k, v in summary.items() if k != "reader"},
+        **reading(con, reader),
+    }
+
+
+def write(path: str, data: dict) -> None:
+    """To `path`, readable by its owner only, and whole or not at all: a
+    dashboard that reads the file mid-sync sees the old one, never half."""
+    tmp = f"{path}.{os.getpid()}.tmp"
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(text(data))
+        os.replace(tmp, path)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
+
+
+def text(data: dict) -> str:
+    return json.dumps(data, ensure_ascii=False, indent=2) + "\n"

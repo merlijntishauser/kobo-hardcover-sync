@@ -10,6 +10,7 @@ Settings are a few lines of `key = "value"` in config.toml there:
     eject_after_sync = false
     allow_untested_kobo = false
     verbose_log = false                   # true: book titles in agent.log
+    export_to = "/Users/sam/reading.json" # written after every sync; absent = not
 """
 
 from __future__ import annotations
@@ -36,6 +37,7 @@ class Config:
     eject_after_sync: bool = False
     allow_untested_kobo: bool = False
     verbose_log: bool = False
+    export_to: str = ""  # `export --every-sync`: the file kept up to date
 
     set_up: bool = False  # has `setup` been run here?
 
@@ -61,6 +63,7 @@ def load() -> Config:
     c.eject_after_sync = bool(data.get("eject_after_sync", False))
     c.allow_untested_kobo = bool(data.get("allow_untested_kobo", False))
     c.verbose_log = bool(data.get("verbose_log", False))
+    c.export_to = str(data.get("export_to") or "")
     return c
 
 
@@ -72,6 +75,8 @@ def save(c: Config) -> None:
     lines.append(f"eject_after_sync = {str(c.eject_after_sync).lower()}")
     lines.append(f"allow_untested_kobo = {str(c.allow_untested_kobo).lower()}")
     lines.append(f"verbose_log = {str(c.verbose_log).lower()}")
+    if c.export_to:
+        lines.append("export_to = " + _quote(c.export_to))
     tmp = c.path + ".tmp"
     with open(tmp, "w") as fh:
         fh.write("\n".join(lines) + "\n")

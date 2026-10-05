@@ -15,6 +15,11 @@ minor version may change behaviour; the notes will say so.
   per day, and the summary `/api/stats` gives. It needs no Hardcover
   account. `--output FILE` writes a file only you can read; on a server,
   `--reader NAME` exports one reader.
+- `export --output FILE --every-sync` writes that file again after every
+  sync on your own computer, for a dashboard that reads it; `status` says
+  where it goes, and `export --stop` ends it. A file that cannot be
+  written is said in the sync's notification; the sync itself still
+  counts.
 
 ## 0.7.1 - 2026-10-04
 
