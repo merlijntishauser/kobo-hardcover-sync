@@ -393,6 +393,16 @@ def test_books_show_up_on_the_local_page_after_a_sync(local):
     )
 
 
+def test_the_local_page_downloads_the_reading_too(local):
+    web, mac, inside = local
+    kobo(web_home(web))
+    runner.sync(mac, config.load())
+    assert 'action="/settings/export"' in inside.get("/settings").text
+    r = inside.get("/settings/export")
+    assert r.status_code == 200 and len(r.json()["books"]) == 9 and r.json()["reader"] == "me"
+    assert visitor(web).get("/settings/export").status_code in (401, 403)  # without this run's cookie: nothing
+
+
 def web_home(web):
     import pathlib
 

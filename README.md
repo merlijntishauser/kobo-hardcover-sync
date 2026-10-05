@@ -181,7 +181,7 @@ Other commands:
 | `kobo-hardcover-sync open` | The page. |
 | `kobo-hardcover-sync token --code` | Connect to Hardcover with a short code to approve, instead of in this computer's browser. |
 | `kobo-hardcover-sync token --remove` | End the connection to Hardcover and go back to dry run. |
-| `kobo-hardcover-sync export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `kobo-hardcover-sync export --output reading.json` writes a file only you can read; add `--every-sync` and that file is written again after every sync, for a dashboard to read. `kobo-hardcover-sync export --stop` ends that. |
+| `kobo-hardcover-sync export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `kobo-hardcover-sync export --output reading.json` writes a file only you can read; add `--every-sync` and that file is written again after every sync, for a dashboard to read. `kobo-hardcover-sync export --stop` ends that. The page has the same file under Settings, *Your reading as a file*. |
 | `kobo-hardcover-sync uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
 
 <img src="docs/img/phone-night.png" alt="The same page on a phone, at night" width="300">
@@ -274,8 +274,9 @@ line.
   books: route them past the sign-in, because they carry a token of their
   own. `/api/stats/<reader>` gives reading minutes and the current book to
   a dashboard, once that reader made a stats token under Settings.
-  `kobo-hardcover-sync export --reader NAME`, run on the server, gives
-  that reader's whole shelf as JSON.
+  Each reader can download their whole shelf as JSON under Settings, *Your
+  reading as a file*, behind the sign-in; `kobo-hardcover-sync export
+  --reader NAME`, run on the server, gives the same.
 
 On the computer the Kobo is plugged into:
 

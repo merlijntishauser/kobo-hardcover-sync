@@ -38,6 +38,9 @@ T = {
     "ok_eject_off": "The Kobo stays plugged in after a sync.",
     "not_through_proxy": "This page is only served through its sign-in proxy.",
     # settings: reading stats
+    "s_export": "Your reading as a file",
+    "s_export_button": "Download (JSON)",
+    "s_export_help": "Every book this tool knows from your Kobo, also the ones that do not sync: how far, the dates and the State, the minutes read per day, and the Hardcover match where there is one. For a database or a spreadsheet of your own; it does not need Hardcover. The file holds your titles: keep it where only you can read it.",
     "s_stats": "Reading stats for a dashboard",
     "s_stats_off": "Off: nobody can read your stats",
     "s_stats_on": "On: readable with your stats token",

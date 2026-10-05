@@ -20,6 +20,9 @@ minor version may change behaviour; the notes will say so.
   where it goes, and `export --stop` ends it. A file that cannot be
   written is said in the sync's notification; the sync itself still
   counts.
+- The same export on the page: Settings, *Your reading as a file*, a
+  download for the reader who is signed in. On a server that is the way
+  for a reader without a shell there.
 
 ## 0.7.1 - 2026-10-04
 

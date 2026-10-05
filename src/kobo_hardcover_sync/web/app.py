@@ -25,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
 from .. import __version__, doctor
-from ..engine import hardcover, job, oauth, state
+from ..engine import export, hardcover, job, oauth, state
 from ..engine.plan import action, desired, quiet_for
 from ..env import env
 from ..server import accounts, proxy, upload
@@ -1657,6 +1657,22 @@ def settings_eject(request: Request, eject: str = Form("0")):
     cfg.eject_after_sync = eject == "1"
     computer_config.save(cfg)
     return RedirectResponse("/settings?ok=" + ("eject_on" if cfg.eject_after_sync else "eject_off"), status_code=303)
+
+
+@app.get("/settings/export")
+def settings_export(request: Request):
+    """The reader's own reading as JSON, the same as `kobo-hardcover-sync
+    export`: behind the sign-in, for this reader only, and never cached."""
+    con, me, bad = guard(request)
+    if bad:
+        return bad
+    data = export.document(con, me["name"], f"kobo-hardcover-sync {__version__}", stats_mod.stats(con, me["name"]))
+    name = f"kobo-reading-{state.local_day()}.json"
+    return Response(
+        export.text(data),
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{name}"', "Cache-Control": "no-store"},
+    )
 
 
 @app.post("/settings/stats/token")

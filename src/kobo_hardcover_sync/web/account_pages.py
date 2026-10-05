@@ -244,6 +244,13 @@ def settings(
         f'<button>{T["save"]}</button></div><p class="hint">{e(T["s_collection_help"])}</p></form></section>'
     )
 
+    # A plain GET form: a download that works without JavaScript, from either mode's page.
+    download = (
+        f'<section class="card" id="export"><h2>{T["s_export"]}</h2>'
+        f'<form method="get" action="/settings/export"><button>{T["s_export_button"]}</button></form>'
+        f'<p class="hint">{e(T["s_export_help"])}</p></section>'
+    )
+
     rows = "".join(
         f"<li><div><b>{e(d['device'])}</b> <code>{e(d['token_sha256'][:8])}</code>"
         f'<div class="sub">{T["s_device_added"]} {e(fmt_dt(d["created"]))}, '
@@ -294,11 +301,11 @@ def settings(
             f'<p class="hint">{e(T["s_eject_help"])}</p></section>'
         )
         return (
-            f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{booklist}{collection}{computer}'
+            f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{booklist}{collection}{computer}{download}'
             f"{check_card(checks, True)}</main>"
         )
     return (
-        f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{booklist}{collection}{devs}{stats}'
+        f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{booklist}{collection}{devs}{stats}{download}'
         f"{check_card(checks, False)}</main>"
     )
 

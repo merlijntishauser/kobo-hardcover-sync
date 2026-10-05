@@ -15,7 +15,7 @@ from cryptography.fernet import Fernet
 from kobo_hardcover_sync import doctor
 from kobo_hardcover_sync.engine import hardcover, kobo_db, state
 from kobo_hardcover_sync.server import accounts
-from tests import client_at
+from tests import ELSEWHERE, client_at
 from tests.test_core import MINE, OLD, make_kobo
 
 ORIGIN = {"Origin": "https://kobo.example.org"}
@@ -435,3 +435,21 @@ def test_stats_are_off_until_the_reader_makes_a_token(tmp_path, monkeypatch):
     assert c.get("/api/stats/robin", headers={"Authorization": f"Bearer {new}"}).status_code == 401
     # Another site cannot make someone a token.
     assert c.post("/settings/stats/token", headers={**ROBIN, "Origin": "https://evil.example"}).status_code == 403
+
+
+def test_each_reader_downloads_their_own_reading_and_nobody_else_does(tmp_path, monkeypatch):
+    c, st = client(tmp_path, monkeypatch)
+    assert 'action="/settings/export"' in c.get("/settings", headers=ROBIN).text
+    r = c.get("/settings/export", headers=ROBIN)
+    assert r.status_code == 200 and r.headers["content-type"] == "application/json" and r.headers["cache-control"] == "no-store"
+    assert r.headers["content-disposition"].startswith('attachment; filename="kobo-reading-')
+    data = r.json()
+    assert data["reader"] == "robin" and sorted(b["kobo_id"] for b in data["books"]) == ["mine", "old"]
+    assert "reader" not in data["summary"] and SECRET not in r.text
+    c.post("/signup", headers={**ANNA, **ORIGIN})
+    assert c.get("/settings/export", headers=ANNA).json()["books"] == []  # her own, still empty
+    assert c.get("/settings/export", headers={"Remote-User": "stranger"}).status_code == 403
+    import kobo_hardcover_sync.web.app as web
+
+    around = client_at(web.app, ELSEWHERE).get("/settings/export", headers=ROBIN)  # past the proxy: the header is not believed
+    assert around.status_code == 403 and "mine" not in around.text
