@@ -34,6 +34,12 @@ kobo-hardcover-sync doctor
 kobo-hardcover-sync open
     Open the page (local mode: it is started for the occasion).
 
+kobo-hardcover-sync export [--output FILE]
+    Your reading as JSON: every book the Kobo has seen touched, how far,
+    the dates, minutes per day, and what syncs to Hardcover. To standard
+    output, or to FILE (readable by you only). For a database or a
+    dashboard of your own; Hardcover is not needed for it.
+
 kobo-hardcover-sync uninstall [--purge]
     Remove the trigger; --purge also the state and the tokens.
 
@@ -49,6 +55,9 @@ kobo-hardcover-sync import <file> --reader NAME --device NAME [--raw]
     Import a KoboReader.sqlite by hand, on the server. --raw accepts a
     copy that still has the `user` table (Kobo login tokens); nothing
     from that table is read or stored.
+
+kobo-hardcover-sync export --reader NAME [--output FILE]
+    The same export, on the server, for one reader.
 """
 
 from __future__ import annotations
@@ -81,6 +90,7 @@ COMMANDS = (
             ("status", "What is set up, and what it sees"),
             ("doctor", "Check everything a sync depends on; changes nothing"),
             ("open", "Open the page with your books"),
+            ("export", "Your reading as JSON, for a database of your own"),
             ("uninstall", "Remove the trigger"),
         ),
     ),
@@ -89,6 +99,7 @@ COMMANDS = (
         (
             ("serve", "Run the server: the page and the upload endpoint"),
             ("import", "Import a KoboReader.sqlite by hand"),
+            ("export", "A reader's reading as JSON (--reader NAME)"),
         ),
     ),
 )
@@ -120,7 +131,7 @@ class _Parser(argparse.ArgumentParser):
 def main(argv: list[str] | None = None, computer=None) -> None:
     p = _Parser(prog="kobo-hardcover-sync")
     p.add_argument("--version", action="version", version=f"kobo-hardcover-sync {__version__}")
-    sub = p.add_subparsers(dest="cmd", required=True, metavar="{setup,token,sync,status,doctor,open,uninstall,serve,import}")
+    sub = p.add_subparsers(dest="cmd", required=True, metavar="{setup,token,sync,status,doctor,open,export,uninstall,serve,import}")
     stp = sub.add_parser("setup", help="make this computer sync a plugged-in Kobo")
     stp.add_argument("--server", default="", help="the server's address, e.g. https://kobo.example.org")
     stp.add_argument("--local", action="store_true", help="everything on this computer, no server")
@@ -138,6 +149,9 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     sub.add_parser("status", help="what is set up, and what it sees")
     sub.add_parser("doctor", help="check everything a sync depends on; changes nothing")
     sub.add_parser("open", help="open the page")
+    exp = sub.add_parser("export", help="your reading as JSON, for a database or dashboard of your own")
+    exp.add_argument("--output", default="", metavar="FILE", help="write to FILE (readable by you only) instead of the screen")
+    exp.add_argument("--reader", default="", metavar="NAME", help="on the server: the reader to export")
     uni = sub.add_parser("uninstall", help="remove the trigger")
     uni.add_argument("--purge", action="store_true", help="also remove the state and the upload token")
     srv = sub.add_parser("serve", help="run the server: the page and the upload endpoint")
@@ -159,6 +173,8 @@ def main(argv: list[str] | None = None, computer=None) -> None:
         print(json.dumps(state.import_books(st, a.reader, a.device, books, source=os.path.basename(a.file))))
         return
 
+    if a.cmd == "export":
+        return _export(a)
     if a.cmd == "page":
         from .computer import page
 
@@ -571,6 +587,51 @@ def _open(a, computer) -> None:
     if not cfg.mode:
         sys.exit("kobo-hardcover-sync: not set up yet: run setup first.")
     computer.open_page(cfg.server or page.link())
+
+
+def _export(a) -> None:
+    from .computer import config
+    from .engine import export
+    from .server import accounts
+    from .server.stats import stats
+
+    if a.reader:  # on the server, where `import` puts things too
+        path, reader = os.path.join(env("DATA", "/data"), "state.db"), a.reader
+    else:
+        cfg = config.load()
+        if cfg.mode == "server":
+            sys.exit(f"kobo-hardcover-sync: your books are on {cfg.server}; export there, with --reader.")
+        if not cfg.mode:
+            sys.exit("kobo-hardcover-sync: not set up yet: run setup first.")
+        path, reader = os.path.join(config.state_dir(), "state.db"), accounts.LOCAL_READER
+    if not os.path.exists(path):  # connect() would make an empty one
+        sys.exit("kobo-hardcover-sync: nothing to export yet: plug in the Kobo for a first sync.")
+    con = state.connect(path)
+    try:
+        if not con.execute("select 1 from reader where name=?", (reader,)).fetchone():
+            sys.exit(f"kobo-hardcover-sync: no reader called {reader}." if a.reader else "kobo-hardcover-sync: nothing to export yet.")
+        summary = {k: v for k, v in stats(con, reader).items() if k != "reader"}
+        data = {
+            "format": export.FORMAT,
+            "tool": f"kobo-hardcover-sync {__version__}",
+            "made": state.now(),
+            "reader": reader,
+            "summary": summary,
+            **export.reading(con, reader),
+        }
+    finally:
+        con.close()
+    text = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+    if not a.output or a.output == "-":
+        sys.stdout.write(text)
+        return
+    # Titles and reading times are nobody else's business: the file is the reader's alone, and appears whole or not at all.
+    tmp = f"{a.output}.{os.getpid()}.tmp"
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write(text)
+    os.replace(tmp, a.output)
+    term.Screen.of().rows([Row(OK, "Export", f"{plural(len(data['books']), 'book')} written to {a.output}")])
 
 
 def _uninstall(a, computer) -> None:

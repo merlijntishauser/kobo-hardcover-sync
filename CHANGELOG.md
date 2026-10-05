@@ -7,6 +7,15 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- `kobo-hardcover-sync export`: your reading as JSON, for a database, a
+  spreadsheet or a dashboard of your own. Every book the Kobo has seen
+  opened, with how far, the dates and whether it syncs, the minutes read
+  per day, and the summary `/api/stats` gives. It needs no Hardcover
+  account. `--output FILE` writes a file only you can read; on a server,
+  `--reader NAME` exports one reader.
+
 ## 0.7.1 - 2026-10-04
 
 Admin says which versions are running.

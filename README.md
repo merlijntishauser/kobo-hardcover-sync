@@ -181,6 +181,7 @@ Other commands:
 | `kobo-hardcover-sync open` | The page. |
 | `kobo-hardcover-sync token --code` | Connect to Hardcover with a short code to approve, instead of in this computer's browser. |
 | `kobo-hardcover-sync token --remove` | End the connection to Hardcover and go back to dry run. |
+| `kobo-hardcover-sync export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `kobo-hardcover-sync export --output reading.json` writes a file only you can read. |
 | `kobo-hardcover-sync uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
 
 <img src="docs/img/phone-night.png" alt="The same page on a phone, at night" width="300">
@@ -273,6 +274,8 @@ line.
   books: route them past the sign-in, because they carry a token of their
   own. `/api/stats/<reader>` gives reading minutes and the current book to
   a dashboard, once that reader made a stats token under Settings.
+  `kobo-hardcover-sync export --reader NAME`, run on the server, gives
+  that reader's whole shelf as JSON.
 
 On the computer the Kobo is plugged into:
 
@@ -315,6 +318,9 @@ decides which are theirs. The server keeps what was uploaded for 90 days.
 your books, reviews, wishlist or anything else in the Kobo's database. The
 upload is built from a list of what is needed, and the server refuses an
 upload that holds more.
+
+**Where you ask for it**: `export` writes your reading, titles included,
+to the screen or to the file you name, and nowhere else.
 
 Your connection to Hardcover (or a token you pasted) is kept in your
 computer's secret store (local mode) or encrypted in the server's database
