@@ -104,3 +104,53 @@ def write(path: str, data: dict) -> None:
 
 def text(data: dict) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+
+
+# ---------- one sync, for a webhook ----------
+def _seen(con: sqlite3.Connection, reader: str, device: str) -> dict | None:
+    """What the state holds for this device's books, to compare after an
+    import; None for a device this reader never synced before."""
+    if not con.execute("select 1 from device where reader=? and device=?", (reader, device)).fetchone():
+        return None
+    rows = con.execute(
+        "select content_id, percent, status, finished_at, seconds_read from book where reader=? and device=?", (reader, device)
+    )
+    return {r["content_id"]: tuple(r)[1:] for r in rows}
+
+
+def before(con: sqlite3.Connection, reader: str, device: str) -> dict | None:
+    """Taken just before an import; sync_event compares with it."""
+    return _seen(con, reader, device)
+
+
+def current(con: sqlite3.Connection, reader: str) -> dict | None:
+    """The book being read: opened on this reader's own Kobo, marked reading,
+    not finished, read last. The same choice as the stats summary."""
+    r = con.execute(
+        """select * from book where reader=? and first_event!='' and status=1 and coalesce(finished_at,'')=''
+           order by last_read desc limit 1""",
+        (reader,),
+    ).fetchone()
+    return _book(r) if r else None
+
+
+def sync_event(con, reader: str, device: str, earlier: dict | None, tool: str, summary: dict, event: str = "sync") -> dict:
+    """What a webhook gets after a sync that read the Kobo: the book being
+    read, the books whose progress, status, finish date or reading time
+    changed in this sync (new ones included), and the summary. A device's
+    first sync lists no changes: everything would be new, and it is history."""
+    now = _seen(con, reader, device) or {}
+    changed = [] if earlier is None else [cid for cid, seen in now.items() if earlier.get(cid) != seen]
+    rows = {r["content_id"]: r for r in con.execute("select * from book where reader=? and device=?", (reader, device))}
+    return {
+        "event": event,
+        "format": FORMAT,
+        "tool": tool,
+        "made": state.now(),
+        "reader": reader,
+        "device": device or None,
+        "first_sync": earlier is None,
+        "reading": current(con, reader),
+        "changed": [_book(rows[cid]) for cid in sorted(changed, key=lambda c: rows[c]["last_read"] or "", reverse=True)],
+        "summary": {k: v for k, v in summary.items() if k != "reader"},
+    }

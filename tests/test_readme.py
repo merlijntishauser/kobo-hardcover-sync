@@ -42,9 +42,9 @@ def test_every_command_and_option_in_the_text_is_real(capsys):
             for option in rest.split():
                 assert f"{option} " in usage or f"{option}]" in usage, f"{page}: `{command}` has no {option}"
         for option in re.findall(r"`(--[a-z-]+)`", text):  # options named on their own, as in "`--purge` also removes ..."
-            assert any(option in (help_of(c) or "") for c in ("setup", "token", "sync", "export", "uninstall", "serve", "import")), (
-                f"{page}: {option}"
-            )
+            assert any(
+                option in (help_of(c) or "") for c in ("setup", "token", "sync", "export", "webhook", "uninstall", "serve", "import")
+            ), f"{page}: {option}"
 
 
 def test_every_setting_it_names_is_read_somewhere():

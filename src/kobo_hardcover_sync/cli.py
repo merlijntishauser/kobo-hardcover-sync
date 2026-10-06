@@ -41,6 +41,13 @@ kobo-hardcover-sync export [--output FILE [--every-sync]] [--stop]
     dashboard of your own; Hardcover is not needed for it. --every-sync
     writes FILE again after every sync (local mode); --stop ends that.
 
+kobo-hardcover-sync webhook [URL [--token]] [--test] [--remove]
+    Local mode: after every sync that read something new from the Kobo,
+    POST it as JSON to URL, an address of your own (docs/webhook.md says
+    what is in it). --token asks for a Bearer token to send with it, kept
+    in the Keychain. A test is sent first; nothing is stored unless it
+    gets a 2xx answer. Without arguments: where it goes now.
+
 kobo-hardcover-sync uninstall [--purge]
     Remove the trigger; --purge also the state and the tokens.
 
@@ -92,6 +99,7 @@ COMMANDS = (
             ("doctor", "Check everything a sync depends on; changes nothing"),
             ("open", "Open the page with your books"),
             ("export", "Your reading as JSON, for a database of your own"),
+            ("webhook", "POST each sync to an address of your own"),
             ("uninstall", "Remove the trigger"),
         ),
     ),
@@ -132,7 +140,7 @@ class _Parser(argparse.ArgumentParser):
 def main(argv: list[str] | None = None, computer=None) -> None:
     p = _Parser(prog="kobo-hardcover-sync")
     p.add_argument("--version", action="version", version=f"kobo-hardcover-sync {__version__}")
-    sub = p.add_subparsers(dest="cmd", required=True, metavar="{setup,token,sync,status,doctor,open,export,uninstall,serve,import}")
+    sub = p.add_subparsers(dest="cmd", required=True, metavar="{setup,token,sync,status,doctor,open,export,webhook,uninstall,serve,import}")
     stp = sub.add_parser("setup", help="make this computer sync a plugged-in Kobo")
     stp.add_argument("--server", default="", help="the server's address, e.g. https://kobo.example.org")
     stp.add_argument("--local", action="store_true", help="everything on this computer, no server")
@@ -155,6 +163,11 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     exp.add_argument("--reader", default="", metavar="NAME", help="on the server: the reader to export")
     exp.add_argument("--every-sync", action="store_true", help="with --output: write the file again after every sync")
     exp.add_argument("--stop", action="store_true", help="stop writing it after every sync (the file stays)")
+    hook = sub.add_parser("webhook", help="local mode: POST each sync to an address of your own")
+    hook.add_argument("url", nargs="?", default="", help="the address, https://...")
+    hook.add_argument("--token", action="store_true", help="ask for a Bearer token to send with it")
+    hook.add_argument("--test", action="store_true", help="send a test now")
+    hook.add_argument("--remove", action="store_true", help="stop sending, and forget the address and the token")
     uni = sub.add_parser("uninstall", help="remove the trigger")
     uni.add_argument("--purge", action="store_true", help="also remove the state and the upload token")
     srv = sub.add_parser("serve", help="run the server: the page and the upload endpoint")
@@ -197,6 +210,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
         "open": _open,
         "uninstall": _uninstall,
         "token": _token,
+        "webhook": _webhook,
     }
     commands[a.cmd](a, computer)
 
@@ -536,6 +550,8 @@ def _status(a, computer) -> None:
         rows.append(Row(OK if name else NOTE, "Collection", f"'{name}' on the Kobo" if name else "None on the Kobo"))
         if cfg.export_to:
             rows.append(Row(OK, "Export", f"Written to {cfg.export_to} after every sync"))
+        if cfg.webhook_url:
+            rows.append(Row(OK, "Webhook", f"POST to {cfg.webhook_url} after a sync that reads the Kobo"))
     elif cfg.mode:
         token = computer.secret(UPLOAD)
         rows.append(
@@ -646,15 +662,93 @@ def _export(a) -> None:
     term.Screen.of().rows(rows)
 
 
+def _webhook(a, computer) -> None:
+    from .computer import config, webhook
+    from .computer.platform import WEBHOOK
+    from .engine import export
+    from .server import accounts
+    from .server.stats import stats
+
+    cfg = config.load()
+    if cfg.mode != "local":
+        sys.exit(
+            "kobo-hardcover-sync: the webhook is for local mode, where the sync runs on this computer."
+            if cfg.server
+            else "kobo-hardcover-sync: not set up yet: run setup first."
+        )
+    if a.remove:
+        computer.delete_secret(WEBHOOK)
+        cfg.webhook_url = ""
+        config.save(cfg)
+        _one(OK, "No webhook any more: the address and its token are forgotten.")
+        return
+    url = a.url.strip() or (cfg.webhook_url if a.test or a.token else "")
+    if not url and (a.test or a.token):
+        sys.exit("kobo-hardcover-sync: no webhook yet: `kobo-hardcover-sync webhook https://...` sets one.")
+    if not url:
+        if cfg.webhook_url:
+            token = "with a token" if computer.secret(WEBHOOK) else "without a token"
+            _one(OK, f"After every sync that reads the Kobo: POST to {cfg.webhook_url}, {token}.")
+        else:
+            _one(NOTE, "No webhook.", "`kobo-hardcover-sync webhook https://...` sets one.")
+        return
+    if why := webhook.problem(url):
+        sys.exit(f"kobo-hardcover-sync: {why}")
+    token = computer.secret(WEBHOOK) if not a.url else ""  # a new address gets no old address's token
+    if a.token:
+        if sys.stdin.isatty():
+            import getpass
+
+            raw = getpass.getpass("Token (sent as Authorization: Bearer ...): ")
+        else:
+            raw = sys.stdin.readline()
+        token = raw.strip().removeprefix("Bearer ").strip()
+        del raw
+        if not token:
+            sys.exit("kobo-hardcover-sync: no token given.")
+    path = os.path.join(config.state_dir(), "state.db")
+    con = state.connect(path)
+    try:
+        reader = accounts.local_reader(con)["name"]
+        dev = con.execute("select device from device where reader=? order by last_import desc limit 1", (reader,)).fetchone()
+        device = dev["device"] if dev else ""
+        # A test looks like a sync with nothing changed: the present state, and event "test".
+        body = export.sync_event(
+            con, reader, device, export.before(con, reader, device), f"kobo-hardcover-sync {__version__}", stats(con, reader), "test"
+        )
+    finally:
+        con.close()
+    try:
+        status = webhook.post(url, token, body)
+    except webhook.WebhookError as ex:
+        sys.exit(f"kobo-hardcover-sync: the test was not taken: {ex}. Nothing was stored." if a.url else f"kobo-hardcover-sync: {ex}.")
+    if a.url or a.token:
+        try:
+            if token:
+                computer.set_secret(WEBHOOK, token)
+            else:
+                computer.delete_secret(WEBHOOK)
+        except ValueError:
+            sys.exit("kobo-hardcover-sync: this token has characters the secret store cannot keep. Nothing was stored.")
+        cfg.webhook_url = url
+        config.save(cfg)
+    del token
+    rows = [Row(OK, "Test", f"{webhook.host(url)} answered {status}")]
+    if a.url or a.token:
+        rows.append(Row(OK, "Webhook", f"Every sync that reads something new from the Kobo is POSTed to {url}."))
+    term.Screen.of().rows(rows)
+
+
 def _uninstall(a, computer) -> None:
     from .computer import config
-    from .computer.platform import HARDCOVER, UPLOAD
+    from .computer.platform import HARDCOVER, UPLOAD, WEBHOOK
 
     server = config.load().server
     rows = [Row(OK, "", line) for line in computer.remove_trigger()]
     if a.purge:
         computer.delete_secret(UPLOAD)
         computer.delete_secret(HARDCOVER)
+        computer.delete_secret(WEBHOOK)
         shutil.rmtree(config.state_dir(), ignore_errors=True)
         rows.append(Row(OK, "", "State and tokens removed.", "Remove the device on the page under Settings, Devices." if server else ""))
     else:

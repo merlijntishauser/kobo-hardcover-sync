@@ -182,6 +182,7 @@ Other commands:
 | `kobo-hardcover-sync token --code` | Connect to Hardcover with a short code to approve, instead of in this computer's browser. |
 | `kobo-hardcover-sync token --remove` | End the connection to Hardcover and go back to dry run. |
 | `kobo-hardcover-sync export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `kobo-hardcover-sync export --output reading.json` writes a file only you can read; add `--every-sync` and that file is written again after every sync, for a dashboard to read. `kobo-hardcover-sync export --stop` ends that. The page has the same file under Settings, *Your reading as a file*. |
+| `kobo-hardcover-sync webhook` | After every sync that read something new from the Kobo, a POST with JSON to an address of your own: a reading tracker, a database, an automation. https, an optional Bearer token kept in the Keychain, and a test before anything is stored. See [docs/webhook.md](docs/webhook.md). |
 | `kobo-hardcover-sync uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
 
 <img src="docs/img/phone-night.png" alt="The same page on a phone, at night" width="300">
@@ -320,6 +321,10 @@ your books, reviews, wishlist or anything else in the Kobo's database. The
 upload is built from a list of what is needed, and the server refuses an
 upload that holds more.
 
+**To your own webhook**, if you set one: the book you are reading, the
+books that changed in that sync, and your reading minutes, to the address
+you gave and nowhere else (no redirect is followed).
+
 **Where you ask for it**: `export` writes your reading, titles included,
 to the screen or to the file you name (after every sync, if you asked for
 that), and nowhere else.
@@ -434,6 +439,7 @@ plug-in.
 - [docs/local-mode.md](docs/local-mode.md): local mode in detail.
 - [docs/hardcover-api.md](docs/hardcover-api.md): what Hardcover's API asks
   of a tool like this.
+- [docs/webhook.md](docs/webhook.md): the webhook, and the JSON it sends.
 - [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md),
   [CHANGELOG.md](CHANGELOG.md).
 

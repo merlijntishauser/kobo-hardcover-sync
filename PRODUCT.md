@@ -82,8 +82,10 @@ Supporting, true and worth showing, but not what sets it apart:
 ## Capabilities and Constraints
 
 - Sends status, progress and dates to Hardcover. No highlights, no ratings.
-- Exports the reader's reading as JSON (`export`), Hardcover or not: the
-  one way out to anything else. No other services to send to.
+- Exports the reader's reading as JSON (`export`), Hardcover or not, and
+  in local mode POSTs each sync to a webhook of the reader's own: the ways
+  out to anything else. Not tied to any service; the JSON is documented
+  (`docs/webhook.md`) and the receiving side is the reader's.
 - Per book: sync Auto, On or Off; a state that overrules the Kobo
   (Finished with a date, Rereading, Want to read, Did not finish); a match
   to choose when the tool is not sure; remove from Hardcover.

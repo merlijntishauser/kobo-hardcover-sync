@@ -24,8 +24,8 @@ from .. import ISSUES, __version__, logs
 from ..engine import collection, export, hardcover, job, kobo_db, state
 from ..server import accounts, stats
 from ..term import FAIL, NOTE, OK, WARN, Row, plural
-from . import config, page, remote
-from .platform import KOBO_DB, UPLOAD, Computer
+from . import config, page, remote, webhook
+from .platform import KOBO_DB, UPLOAD, WEBHOOK, Computer
 
 NAME = "Kobo Hardcover Sync"
 FAILED = "Kobo sync failed"
@@ -213,6 +213,7 @@ def _sync_here(
     con = state.connect(db_path)
     reader = accounts.local_reader(con, getpass.getuser())
     said, wrote, imported = [], False, False
+    device, earlier = "", None  # for the webhook: which Kobo was read, and its books just before
     books, live = [], False
     hash_file = os.path.join(state_dir, "last-import.sha256")
     with tempfile.TemporaryDirectory(prefix="khs-") as tmp:
@@ -245,7 +246,9 @@ def _sync_here(
                 except kobo_db.NotAKoboDatabase as ex:
                     log.error("not a Kobo database: %s", ex)
                     return Outcome(False, FAILED, DAMAGED, about="Kobo")
-                result = state.import_books(con, reader["name"], kobo_db.device(mount).name, on_kobo, source="usb")
+                device = kobo_db.device(mount).name
+                earlier = export.before(con, reader["name"], device)
+                result = state.import_books(con, reader["name"], device, on_kobo, source="usb")
                 with open(hash_file, "w") as fh:
                     fh.write(seen + "\n")
                 log.info("imported: %s", result)
@@ -318,6 +321,8 @@ def _sync_here(
                     pass
     if cfg.export_to:
         _keep_export(con, reader["name"], cfg.export_to, said, step)
+    if cfg.webhook_url and imported:  # only a sync that read something new from the Kobo
+        _post_webhook(computer, con, reader["name"], device, earlier, cfg.webhook_url, said, step)
     con.close()
     out = _finish(computer, cfg, mount, said, wrote)
     out.books, out.live = books, live
@@ -336,6 +341,21 @@ def _keep_export(con, reader: str, path: str, said: list[str], step) -> None:
         step(Row(WARN, "Export", f"Not written to {path}: {ex.strerror or ex}"))
         return
     step(Row(OK, "Export", f"Written to {path}"))
+
+
+def _post_webhook(computer: Computer, con, reader: str, device: str, earlier, url: str, said: list[str], step) -> None:
+    """`webhook URL`: this sync, POSTed to the reader's own address. Quiet
+    when it works; a failure is said, and the sync still counts as done."""
+    body = export.sync_event(con, reader, device, earlier, f"kobo-hardcover-sync {__version__}", stats.stats(con, reader))
+    try:
+        webhook.post(url, computer.secret(WEBHOOK), body)
+    except webhook.WebhookError as ex:
+        log.warning("webhook not sent: %s", ex)
+        said.append(f"Webhook not sent: {ex}.")
+        step(Row(WARN, "Webhook", f"Not sent: {ex}"))
+        return
+    log.info("webhook sent: %d changed", len(body["changed"]))
+    step(Row(OK, "Webhook", f"Sent to {webhook.host(url)}"))
 
 
 def _sync_to_server(

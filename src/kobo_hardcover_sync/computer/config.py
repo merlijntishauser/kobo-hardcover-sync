@@ -11,6 +11,7 @@ Settings are a few lines of `key = "value"` in config.toml there:
     allow_untested_kobo = false
     verbose_log = false                   # true: book titles in agent.log
     export_to = "/Users/sam/reading.json" # written after every sync; absent = not
+    webhook_url = "https://example.org/hook" # POSTed to after a sync that read the Kobo
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ class Config:
     allow_untested_kobo: bool = False
     verbose_log: bool = False
     export_to: str = ""  # `export --every-sync`: the file kept up to date
+    webhook_url: str = ""  # `webhook URL`: where a sync that read the Kobo is POSTed (its token is a secret)
 
     set_up: bool = False  # has `setup` been run here?
 
@@ -64,6 +66,7 @@ def load() -> Config:
     c.allow_untested_kobo = bool(data.get("allow_untested_kobo", False))
     c.verbose_log = bool(data.get("verbose_log", False))
     c.export_to = str(data.get("export_to") or "")
+    c.webhook_url = str(data.get("webhook_url") or "")
     return c
 
 
@@ -77,6 +80,8 @@ def save(c: Config) -> None:
     lines.append(f"verbose_log = {str(c.verbose_log).lower()}")
     if c.export_to:
         lines.append("export_to = " + _quote(c.export_to))
+    if c.webhook_url:
+        lines.append("webhook_url = " + _quote(c.webhook_url))
     tmp = c.path + ".tmp"
     with open(tmp, "w") as fh:
         fh.write("\n".join(lines) + "\n")

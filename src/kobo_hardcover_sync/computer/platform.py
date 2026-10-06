@@ -9,6 +9,7 @@ import sys
 KOBO_DB = os.path.join(".kobo", "KoboReader.sqlite")
 UPLOAD = "upload"  # the secret that lets this computer upload to the server
 HARDCOVER = "hardcover"  # local mode: the reader's Hardcover token
+WEBHOOK = "webhook"  # local mode: the Bearer token for the reader's own webhook, if it wants one
 
 
 class Unsupported(Exception):

@@ -7,6 +7,17 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- `kobo-hardcover-sync webhook URL`: after every sync that read something
+  new from the Kobo, a POST with JSON to an address of your own, for a
+  reading tracker, a database or an automation. It carries the book you
+  are reading, the books that changed in that sync, and the reading
+  summary. `--token` adds a Bearer token, kept in the Keychain. It is sent
+  only over https (plain http only to this computer), a redirect is never
+  followed, and a test must be answered before anything is stored. Local
+  mode. What is sent: [docs/webhook.md](docs/webhook.md).
+
 ## 0.8.0 - 2026-10-05
 
 Your reading as a file: for a database or dashboard of your own, with or
