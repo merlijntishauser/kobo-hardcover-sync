@@ -122,9 +122,21 @@ token.
 **Seen working against Hardcover** (2026-10-03, one reader on a
 self-hosted server): the sign-in from the page to "Connected", a sync with
 the access token, a renewal (the refresh token exchanged for a new pair,
-and the sync after it), and the check that asks whose token it is. Not
-seen yet: disconnecting (the revoke), a sign-in that is refused, the
-`token` command on a real computer.
+and the sync after it), and the check that asks whose token it is.
+
+Seen on 2026-10-08, with `token --code` on a Linux computer:
+
+- **Disconnecting.** Hardcover answers the revoke with 200. The refresh
+  token is dead at once (`invalid_grant`); the access token keeps working
+  for about four minutes, then gets 401 `invalid_token`. Connecting again
+  now ends the connection it replaces the same way: before, the old one
+  stayed live at Hardcover.
+- **Approval.** For an account that has the app authorised already (a
+  server's connection counts), opening the link approves at once: there
+  is no consent screen, and so no way to refuse. A refused sign-in
+  (`access_denied`) has only been seen against the stand-in, which
+  follows Hardcover's guide; every other error word from that guide
+  matched the real one.
 
 Settled (2026-10-03, with Hardcover): the device flow for self-hosted
 servers, and the loopback address with the port left open for a reader's

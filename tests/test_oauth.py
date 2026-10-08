@@ -347,6 +347,21 @@ def test_a_connection_that_ended_is_said_on_the_page_not_passed_over(tmp_path, m
     assert "stopped: Hardcover no longer accepts this connection. Connect again under Settings." in checked
 
 
+def test_a_connection_that_is_replaced_is_ended_at_hardcover(tmp_path, monkeypatch, hc):
+    """Seen on 2026-10-08: connecting again left the earlier connection
+    live at Hardcover until it ran out."""
+    c, db = connected(tmp_path, monkeypatch, hc)
+    accounts.set_token(db, "anna", connection(hc, left=WEEK), "anna_reads")
+    assert hc.asked("revoke") == []  # nothing was there before
+    accounts.set_token(db, "anna", connection(hc, left=WEEK), "anna_reads")
+    assert hc.asked("revoke") == [{"token": "hc_rt_1", "token_type_hint": "refresh_token", "client_id": "an-app-id"}]
+    assert accounts.token_for(db, "anna") == "hc_at_2"
+    accounts.set_token(db, "anna", "a-pasted-token", "anna_reads")  # a pasted token in its place ends it too
+    assert [f["token"] for f in hc.asked("revoke")] == ["hc_rt_1", "hc_rt_2"]
+    accounts.set_token(db, "anna", "another-pasted-token", "anna_reads")  # a pasted token has nothing to end
+    assert len(hc.asked("revoke")) == 2
+
+
 def test_the_check_renews_nothing(tmp_path, monkeypatch, hc):
     c, db = connected(tmp_path, monkeypatch, hc)
     accounts.set_token(db, "anna", connection(hc, left=3600), "anna_reads")  # about to run out: a sync would renew
@@ -465,6 +480,23 @@ def test_the_token_command_signs_in_through_the_browser_when_that_is_switched_on
     monkeypatch.setattr(cli.time, "sleep", lambda s: None)
     cli.main(["token", "--code"], computer=mac)
     assert hc.asked("device") and "Check that Hardcover shows this code: ABCD-EFGH" in said(capsys)
+
+
+def test_connecting_again_on_your_own_computer_ends_the_earlier_connection(home, monkeypatch, capsys, hc):
+    monkeypatch.setenv("KHS_HARDCOVER_LOOPBACK", "0")
+    mac = FakeComputer(home / "Volumes")
+    cli.main(["setup", "--local", "--no-trigger"], computer=mac)
+    monkeypatch.setattr(hardcover, "Client", Me)
+    monkeypatch.setattr(mac, "open_page", lambda url: setattr(hc, "approved", True))
+    monkeypatch.setattr(cli.time, "sleep", lambda s: None)
+    terminal = io.StringIO()
+    terminal.isatty = lambda: True
+    monkeypatch.setattr("sys.stdin", terminal)
+    cli.main(["token"], computer=mac)
+    cli.main(["token"], computer=mac)
+    assert [f["token"] for f in hc.asked("revoke")] == ["hc_rt_1"]
+    assert oauth.unpack(mac.secrets[HARDCOVER]).refresh == "hc_rt_2"
+    assert said(capsys).endswith("ok Connected. Hardcover knows you as @anna_reads.")
 
 
 def test_a_local_sync_renews_and_one_whose_connection_ended_says_so(home, hc):

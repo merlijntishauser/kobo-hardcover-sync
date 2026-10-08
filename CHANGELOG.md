@@ -7,6 +7,12 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Fixed
+
+- Connecting to Hardcover again, or pasting a token in place of a
+  connection, ends the earlier connection at Hardcover, as Disconnect
+  does. Before, it stayed listed and working there.
+
 ## 0.10.0 - 2026-10-08
 
 One book on two Kobos, one write for a new collection name, and a

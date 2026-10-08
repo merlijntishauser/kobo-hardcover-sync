@@ -333,7 +333,7 @@ that), and nowhere else.
 Your connection to Hardcover (or a token you pasted) is kept in your
 computer's secret store (local mode) or encrypted in the server's database
 (server mode). It is never shown again, never logged, and never put on a
-command line. Disconnecting ends it at Hardcover too.
+command line. Disconnecting, or connecting again, ends it at Hardcover too.
 
 ## Limits worth knowing
 

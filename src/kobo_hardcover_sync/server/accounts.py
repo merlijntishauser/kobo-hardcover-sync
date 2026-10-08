@@ -319,23 +319,33 @@ def token_for(con, name: str) -> str:
 
 
 def set_token(con, name: str, token: str, hardcover_user: str = "") -> None:
+    """Keep a new token or connection. An OAuth connection it replaces is
+    ended at Hardcover, as Disconnect does, so that it does not stay
+    listed there. Kept under the renewal lock, so that a sync renewing the
+    old one at that moment cannot keep it again after this."""
     token = (token or "").strip()
     if token_store is not None:
         if not token or len(token) > 4096:
             raise AccountError("err_token_empty")
-        token_store.set(token)
+        with token_store.lock():
+            old = token_store.get() or ""
+            token_store.set(token)
         set_hardcover_user(con, name, hardcover_user)
-        return
-    f = _fernet()
-    if f is None:
-        raise AccountError("err_no_key")
-    if not token or len(token) > 4096:
-        raise AccountError("err_token_empty")
-    con.execute(
-        "update reader set hardcover_token_enc=?, hardcover_user=? where name=?",
-        (f.encrypt(token.encode()).decode(), hardcover_user or None, name),
-    )
-    con.commit()
+    else:
+        f = _fernet()
+        if f is None:
+            raise AccountError("err_no_key")
+        if not token or len(token) > 4096:
+            raise AccountError("err_token_empty")
+        with _lock_for(name):
+            old = _kept(con, name)
+            con.execute(
+                "update reader set hardcover_token_enc=?, hardcover_user=? where name=?",
+                (f.encrypt(token.encode()).decode(), hardcover_user or None, name),
+            )
+            con.commit()
+    if old != token:
+        oauth.revoke(old)
 
 
 def set_hardcover_user(con, name: str, hardcover_user: str) -> None:
