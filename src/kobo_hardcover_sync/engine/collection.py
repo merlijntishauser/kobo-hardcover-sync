@@ -19,7 +19,8 @@ Rules:
     Kobo book ids (sideloaded books have file paths as ids).
   - The collection is this tool's: its name is the one asked for, and it
     holds exactly the books asked for. A collection it made earlier under
-    another name is taken off the Kobo again (remove_others).
+    another name is taken off the Kobo in the same write (apply), or on its
+    own when no collection is wanted any more (remove_others).
   - After the write it looks again: the collection must hold what was
     asked for, on a Kobo that is still there.
 
@@ -114,11 +115,11 @@ class Result:
     added: int = 0
     removed: int = 0
     backup: str = ""
-    names: tuple = ()  # remove_others: the collections that were taken off
+    names: tuple = ()  # the collections of ours under another name that were taken off
 
     @property
     def wrote(self) -> bool:
-        return self.action in ("created", "updated", "removed")
+        return self.action in ("created", "updated", "removed") or bool(self.names)
 
     def line(self, name: str) -> str:
         """One line for the log and the notification."""
@@ -418,7 +419,10 @@ def _has_table(con: sqlite3.Connection, table: str) -> bool:
 
 def apply(db_path: str, name: str, ids, state_dir: str, *, preflight_db: str | None = None, allow_untested: bool = False) -> Result:
     """Make the collection `name` on the Kobo at db_path hold exactly the
-    books in `ids` that are on this Kobo.
+    books in `ids` that are on this Kobo, and the only collection of ours:
+    one made earlier under another name is taken off in the same write.
+    When `name` is refused (someone else's collection has it), nothing is
+    written, so the old one stays.
 
     preflight_db: a copy of the same database. With it, the gate and the
     comparison run on the copy, and the Kobo's own file is not opened at
@@ -427,25 +431,31 @@ def apply(db_path: str, name: str, ids, state_dir: str, *, preflight_db: str | N
     ids = list(ids)
     os.makedirs(state_dir, exist_ok=True)
     own = _own_id(state_dir, name)
+    remembered = _remembered(state_dir)
 
     if preflight_db:
         pre = _open(preflight_db)
         with contextlib.closing(pre):
             early = _nothing_to_write(pre, name, *_compare(pre, name, ids, own, allow_untested))
-        if early:
-            return early
+            if early and not _ours_besides(pre, name, remembered):
+                return early
 
     con = _open(db_path)
     with contextlib.closing(con):
         existing, to_add, to_remove = _compare(con, name, ids, own, allow_untested)
         early = _nothing_to_write(con, name, existing, to_add, to_remove)
-        if early:
+        others = _ours_besides(con, name, remembered)
+        if early and not others:
             return early
         backup = _backup(con, state_dir)
         shelf_id = existing or str(uuid.uuid4())
         now = _now()
 
         def statements():
+            for other_id, other_name in others:
+                _take_off(con, now, other_id, other_name)
+            if early:
+                return  # the old one goes; this one is right already, or has no books to be made with
             _wanted(con, ids)  # again, inside the transaction
             if not existing:
                 con.execute(
@@ -476,16 +486,27 @@ def apply(db_path: str, name: str, ids, state_dir: str, *, preflight_db: str | N
 
         def remember():
             # Only once it is on the Kobo, and then at once: whatever fails
-            # after this, the collection there is known to be this tool's.
-            tmp = _idfile(state_dir, name) + ".tmp"
-            with open(tmp, "w") as fh:
-                fh.write(shelf_id)
-            os.replace(tmp, _idfile(state_dir, name))
+            # after this, the collection there is known to be this tool's,
+            # and the ones taken off are not looked for again.
+            if not early:
+                tmp = _idfile(state_dir, name) + ".tmp"
+                with open(tmp, "w") as fh:
+                    fh.write(shelf_id)
+                os.replace(tmp, _idfile(state_dir, name))
+            for other_id, _other_name in others:
+                with contextlib.suppress(FileNotFoundError):
+                    os.unlink(remembered[other_id])
 
         _write(con, statements, backup, db_path, committed=remember)
 
+    names = tuple(n for _, n in others)
+    with contextlib.closing(_reopen(db_path, backup)) as con:
+        if _ours_besides(con, name, [i for i, _ in others]):
+            raise _not_as_written(backup)
+    if early:
+        return Result(early.action, early.books, backup=backup, names=names)
     books = _verify(db_path, name, backup, ids)
-    return Result("updated" if existing else "created", books, to_add, to_remove, backup)
+    return Result("updated" if existing else "created", books, to_add, to_remove, backup, names)
 
 
 def _compare(con: sqlite3.Connection, name: str, ids, own: str, allow_untested: bool) -> tuple[str, int, int]:
@@ -559,7 +580,7 @@ def _ours_besides(con: sqlite3.Connection, keep: str, shelf_ids) -> list[tuple[s
 def remove_others(db_path: str, keep_name: str, state_dir: str, *, preflight_db: str | None = None, allow_untested: bool = False) -> Result:
     """Take every collection this tool made off the Kobo, except the one
     named keep_name ("" = all of them): the old collection after the name
-    was changed or cleared. Collections are recognised by the Shelf id this
+    was cleared. (After it was changed, apply takes it off.) Collections are recognised by the Shelf id this
     tool remembered when it made them, never by name, so one that someone
     else made is not touched, whatever it is called."""
     keep = (keep_name or "").strip()

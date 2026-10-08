@@ -186,23 +186,23 @@ def _keep_collection(db: str, copy: str, name: str, ids: list[str], state_dir: s
     the one named `name` holds exactly `ids`; one made earlier under another
     name goes ("" = no collection wanted at all). True when it wrote."""
     where = os.path.join(state_dir, "collection")
-    wrote = False
     try:
-        gone = collection.remove_others(db, name, where, preflight_db=copy, allow_untested=cfg.allow_untested_kobo)
-        if gone.wrote:
-            wrote = True
-            log.info("collections removed: %s", ", ".join(gone.names))
-            said += [f"Collection '{n}' removed." for n in gone.names]
         if name:
-            r = collection.apply(db, name, ids, where, preflight_db=None if wrote else copy, allow_untested=cfg.allow_untested_kobo)
-            log.info(r.line(name))
-            if r.wrote:
-                wrote = True
-                said.append(f"Collection {r.line(name).removeprefix('collection ')}.")
+            r = collection.apply(db, name, ids, where, preflight_db=copy, allow_untested=cfg.allow_untested_kobo)
+        else:
+            r = collection.remove_others(db, "", where, preflight_db=copy, allow_untested=cfg.allow_untested_kobo)
     except collection.CollectionError as ex:
         log.warning("collection not updated: %s", ex)
         said.append(f"Collection not updated: {str(ex).split('. ')[0].rstrip('.')}.")
-    return wrote
+        return False
+    if r.names:
+        log.info("collections removed: %s", ", ".join(r.names))
+        said += [f"Collection '{n}' removed." for n in r.names]
+    if name:
+        log.info(r.line(name))
+        if r.action in ("created", "updated"):
+            said.append(f"Collection {r.line(name).removeprefix('collection ')}.")
+    return r.wrote
 
 
 def _sync_here(

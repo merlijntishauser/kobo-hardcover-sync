@@ -445,10 +445,49 @@ def test_a_collection_made_under_another_name_is_taken_off_again(kobo):
     assert collection.apply(db, NAME, BOOKS[:3], state).action == "created"
 
 
+def not_ours(db):
+    """The collections in the fixture that are not ours, as they are."""
+    return rows(db, "select * from Shelf where Name in ('Holiday', 'To lend') order by Id"), rows(
+        db, "select * from ShelfContent where ShelfName in ('Holiday', 'To lend') order by 1, 2"
+    )
+
+
+def test_another_name_is_one_write_with_one_backup(kobo):
+    db, state = kobo
+    collection.apply(db, "Old name", BOOKS[:3], state)
+    theirs = not_ours(db)
+    r = collection.apply(db, NAME, BOOKS[:2], state)  # the reader now wants it called NAME
+    assert (r.action, r.books, r.names, r.wrote) == ("created", 2, ("Old name",), True)
+    assert len(backups(state)) == 2  # the first collection's, and one for the new name
+    assert rows(db, "select _IsDeleted from Shelf where Name = 'Old name'") == [(1,)] and members(db) == set(BOOKS[:2])
+    assert not_ours(db) == theirs and not stray_files(db)
+    assert [f for f in os.listdir(state) if f.startswith("collection-id-")] == [os.path.basename(collection._idfile(state, NAME))]
+    # Another name and no books for it: the old one goes all the same, and nothing new is made.
+    r = collection.apply(db, "Third", [], state)
+    assert (r.action, r.names, r.wrote) == ("not created", (NAME,), True) and members(db) == set()
+    assert collection.apply(db, "Third", [], state).wrote is False
+
+
+def test_another_name_that_is_refused_leaves_the_old_collection(kobo, monkeypatch):
+    db, state = kobo
+    collection.apply(db, "Old name", BOOKS[:3], state)
+    before, n = everything(db), len(backups(state))
+    with pytest.raises(collection.NotOurs):
+        collection.apply(db, "Holiday", BOOKS[:2], state)  # someone else's collection has that name
+    assert everything(db) == before and len(backups(state)) == n
+    monkeypatch.setattr(collection, "_before_commit", lambda: 1 / 0)  # dies in the middle of the one write
+    with pytest.raises(ZeroDivisionError):
+        collection.apply(db, NAME, BOOKS[:2], state)
+    assert everything(db) == before and os.path.exists(collection._idfile(state, "Old name"))
+    assert not os.path.exists(collection._idfile(state, NAME))
+
+
 def test_a_cleared_name_takes_every_collection_of_ours_off_and_nobody_elses(kobo):
     db, state = kobo
     collection.apply(db, "First", BOOKS[:2], state)
-    collection.apply(db, "Second", BOOKS[2:4], state)
+    # Two of ours at once, as an older version could leave them: made apart, both remembered here.
+    collection.apply(db, "Second", BOOKS[2:4], state + "-before")
+    shutil.copy(collection._idfile(state + "-before", "Second"), collection._idfile(state, "Second"))
     theirs = (
         rows(db, "select * from Shelf where Name in ('Holiday', 'To lend', 'Wishlist-like system shelf') order by Id"),
         rows(db, "select * from ShelfContent where ShelfName in ('Holiday', 'To lend') order by 1, 2"),

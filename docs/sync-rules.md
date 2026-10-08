@@ -288,10 +288,14 @@ of the books that sync. This is the only thing ever written to the Kobo.
   Kobo is taken out again at the next sync. Keep your own collections for
   your own lists.
   Tests: `tests/test_collection.py::test_a_book_added_by_hand_on_the_kobo_is_taken_out_again`
-- **K5** Another name under Settings: the old collection is taken off the
-  Kobo at the next plug-in and the new one made. A cleared name: the
-  collection is taken off. Nobody else's collection is touched.
+- **K5** Another name under Settings: at the next plug-in the old
+  collection is taken off the Kobo and the new one made, in one write with
+  one backup. When the new name is refused (a collection of yours has it),
+  nothing is written and the old one stays. A cleared name: the collection
+  is taken off. Nobody else's collection is touched.
   Tests: `tests/test_collection.py::test_a_collection_made_under_another_name_is_taken_off_again`,
+  `tests/test_collection.py::test_another_name_is_one_write_with_one_backup`,
+  `tests/test_collection.py::test_another_name_that_is_refused_leaves_the_old_collection`,
   `tests/test_collection.py::test_a_cleared_name_takes_every_collection_of_ours_off_and_nobody_elses`,
   `tests/test_local.py::test_a_new_collection_name_replaces_the_old_collection_and_a_cleared_one_removes_it`,
   `tests/test_computer.py::test_in_server_mode_a_cleared_name_removes_the_collection_but_a_server_out_of_reach_does_not`

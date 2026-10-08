@@ -15,6 +15,10 @@ minor version may change behaviour; the notes will say so.
   both. A book that turns up on another Kobo later brings what was set for
   it, so a match you chose by hand is no longer looked up again. Where the
   two copies differed before, the one read last decides, once.
+- Another collection name: the old collection is taken off and the new
+  one made in one write to the Kobo, with one backup instead of two. When
+  the new name cannot be used, because a collection of yours already has
+  it, the old collection now stays instead of being removed.
 
 ## 0.9.0 - 2026-10-06
 
