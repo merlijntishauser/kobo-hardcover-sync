@@ -7,6 +7,15 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Changed
+
+- The same book on two of your Kobos is one book: Sync, State and the
+  Hardcover match are set for the book, not per Kobo. The page lists it
+  once, as the Kobo you read it on last says it, and what you set holds on
+  both. A book that turns up on another Kobo later brings what was set for
+  it, so a match you chose by hand is no longer looked up again. Where the
+  two copies differed before, the one read last decides, once.
+
 ## 0.9.0 - 2026-10-06
 
 A webhook: each sync to an address of your own.

@@ -8,6 +8,12 @@ Selection rule (design, 2026-09-30):
   device events is *history*: mode "off" until the reader picks it.
 - A book whose first device-local Event comes after that first import is
   *new*: mode "auto", which counts as on and can be switched off.
+
+The same book on two Kobos of one reader is two rows, one per Kobo, for
+what each Kobo says (progress, status, dates). What is set for the book
+(PER_BOOK: Sync, State, the Hardcover match and record) is one per book
+(2026-10-08): it is written by (reader, content_id), so to every Kobo's row at
+once, and a Kobo that brings a book along later takes it over.
 """
 
 from __future__ import annotations
@@ -54,6 +60,35 @@ create table if not exists reader (
 create table if not exists device_token (
   token_sha256 text primary key, reader text not null, device text not null, created text not null);
 create table if not exists meta (key text primary key, value text);
+"""
+# What is set for a book rather than read from a Kobo: the same on each Kobo's row of it.
+PER_BOOK = (
+    "mode",
+    "history",  # with mode: whether "auto" counts as on
+    "state",
+    "state_date",
+    "state_changed",
+    "hc_how",
+    "hc_book_id",
+    "hc_edition_id",
+    "hc_pages",
+    "hc_title",
+    "hc_candidates",
+    "hc_looked",
+    "hc_error",
+    "hc_edition_by",
+    "hc_format_id",
+    "hc_format",
+    "hc_edition_checked",
+    "last_sent",
+)
+# Each Kobo's rows ranked by the one read last, as plan.quiet ranks the copies that may speak.
+READ_LAST = "coalesce(last_read, '') desc, device desc"
+# One row per book of a reader, the copy on the Kobo it was read on last: what the page lists.
+BOOK_VIEW = f"""
+create view if not exists reader_book as
+  select * from (select *, row_number() over (partition by reader, content_id order by {READ_LAST}) as copy from book)
+  where copy = 1;
 """
 
 
@@ -132,6 +167,18 @@ def connect(path: str) -> sqlite3.Connection:
         con.execute("alter table device add column client_version text")
     if "list_size" not in reader_cols:  # books the list shows at first: null the usual 100, 0 all of them (2026-10-04)
         con.execute("alter table reader add column list_size integer")
+    con.executescript(BOOK_VIEW)
+    if con.execute("select 1 from meta where key='per_book'").fetchone() is None:
+        # Before 2026-10-08 a second Kobo's copy of a book began with its own Sync and State. The Kobo it
+        # was read on last is the one the page showed and the one that spoke for it: that one counts.
+        cols = ", ".join(PER_BOOK)
+        con.execute(
+            f"""update book set ({cols}) = (select {cols} from book w where w.reader=book.reader and w.content_id=book.content_id
+                  order by coalesce(w.last_read, '') desc, w.device desc limit 1)
+                where exists (select 1 from book o where o.reader=book.reader and o.content_id=book.content_id and o.device!=book.device)"""
+        )
+        con.execute("insert or ignore into meta values ('per_book', ?)", (now(),))  # two connections at once: both align, the same
+        con.commit()
     return con
 
 
@@ -152,7 +199,12 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
         reading_now = being_read(b.status, b.percent)
         if row is None:
             # New to kobo-hardcover-sync. Opened on this device after the first import -> new/auto.
-            is_new = (not is_first) and bool(b.first_event) and b.first_event >= first_import[:19]
+            # Already on another of the reader's Kobos: the book brings what was set for it.
+            elsewhere = con.execute(
+                f"select {', '.join(PER_BOOK)} from book where reader=? and content_id=? order by {READ_LAST} limit 1",
+                (reader, b.content_id),
+            ).fetchone()
+            is_new = elsewhere is None and (not is_first) and bool(b.first_event) and b.first_event >= first_import[:19]
             mode = "auto" if is_new else "off"
             new_auto += is_new
             added += 1
@@ -180,6 +232,11 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
                     b.language,
                 ),
             )
+            if elsewhere:
+                con.execute(
+                    f"update book set {', '.join(c + '=?' for c in PER_BOOK)} where reader=? and device=? and content_id=?",
+                    (*elsewhere, reader, device, b.content_id),
+                )
         else:
             if (row["percent"], row["status"], row["finished_at"] or "") != (b.percent, b.status, b.finished_at):
                 changed += 1
@@ -237,6 +294,7 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
 
 
 def set_mode(con: sqlite3.Connection, reader: str, content_ids: list[str], mode: str) -> int:
+    """Sync for these books, on every Kobo they are on (PER_BOOK)."""
     if mode not in MODES:
         raise ValueError(f"mode must be one of {MODES}")
     n = 0
@@ -247,6 +305,7 @@ def set_mode(con: sqlite3.Connection, reader: str, content_ids: list[str], mode:
 
 
 def set_state(con: sqlite3.Connection, reader: str, content_id: str, st: str, date: str = "") -> int:
+    """The State of this book, on every Kobo it is on (PER_BOOK)."""
     if st not in STATES:
         raise ValueError(f"state must be one of {STATES}")
     if date and not (len(date) == 10 and date[4] == "-" and date[7] == "-"):

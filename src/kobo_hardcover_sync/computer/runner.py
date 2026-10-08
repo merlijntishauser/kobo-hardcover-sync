@@ -307,7 +307,7 @@ def _sync_here(
         if mount:
             ids = [
                 b["content_id"]
-                for b in con.execute("select * from book where reader=? order by last_read desc", (reader["name"],))
+                for b in con.execute("select * from reader_book where reader=? order by last_read desc", (reader["name"],))
                 if state.syncs(b)
             ]
             before = len(said)

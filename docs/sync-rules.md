@@ -161,9 +161,22 @@ Two editions, a sample and the book, or the same book on two Kobos.
   instead of becoming a second shelf entry.
   Tests: `tests/test_rules.py::test_a_book_matched_by_hand_to_a_book_already_synced_joins_it`
 - **C7** An edit you make on Hardcover is taken over by the copy that
-  speaks. The other copy keeps what the Kobo says about it, for when it is
-  read again.
-  Tests: `tests/test_rules.py::test_an_edit_on_hardcover_is_taken_over_by_the_copy_that_speaks`
+  speaks. Another edition keeps what its Kobo says about it, for when it is
+  read again. The same book on two Kobos is one book: the edit holds for
+  it on both.
+  Tests: `tests/test_rules.py::test_an_edit_on_hardcover_is_taken_over_by_the_copy_that_speaks`,
+  `tests/test_rules.py::test_an_edit_on_hardcover_reaches_the_book_on_every_kobo`
+- **C8** Sync, State and the Hardcover match are set per book, not per
+  Kobo. The page lists the same book on two Kobos once, as the Kobo it was
+  read on last says it, and what you set there holds on both. A book that
+  comes along on another Kobo later keeps what was set for it, also a
+  match you chose by hand.
+  Tests: `tests/test_rules.py::test_a_book_that_comes_on_a_second_kobo_keeps_what_was_set_for_it`,
+  `tests/test_web.py::test_the_same_book_on_two_kobos_is_one_book_on_the_page`
+- **C9** Where an earlier version let the two Kobos' copies of a book
+  differ, the one read last decides, once, at the first start of a version
+  with C8.
+  Tests: `tests/test_rules.py::test_a_book_set_apart_on_two_kobos_before_is_made_one_book_again`
 
 ## What you change on Hardcover
 

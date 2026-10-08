@@ -532,7 +532,9 @@ def _status(a, computer) -> None:
     if cfg.mode == "local":
         con = state.connect(os.path.join(config.state_dir(), "state.db"))
         row = con.execute("select hardcover_live, hardcover_user, kobo_collection from reader where name = 'me'").fetchone()
-        books = con.execute("select count(*), sum(mode = 'on' or (mode = 'auto' and history = 0)) from book where reader = 'me'").fetchone()
+        books = con.execute(
+            "select count(*), sum(mode = 'on' or (mode = 'auto' and history = 0)) from reader_book where reader = 'me'"
+        ).fetchone()
         con.close()
         if computer.secret(HARDCOVER):
             rows.append(Row(OK, "Token", f"Hardcover token present, kept in {computer.secret_place(HARDCOVER)}"))

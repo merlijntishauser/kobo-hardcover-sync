@@ -196,6 +196,53 @@ def test_the_same_book_on_two_kobos_follows_the_kobo_it_was_read_on_last(tmp_pat
     assert list(plan.quiet_for(st, "alice")) == [("kobo2", "rd")]
 
 
+# READING on a second Kobo, read there longer ago.
+IN_A_DRAWER = ("rd", "Blindness", "José Saramago", "978000", 20, 1, "2026-08-01T10:00:00Z", 400)
+
+
+def test_a_book_that_comes_on_a_second_kobo_keeps_what_was_set_for_it(tmp_path):
+    st, _ = imported(tmp_path, [READING], device="kobo1")
+    state.set_mode(st, "alice", ["rd"], "on")
+    job.pick(st, "alice", "rd", 4242, "Blindness (the other one)", 250)
+    state.set_state(st, "alice", "rd", "finished", "2026-09-30")
+    imported(tmp_path, [IN_A_DRAWER], name="drawer.sqlite", device="kobo2")  # its first import: history, Sync off there
+    k1, k2 = (st.execute("select * from book where device=? and content_id='rd'", (d,)).fetchone() for d in ("kobo1", "kobo2"))
+    for col in state.PER_BOOK:
+        assert k2[col] == k1[col], col
+    assert (k2["percent"], k2["last_read"]) == (20, "2026-08-01T10:00:00Z")  # what this Kobo says stays its own
+    fake = FakeHC(search=BLIND)
+    run(tmp_path, fake)
+    # The match chosen by hand is not looked up again for the second Kobo, and not replaced by the search's.
+    assert {(r["hc_how"], r["hc_book_id"]) for r in st.execute("select * from book")} == {("manual", 4242)}
+
+
+def test_an_edit_on_hardcover_reaches_the_book_on_every_kobo(tmp_path):
+    st, _ = imported(tmp_path, [READING], device="kobo1")
+    imported(tmp_path, [IN_A_DRAWER], name="drawer.sqlite", device="kobo2")
+    state.set_mode(st, "alice", ["rd"], "on")
+    fake = FakeHC(search=BLIND)
+    run(tmp_path, fake)
+    fake.reader_sets(next(iter(fake.books)), status_id=3, read={"finished_at": "2026-09-15"})  # marked Read on hardcover.app
+    assert run(tmp_path, fake)["adopted"] == 1
+    assert {(r["device"], r["state"], r["state_date"]) for r in st.execute("select * from book")} == {
+        ("kobo1", "finished", "2026-09-15"),
+        ("kobo2", "finished", "2026-09-15"),
+    }
+
+
+def test_a_book_set_apart_on_two_kobos_before_is_made_one_book_again(tmp_path):
+    st, _ = imported(tmp_path, [READING], device="kobo1")
+    imported(tmp_path, [IN_A_DRAWER], name="drawer.sqlite", device="kobo2")
+    # As a state.db from before mode and State were one per book: the drawer's copy went its own way.
+    st.execute("update book set mode='on', history=0, state='dnf' where device='kobo2'")
+    st.execute("update book set mode='off', history=1, state='kobo' where device='kobo1'")
+    st.execute("delete from meta")
+    st.commit()
+    st = state.connect(str(tmp_path / "state.db"))
+    # As on the Kobo it was read on last.
+    assert {(r["mode"], r["history"], r["state"]) for r in st.execute("select * from book")} == {("off", 1, "kobo")}
+
+
 def test_a_book_taken_off_the_shelf_on_hardcover_switches_every_copy_off(tmp_path):
     st = setup(tmp_path, [OLD, SAMPLE])
     fake = FakeHC(isbn=OLD_ED)

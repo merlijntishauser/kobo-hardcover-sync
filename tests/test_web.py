@@ -323,6 +323,24 @@ def test_a_copy_that_does_not_speak_for_its_hardcover_book_says_so(tmp_path, mon
     assert "Hardcover follows the copy" not in c.get("/details/mine", headers=h).text
 
 
+def test_the_same_book_on_two_kobos_is_one_book_on_the_page(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    h = {"Remote-User": "robin"}
+    k = tmp_path / "k2.sqlite"
+    make_kobo(k, [("mine", "Mine Now", "C", "333", 60, 1, "2026-10-01T10:00:00Z", 900)], [])  # read on since, on the second Kobo
+    st = state.connect(str(tmp_path / "state.db"))
+    state.import_books(st, "robin", "kobo2", kobo_db.read_books(kobo_db.open_db(str(k))))
+    page = c.get("/", headers=h).text
+    assert page.count('id="b-mine"') == 1 and "60%" in page and "10%" not in page  # the Kobo it was read on last
+    from kobo_hardcover_sync.web.app import filter_counts
+
+    assert filter_counts(st, "robin", "")["all"] == 2  # old and mine, each once
+    assert "60%" in c.get("/details/mine", headers=h).text
+    r = c.post("/mode", data={"ids": "mine", "mode": "off"}, headers={**h, "x-requested-with": "fetch"})
+    assert r.json()["syncs"] is False
+    assert [r["mode"] for r in st.execute("select mode from book where content_id='mine'")] == ["off", "off"]
+
+
 def shelf_of(tmp_path, n):
     """The reader's shelf grown to n books, copies of 'old' with their own ids, titles and last-read
     dates (b000 read longest ago); one book never opened."""

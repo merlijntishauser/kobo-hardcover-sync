@@ -84,7 +84,8 @@ def hardcover_check(token: str, add_one: str, client=None, run_out: bool = False
 # ---------- the reader's books and runs (this tool's own database) ----------
 def reader_checks(con, reader: str, has_token: bool) -> list[Check]:
     row = con.execute("select hardcover_live from reader where name=?", (reader,)).fetchone()
-    books = con.execute("select * from book where reader=?", (reader,)).fetchall()
+    # One row per book (mode and history are the same on each Kobo it is on); read-only: no view here.
+    books = con.execute("select * from book where reader=? group by content_id", (reader,)).fetchall()
     on = [b for b in books if state.syncs(b)]
     out = []
     if not books:

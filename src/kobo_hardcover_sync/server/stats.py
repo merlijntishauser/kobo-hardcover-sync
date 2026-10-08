@@ -35,7 +35,7 @@ def stats(con, reader: str, today: str | None = None) -> dict:
         (reader,),
     ).fetchone()
     finished_year = 0
-    for r in con.execute("select * from book where reader=? and (mode='on' or (mode='auto' and history=0))", (reader,)):
+    for r in con.execute("select * from reader_book where reader=? and (mode='on' or (mode='auto' and history=0))", (reader,)):
         w = desired(r)
         if w and w["status"] == "read" and w.get("finished", "").startswith(today[:4]):
             finished_year += 1

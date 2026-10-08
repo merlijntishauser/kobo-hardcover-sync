@@ -312,7 +312,7 @@ def query_rows(con, reader, q, f, sort, limit: int = -1, offset: int = 0):
     """The books of a view, in its order; `limit` of them from `offset` (-1: all)."""
     where, args = _where(reader, q, f)
     order = SORTS.get(sort, SORTS["last_read"])
-    return con.execute(f"select * from book where {where} order by {order} limit ? offset ?", [*args, limit, offset]).fetchall()
+    return con.execute(f"select * from reader_book where {where} order by {order} limit ? offset ?", [*args, limit, offset]).fetchall()
 
 
 def place_of(con, reader, q, f, sort, cid: str) -> int:
@@ -320,7 +320,7 @@ def place_of(con, reader, q, f, sort, cid: str) -> int:
     where, args = _where(reader, q, f)
     order = SORTS.get(sort, SORTS["last_read"])
     found = con.execute(
-        f"select n from (select content_id, row_number() over (order by {order}) - 1 as n from book where {where}) where content_id=?",
+        f"select n from (select content_id, row_number() over (order by {order}) - 1 as n from reader_book where {where}) where content_id=?",
         [*args, cid],
     ).fetchone()
     return found[0] if found else -1
@@ -330,7 +330,7 @@ def filter_counts(con, reader, q):
     out = {}
     for k in FILTERS:
         where, args = _where(reader, q, k)
-        out[k] = con.execute(f"select count(*) from book where {where}", args).fetchone()[0]
+        out[k] = con.execute(f"select count(*) from reader_book where {where}", args).fetchone()[0]
     return out
 
 
@@ -402,10 +402,10 @@ def first_run(con, reader: str, live: bool) -> str:
     of books read before, and the three steps from here to a live shelf. Going
     live is the last step, so going live ends it. Empty when there is nothing
     to show."""
-    total, history = con.execute("select count(*), coalesce(sum(history), 0) from book where reader=?", (reader,)).fetchone()
+    total, history = con.execute("select count(*), coalesce(sum(history), 0) from reader_book where reader=?", (reader,)).fetchone()
     if live or not total:
         return ""
-    on = sum(1 for r in con.execute("select mode, history from book where reader=?", (reader,)) if state.syncs(r))
+    on = sum(1 for r in con.execute("select mode, history from reader_book where reader=?", (reader,)) if state.syncs(r))
     if accounts.has_token(con, reader):
         connect = f'<li class="done">{marks.mark("ok")}<b>{T["fr_connect"]}</b><span class="s">{T["fr_connect_done"]}</span></li>'
     else:
@@ -487,7 +487,7 @@ def marked_line(con, reader: str, live: bool) -> str:
     """The second line of Sync now: how many books carry the red mark, so the
     button says what it is about to send. Empty when there are none."""
     quiet = quiet_for(con, reader)
-    n = sum(1 for r in con.execute("select * from book where reader=?", (reader,)) if hc_status(r, live, quiet)[0] == "next")
+    n = sum(1 for r in con.execute("select * from reader_book where reader=?", (reader,)) if hc_status(r, live, quiet)[0] == "next")
     if not n:
         return ""
     one, many = T["marked_send" if live else "marked_would"]
@@ -531,13 +531,13 @@ def correction(r) -> tuple[str, str, str] | None:
 def row_json(con, reader, cid, back: str = "", with_details: bool = False):
     """What kobo.js needs to redraw one row in place; with_details adds the
     refreshed content of the details dialog."""
-    row = con.execute("select * from book where reader=? and content_id=?", (reader, cid)).fetchone()
+    row = con.execute("select * from reader_book where reader=? and content_id=?", (reader, cid)).fetchone()
     if row is None:
         return {"syncs": False, "action": "", "book": "", "status": '<div class="act"></div>', "hc": ""}
     status = hc_status(row, live_for(reader), quiet_for(con, reader))
     d = {
         "marked": marked_line(con, reader, live_for(reader)),
-        "on": sum(1 for r in con.execute("select mode, history from book where reader=?", (reader,)) if state.syncs(r)),
+        "on": sum(1 for r in con.execute("select mode, history from reader_book where reader=?", (reader,)) if state.syncs(r)),
         "syncs": state.syncs(row),
         "action": action(row),
         "book": book_cell(row),
@@ -848,8 +848,8 @@ def status_items(con, reader: str, live: bool, last_upload, j) -> str:
         hc = item("next", T["hc_live"], job_line(j))
     else:
         hc = item({"ok": "ok", "running": "next"}.get(j["status"], "err"), T["hc_live"], job_line(j))
-    total = con.execute("select count(*) from book where reader=?", (reader,)).fetchone()[0]
-    on = sum(1 for r in con.execute("select mode, history from book where reader=?", (reader,)) if state.syncs(r))
+    total = con.execute("select count(*) from reader_book where reader=?", (reader,)).fetchone()[0]
+    on = sum(1 for r in con.execute("select mode, history from reader_book where reader=?", (reader,)) if state.syncs(r))
     books = item("none", T["books_total"].format(on=on, n=total))
     return kobo + hc + books
 
@@ -1045,7 +1045,7 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read",
         if v and (k, v) not in (("f", "all"), ("sort", "last_read"))
     )
     fcur = f if f in FILTERS else "all"
-    total = con.execute("select count(*) from book where reader=?", (reader,)).fetchone()[0]
+    total = con.execute("select count(*) from reader_book where reader=?", (reader,)).fetchone()[0]
     first = first_run(con, reader, live)  # says what the line under the title would, and more
     # The sidebar: what the Kobo and Hardcover last did, and the buttons that act on it.
     side = f"""<section class="status" aria-label="{T["status"]}">
@@ -1115,7 +1115,7 @@ def set_mode(
         # count the reader saw (n) must still hold, or nothing changes: the list moved meanwhile
         # (a sync, another tab), and they set again on what they can see.
         where, args = _where(reader, q, f)
-        id_list = [r[0] for r in con.execute(f"select content_id from book where {where}", args)]
+        id_list = [r[0] for r in con.execute(f"select content_id from reader_book where {where}", args)]
         if n and n != str(len(id_list)):
             return HTMLResponse(
                 frame_for(me, "books", account_pages.bulk_changed(int(n) if n.isdigit() else 0, len(id_list), back)), status_code=409
@@ -1218,7 +1218,7 @@ def cover(request: Request, content_id: str, size: str = "thumb"):
     reader = reader_for(request)
     if reader is None:
         return PlainTextResponse(T["unknown_user"], status_code=403)
-    row = db().execute("select image_id from book where reader=? and content_id=?", (reader, content_id)).fetchone()
+    row = db().execute("select image_id from reader_book where reader=? and content_id=?", (reader, content_id)).fetchone()
     path = covers.cover_path(DATA, row["image_id"], size) if row else None
     if path is None:
         return Response(status_code=404, headers={"Cache-Control": "private, max-age=3600"})
@@ -1241,7 +1241,11 @@ def collection(request: Request):
     name = (row["kobo_collection"] if row else "") or ""
     if not name.strip():
         return Response(status_code=204)
-    ids = [r["content_id"] for r in con.execute("select * from book where reader=? order by last_read desc", (reader,)) if state.syncs(r)]
+    ids = [
+        r["content_id"]
+        for r in con.execute("select * from reader_book where reader=? order by last_read desc", (reader,))
+        if state.syncs(r)
+    ]
     return PlainTextResponse(name.strip() + "\n" + "\n".join(ids) + ("\n" if ids else ""))
 
 
@@ -1252,7 +1256,7 @@ def details(request: Request, content_id: str, back: str = ""):
     if reader is None:
         return PlainTextResponse(T["unknown_user"], status_code=403)
     con = db()
-    r = con.execute("select * from book where reader=? and content_id=?", (reader, content_id)).fetchone()
+    r = con.execute("select * from reader_book where reader=? and content_id=?", (reader, content_id)).fetchone()
     if r is None:
         return PlainTextResponse("no such book", status_code=404)
     frag = details_fragment(r, hc_status(r, live_for(reader), quiet_for(con, reader)), back)

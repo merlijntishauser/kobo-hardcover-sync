@@ -403,8 +403,8 @@ def overview(con) -> list[dict]:
                 "client": client[0] if client else None,
                 "last_sync": job["started"] if job else None,
                 "sync_status": job["status"] if job else None,
-                "books": con.execute("select count(*) from book where reader=?", (n,)).fetchone()[0],
-                "syncing": con.execute(f"select count(*) from book where reader=? and {SYNCING}", (n,)).fetchone()[0],
+                "books": con.execute("select count(*) from reader_book where reader=?", (n,)).fetchone()[0],
+                "syncing": con.execute(f"select count(*) from reader_book where reader=? and {SYNCING}", (n,)).fetchone()[0],
             }
         )
     return out
