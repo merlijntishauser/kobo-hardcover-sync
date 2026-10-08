@@ -178,6 +178,26 @@ def test_devices_add_upload_remove(tmp_path, monkeypatch):
     assert "Mine Now" in c.get("/", headers=ANNA).text  # what was uploaded stays
 
 
+def test_a_connection_to_another_account_offers_to_start_over_on_it(tmp_path, monkeypatch):
+    c, st = client(tmp_path, monkeypatch)
+    monkeypatch.setattr(hardcover, "Client", Hardcover)
+    c.post("/signup", headers=ANNA)
+    c.post("/settings/token", data={"token": SECRET}, headers=ANNA)
+    assert "Start over" not in c.get("/settings", headers=ANNA).text  # no books on any shelf yet
+    state.bind_account(st, "anna", {"id": 1, "username": "anna_reads"})
+    assert "Start over" not in c.get("/settings", headers=ANNA).text  # the same account
+    st.execute("update hardcover_account set user_id=2, username='anna_old'")
+    st.commit()
+    page = c.get("/settings", headers=ANNA).text
+    assert "Your books were put on the shelf of @anna_old, and this connection is for @anna_reads" in page
+    assert "Start over on @anna_reads" in page
+    assert c.post("/settings/start-over", headers={**ANNA, "Origin": "https://evil.example"}).status_code == 403
+    assert state.hardcover_account(st, "anna") == (2, "anna_old")
+    r = c.post("/settings/start-over", headers=ANNA, follow_redirects=False)
+    assert r.status_code == 303 and state.hardcover_account(st, "anna") is None
+    assert "Started over." in c.get(r.headers["location"], headers=ANNA).text
+
+
 def test_token_is_checked_encrypted_and_never_shown(tmp_path, monkeypatch):
     c, st = client(tmp_path, monkeypatch)
     monkeypatch.setattr(hardcover, "Client", Hardcover)

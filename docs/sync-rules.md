@@ -248,6 +248,16 @@ or found there.
   is not believed: nothing is switched off, and the run says so. It is
   another account's shelf, or a token that may not read yours.
   Tests: `tests/test_rules.py::test_a_shelf_without_any_of_our_books_switches_nothing_off`
+- **F14** Once books are on a Hardcover shelf, the tool remembers whose
+  shelf it is. A connection to another Hardcover account stops the sync
+  before anything is sent or switched off, from the first book, and says
+  which two accounts they are. To move to the other account on purpose,
+  start over (Settings, or `token --start-over`): what was put on the old
+  shelf is forgotten here, the old shelf stays as it is, and the next sync
+  fills the new one. Sync, State and matches are kept.
+  Tests: `tests/test_rules.py::test_a_token_for_another_account_sends_and_switches_off_nothing`,
+  `tests/test_rules.py::test_the_account_is_bound_once_books_are_on_its_shelf`,
+  `tests/test_accounts.py::test_a_connection_to_another_account_offers_to_start_over_on_it`
 - **F3** A run that is cut off after Hardcover took a book, and before
   that was written down here, does not add the book a second time: the
   next run finds it on the shelf.

@@ -151,6 +151,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     tok.add_argument("--remove", action="store_true", help="forget the token (and go back to dry run)")
     tok.add_argument("--paste", action="store_true", help="paste a token made on Hardcover, instead of connecting there")
     tok.add_argument("--code", action="store_true", help="connect with a code to compare, instead of in the browser")
+    tok.add_argument("--start-over", action="store_true", help="put your books on the shelf of the account you are connected to now")
     sub.add_parser("page")  # what `open` starts in local mode; no help text, so it is not listed
     syn = sub.add_parser("sync", help="one sync now")
     syn.add_argument("--trigger", default="", help=argparse.SUPPRESS)  # "mount": started by the plug-in trigger
@@ -337,6 +338,12 @@ def _token(a, computer) -> None:
         if a.remove:
             accounts.clear_token(con, reader["name"])
             _one(OK, "Disconnected from Hardcover. Syncing is back in dry run.")
+            return
+        if a.start_over:
+            bound = state.hardcover_account(con, reader["name"])
+            state.start_over(con, reader["name"])
+            was = f" on the shelf of @{bound[1]}" if bound and bound[1] else ""
+            _one(OK, f"Started over: what was put{was} is forgotten here. The next sync puts your books on the connected account's shelf.")
             return
         # At a terminal, and with an app to connect through: sign in on Hardcover. A token that is
         # piped in, or asked for with --paste, is taken as before.

@@ -515,7 +515,7 @@ def test_setup_token_status_open_in_local_mode(home, monkeypatch, capsys):
             super().__init__(isbn=catalogue())
 
         def whoami(self):
-            return {"username": "sam"}
+            return {"id": 7, "username": "sam"}
 
     monkeypatch.setattr(hardcover, "Client", Stub)
     import io
@@ -540,6 +540,13 @@ def test_setup_token_status_open_in_local_mode(home, monkeypatch, capsys):
     cli.main(["open"], computer=mac)
     assert mac.opened == ["http://127.0.0.1:4000/?k=abc"]
 
+    state.bind_account(st(home), "me", {"id": 3, "username": "sam_before"})  # the books went to another account
+    cli.main(["token", "--start-over"], computer=mac)
+    assert said(capsys) == (
+        "ok Started over: what was put on the shelf of @sam_before is forgotten here. "
+        "The next sync puts your books on the connected account's shelf."
+    )
+    assert state.hardcover_account(st(home), "me") is None
     cli.main(["token", "--remove"], computer=mac)
     assert mac.secrets == {} and "back in dry run" in said(capsys)
     # Switching to a server and back keeps the two apart.

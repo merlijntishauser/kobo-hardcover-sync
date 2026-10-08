@@ -181,6 +181,7 @@ Other commands:
 | `kobo-hardcover-sync open` | The page. |
 | `kobo-hardcover-sync token --code` | Connect to Hardcover with a short code to approve, instead of in this computer's browser. |
 | `kobo-hardcover-sync token --remove` | End the connection to Hardcover and go back to dry run. |
+| `kobo-hardcover-sync token --start-over` | You moved to another Hardcover account on purpose: forget what was put on the old account's shelf, so the next sync fills the new one. |
 | `kobo-hardcover-sync export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `kobo-hardcover-sync export --output reading.json` writes a file only you can read; add `--every-sync` and that file is written again after every sync, for a dashboard to read. `kobo-hardcover-sync export --stop` ends that. The page has the same file under Settings, *Your reading as a file*. |
 | `kobo-hardcover-sync webhook` | After every sync that read something new from the Kobo, a POST with JSON to an address of your own: a reading tracker, a database, an automation. https, an optional Bearer token kept in the Keychain, and a test before anything is stored. See [docs/webhook.md](docs/webhook.md). |
 | `kobo-hardcover-sync uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
@@ -407,6 +408,7 @@ holds a token.
 | *Needs a Hardcover match* on a book | Open its Details and choose the right book, or search for it there. |
 | "Collection not updated: This Kobo's software has not been tested ..." | Your Kobo's software has not been tried yet. Syncing to Hardcover still works. See [the collection](#the-collection-on-the-kobo). |
 | "Something went wrong that this tool did not expect" | A bug. The details are in `agent.log`; please [report it](https://github.com/merlijntishauser/kobo-hardcover-sync/issues) with the output of `doctor`. |
+| "The Hardcover connection is for @new, and your books were put on the shelf of @old" | You connected another Hardcover account than the one your books went to. Nothing was sent or switched off. Connect the old account again; or, if you are moving on purpose, start over on the new one (Settings, or `kobo-hardcover-sync token --start-over`). |
 | "None of the N books this tool put on your Hardcover shelf are on the shelf ..." | The token belongs to another Hardcover account, or you emptied the shelf yourself. Nothing was switched off. Fix the token, or switch those books off on the page. |
 | "Hardcover could not be reached" or "Today's number of requests ... is used up" | Nothing is lost. The next sync carries on. |
 | The server answers 403 to everything, or does not start | `KHS_TRUSTED_PROXIES` does not name the address your proxy connects from. |

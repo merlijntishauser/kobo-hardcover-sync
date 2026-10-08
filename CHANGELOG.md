@@ -7,6 +7,15 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- The tool remembers which Hardcover account your books were put on. A
+  connection to another account now stops the sync from the first book,
+  before anything is sent or switched off, and says which two accounts
+  they are (before, it was noticed only once three or more books seemed
+  gone from the shelf). Moving to another account on purpose: *Start
+  over* under Settings, or `kobo-hardcover-sync token --start-over`.
+
 ### Changed
 
 - The same book on two of your Kobos is one book: Sync, State and the

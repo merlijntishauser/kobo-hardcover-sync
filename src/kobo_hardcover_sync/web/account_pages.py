@@ -156,6 +156,7 @@ def settings(
     local: dict | None = None,
     checks: list | None = None,
     connect: dict | None = None,
+    bound: tuple[int, str] | None = None,
 ) -> str:
     """local: None in server mode; in local mode what this computer does
     ({"eject": bool, "kept_in": where the token is kept}). Local mode has no
@@ -163,7 +164,8 @@ def settings(
     button was just pressed. connect: None when this installation has no
     Hardcover app to connect through; else {"kind": "oauth" | "pasted" | "",
     "signin": a sign-in that waits for the reader (oauth.Device) or None,
-    "waiting": the reader said they approved and Hardcover has not seen it}."""
+    "waiting": the reader said they approved and Hardcover has not seen it}. bound: the Hardcover
+    account the books were put on (state.hardcover_account), or None."""
     has_token = token_state in ("stored", "env")
     you = (
         f'<section class="card"><h2>{T["s_profile"]}</h2>'
@@ -211,6 +213,14 @@ def settings(
         token_actions = (
             f'<div class="btnrow"><form method="post" action="/settings/token/remove" data-confirm="{e(T[confirm])}">'
             f'<button class="danger">{T[label]}</button></form></div>'
+        )
+    hc_user = me["hardcover_user"] or ""
+    if token_state == "stored" and bound and bound[1] and hc_user and bound[1] != hc_user:
+        names = {"old": "@" + bound[1], "new": "@" + hc_user}
+        token_actions += (
+            line("warn", T["s_other_account"].format(**names))
+            + f'<div class="btnrow"><form method="post" action="/settings/start-over" data-confirm="{e(T["s_start_over_confirm"].format(**names))}">'
+            f'<button class="danger">{e(T["s_start_over"].format(**names))}</button></form></div>'
         )
     if me["hardcover_live"]:
         mode = (

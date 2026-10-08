@@ -67,8 +67,10 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
 
     try:
         client = client or hardcover.Client(token)
-        shelf = client.shelf() if live else []
+        shelf = []
         if live:
+            check_account(con, reader, client.whoami())
+            shelf = client.shelf()
             counts.update(syncback.pull(con, reader, shelf))
         progress[reader] = {"phase": "match", "done": 0, "total": 0}
         # Not looked up yet, or waiting for the reader since rules that have changed since: those get one more look.
@@ -133,6 +135,8 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
                 about(r, what, "failed", str(e))
             con.commit()
         status = "ok" if not counts["errors"] else "errors"
+        if live and state.has_records(con, reader):
+            state.bind_account(con, reader, client.whoami())  # the shelf the records are on, from now on
     except hardcover.HardcoverError as e:
         status, counts["fatal"] = "failed", str(e)[:300]
     finally:
@@ -152,6 +156,20 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
         {"status": status, **counts},
     )
     return {"status": status, **counts, "books": books}
+
+
+def check_account(con, reader: str, who: dict) -> None:
+    """A token for another Hardcover account than the one the books were put on: nothing is read
+    from that shelf, sent to it or switched off for it. The count of missing books (syncback.MANY)
+    stays for a token that may not read the shelf, and for state from before the binding."""
+    bound = state.hardcover_account(con, reader)
+    if bound and bound[0] != who["id"]:
+        new, old = who.get("username") or "another account", bound[1] or "another account"
+        raise hardcover.HardcoverError(
+            f"The Hardcover connection is for @{new}, and your books were put on the shelf of @{old}. "
+            f"Nothing was sent or switched off. Connect @{old} again, or start over on @{new} under Settings",
+            "account",
+        )
 
 
 def could_not_start(db_path: str, reader: str, live: bool, why: str) -> None:

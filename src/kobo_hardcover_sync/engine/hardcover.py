@@ -70,6 +70,7 @@ class HardcoverError(Exception):
       unreachable  no usable answer: network, timeout, Hardcover down
       answer       an answer this code does not understand
       refused      Hardcover understood, and said no to this one request
+      account      the token is for another account than the books' shelf (job.check_account)
 
     The first four are the same for every book, so a run stops at the first
     one instead of failing book after book."""

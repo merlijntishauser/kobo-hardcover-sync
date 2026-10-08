@@ -60,6 +60,9 @@ create table if not exists reader (
 create table if not exists device_token (
   token_sha256 text primary key, reader text not null, device text not null, created text not null);
 create table if not exists meta (key text primary key, value text);
+-- The Hardcover account a reader's shelf records (book.last_sent) belong to.
+create table if not exists hardcover_account (
+  reader text primary key, user_id integer not null, username text, since text not null);
 """
 # What is set for a book rather than read from a Kobo: the same on each Kobo's row of it.
 PER_BOOK = (
@@ -318,6 +321,31 @@ def set_state(con: sqlite3.Connection, reader: str, content_id: str, st: str, da
     ).rowcount
     con.commit()
     return n
+
+
+def hardcover_account(con: sqlite3.Connection, reader: str) -> tuple[int, str] | None:
+    """(user id, username) of the Hardcover account this reader's books were put on, or None."""
+    r = con.execute("select user_id, username from hardcover_account where reader=?", (reader,)).fetchone()
+    return (r["user_id"], r["username"] or "") if r else None
+
+
+def bind_account(con: sqlite3.Connection, reader: str, who: dict) -> None:
+    con.execute("insert or ignore into hardcover_account values (?,?,?,?)", (reader, who["id"], str(who.get("username") or ""), now()))
+    con.commit()
+
+
+def has_records(con: sqlite3.Connection, reader: str) -> bool:
+    """Something of this reader's is on a Hardcover shelf, as far as this tool knows."""
+    return con.execute("select 1 from book where reader=? and last_sent is not null limit 1", (reader,)).fetchone() is not None
+
+
+def start_over(con: sqlite3.Connection, reader: str) -> None:
+    """Forget what was put on the bound account's shelf, and the account: the
+    next live sync puts the books that sync on the shelf of the account the
+    token is for. Sync, State and matches stay; the old shelf is not touched."""
+    con.execute("update book set last_sent=null, hc_error=null where reader=?", (reader,))
+    con.execute("delete from hardcover_account where reader=?", (reader,))
+    con.commit()
 
 
 def syncs(row) -> bool:

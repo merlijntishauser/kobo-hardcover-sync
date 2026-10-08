@@ -13,6 +13,7 @@ class FakeHC:
     def __init__(self, isbn=None, search=None, catalog=None):
         self.isbn, self.search_res, self.catalog = isbn or {}, search or {}, catalog or {}
         self.calls, self.next_id, self.books = [], 100, {}
+        self.me = {"id": 1, "username": "alice"}  # the account the token is for
 
     def _id(self):
         self.next_id += 1
@@ -32,6 +33,9 @@ class FakeHC:
         return {"id": eid, "pages": None, "reading_format_id": None, "edition_format": None, "isbn_13": None} if eid else None
 
     # lookups
+    def whoami(self):
+        return self.me
+
     def editions_by_isbn(self, isbns):
         return {i: self.isbn[i] for i in isbns if i in self.isbn}
 

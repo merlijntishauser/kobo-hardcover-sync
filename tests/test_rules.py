@@ -347,6 +347,38 @@ class Killed(BaseException):
     """The process died: not an error anything catches."""
 
 
+def test_a_token_for_another_account_sends_and_switches_off_nothing(tmp_path):
+    st = setup(tmp_path, [OLD])
+    fake = FakeHC(isbn=OLD_ED)
+    assert run(tmp_path, fake)["sent"] == 1 and state.hardcover_account(st, "alice") == (1, "alice")
+    before = [tuple(r) for r in st.execute("select * from book")]
+    fake.me = {"id": 2, "username": "bob"}  # a token for bob's account, and bob's shelf
+    mine, fake.books = fake.books, {}
+    fake.calls.clear()
+    r = run(tmp_path, fake)  # one book: the count of missing books (F13) would have believed it
+    assert r["status"] == "failed" and "@bob" in r["fatal"] and "@alice" in r["fatal"] and "Nothing was sent" in r["fatal"]
+    assert fake.calls == [] and [tuple(r) for r in st.execute("select * from book")] == before
+    assert run(tmp_path, FakeHC(isbn=OLD_ED), live=False)["status"] == "ok"  # a dry run writes nothing anywhere: not stopped
+    state.start_over(st, "alice")  # the reader moves to bob's account on purpose
+    assert state.hardcover_account(st, "alice") is None and row(st, "old")["last_sent"] is None and row(st, "old")["mode"] == "on"
+    assert run(tmp_path, fake)["sent"] == 1 and len(fake.books) == 1 and state.hardcover_account(st, "alice") == (2, "bob")
+    assert mine and all(v["book_id"] == 70 for v in mine.values())  # alice's shelf was not touched
+
+
+def test_the_account_is_bound_once_books_are_on_its_shelf(tmp_path):
+    st = setup(tmp_path, [OLD])
+    st.execute("update book set mode='off'")
+    st.commit()
+    fake = FakeHC(isbn=OLD_ED)
+    run(tmp_path, fake)
+    assert state.hardcover_account(st, "alice") is None  # nothing on a shelf yet: a wrong token is still easy to change
+    state.set_mode(st, "alice", ["old"], "on")
+    run(tmp_path, fake)
+    st.execute("delete from hardcover_account")  # a state.db from before the binding, with books already on the shelf
+    st.commit()
+    assert run(tmp_path, fake)["status"] == "ok" and state.hardcover_account(st, "alice") == (1, "alice")
+
+
 def test_a_run_cut_off_after_hardcover_took_the_book_does_not_add_it_twice(tmp_path):
     st = setup(tmp_path, [READING])
     fake = FakeHC(search=BLIND)

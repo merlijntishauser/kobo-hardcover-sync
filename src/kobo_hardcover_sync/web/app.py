@@ -1410,6 +1410,7 @@ def settings_page(
         }
         if oauth.available()
         else None,
+        state.hardcover_account(con, me["name"]),
     )
     return HTMLResponse(frame_for(me, "settings", body), status_code=status)
 
@@ -1485,6 +1486,12 @@ def settings_collection(request: Request, collection: str = Form("")):
 @app.post("/settings/live")
 def settings_live(request: Request, live: str = Form("0")):
     return change(request, "live" if live == "1" else "dry", lambda con, name: accounts.set_live(con, name, live == "1"))
+
+
+@app.post("/settings/start-over")
+def settings_start_over(request: Request):
+    """Move to the account the connection is for: see state.start_over."""
+    return change(request, "start_over", lambda con, name: state.start_over(con, name))
 
 
 @app.post("/settings/devices/add")
