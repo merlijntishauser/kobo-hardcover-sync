@@ -66,8 +66,8 @@ jobs:
           name: macos-app
       - name: A keychain for this run, with the certificate in it
         env:
-          CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          CERTIFICATE: ${{ secrets.DEVELOPER_ID_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
         run: |
           keychain="$RUNNER_TEMP/signing.keychain-db"
           password=$(openssl rand -hex 24)
@@ -77,21 +77,32 @@ jobs:
           (umask 077 && printf '%s' "$CERTIFICATE" | base64 --decode >"$RUNNER_TEMP/certificate.p12")
           security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign >/dev/null
           rm -f "$RUNNER_TEMP/certificate.p12"
+          # A new keychain has none of Apple's intermediates: without them the
+          # identity is "invalid", and find-identity -v leaves it out.
+          for ca in DeveloperIDG2CA AppleWWDRCAG3 AppleWWDRCAG6; do
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/$ca.cer" "https://www.apple.com/certificateauthority/$ca.cer"
+            security import "$RUNNER_TEMP/$ca.cer" -k "$keychain" >/dev/null 2>&1 || true  # already known is fine
+            rm -f "$RUNNER_TEMP/$ca.cer"
+          done
           security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" >/dev/null
           security list-keychains -d user -s "$keychain" login.keychain-db
           identity=$(security find-identity -v -p codesigning "$keychain" | sed -nE 's/.*"(Developer ID Application: [^"]+)".*/\1/p' | head -n 1)
-          test -n "$identity" || { echo "::error::no Developer ID Application certificate in MACOS_CERTIFICATE"; exit 1; }
+          test -n "$identity" || {
+            echo "::error::no valid Developer ID Application identity in DEVELOPER_ID_P12 (not Apple Development or Distribution; with its private key)"
+            security find-identity -p codesigning "$keychain" | sed -n 's/^ *[0-9]*) [0-9A-F]* //p'
+            exit 1
+          }
           echo "IDENTITY=$identity" >>"$GITHUB_ENV"
           echo "KEYCHAIN=$keychain" >>"$GITHUB_ENV"
       - name: Signed, notarised, on a disk image
         env:
-          NOTARY_KEY_P8: ${{ secrets.MACOS_NOTARY_KEY }}
-          NOTARY_KEY_ID: ${{ secrets.MACOS_NOTARY_KEY_ID }}
-          NOTARY_ISSUER: ${{ secrets.MACOS_NOTARY_ISSUER }}
+          NOTARY_KEY_P8: ${{ secrets.NOTARY_KEY_P8 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER: ${{ secrets.NOTARY_ISSUER_ID }}
         run: |
           mkdir -p build/macos
           ditto -x -k app.zip build/macos
-          (umask 077 && printf '%s\n' "$NOTARY_KEY_P8" >"$RUNNER_TEMP/notary.p8")
+          (umask 077 && printf '%s' "$NOTARY_KEY_P8" | base64 --decode >"$RUNNER_TEMP/notary.p8")
           packaging/macos/sign.sh "$IDENTITY" "build/macos/Kobo Hardcover Sync.app"
           NOTARY_KEY="$RUNNER_TEMP/notary.p8" packaging/macos/package.sh \
             "$IDENTITY" "build/macos/Kobo Hardcover Sync.app" "Kobo-Hardcover-Sync-${TAG#v}.dmg"

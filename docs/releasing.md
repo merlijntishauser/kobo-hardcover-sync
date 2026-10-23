@@ -78,11 +78,16 @@ repository's own secrets, and not in any other workflow.
 
    | Secret | What |
    |---|---|
-   | `MACOS_CERTIFICATE` | the `.p12`, base64 (`base64 -i cert.p12 \| pbcopy`) |
-   | `MACOS_CERTIFICATE_PASSWORD` | its password |
-   | `MACOS_NOTARY_KEY` | the contents of the `.p8` file |
-   | `MACOS_NOTARY_KEY_ID` | the key's id |
-   | `MACOS_NOTARY_ISSUER` | the issuer id shown above the keys |
+   | `DEVELOPER_ID_P12` | the `.p12`, base64 (`base64 -i cert.p12 \| pbcopy`) |
+   | `DEVELOPER_ID_P12_PASSWORD` | its password |
+   | `NOTARY_KEY_P8` | the `.p8` file, base64 (`base64 -i AuthKey.p8 \| pbcopy`) |
+   | `NOTARY_KEY_ID` | the key's id |
+   | `NOTARY_ISSUER_ID` | the issuer id shown above the keys |
+
+   One certificate and one key serve every app of the same developer
+   team: a Developer ID is not tied to a bundle id. Secrets cannot be
+   read back from GitHub, so they are set from the files, not copied
+   from another repository.
 
 5. Delete the `.p12` and `.p8` files from the computer they were made on,
    or keep them in a password manager. A leaked Developer ID certificate
