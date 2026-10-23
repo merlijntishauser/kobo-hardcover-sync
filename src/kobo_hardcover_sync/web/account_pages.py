@@ -159,7 +159,8 @@ def settings(
     bound: tuple[int, str] | None = None,
 ) -> str:
     """local: None in server mode; in local mode what this computer does
-    ({"eject": bool, "kept_in": where the token is kept}). Local mode has no
+    ({"eject": bool, "kept_in": where the token is kept, "app": None, or in
+    the Mac app {"version", "check": bool, "newer": update.newer()}}). Local mode has no
     logins, devices or stats. checks: what the Check card found, when its
     button was just pressed. connect: None when this installation has no
     Hardcover app to connect through; else {"kind": "oauth" | "pasted" | "",
@@ -308,7 +309,7 @@ def settings(
             + line("ok" if on else "none", T["s_eject_on"] if on else T["s_eject_off"])
             + f'<form method="post" action="/settings/eject"><input type="hidden" name="eject" value="{0 if on else 1}">'
             f"<button>{T['s_eject_turn_off'] if on else T['s_eject_turn_on']}</button></form>"
-            f'<p class="hint">{e(T["s_eject_help"])}</p></section>'
+            f'<p class="hint">{e(T["s_eject_help"])}</p>' + _the_app(local.get("app")) + "</section>"
         )
         return (
             f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{booklist}{collection}{computer}{download}'
@@ -317,6 +318,29 @@ def settings(
     return (
         f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{booklist}{collection}{devs}{stats}{download}'
         f"{check_card(checks, False)}</main>"
+    )
+
+
+def _the_app(app: dict | None) -> str:
+    """The Mac app's version, and whether it looks for a newer one."""
+    if not app:
+        return ""
+    newer, check = app["newer"], app["check"]
+    return (
+        line("ok", T["s_version"].format(version=app["version"]))
+        + (
+            marks.line(
+                "warn",  # waits for the reader: nothing updates by itself
+                T["s_newer"].format(version=newer["version"]),
+                f' <a href="{e(newer["link"])}" target="_blank" rel="noopener noreferrer">{T["s_newer_link"]}</a>',
+            )
+            if newer
+            else ""
+        )
+        + line("ok" if check else "none", T["s_updates_on"] if check else T["s_updates_off"])
+        + f'<form method="post" action="/settings/updates"><input type="hidden" name="check" value="{0 if check else 1}">'
+        f"<button>{T['s_updates_turn_off'] if check else T['s_updates_turn_on']}</button></form>"
+        f'<p class="hint">{e(T["s_updates_help"])}</p>'
     )
 
 

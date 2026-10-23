@@ -10,6 +10,12 @@ Editor, and opened by hand it shows the last message.
 
 The app is built once. Rebuilding it gives it a new ad-hoc signature, which
 macOS treats as another app: the grant has to be given again.
+
+Inside the signed Mac app (docs/macos-app.md) none of that is needed: the
+app has a launch agent of its own, registered by the app, and starts this
+tool with KHS_APP set to where it is. Setting it up removes the small app
+above, so a Mac has one trigger; `setup` from another installation, on a
+Mac where the app's agent is loaded, leaves the trigger to the app.
 """
 
 from __future__ import annotations
@@ -27,6 +33,9 @@ BUNDLE_ID = "org.gargleblaster.kobo-hardcover-sync"
 LABEL = BUNDLE_ID + ".agent"
 KEYCHAIN = "kobo-hardcover-sync"
 APP = "KoboHardcoverSync.app"
+# The signed Mac app: another bundle id, so the two never share a permission entry.
+SIGNED_APP = "Kobo Hardcover Sync.app"
+SIGNED_LABEL = BUNDLE_ID + ".app.agent"
 SECRET_OK = re.compile(r"^[A-Za-z0-9._~+/=-]{1,4096}$")  # what may go through `security -i` unquoted
 
 
@@ -83,6 +92,12 @@ end run
 """
 
 
+def app_path() -> str:
+    """Where the signed Mac app is, when this tool was started by it; else ""."""
+    path = os.environ.get("KHS_APP", "")
+    return path if path.endswith(".app") and os.path.isdir(path) else ""
+
+
 def _applescript_string(s: str) -> str:
     return s.replace("\\", "\\\\").replace('"', '\\"')
 
@@ -112,6 +127,13 @@ class MacOS(Computer):
     def plist(self) -> str:
         return os.path.join(self.home, "Library", "LaunchAgents", LABEL + ".plist")
 
+    @property
+    def in_app(self) -> bool:
+        return bool(app_path())
+
+    def _loaded(self, label: str) -> bool:
+        return self._call("/bin/launchctl", "print", f"gui/{os.getuid()}/{label}").returncode == 0
+
     def _call(self, *args: str, **kw):
         return self.run(list(args), capture_output=True, text=True, **kw)
 
@@ -127,6 +149,11 @@ class MacOS(Computer):
             return (
                 "macOS does not let this terminal read the Kobo. Allow it when macOS asks, or under System Settings, "
                 "Privacy & Security, Files & Folders (Removable Volumes)."
+            )
+        if self.in_app:
+            return (
+                f"macOS does not let {SIGNED_APP[:-4]} read the Kobo. Allow it under System Settings, Privacy & Security, "
+                "Files & Folders (Removable Volumes), or give it Full Disk Access there; then plug the Kobo in again."
             )
         return (
             f"macOS does not let the tool read the Kobo. Give {APP} Full Disk Access (System Settings, Privacy & Security, "
@@ -175,6 +202,19 @@ class MacOS(Computer):
 
     # --- the trigger
     def install_trigger(self, command: str, rebuild: bool = False) -> list[str]:
+        if self.in_app:  # the app registered its own agent before it ran setup
+            said = ["The app starts a sync when the Kobo is plugged in."]
+            if os.path.isfile(self.plist) or os.path.isdir(self.app):
+                self._remove_small_app()
+                said.append(f"The trigger of the other installation ({APP}) is removed: the app has it now.")
+            return [
+                *said,
+                "The first time it reads the Kobo, macOS asks whether it may use files on a removable volume. Allow it.",
+            ]
+        if self._loaded(SIGNED_LABEL):
+            return [
+                f"{SIGNED_APP} has the trigger on this Mac, so none is installed here. A sync it starts uses the same books and settings."
+            ]
         said = []
         os.makedirs(self.state, mode=0o700, exist_ok=True)
         os.makedirs(os.path.dirname(self.plist), exist_ok=True)
@@ -244,6 +284,13 @@ class MacOS(Computer):
         ]
 
     def trigger_state(self) -> tuple[bool, str]:
+        if self.in_app or self._loaded(SIGNED_LABEL):
+            if self._loaded(SIGNED_LABEL):
+                return True, f"Plugging in the Kobo starts a sync in {SIGNED_APP} (its launch agent is loaded)."
+            return False, (
+                f"The launch agent of {SIGNED_APP} is not loaded. Allow the app under System Settings, General, Login Items, "
+                "then open it again."
+            )
         again = "Run `kobo-hardcover-sync setup` again."
         if not os.path.isfile(self.plist) or not os.path.isdir(self.app):
             return False, f"No trigger on this Mac: plugging in the Kobo does nothing by itself. {again}"
@@ -254,16 +301,21 @@ class MacOS(Computer):
             command = ""
         if not (command and os.access(command, os.X_OK)):
             return False, f"The trigger starts {command or 'a command'} that is not there any more. {again}"
-        if self._call("/bin/launchctl", "print", f"gui/{os.getuid()}/{LABEL}").returncode != 0:
+        if not self._loaded(LABEL):
             return False, f"The launch agent is there but not loaded. {again}"
         return True, f"Plugging in the Kobo starts a sync (launch agent loaded; it runs {command})."
 
     def remove_trigger(self) -> list[str]:
+        self._remove_small_app()
+        if self.in_app or self._loaded(SIGNED_LABEL):
+            return [f"The trigger of {SIGNED_APP} belongs to the app: move the app to the Bin to remove it."]
+        return ["Launch agent and app removed. Remove the Full Disk Access entry by hand if you like."]
+
+    def _remove_small_app(self) -> None:
         self._call("/bin/launchctl", "bootout", f"gui/{os.getuid()}/{LABEL}")
         _remove(self.plist)
         for name in (APP, "KoboHardcoverSync.applescript", "command"):
             _remove(os.path.join(self.state, name))
-        return ["Launch agent and app removed. Remove the Full Disk Access entry by hand if you like."]
 
 
 def _remove(path: str) -> None:

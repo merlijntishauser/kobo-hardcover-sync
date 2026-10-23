@@ -1,6 +1,7 @@
 name: release
 # Pushing a tag v1.2.3 publishes that version: to PyPI, as a GitHub release
-# with the notes from CHANGELOG.md, and as a container image (image.yml).
+# with the notes from CHANGELOG.md, as a container image (image.yml), and
+# as a Mac app on that release (macos-app.yml, after an approval).
 # Nothing secret is stored here:
 # PyPI trusts this workflow in this repository (trusted publishing), and
 # the upload happens in the "pypi" environment.
@@ -71,5 +72,15 @@ jobs:
       contents: read
       packages: write
     uses: ./.github/workflows/image.yml
+    with:
+      tag: ${{ github.ref_name }}
+
+  # The Mac app, signed and notarised, added to the release. Its signing
+  # job waits for the maintainer's approval (the macos-signing environment).
+  macos-app:
+    needs: github
+    permissions:
+      contents: write
+    uses: ./.github/workflows/macos-app.yml
     with:
       tag: ${{ github.ref_name }}

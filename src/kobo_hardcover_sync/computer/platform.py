@@ -18,6 +18,7 @@ class Unsupported(Exception):
 
 class Computer:
     name = "this computer"
+    in_app = False  # started by the signed Mac app (macos.py), for someone without a terminal
 
     # --- the Kobo
     def volume_roots(self) -> list[str]:

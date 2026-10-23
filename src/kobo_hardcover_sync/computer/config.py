@@ -12,6 +12,7 @@ Settings are a few lines of `key = "value"` in config.toml there:
     verbose_log = false                   # true: book titles in agent.log
     export_to = "/Users/sam/reading.json" # written after every sync; absent = not
     webhook_url = "https://example.org/hook" # POSTed to after a sync that read the Kobo
+    check_for_updates = false             # the Mac app: do not ask GitHub for a newer version
 """
 
 from __future__ import annotations
@@ -40,6 +41,7 @@ class Config:
     verbose_log: bool = False
     export_to: str = ""  # `export --every-sync`: the file kept up to date
     webhook_url: str = ""  # `webhook URL`: where a sync that read the Kobo is POSTed (its token is a secret)
+    check_for_updates: bool = True  # the Mac app only (update.py); written down only when off
 
     set_up: bool = False  # has `setup` been run here?
 
@@ -67,6 +69,7 @@ def load() -> Config:
     c.verbose_log = bool(data.get("verbose_log", False))
     c.export_to = str(data.get("export_to") or "")
     c.webhook_url = str(data.get("webhook_url") or "")
+    c.check_for_updates = bool(data.get("check_for_updates", True))
     return c
 
 
@@ -82,6 +85,8 @@ def save(c: Config) -> None:
         lines.append("export_to = " + _quote(c.export_to))
     if c.webhook_url:
         lines.append("webhook_url = " + _quote(c.webhook_url))
+    if not c.check_for_updates:
+        lines.append("check_for_updates = false")
     tmp = c.path + ".tmp"
     with open(tmp, "w") as fh:
         fh.write("\n".join(lines) + "\n")

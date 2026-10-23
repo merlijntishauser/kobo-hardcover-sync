@@ -31,6 +31,15 @@ GitHub release with this version's part of the changelog as its notes.
 The README that PyPI shows is the repository's, with its pictures and
 links pointing at the tag on GitHub.
 
+Once the GitHub release is there, the Mac app is built for it
+(`macos-app.yml`). Its signing job waits in the `macos-signing`
+environment until the maintainer approves it under the run's *Review
+deployments*. It then signs and notarises the app and adds
+`Kobo-Hardcover-Sync-<version>.dmg` to the release. Notarisation usually
+takes a few minutes, sometimes an hour. If it fails, start `macos-app` by
+hand from the tag ("Use workflow from": the tag) with the tag as input:
+it replaces the disk image on the release.
+
 ## After the tag
 
 1. The Homebrew formula: see
@@ -48,3 +57,37 @@ links pointing at the tag on GitHub.
   `release.yml`, environment `pypi`.
 - In the repository's settings: an environment named `pypi`; private
   vulnerability reporting switched on (SECURITY.md points at it).
+
+## Once, before the first release with the Mac app
+
+What signing needs is in one environment and nowhere else: not in the
+repository's own secrets, and not in any other workflow.
+
+1. In the repository's settings, an environment named `macos-signing`:
+   *Required reviewers* the maintainer, *Prevent self-review* off (the
+   maintainer pushes the tag), *Deployment branches and tags* only tags
+   matching `v*`.
+2. A **Developer ID Application** certificate (Apple Developer, Certificates;
+   or Xcode, Settings, Accounts, Manage Certificates), exported from
+   Keychain Access as a `.p12` with a password of its own. Not the
+   *Developer ID Installer* certificate, which signs `.pkg` files.
+3. An **App Store Connect API key** for notarisation: App Store Connect,
+   Users and Access, Integrations, *Team Keys*, with the *Developer* role.
+   Its `.p8` file can be downloaded only once.
+4. The environment's secrets:
+
+   | Secret | What |
+   |---|---|
+   | `MACOS_CERTIFICATE` | the `.p12`, base64 (`base64 -i cert.p12 \| pbcopy`) |
+   | `MACOS_CERTIFICATE_PASSWORD` | its password |
+   | `MACOS_NOTARY_KEY` | the contents of the `.p8` file |
+   | `MACOS_NOTARY_KEY_ID` | the key's id |
+   | `MACOS_NOTARY_ISSUER` | the issuer id shown above the keys |
+
+5. Delete the `.p12` and `.p8` files from the computer they were made on,
+   or keep them in a password manager. A leaked Developer ID certificate
+   can sign software in the maintainer's name until Apple revokes it.
+
+Replacing the certificate (it lasts five years) or the key means replacing
+those secrets and nothing else. An app signed with the new certificate
+has the same team id, so the permissions that Macs gave the app stay.

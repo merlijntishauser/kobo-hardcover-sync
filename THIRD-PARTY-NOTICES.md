@@ -60,6 +60,15 @@ image built from the `Dockerfile`, which also contains Python and a Debian
 base system) passes on their licences with it; they are inside the bundle,
 in each package's own folder.
 
+The Mac app (`packaging/macos`, see `docs/macos-app.md`) is such a
+bundle as well. Next to these packages it holds a build of CPython from
+[python-build-standalone](https://github.com/astral-sh/python-build-standalone)
+(Python Software Foundation License), and the libraries that Python is
+built with. The app carries Python's licence as
+`Contents/Resources/PYTHON-LICENSE.txt`, and the licence of each of those
+libraries in `Contents/Resources/python-licenses/`, taken from the same
+build. The app's wrapper and icon are this project's own.
+
 The tools used only to develop and test (pytest, httpx, ruff, Playwright)
 are not part of what is installed for use.
 
@@ -67,6 +76,9 @@ are not part of what is installed for use.
 
 - **Book covers** are loaded from Kobo's servers when the page shows a
   book. They are not in this repository and not passed on by it.
+- **The newest version's number**, in the Mac app only: once a day at
+  most it asks GitHub's API which release is the latest (see
+  `docs/macos-app.md`). It can be switched off.
 - Nothing else: fonts, styles and scripts are served by the
   tool itself.
 

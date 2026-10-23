@@ -7,6 +7,25 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- A Mac app, signed and notarised, as a third way to install on a Mac:
+  download it from the release, drag it to Applications, open it. It
+  sets itself up (on this computer, or with a server) without a
+  terminal, and starts a sync when the Kobo is plugged in. It uses the
+  same folder and Keychain items as a Homebrew installation, and takes
+  over its trigger. See `docs/macos-app.md`. Not released yet: the first
+  signed build still has to be seen working on a real Mac.
+- The Mac app looks for a newer version once a day at most, after a
+  sync, and says so on the page and in its window. It never updates
+  itself, and it can be switched off. Homebrew and PyPI installations
+  do not look.
+
+### Changed
+
+- `setup` from Homebrew or PyPI, on a Mac where the app has the trigger,
+  leaves the trigger to the app instead of installing a second one.
+
 ## 0.10.1 - 2026-10-08
 
 Connecting again ends the old connection at Hardcover.

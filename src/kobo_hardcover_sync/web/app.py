@@ -48,7 +48,7 @@ local = None
 if MODE == "local":
     from ..computer import config as computer_config
     from ..computer import page as local_page
-    from ..computer import runner
+    from ..computer import runner, update
 
     local = local_page.Local(int(env("PAGE_PORT", "0")))
     accounts.token_store = local_page.KeptToken(local)
@@ -1401,7 +1401,7 @@ def settings_page(
         accounts.devices(con, me["name"]),
         account_pages.flash(ok, err, detail),
         new_stats_token,
-        {"eject": computer_config.load().eject_after_sync, "kept_in": local.computer.secret_place(local_page.HARDCOVER)} if local else None,
+        _this_computer() if local else None,
         checks,
         {
             "kind": accounts.token_kind(con, me["name"]),
@@ -1654,6 +1654,30 @@ def settings_check(request: Request):
     resp = settings_page(con, me, checks=checks)
     resp.headers["Cache-Control"] = "no-store"
     return resp
+
+
+def _this_computer() -> dict:
+    cfg = computer_config.load()
+    return {
+        "eject": cfg.eject_after_sync,
+        "kept_in": local.computer.secret_place(local_page.HARDCOVER),
+        # Only the Mac app looks for a newer version (computer/update.py).
+        "app": {"version": __version__, "check": cfg.check_for_updates, "newer": update.newer()} if local.computer.in_app else None,
+    }
+
+
+@app.post("/settings/updates")
+def settings_updates(request: Request, check: str = Form("0")):
+    """The Mac app: whether it asks GitHub once a day for a newer version."""
+    con, me, bad = guard(request)
+    if bad:
+        return bad
+    if not local:
+        return PlainTextResponse(T["not_in_server_mode"], status_code=404)
+    cfg = computer_config.load()
+    cfg.check_for_updates = check == "1"
+    computer_config.save(cfg)
+    return RedirectResponse("/settings?ok=" + ("updates_on" if cfg.check_for_updates else "updates_off"), status_code=303)
 
 
 @app.post("/settings/eject")

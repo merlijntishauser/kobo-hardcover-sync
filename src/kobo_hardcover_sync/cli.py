@@ -305,6 +305,10 @@ def _setup(a, computer) -> None:
         screen.say(f"1. Paste this computer's hash at {cfg.server}/settings under Devices, unless it is there already:", indent=2, hang=3)
         screen.line(f"     {screen.style(digest, term.CYAN)}")
         screen.say("2. Plug in the Kobo and tap Connect on it.", indent=2, hang=3)
+    elif computer.in_app:  # the app opens the page next; there is no terminal
+        screen.say("1. Connect to Hardcover on the page, under Settings.", indent=2, hang=3)
+        screen.say("2. Plug in the Kobo and tap Connect on it.", indent=2, hang=3)
+        screen.say("3. Pick your books on the page. Nothing goes to Hardcover until you go live under Settings.", indent=2, hang=3)
     else:
         screen.say("1. `kobo-hardcover-sync token` connects to Hardcover.", indent=2, hang=3)
         screen.say("2. Plug in the Kobo and tap Connect on it.", indent=2, hang=3)
@@ -482,6 +486,10 @@ def _sync(a, computer) -> None:
         out = runner.sync(computer, trigger=a.trigger, verbose=a.verbose)
         if out.message:
             computer.notify(out.title, out.message)
+        if computer.in_app:  # after the notification, so a sync is never slower for it
+            from .computer import update
+
+            update.now_and_then()
         if not out.ok:
             sys.exit(1)
         return

@@ -57,6 +57,7 @@ ALLOWED = (
     # Where the project lives.
     "github.com/mer" + "lijntishauser/kobo-hardcover-sync",
     "githubusercontent.com/mer" + "lijntishauser/kobo-hardcover-sync",
+    "api.github.com/repos/mer" + "lijntishauser/kobo-hardcover-sync",  # the Mac app's check for a newer version
     "ghcr.io/mer" + "lijntishauser/kobo-hardcover-sync",  # the container image
     "owner `mer" + "lijntishauser`",  # docs/releasing.md: the PyPI publisher
     "mer" + "lijntishauser/tap",  # the Homebrew tap

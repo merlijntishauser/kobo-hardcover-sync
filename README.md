@@ -298,8 +298,8 @@ book in the server's log, with book titles), and `TZ` for the time zone.
 
 ## Privacy
 
-There is no telemetry, no update check and no account with this project.
-This is everything that leaves the computer it runs on.
+There is no telemetry and no account with this project. This is
+everything that leaves the computer it runs on.
 
 **To Hardcover**, with your token:
 
@@ -325,6 +325,12 @@ upload that holds more.
 **To your own webhook**, if you set one: the book you are reading, the
 books that changed in that sync, and your reading minutes, to the address
 you gave and nowhere else (no redirect is followed).
+
+**To GitHub, from the Mac app only**: once a day at most, after a sync,
+a request for the number of the newest release, so that the app can say
+when there is a newer one. Nothing about you or your books goes with it.
+It never updates itself; switch it off on the page under Settings, This
+computer. Homebrew and PyPI installations do not ask.
 
 **Where you ask for it**: `export` writes your reading, titles included,
 to the screen or to the file you name (after every sync, if you asked for

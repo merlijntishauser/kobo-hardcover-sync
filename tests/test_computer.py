@@ -381,7 +381,7 @@ def test_whether_plugging_in_starts_a_sync_on_a_mac(home):
     calls = len(fake.calls)
     works, said = mac.trigger_state()
     assert works and said == f"Plugging in the Kobo starts a sync (launch agent loaded; it runs {tool})."
-    assert [a[1] for a, _ in fake.calls[calls:]] == ["print"]  # it asked launchctl, and changed nothing
+    assert [verb for verb, _ in fake.launchctl(calls)] == ["print", "print"]  # it asked launchctl, and changed nothing
     # The tool was uninstalled (or moved) after setup: the trigger starts nothing.
     tool.unlink()
     works, said = mac.trigger_state()
@@ -421,10 +421,11 @@ def test_the_server_client_says_what_a_person_can_act_on():
 
 # ---------- macOS, as a recording ----------
 class FakeMac:
-    """subprocess.run for macos.MacOS: keeps a Keychain, builds a pretend app, records every command."""
+    """subprocess.run for macos.MacOS: keeps a Keychain, builds a pretend app, knows which launch agents
+    are loaded, records every command."""
 
     def __init__(self):
-        self.calls, self.keychain = [], {}
+        self.calls, self.keychain, self.loaded = [], {}, set()
 
     def __call__(self, args, capture_output=True, text=True, input=None):
         self.calls.append((args, input))
@@ -440,6 +441,13 @@ class FakeMac:
                     rc, out = (0, self.keychain[key] + "\n") if key in self.keychain else (44, "")
                 elif args[1] == "delete-generic-password":
                     self.keychain.pop(key, None)
+        elif tool == "launchctl":
+            if args[1] == "bootstrap":
+                self.loaded.add(os.path.basename(args[3])[: -len(".plist")])
+            elif args[1] == "bootout":
+                self.loaded.discard(args[2].rsplit("/", 1)[1])
+            elif args[1] == "print":
+                rc = 0 if args[2].rsplit("/", 1)[1] in self.loaded else 113
         elif tool == "osacompile":
             os.makedirs(os.path.join(args[2], "Contents", "MacOS"))
             with open(os.path.join(args[2], "Contents", "Info.plist"), "w") as fh:
@@ -448,6 +456,10 @@ class FakeMac:
 
     def ran(self, tool):
         return [a for a, _ in self.calls if os.path.basename(a[0]) == tool]
+
+    def launchctl(self, since=0):
+        """What launchctl was asked, as (verb, label)."""
+        return [(a[1], os.path.basename(a[-1]).removesuffix(".plist")) for a, _ in self.calls[since:] if a[0] == "/bin/launchctl"]
 
 
 def test_a_secret_never_appears_on_a_command_line(home):
@@ -490,7 +502,9 @@ def test_setup_on_a_mac_builds_the_app_once_and_loads_the_trigger(home, capsys):
         plist = plistlib.load(fh)
     assert plist["StartOnMount"] is True and plist["EnvironmentVariables"] == {"KHS_TRIGGER": "mount"}
     assert plist["ProgramArguments"] == [str(state / "KoboHardcoverSync.app/Contents/MacOS/applet")]
-    assert [a[1] for a in fake.ran("launchctl")] == ["bootout", "bootstrap", "print"]  # loaded, and then looked at
+    agent, app = "org.gargleblaster.kobo-hardcover-sync.agent", "org.gargleblaster.kobo-hardcover-sync.app.agent"
+    # No signed app on this Mac; the agent loaded, and then looked at.
+    assert fake.launchctl() == [("print", app), ("bootout", agent), ("bootstrap", agent), ("print", app), ("print", agent)]
     assert "ok Mode Server mode: this computer uploads to https://kobo.example.org." in out and "Next 1. Paste this computer's hash" in out
 
     # Again: same token, same hash, the app is not rebuilt (its permission stays).
