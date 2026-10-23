@@ -6,7 +6,11 @@ Homebrew and no terminal. Homebrew and PyPI stay; the app is a third way
 to install the same tool on a Mac.
 
 Built so far: the parts of the tool that know they run inside the app,
-the wrapper, the build and signing scripts and the workflows. The app has
+the wrapper, the build and signing scripts and the workflows. Seen: the
+app built and signed ad hoc on macOS 15 (CI) and macOS 27; there, started
+by a launch agent in the logged-in session, the wrapper ran a sync
+against a made-up Kobo and the update check. Not seen yet: setup through
+the app, its notifications, and anything with a Developer ID. The app has
 not been released. "Done" means a notarised build installs and syncs on a
 Mac that has never seen the project, with Gatekeeper on. What only a real
 Mac can show is listed under *To see on a real Mac* at the end.
