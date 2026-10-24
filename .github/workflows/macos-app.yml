@@ -1,7 +1,8 @@
 name: macos-app
 # The Mac app for a release (docs/macos-app.md), added to that release as
-# a disk image. Called by release.yml; started by hand only to try again,
-# from the tag ("Use workflow from": the tag), with the same tag as input.
+# a disk image. Started by release.yml, from the tag; by hand only to try
+# again, from the tag ("Use workflow from": the tag) with the same tag as
+# input.
 #
 # Two jobs, so that the signing certificate is never where outside code
 # runs. "build" installs the packages and builds the app, and has no
@@ -10,11 +11,6 @@ name: macos-app
 # Apple's tools and this repository's scripts on what "build" made, with
 # the certificate in a keychain made for this run and deleted after it.
 on:
-  workflow_call:
-    inputs:
-      tag:
-        type: string
-        required: true
   workflow_dispatch:
     inputs:
       tag:
@@ -69,6 +65,11 @@ jobs:
           CERTIFICATE: ${{ secrets.DEVELOPER_ID_P12 }}
           CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
         run: |
+          # An empty secret otherwise surfaces as a vague error from security import.
+          for pair in CERTIFICATE:DEVELOPER_ID_P12 CERTIFICATE_PASSWORD:DEVELOPER_ID_P12_PASSWORD; do
+            var=${pair%%:*}
+            test -n "${!var}" || { echo "::error::${pair#*:} is empty: not set in the macos-signing environment, or not passed to this workflow"; exit 1; }
+          done
           keychain="$RUNNER_TEMP/signing.keychain-db"
           password=$(openssl rand -hex 24)
           security create-keychain -p "$password" "$keychain"
@@ -100,6 +101,10 @@ jobs:
           NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
           NOTARY_ISSUER: ${{ secrets.NOTARY_ISSUER_ID }}
         run: |
+          for pair in NOTARY_KEY_P8:NOTARY_KEY_P8 NOTARY_KEY_ID:NOTARY_KEY_ID NOTARY_ISSUER:NOTARY_ISSUER_ID; do
+            var=${pair%%:*}
+            test -n "${!var}" || { echo "::error::${pair#*:} is empty: not set in the macos-signing environment, or not passed to this workflow"; exit 1; }
+          done
           mkdir -p build/macos
           ditto -x -k app.zip build/macos
           (umask 077 && printf '%s' "$NOTARY_KEY_P8" | base64 --decode >"$RUNNER_TEMP/notary.p8")

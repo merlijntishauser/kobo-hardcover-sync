@@ -77,10 +77,15 @@ jobs:
 
   # The Mac app, signed and notarised, added to the release. Its signing
   # job waits for the maintainer's approval (the macos-signing environment).
+  # Started as a run of its own, not called as a reusable workflow: called
+  # from here, the job in macos-signing got the environment's secrets empty
+  # (0.11.0).
   macos-app:
     needs: github
+    runs-on: ubuntu-latest
     permissions:
-      contents: write
-    uses: ./.github/workflows/macos-app.yml
-    with:
-      tag: ${{ github.ref_name }}
+      actions: write
+    steps:
+      - run: gh workflow run macos-app.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME" -f tag="$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -31,10 +31,10 @@ GitHub release with this version's part of the changelog as its notes.
 The README that PyPI shows is the repository's, with its pictures and
 links pointing at the tag on GitHub.
 
-Once the GitHub release is there, the Mac app is built for it
-(`macos-app.yml`). Its signing job waits in the `macos-signing`
-environment until the maintainer approves it under the run's *Review
-deployments*. It then signs and notarises the app and adds
+Once the GitHub release is there, `release.yml` starts the Mac app's
+own run (`macos-app.yml`, under Actions). Its signing job waits in the
+`macos-signing` environment until the maintainer approves it under the
+run's *Review deployments*. It then signs and notarises the app and adds
 `Kobo-Hardcover-Sync-<version>.dmg` to the release. Notarisation usually
 takes a few minutes, sometimes an hour. If it fails, start `macos-app` by
 hand from the tag ("Use workflow from": the tag) with the tag as input:
