@@ -25,6 +25,8 @@ final class WindowModel: ObservableObject {
     @Published var newer: String?
 
     let setUp: () -> Void
+    private var foldSince: String?  // the newest sync in History when Sync now was clicked
+    private var run = 0  // which Sync now the steps on screen belong to
     private var watcher: DispatchSourceFileSystemObject?
     private var pending: DispatchWorkItem?
 
@@ -48,7 +50,10 @@ final class WindowModel: ObservableObject {
                 case .failure(let why):
                     self.broken = why.said
                 }
-                if case .success(let found) = history { self.syncs = found.syncs }
+                if case .success(let found) = history {
+                    self.syncs = found.syncs
+                    self.foldIntoHistory()
+                }
                 self.newer = newer
             }
             guard check else { return }
@@ -79,6 +84,8 @@ final class WindowModel: ObservableObject {
         syncing = true
         steps = []
         outcome = nil
+        foldSince = syncs.first?.id ?? ""
+        run += 1
         if isPreview { return playSampleSync() }
         DispatchQueue.global(qos: .userInitiated).async {
             if case .success(let now) = answer(StatusAnswer.self, ["status", "--json"]), let started = now.syncing, !started.isEmpty {
@@ -101,6 +108,20 @@ final class WindowModel: ObservableObject {
                 self.syncing = false
                 self.refresh(check: false)
             }
+        }
+    }
+
+    /// Sync now's steps fold into History once a newer sync is there: their
+    /// own, a few seconds after, to be read; or, after an answer History does
+    /// not keep ("No Kobo found"), the next sync, which makes it old news.
+    private func foldIntoHistory() {
+        guard let since = foldSince, !syncing, outcome != nil, (syncs.first?.id ?? "") != since else { return }
+        foldSince = nil
+        let shown = run
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+            guard shown == self.run, !self.syncing else { return }
+            self.steps = []
+            self.outcome = nil
         }
     }
 

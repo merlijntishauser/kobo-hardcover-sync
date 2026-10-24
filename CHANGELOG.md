@@ -13,6 +13,10 @@ minor version may change behaviour; the notes will say so.
   "Syncing…" while it runs, then its outcome. Before, the window looked
   idle until that sync had ended, and *Sync now* during it only said that
   another sync was running.
+- *Sync now*'s steps fold into History a few seconds after the sync,
+  instead of staying on screen: an old "A sync is already running" read as
+  if one still was. An answer that History does not keep ("No Kobo
+  found") stays until the next sync.
 - The window says when macOS shows only the app's name in a
   notification (*Show previews* set to Never), with a button to its
   settings.
