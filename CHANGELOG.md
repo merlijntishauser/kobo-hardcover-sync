@@ -7,6 +7,21 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Fixed
+
+- The Mac app's window shows a sync that plugging in the Kobo started:
+  "Syncing…" while it runs, then its outcome. Before, the window looked
+  idle until that sync had ended, and *Sync now* during it only said that
+  another sync was running.
+- The window says when macOS shows only the app's name in a
+  notification (*Show previews* set to Never), with a button to its
+  settings.
+
+### Added
+
+- `status --json` says whether a sync is running now, and what started
+  it (`"syncing"`); `status` says so in a row.
+
 ## 0.12.0 - 2026-10-24
 
 The Mac app gets a window and Settings of its own: what `status`,

@@ -18,8 +18,10 @@ final class WindowModel: ObservableObject {
     @Published var broken: String?  // the tool did not answer: nothing else can be shown
     @Published var steps: [StepLine] = []
     @Published var outcome: StepLine.Done?
-    @Published var syncing = false
+    @Published var syncing = false  // Sync now, in this window
+    @Published var elsewhere = ""  // a sync this window did not start, while it runs: what started it
     @Published var notifications = UNAuthorizationStatus.notDetermined
+    @Published var previews = UNShowPreviewsSetting.always
     @Published var newer: String?
 
     let setUp: () -> Void
@@ -42,6 +44,7 @@ final class WindowModel: ObservableObject {
                 case .success(let found):
                     self.status = found
                     self.broken = nil
+                    self.elsewhere = found.syncing ?? ""
                 case .failure(let why):
                     self.broken = why.said
                 }
@@ -62,18 +65,29 @@ final class WindowModel: ObservableObject {
             }
         }
         UNUserNotificationCenter.current().getNotificationSettings { settings in
-            DispatchQueue.main.async { self.notifications = settings.authorizationStatus }
+            DispatchQueue.main.async {
+                self.notifications = settings.authorizationStatus
+                self.previews = settings.showPreviewsSetting
+            }
         }
     }
 
     /// Sync now: the steps as they come, then the outcome; History follows by itself.
+    /// While a sync the Kobo started runs, the window shows that one instead.
     func syncNow() {
-        guard !syncing else { return }
+        guard !syncing && elsewhere.isEmpty else { return }
         syncing = true
         steps = []
         outcome = nil
         if isPreview { return playSampleSync() }
         DispatchQueue.global(qos: .userInitiated).async {
+            if case .success(let now) = answer(StatusAnswer.self, ["status", "--json"]), let started = now.syncing, !started.isEmpty {
+                DispatchQueue.main.async {
+                    self.syncing = false
+                    self.elsewhere = started
+                }
+                return
+            }
             let ended = toolLines(["sync", "--trigger", "app", "--steps"]) { line in
                 guard case .success(let step) = decode(StepLine.self, line) else { return }
                 DispatchQueue.main.async {
@@ -182,7 +196,7 @@ struct TopLine: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             Group {
-                if model.syncing {
+                if busy {
                     ProgressView().controlSize(.small)
                 } else {
                     Image(systemName: "circle.fill").font(.system(size: 11)).foregroundStyle(readiness.color)
@@ -191,7 +205,7 @@ struct TopLine: View {
             .frame(width: 16)
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(model.syncing ? "Syncing…" : readiness.sentence).font(.title3.weight(.semibold))
+                Text(busy ? "Syncing…" : readiness.sentence).font(.title3.weight(.semibold))
                 Text(subtitle).foregroundStyle(.secondary).textSelection(.enabled)
             }
             Spacer(minLength: 12)
@@ -200,10 +214,12 @@ struct TopLine: View {
             Button("Sync now") { model.syncNow() }
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut("r", modifiers: .command)
-                .disabled(model.syncing || (model.status?.mode.isEmpty ?? true))
+                .disabled(busy || (model.status?.mode.isEmpty ?? true))
         }
         .padding(.vertical, 4)
     }
+
+    private var busy: Bool { model.syncing || !model.elsewhere.isEmpty }
 
     private var readiness: (sentence: String, color: Color) {
         guard let status = model.status else { return ("Kobo Hardcover Sync", .secondary) }
@@ -218,6 +234,9 @@ struct TopLine: View {
 
     private var subtitle: String {
         guard let status = model.status else { return "" }
+        if !model.elsewhere.isEmpty && !model.syncing {
+            return model.elsewhere == "mount" ? "Started by plugging in the Kobo. It shows here when it is done." : "Started elsewhere. It shows here when it is done."
+        }
         var parts: [String] = []
         switch status.mode {
         case "server": parts.append("With the server \(URL(string: status.server)?.host ?? status.server)")
@@ -302,7 +321,13 @@ struct HealthSections: View {
                 Button("Allow") { model.askForNotifications() }
             }
         default:
-            Row(state: "ok", what: "Notifications", found: "On: each sync says what it did.")
+            if model.previews == .never {
+                Row(state: "note", what: "Notifications", found: "On, but they show only the app's name: Show previews is Never in macOS's settings.") {
+                    Button("Show previews") { if let url = URL(string: notificationSettings) { NSWorkspace.shared.open(url) } }
+                }
+            } else {
+                Row(state: "ok", what: "Notifications", found: "On: each sync says what it did.")
+            }
         }
     }
 

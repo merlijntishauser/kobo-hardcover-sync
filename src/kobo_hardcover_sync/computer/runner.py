@@ -31,6 +31,8 @@ NAME = "Kobo Hardcover Sync"
 FAILED = "Kobo sync failed"
 CLICKED = "app"  # the trigger of Sync now in the Mac app: someone is waiting for an answer
 LOG_FILE = "agent.log"
+LOCK = "sync.lock"
+RUNNING = "sync.running"  # what started the sync that runs now; there only while it runs, which the Mac app's window notices
 log = logging.getLogger(__name__)
 
 # What reading a file says when the device under it went away.
@@ -124,7 +126,9 @@ def sync(
         if trigger == CLICKED:
             return Outcome(True, message="No Kobo found: plug it in and tap Connect on the Kobo.")
         return Outcome(True)  # every volume that mounts starts us; most are not a Kobo
-    lock = open(os.path.join(state_dir, "sync.lock"), "w")  # noqa: SIM115 (held until the end)
+    lock = open(os.path.join(state_dir, LOCK), "w")  # noqa: SIM115 (held until the end)
+    marker = os.path.join(state_dir, RUNNING)
+    held = False
     try:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -133,6 +137,9 @@ def sync(
             if trigger == CLICKED:
                 return Outcome(True, message="A sync is already running. It says so when it is done.")
             return Outcome(True)  # a sync is already running; it wins
+        held = True
+        with open(marker, "w") as fh:
+            fh.write(trigger or "hand")
         log.debug("sync started (%s), Kobo: %s", f"by {trigger}" if trigger else "by hand", _describe(mount))
         try:
             if cfg.server:
@@ -155,7 +162,33 @@ def sync(
             out = replace(out, message="Nothing new since the last sync." if mount else "No Kobo plugged in, and nothing else to do.")
         return out
     finally:
+        if held:
+            try:
+                os.unlink(marker)
+            except FileNotFoundError:
+                pass
         lock.close()
+
+
+def running() -> str:
+    """What started the sync that is running now ("mount", "app", "hand"),
+    or "" when none is. The lock says whether one runs, so a marker left by
+    a sync that was killed says nothing."""
+    state_dir = config.state_dir()
+    try:
+        lock = open(os.path.join(state_dir, LOCK))  # noqa: SIM115
+    except FileNotFoundError:
+        return ""
+    with lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            try:
+                with open(os.path.join(state_dir, RUNNING)) as fh:
+                    return fh.read().strip() or "hand"
+            except FileNotFoundError:
+                return "hand"
+        return ""
 
 
 def _describe(mount: str | None) -> str:

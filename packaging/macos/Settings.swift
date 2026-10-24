@@ -17,6 +17,7 @@ final class SettingsModel: ObservableObject {
     @Published var problem: String?  // the tool did not answer, or refused a change
     @Published var working = false
     @Published var notifications = UNAuthorizationStatus.notDetermined
+    @Published var previews = UNShowPreviewsSetting.always
 
     weak var window: NSWindow?  // where its sheets go
     let changed: () -> Void  // the main window looks again
@@ -30,7 +31,10 @@ final class SettingsModel: ObservableObject {
     func load() {
         ask(["settings", "--json"])
         UNUserNotificationCenter.current().getNotificationSettings { settings in
-            DispatchQueue.main.async { self.notifications = settings.authorizationStatus }
+            DispatchQueue.main.async {
+                self.notifications = settings.authorizationStatus
+                self.previews = settings.showPreviewsSetting
+            }
         }
     }
 
@@ -401,7 +405,8 @@ struct AppTab: View {
                     Button("Open Notification Settings") { if let url = URL(string: notificationSettings) { NSWorkspace.shared.open(url) } }
                 }
             } footer: {
-                Text("They say what a sync did when the Kobo started it, with the window closed.").foregroundStyle(.secondary)
+                Text("They say what a sync did when the Kobo started it, with the window closed. With Show previews at Never, macOS hides what they say.")
+                    .foregroundStyle(.secondary)
             }
             Section {
                 HStack(alignment: .top) {
@@ -420,7 +425,7 @@ struct AppTab: View {
         switch model.notifications {
         case .denied: return "Off"
         case .notDetermined: return "Not asked yet"
-        default: return "On"
+        default: return model.previews == .never ? "On, showing only the app's name" : "On"
         }
     }
 }

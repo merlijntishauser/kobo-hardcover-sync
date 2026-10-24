@@ -108,6 +108,24 @@ def test_status_answers_at_once_with_the_last_sync(mac, home, capsys):
     assert (last["trigger"], last["message"]) == ("mount", "9 books updated.")
 
 
+def test_status_says_when_a_sync_started_elsewhere_is_running(mac, home, capsys):
+    assert answer(capsys, "status", "--json", computer=mac)["syncing"] == ""
+    seen = []  # what the window would see halfway through a sync the Kobo started
+    runner.sync(mac, config.load(), trigger="mount", on_step=lambda row: seen.append(runner.running()))
+    assert seen and set(seen) == {"mount"}
+    assert runner.running() == "" and not (home / "state" / runner.RUNNING).exists()
+
+    # Only the lock counts: a marker left by a sync that was killed says nothing.
+    (home / "state" / runner.RUNNING).write_text("mount")
+    assert answer(capsys, "status", "--json", computer=mac)["syncing"] == ""
+    with open(home / "state" / runner.LOCK, "w") as held:  # a sync, in another process, that has not written its marker yet
+        fcntl.flock(held, fcntl.LOCK_EX)
+        (home / "state" / runner.RUNNING).unlink()
+        assert answer(capsys, "status", "--json", computer=mac)["syncing"] == "hand"
+        cli.main(["status"], computer=mac)
+        assert "A sync is running now" in capsys.readouterr().out
+
+
 def test_doctor_answers_with_its_checks_and_says_when_something_stops_a_sync(mac, home, capsys):
     found = answer(capsys, "doctor", "--json", computer=mac, exits=None)
     same_shape(found, sample("doctor.json"))

@@ -612,6 +612,9 @@ def _last_sync() -> dict | None:
     return {"at": at, "trigger": "", "ok": True, "title": lines[0], "message": " ".join(lines[1:-1])}
 
 
+_STARTED = {"mount": "plugging in the Kobo", "app": "Sync now in the app", "hand": "hand"}
+
+
 def _status(a, computer) -> None:
     from .computer import config, runner
     from .computer.platform import HARDCOVER, KOBO_DB, UPLOAD
@@ -627,6 +630,7 @@ def _status(a, computer) -> None:
                 "folder": config.state_dir(),
                 "kobo": computer.find_kobo(),
                 "last_sync": _last_sync(),
+                "syncing": runner.running(),
             }
         )
     rows = []
@@ -635,6 +639,8 @@ def _status(a, computer) -> None:
     else:
         rows.append(Row(OK, "Mode", f"Server mode: uploads to {cfg.server}" if cfg.server else "Local mode: everything on this computer"))
     rows.append(Row(OK, "Folder", config.state_dir()))
+    if started := runner.running():
+        rows.append(Row(NOTE, "Sync", f"A sync is running now, started by {_STARTED.get(started, started)}."))
     if cfg.mode == "local":
         con = state.connect(os.path.join(config.state_dir(), "state.db"))
         row = con.execute("select hardcover_live, hardcover_user, kobo_collection from reader where name = 'me'").fetchone()

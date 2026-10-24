@@ -29,6 +29,7 @@ struct StatusAnswer: Codable {
     let folder: String
     let kobo: String?  // where it is mounted, when one is plugged in
     let lastSync: Sync?
+    let syncing: String?  // what started the sync that runs now in another process ("mount", "app", "hand"); "" when none
 }
 
 struct Check: Codable, Equatable, Identifiable {

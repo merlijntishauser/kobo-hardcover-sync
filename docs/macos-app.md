@@ -125,7 +125,9 @@ started in three ways:
   found, and whether notifications are on), the steps of a sync as it
   runs (`sync --trigger app --steps`), and History (`history --json`),
   with *Show the log*. A sync the Kobo starts while the window is open
-  shows up in History when it ends. With the window open the app has a
+  shows as "Syncing…" while it runs (`status --json` says so, from the
+  sync's lock; the sync keeps a `sync.running` marker in the tool's folder,
+  which wakes the window), and in History when it ends. With the window open the app has a
   Dock icon and a menu bar; closing the window quits it.
 - **Settings (⌘-,),** three tabs, each change through the tool. *Mode*:
   local or a server, which runs `setup --local` or `setup --server ...
