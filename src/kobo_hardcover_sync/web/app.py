@@ -26,7 +26,7 @@ from starlette.middleware.gzip import GZipMiddleware
 
 from .. import __version__, booklist, doctor
 from ..engine import export, hardcover, job, oauth, state
-from ..engine.plan import action, desired, quiet_for
+from ..engine.plan import action, quiet_for
 from ..env import env
 from ..server import accounts, proxy, upload
 from ..server import stats as stats_mod
@@ -272,22 +272,11 @@ def list_size(me) -> int:
 
 # ---------- row pieces (also returned by /mode and /state for in-place redraw) ----------
 def book_cell(r) -> str:
-    want = desired(r)
-    done = bool(want and want["status"] == "read")
-    pct = 100 if done else max(0, min(100, int(r["percent"] or 0)))
+    pct, done, meta = booklist.progress(r)
     tag = "" if r["history"] else f'<span class="tag">{T["new_tag"]}</span>'
-    meta = []
-    if done:
-        when = fmt_date(want.get("finished"))
-        meta.append(f"{T['finished_on']} {when}" if when else T["finished_pin"])
-    elif pct or r["status"] == 1:
-        meta.append(f"{pct}%")
-        if r["last_read"]:
-            meta.append(f"{T['last_read']} {fmt_date(r['last_read'])}")
-    else:
-        meta.append(T["not_started"])
-    if r["seconds_read"]:
-        meta.append(f'<span title="{T["account_time_help"]}">{fmt_dur(r["seconds_read"])} {T["read_time"]}</span>')
+    spans = [f"<span>{e(m)}</span>" for m in meta]
+    if r["seconds_read"]:  # the time read comes last, with what it counts
+        spans[-1] = f'<span title="{T["account_time_help"]}">{e(meta[-1])}</span>'
     label = T["finished_pin"] if done else f"{pct}%"
     # Decorative: the title is right next to it. The browser asks for covers
     # as rows scroll into view; a book without one keeps the plain tile.
@@ -304,7 +293,7 @@ def book_cell(r) -> str:
     return (
         f'<div class="bk">{cover}<div class="info"><div class="title">{e(r["title"])}{tag}</div><div class="author">{e(r["author"])}</div>'
         f'<div class="bar{" done" if done else ""}" role="img" aria-label="{label}"><span style="width:{pct}%"></span></div>'
-        f'<div class="meta">{"".join(m if m.startswith("<span") else f"<span>{e(m)}</span>" for m in meta)}</div></div></div>'
+        f'<div class="meta">{"".join(spans)}</div></div></div>'
     )
 
 
@@ -436,7 +425,7 @@ def answer(request: Request, con, reader: str, cid: str, back: str):
     return to_row(back, cid)
 
 
-STATE_LABEL = {"kobo": "kobo", "finished": "finished_pin", "rereading": "rereading", "want": "want", "dnf": "dnf"}
+STATE_LABEL = booklist.STATE_LABEL
 
 
 # A row's switches save by themselves when kobo.js runs. Without it they
@@ -456,19 +445,14 @@ def state_cell(r, back: str) -> str:
     )
 
 
-def edition_line(r, sent: dict) -> str:
+def edition_line(r) -> str:
     """'Blindness, Ebook' style line: the match and its edition. An edition
     chosen on Hardcover carries a stet: it is kept as it is."""
-    if not r["hc_book_id"]:
+    words, kept = booklist.edition(r)
+    if not words:
         return ""
-    parts = [e(r["hc_title"] or "")]
-    if r["hc_format"] or sent.get("user_book_id"):
-        parts.append(e(r["hc_format"] or T["format_unknown"]))
-    parts = [x for x in parts if x]
-    if not parts:
-        return ""
-    stet = f'{marks.mark("stet")}<span class="sr">{e(T["how_hardcover"])}: </span>' if r["hc_edition_by"] == "hardcover" else ""
-    return f'<div class="sub">{stet}{", ".join(parts)}</div>'
+    stet = f'{marks.mark("stet")}<span class="sr">{e(T["how_hardcover"])}: </span>' if kept else ""
+    return f'<div class="sub">{stet}{e(words)}</div>'
 
 
 def mark_html(r, status: tuple[str, str], labelled: bool = True) -> str:
@@ -496,11 +480,10 @@ def mark_html(r, status: tuple[str, str], labelled: bool = True) -> str:
 def hc_cell(r, back: str, status: tuple[str, str]) -> str:
     """The Hardcover column: one status line, one line for the match, and a
     Details button. Everything else lives in the details dialog."""
-    sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
     href = f"/details/{quote(r['content_id'], safe='')}" + (f"?back={quote(back, safe='')}" if back else "")
     return (
         mark_html(r, status)
-        + edition_line(r, sent)
+        + edition_line(r)
         + f'<a class="details" href="{href}" aria-label="{e(T["details_of"].format(title=r["title"]))}">{T["details"]}</a>'
     )
 

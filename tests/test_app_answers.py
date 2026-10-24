@@ -145,6 +145,59 @@ def test_status_in_local_mode_counts_the_books_for_the_overview(home, capsys):
     assert (books["on"], books["next"]) == (3, 3)  # not matched yet: the next sync looks them up
 
 
+def test_books_answers_every_book_with_its_row_and_details(home, capsys, monkeypatch):
+    from kobo_hardcover_sync.web import covers
+
+    computer = FakeComputer(home / "Volumes")
+    config.save(LOCAL)
+    assert answer(capsys, "books", "--json", computer=computer)["books"] == []  # nothing read from a Kobo yet
+    kobo(home)
+    runner.sync(computer, LOCAL)
+    con = state.connect(str(home / "state" / "state.db"))
+    state.set_mode(con, "me", BOOKS[:3], "on")
+    con.execute("update book set image_id = 'cover-' || substr(content_id, -1) where content_id in (?, ?)", BOOKS[:2])
+    con.commit()
+    con.close()
+    found = answer(capsys, "books", "--json", computer=computer)
+    same_shape(found, sample("books.json"))
+    books = found["books"]
+    assert len(books) == 9 and all(b["cover"] == "" for b in books)  # none fetched yet
+    on = [b for b in books if b["syncs"]]
+    assert len(on) == 3 and all("on" in b["filters"] and b["status"]["kind"] == "next" for b in on)
+    for each in found["sorts"]:
+        assert sorted(each["order"]) == list(range(9)), each["key"]
+    newest = found["sorts"][0]
+    assert newest["key"] == "last_read" and newest["order"] == list(range(9))  # the list itself comes newest read first
+    assert [k for k, _ in found["words"]["legend"]] == ["next", "wait", "ok", "stet", "warn", "err", "none"]
+
+    fetched = []
+    monkeypatch.setattr(covers, "download", lambda image_id, size="thumb": fetched.append(image_id) or b"\xff\xd8jpeg")
+    with_covers = answer(capsys, "books", "--covers", "--json", computer=computer)["books"]
+    assert sorted(fetched) == sorted({f"cover-{c[-1]}" for c in BOOKS[:2]})  # only the books with a cover on Kobo
+    assert [os.path.exists(b["cover"]) for b in with_covers if b["cover"]] == [True] * len(fetched)
+    answer(capsys, "books", "--covers", "--json", computer=computer)
+    assert len(fetched) == len(set(BOOKS[:2]))  # kept: not fetched again
+
+    cli.main(["books"], computer=computer)
+    assert "Made-up" in capsys.readouterr().out  # in a terminal: the titles, each with its status line
+
+    config.save(config.Config(server="https://kobo.example.org"))
+    with pytest.raises(SystemExit, match="your books are on https://kobo.example.org"):
+        cli.main(["books", "--json"], computer=computer)
+
+
+def test_open_at_a_book_lands_on_its_row(home, monkeypatch):
+    from kobo_hardcover_sync.computer import page
+
+    computer = FakeComputer(home / "Volumes")
+    config.save(LOCAL)
+    monkeypatch.setattr(page, "link", lambda: "http://127.0.0.1:5000/?k=key")
+    cli.main(["open", "--book", "file:///mnt/onboard/a b.epub"], computer=computer)
+    assert computer.opened == [
+        "http://127.0.0.1:5000/?k=key&at=file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub#b-file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub"
+    ]
+
+
 def test_doctor_answers_with_its_checks_and_says_when_something_stops_a_sync(mac, home, capsys):
     found = answer(capsys, "doctor", "--json", computer=mac, exits=None)
     same_shape(found, sample("doctor.json"))

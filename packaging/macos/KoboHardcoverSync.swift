@@ -255,6 +255,11 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             steps.append { self.model?.pane = pane }
             steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-\(pane.rawValue.lowercased()).png")) } }
         }
+        steps.append {  // a book's Details
+            self.model?.pane = .books
+            self.model?.chosenBook = self.model?.shownBooks.first { !$0.details.hardcover.isEmpty }?.id ?? self.model?.shownBooks.first?.id
+        }
+        steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-details.png")) } }
         steps.append {  // a sync on the chain: the preview's plays its sample steps
             self.model?.pane = .overview
             self.model?.syncNow()
@@ -325,8 +330,9 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             self.busy = false
             self.model?.refresh()
         }
+        registerTitleFont()
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 880, height: 640),
+            contentRect: NSRect(x: 0, y: 0, width: 1040, height: 680),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
         window.title = isPreview ? "\(name) (preview)" : name
         window.toolbar = NSToolbar()  // the sidebar reaches up under the title, as in a Mac app

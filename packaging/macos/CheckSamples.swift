@@ -26,6 +26,9 @@ struct CheckSamples {
         }
         check("status.json", decode(StatusAnswer.self, try text("status.json"))) { $0.lastSync?.date != nil && $0.kobo != nil }
         check("status-local.json", decode(StatusAnswer.self, try text("status-local.json"))) { $0.books?.needsMatch == 2 && $0.kobo == nil }
+        check("books.json", decode(BooksAnswer.self, try text("books.json"))) {
+            $0.books.first?.details.onShelf == true && $0.sorts.allSatisfy { $0.order == [0] } && $0.words.legend.count == 7
+        }
         check("doctor.json", decode(DoctorAnswer.self, try text("doctor.json"))) { !$0.checks.isEmpty }
         check("history.json", decode(HistoryAnswer.self, try text("history.json"))) { $0.syncs.allSatisfy { $0.date != nil } }
         check("settings.json", decode(SettingsAnswer.self, try text("settings.json"))) { !$0.uploadTokenHash.isEmpty }

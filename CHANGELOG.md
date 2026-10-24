@@ -19,6 +19,18 @@ minor version may change behaviour; the notes will say so.
   page's colours, where the window had coloured symbols.
 - `status --json` counts the books in local mode (`books`), for the
   app's overview.
+- In local mode the Mac app's *Books* is the list of books itself, as
+  the page has it: covers, titles, Sync, State and what the next sync
+  does on Hardcover, in the page's marks, with search, filters, sorts
+  and each book's Details. Changes are still made on the page: *Change
+  on the Page* opens it at the book.
+
+### Added
+
+- `kobo-hardcover-sync books` lists your books in local mode, each with
+  what the next sync does with it; `--covers` fetches the covers this
+  computer does not have yet, `--json` is for the Mac app.
+- `kobo-hardcover-sync open --book ID` opens the page at that book.
 
 ### Fixed
 

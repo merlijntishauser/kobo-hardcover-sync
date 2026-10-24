@@ -30,12 +30,22 @@ enum Pencil {
 // ---------- the marks ----------
 /// One of the page's marks, drawn in the strokes of web/marks.py (a 20 by
 /// 20 box, stroke 1.9). A state of the tool's answers picks it: a check, a
-/// step or a sync ("ok", "note", "warn", "fail") or a book ("next", "wait").
+/// step or a sync ("ok", "note", "warn", "fail") or a book ("next", "wait",
+/// "err", "none", "stet").
 struct Mark: View {
     let state: String
     var size: CGFloat = 18
 
     var body: some View {
+        if state == "stet" {  // the word itself: kept as Hardcover has it
+            Text("stet").font(.system(size: size * 0.7, weight: .heavy)).italic().foregroundStyle(Pencil.blue)
+                .frame(minWidth: size, minHeight: size).accessibilityLabel("Kept as on Hardcover")
+        } else {
+            drawn
+        }
+    }
+
+    private var drawn: some View {
         Canvas { context, box in
             let s = box.width / 20
             func at(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: x * s, y: y * s) }

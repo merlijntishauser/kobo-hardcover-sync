@@ -131,9 +131,16 @@ started in three ways:
   a check found; the first link that needs something is open by itself.
   While a sync runs (`sync --trigger app --steps`) a red line sweeps along
   the arrow it works on, the links it passed get their marks, and the
-  steps are listed under the chain. Books has the counts and the page,
-  until the books are drawn in the app. History (`history --json`) has
-  *Show the log*. A sync the Kobo starts while the window is open
+  steps are listed under the chain. Books, in local mode, is the page's
+  list drawn in the app, from `books --json`: each book with its cover
+  (fetched once by `books --covers`), its title in the page's Source
+  Serif 4, its Sync, its State and its Hardcover status with the page's
+  marks, a change struck and written in as on the page; search, the
+  page's filters and its sorts above it, with the legend of the marks.
+  A click opens its Details beside the list. Changing a book still
+  happens on the page: *Change on the Page*, or a double click, opens the
+  page at that book (`open --book`). In server mode Books opens the
+  server's page. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
   shows as "Syncing…" while it runs (`status --json` says so, from the
   sync's lock; the sync keeps a `sync.running` marker in the tool's folder,
   which wakes the window), and in History when it ends. With the window open the app has a
@@ -212,7 +219,7 @@ hand. Which of the two happens is the first thing to see on a real Mac.
   the webhook, *Remove…*) only says what it would do; the true-or-false
   settings and an export work, on its own folder. Opened with
   `open --env KHS_SNAPSHOT=<folder>`, it saves a picture of each pane of
-  its window, of a sample sync on the chain, and of each Settings tab
+  its window, of a book's Details, of a sample sync on the chain, and of each Settings tab
   there, and quits (the sidebar comes out empty in these pictures: what
   is drawn behind it is not in them): a look from an SSH session, which
   macOS does not let take a screenshot.

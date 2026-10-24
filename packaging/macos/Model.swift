@@ -1,5 +1,6 @@
-// What the tool answers (`status --json`, `doctor --json`, `history --json`,
-// `settings --json`, `update --json`, `sync --steps`), as the app reads it. The samples in
+// What the tool answers (`status --json`, `doctor --json`, `books --json`,
+// `history --json`, `settings --json`, `update --json`, `sync --steps`), as
+// the app reads it. The samples in
 // packaging/macos/samples have the same shape: tests/test_app_answers.py
 // holds the tool to them, CheckSamples.swift holds these types to them.
 //
@@ -60,6 +61,76 @@ struct DoctorAnswer: Codable {
     let summary: String
     let problems: Int
     let checks: [Check]
+}
+
+/// `books --json`: every book with its row and its Details, in the page's
+/// words; searching, filtering and sorting happen in the app.
+struct BooksAnswer: Codable {
+    struct Book: Codable, Identifiable {
+        let id: String
+        let title: String
+        let author: String
+        let cover: String  // the cached thumbnail, "" while there is none
+        let new: Bool  // not read before this tool first saw the Kobo
+        let percent: Int
+        let finished: Bool
+        let facts: [String]  // "37%", "last read 2 Oct 2026", "4 h read"
+        let lastRead: String
+        let sync: String  // "auto", "on", "off"
+        let syncs: Bool
+        let state: String
+        let stateDate: String
+        let status: Status
+        let correction: [String]  // kept, struck, inserted; [] when the next sync changes nothing on the shelf
+        let edition: String
+        let stet: Bool  // the edition was chosen on Hardcover: kept as it is
+        let filters: [String]
+        let details: Details
+    }
+
+    struct Status: Codable {
+        let kind: String  // a mark: "ok", "next", "wait", "warn", "err", "none"
+        let text: String
+    }
+
+    struct Details: Codable {
+        struct Candidate: Codable {
+            let title: String
+            let author: String
+        }
+
+        let kobo: [[String]]  // label, value
+        let hardcover: [[String]]
+        let link: String
+        let candidates: [Candidate]
+        let onShelf: Bool
+    }
+
+    struct Sort: Codable {
+        let key: String
+        let label: String
+        let order: [Int]  // places in books
+    }
+
+    struct Words: Codable {
+        struct Group: Codable {
+            let group: String
+            let keys: [[String]]  // key, label
+        }
+
+        let filters: [Group]
+        let sections: [String]  // Details: on the Kobo, on Hardcover
+        let syncs: [[String]]
+        let states: [[String]]
+        let legend: [[String]]  // mark, what it means
+    }
+
+    let schema: Int
+    let live: Bool
+    let user: String
+    let books: [Book]
+    let sorts: [Sort]
+    let words: Words
 }
 
 struct HistoryAnswer: Codable {

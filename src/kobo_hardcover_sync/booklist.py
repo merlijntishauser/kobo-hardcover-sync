@@ -10,7 +10,7 @@ import json
 
 from .engine import state
 from .engine.plan import action, desired, quiet_for
-from .web.fmt import fmt_date
+from .web.fmt import fmt_date, fmt_dt, fmt_dur
 from .web.strings import T
 
 FILTERS = {
@@ -111,6 +111,92 @@ def hc_status(r, live: bool, quiet: dict) -> tuple[str, str]:
 def marked(con, reader: str, live: bool, quiet: dict) -> int:
     """How many books carry the red mark: what the next sync sends."""
     return sum(1 for r in con.execute("select * from reader_book where reader=?", (reader,)) if hc_status(r, live, quiet)[0] == "next")
+
+
+# The State a reader sets, in the page's words.
+STATE_LABEL = {"kobo": "kobo", "finished": "finished_pin", "rereading": "rereading", "want": "want", "dnf": "dnf"}
+
+
+def progress(r) -> tuple[int, bool, list[str]]:
+    """How far the book is, under its title: (percent, finished, the facts
+    in words: when it was finished or last read, and the time read)."""
+    want = desired(r)
+    done = bool(want and want["status"] == "read")
+    pct = 100 if done else max(0, min(100, int(r["percent"] or 0)))
+    meta = []
+    if done:
+        when = fmt_date(want.get("finished"))
+        meta.append(f"{T['finished_on']} {when}" if when else T["finished_pin"])
+    elif pct or r["status"] == 1:
+        meta.append(f"{pct}%")
+        if r["last_read"]:
+            meta.append(f"{T['last_read']} {fmt_date(r['last_read'])}")
+    else:
+        meta.append(T["not_started"])
+    if r["seconds_read"]:
+        meta.append(f"{fmt_dur(r['seconds_read'])} {T['read_time']}")
+    return pct, done, meta
+
+
+def edition(r) -> tuple[str, bool]:
+    """('Blindness, Ebook', stet): the match and its edition, and whether
+    the edition was chosen on Hardcover, so that it is kept as it is."""
+    if not r["hc_book_id"]:
+        return "", False
+    sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
+    parts = [r["hc_title"] or ""]
+    if r["hc_format"] or sent.get("user_book_id"):
+        parts.append(r["hc_format"] or T["format_unknown"])
+    return ", ".join(x for x in parts if x), r["hc_edition_by"] == "hardcover"
+
+
+def details(r) -> dict:
+    """What Details shows of a book, in words: what the Kobo says and what
+    Hardcover has, as (label, value) pairs without the empty ones; the
+    link to the book on Hardcover; the books it could be, while it waits
+    for a match; and whether it is on the Hardcover shelf (so it can be
+    taken off)."""
+    sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
+    kobo = [
+        (T["col_mode"], T[r["mode"]]),
+        (T["col_state"], T[STATE_LABEL[r["state"] or "kobo"]] + (f", {r['state_date']}" if r["state_date"] else "")),
+        (
+            T["d_kobo_status"],
+            {0: T["d_unread"], 1: T["d_reading"], 2: T["d_finished"]}.get(r["status"], "") + (f", {r['percent']}%" if r["percent"] else ""),
+        ),
+        (T["d_finished_on"], fmt_date(r["finished_at"])),
+        (T["d_last_read"], fmt_date(r["last_read"])),
+        (T["d_read_time"], fmt_dur(r["seconds_read"]) if r["seconds_read"] else ""),
+        (T["d_language"], r["language"] or ""),
+        ("ISBN", r["isbn"] or ""),
+    ]
+    hc = []
+    if r["hc_book_id"]:
+        how = T.get("how_" + (r["hc_how"] or ""), "")
+        hc.append((T["d_book"], (r["hc_title"] or "") + (f" ({how})" if how else "")))
+        if r["hc_format"] or r["hc_pages"]:
+            words = (r["hc_format"] or T["format_unknown"]) + (f", {r['hc_pages']} {T['d_pages']}" if r["hc_pages"] else "")
+            hc.append((T["d_edition"], words + (f" ({T['how_hardcover']})" if r["hc_edition_by"] == "hardcover" else "")))
+    if sent.get("user_book_id"):
+        shelf = T["hc_" + sent.get("status", "reading")]
+        if sent.get("status") == "reading" and sent.get("progress") is not None:
+            shelf += f", {sent['progress']}%"
+        if sent.get("finished"):
+            shelf += f", {fmt_date(sent['finished'])}"
+        hc.append((T["d_on_shelf"], shelf))
+        hc.append((T["d_last_sync"], fmt_dt(sent.get("at"))))
+    if r["hc_error"]:
+        hc.append((T["d_error"], r["hc_error"]))
+    waiting = not r["hc_book_id"] and r["hc_how"] in ("uncertain", "none")
+    return {
+        "kobo": [[k, v] for k, v in kobo if v],
+        "hardcover": [[k, v] for k, v in hc if v],
+        "link": f"https://hardcover.app/id/book/{int(r['hc_book_id'])}" if r["hc_book_id"] else "",
+        "candidates": [{"title": c["title"], "author": (c.get("authors") or [""])[0]} for c in json.loads(r["hc_candidates"] or "[]")]
+        if waiting
+        else [],
+        "on_shelf": bool(sent.get("user_book_id")),
+    }
 
 
 def summary(con, reader: str) -> dict:

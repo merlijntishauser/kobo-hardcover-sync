@@ -24,6 +24,13 @@ final class WindowModel: ObservableObject {
     @Published var previews = UNShowPreviewsSetting.always
     @Published var newer: String?
     @Published var pane: Pane? = .overview
+    @Published var books: BooksAnswer?  // local mode: the list, from `books --json`
+    @Published var booksBroken: String?
+    @Published var search = ""
+    @Published var filter = "all"
+    @Published var sort = "last_read"
+    @Published var chosenBook: String?  // the book whose Details are open
+    private var coversFetched = false  // once per window: the covers this Mac does not have yet
 
     let setUp: () -> Void
     private var foldSince: String?  // the newest sync in History when Sync now was clicked
@@ -48,6 +55,7 @@ final class WindowModel: ObservableObject {
                     self.status = found
                     self.broken = nil
                     self.elsewhere = found.syncing ?? ""
+                    self.loadBooks()
                 case .failure(let why):
                     self.broken = why.said
                 }
@@ -74,6 +82,30 @@ final class WindowModel: ObservableObject {
             DispatchQueue.main.async {
                 self.notifications = settings.authorizationStatus
                 self.previews = settings.showPreviewsSetting
+            }
+        }
+    }
+
+    /// The list of books, in local mode; then, once, again with the covers fetched.
+    func loadBooks(covers: Bool = false) {
+        guard status?.mode == "local" else {
+            books = nil
+            return
+        }
+        DispatchQueue.global(qos: .userInitiated).async {
+            let found = answer(BooksAnswer.self, covers ? ["books", "--covers", "--json"] : ["books", "--json"])
+            DispatchQueue.main.async {
+                switch found {
+                case .success(let list):
+                    self.books = list
+                    self.booksBroken = nil
+                    if !covers && !self.coversFetched && list.books.contains(where: { $0.cover.isEmpty }) {
+                        self.coversFetched = true
+                        self.loadBooks(covers: true)
+                    }
+                case .failure(let why):
+                    if self.books == nil { self.booksBroken = why.said }
+                }
             }
         }
     }
@@ -224,7 +256,10 @@ struct MainView: View {
             VStack(spacing: 0) {
                 TopLine(model: model).padding(.horizontal, 20).padding(.vertical, 12)
                 Divider()
-                Form {
+                if model.broken == nil && model.pane == .books && model.status?.mode == "local" {
+                    BooksPane(model: model)
+                } else {
+                    Form {
                     if let broken = model.broken {
                         Section { Row(state: "fail", what: "The tool", found: broken) }
                     } else {
@@ -234,11 +269,12 @@ struct MainView: View {
                         case .history: HistorySection(model: model)
                         }
                     }
+                    }
+                    .formStyle(.grouped)
                 }
-                .formStyle(.grouped)
             }
         }
-        .frame(minWidth: 700, minHeight: 520)
+        .frame(minWidth: 880, minHeight: 520)  // the sidebar, the list and a book's Details side by side
     }
 }
 
@@ -385,31 +421,16 @@ struct SyncSection: View {
     }
 }
 
-/// Until the books are drawn here, what is known of them, and the page.
+/// Books in server mode, or before setup: they are on the server's page.
 struct BooksSections: View {
     @ObservedObject var model: WindowModel
 
     var body: some View {
         Section {
-            if let books = model.status?.books {
-                LabeledContent("From the Kobo", value: "\(books.total) \(books.total == 1 ? "book" : "books")")
-                LabeledContent("Switched on to sync", value: "\(books.on)")
-                if books.needsMatch > 0 {
-                    Row(state: "warn", what: "\(books.needsMatch) need a match", found: "Hardcover has more than one book that could be it, or none.")
-                }
-                if books.next > 0 {
-                    Row(
-                        state: "next", what: books.live ? "\(books.next) change at the next sync" : "\(books.next) would change at the next sync",
-                        found: books.live ? "Sync now sends them." : "A dry run: nothing is sent until you go live, on the page.")
-                }
-            } else if model.status?.mode == "server" {
-                Text("Your books are on the server, behind its sign-in.").foregroundStyle(.secondary)
-            } else {
-                Text("No books yet: nothing was read from a Kobo so far. Plug it in.").foregroundStyle(.secondary)
-            }
+            Text(model.status?.mode == "server" ? "Your books are on the server, behind its sign-in." : "Not set up yet.")
+                .foregroundStyle(.secondary)
         } footer: {
             HStack {
-                Text("The books open on the page, in your browser.").foregroundStyle(.secondary)
                 Spacer()
                 Button("Open the books") { _ = tool(["open"]) }.disabled(model.status?.mode.isEmpty ?? true)
             }
