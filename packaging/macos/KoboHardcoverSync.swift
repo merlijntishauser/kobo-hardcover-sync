@@ -8,7 +8,8 @@
 // - opened by hand before it is set up: where the reading goes, then
 //   `setup`;
 // - opened by hand afterwards, or by a click on a notification: the last
-//   message, a newer version if there is one, Sync now and Open the page.
+//   message, a newer version if there is one, whether notifications are
+//   off, Sync now and Open the page.
 //
 // It is the AppleScript app that `setup` builds for a Homebrew
 // installation (computer/macos.py), ported, plus setup.
@@ -20,6 +21,8 @@ import UserNotifications
 let name = "Kobo Hardcover Sync"
 let agentPlist = "org.gargleblaster.kobo-hardcover-sync.app.agent.plist"
 let releases = "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v"
+let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=org.gargleblaster.kobo-hardcover-sync.app"
+let stoppedWithoutWord = "The sync stopped before it could say why. Its log is agent.log, in Library/Application Support/kobo-hardcover-sync."
 
 /// The tool's folder: the same as a Homebrew installation's (computer/config.py).
 func stateDir() -> URL {
@@ -75,6 +78,29 @@ func newerVersion() -> String? {
           let mine = numbers(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
     else { return nil }
     return theirs.lexicographicallyPrecedes(mine) || theirs == mine ? nil : latest
+}
+
+/// The NOTIFY|title|message lines the tool printed.
+func notices(_ output: String) -> [(title: String, body: String)] {
+    var said: [(title: String, body: String)] = []
+    for line in output.split(separator: "\n") where line.hasPrefix("NOTIFY|") {
+        let parts = line.split(separator: "|", maxSplits: 2, omittingEmptySubsequences: false)
+        if parts.count == 3 { said.append((String(parts[1]), String(parts[2]))) }
+    }
+    return said
+}
+
+/// What macOS lets this app do with notifications. The answer comes on
+/// another queue, so waiting for it here does not hold it up.
+func notificationStatus() -> UNAuthorizationStatus {
+    let answered = DispatchSemaphore(value: 0)
+    var status = UNAuthorizationStatus.notDetermined
+    UNUserNotificationCenter.current().getNotificationSettings { settings in
+        status = settings.authorizationStatus
+        answered.signal()
+    }
+    _ = answered.wait(timeout: .now() + 2)
+    return status
 }
 
 func numbers(_ version: String) -> [Int]? {
@@ -186,7 +212,6 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
         } else {
             return
         }
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { _, _ in }
         if let problem = registerAgent() {
             say("\(name) is not set up yet", problem)
             return
@@ -195,11 +220,29 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
         let done = NSAlert()
         done.messageText = ok ? "\(name) is set up" : "Setup did not finish"
         done.accessoryView = textView(output)
+        // Asked only now: asked earlier, the question came in the corner of
+        // the screen while setup's own windows were open, and was missed.
+        let askNext = ok && notificationStatus() == .notDetermined
+        if askNext {
+            done.informativeText = """
+                Next, macOS asks in the corner of the screen whether \(name) may show notifications. \
+                Allow it: that is how it tells you what a sync did.
+                """
+        }
         let local = ok && args[1] == "--local"
         done.addButton(withTitle: local ? "Open the page" : "OK")
         if local { done.addButton(withTitle: "Later") }
-        if done.runModal() == .alertFirstButtonReturn && local {
-            _ = tool(["open"])
+        let openPage = done.runModal() == .alertFirstButtonReturn && local
+        if askNext { askForNotifications() }
+        if openPage { _ = tool(["open"]) }
+    }
+
+    /// macOS's question whether this app may show notifications. The app
+    /// stays until it is answered, so the answer is not lost.
+    func askForNotifications() {
+        begin()
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { _, _ in
+            DispatchQueue.main.async { self.end() }
         }
     }
 
@@ -243,29 +286,68 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
     func lastMessage() {
         var text = stateFile("last-message.txt")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if text.isEmpty { text = "Nothing synced yet." }
-        let newer = newerVersion()
-        if let version = newer { text += "\n\nVersion \(version) is out." }
         let a = NSAlert()
         a.messageText = name
-        a.informativeText = text
-        a.addButton(withTitle: "OK")
-        a.addButton(withTitle: "Open the page")
-        a.addButton(withTitle: "Sync now")
-        if newer != nil { a.addButton(withTitle: "Get the new version") }
-        let fourth = NSApplication.ModalResponse(rawValue: NSApplication.ModalResponse.alertThirdButtonReturn.rawValue + 1)
-        switch a.runModal() {
-        case .alertSecondButtonReturn:
-            _ = tool(["open"])
-        case .alertThirdButtonReturn:
-            let (ok, output) = tool(["sync", "--trigger", "app"])
-            begin()
-            tell(output, ok: ok) { self.end() }
-        case fourth:
-            if let version = newer, let link = URL(string: releases + version) {
-                NSWorkspace.shared.open(link)
+        var actions: [() -> Void] = []
+        func button(_ title: String, _ action: @escaping () -> Void) {
+            a.addButton(withTitle: title)
+            actions.append(action)
+        }
+        button("OK") {}
+        button("Open the page") { _ = tool(["open"]) }
+        button("Sync now") { self.syncByHand() }
+        if let version = newerVersion(), let link = URL(string: releases + version) {
+            text += "\n\nVersion \(version) is out."
+            button("Get the new version") { NSWorkspace.shared.open(link) }
+        }
+        let notifications = notificationStatus()
+        if notifications == .denied {
+            text += "\n\nNotifications are off, so a sync started by plugging in the Kobo does not say what it did."
+            if let settings = URL(string: notificationSettings) {
+                button("Turn on notifications") { NSWorkspace.shared.open(settings) }
             }
-        default:
-            break
+        }
+        a.informativeText = text
+        let chosen = a.runModal().rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
+        if actions.indices.contains(chosen) { actions[chosen]() }
+        if notifications == .notDetermined { askForNotifications() }  // never answered: asked once this window is gone
+    }
+
+    /// Sync now: a window that says it is busy while the tool runs, then
+    /// what the sync did, in a window rather than a notification.
+    func syncByHand() {
+        let busy = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 320, height: 90), styleMask: [.titled], backing: .buffered, defer: false)
+        busy.title = name
+        let spinner = NSProgressIndicator(frame: NSRect(x: 24, y: 29, width: 32, height: 32))
+        spinner.style = .spinning
+        spinner.startAnimation(nil)
+        let label = NSTextField(labelWithString: "Syncing…")
+        label.frame = NSRect(x: 72, y: 35, width: 230, height: 20)
+        busy.contentView?.addSubview(spinner)
+        busy.contentView?.addSubview(label)
+        busy.center()
+        var result = (ok: false, output: "")
+        DispatchQueue.global(qos: .userInitiated).async {
+            let finished = tool(["sync", "--trigger", "app"])
+            DispatchQueue.main.async {
+                result = finished
+                NSApp.stopModal()
+                // stopModal takes effect at the next event; this is one.
+                if let wake = NSEvent.otherEvent(
+                    with: .applicationDefined, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: 0, context: nil,
+                    subtype: 0, data1: 0, data2: 0)
+                {
+                    NSApp.postEvent(wake, atStart: true)
+                }
+            }
+        }
+        NSApp.runModal(for: busy)
+        busy.orderOut(nil)
+        let said = notices(result.output)
+        if said.isEmpty {
+            say(name, result.ok ? "Done." : stoppedWithoutWord)
+        } else {
+            say(said[0].title, said.map { $0.body }.joined(separator: "\n\n"))
         }
     }
 
@@ -280,13 +362,9 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
     // ---------- notifications ----------
     /// Shows each NOTIFY| line as a notification, then calls done.
     func tell(_ output: String, ok: Bool, done: @escaping () -> Void) {
-        var said: [(String, String)] = []
-        for line in output.split(separator: "\n") where line.hasPrefix("NOTIFY|") {
-            let parts = line.split(separator: "|", maxSplits: 2, omittingEmptySubsequences: false)
-            if parts.count == 3 { said.append((String(parts[1]), String(parts[2]))) }
-        }
+        var said = notices(output)
         if said.isEmpty && !ok {
-            said = [(name, "The sync stopped before it could say why. Its log is agent.log, in Library/Application Support/kobo-hardcover-sync.")]
+            said = [(name, stoppedWithoutWord)]
         }
         let group = DispatchGroup()
         for (title, body) in said {

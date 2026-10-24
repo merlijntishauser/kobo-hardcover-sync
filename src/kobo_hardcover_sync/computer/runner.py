@@ -17,7 +17,7 @@ import logging
 import os
 import shutil
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 
 from .. import ISSUES, __version__, logs
@@ -29,6 +29,7 @@ from .platform import KOBO_DB, UPLOAD, WEBHOOK, Computer
 
 NAME = "Kobo Hardcover Sync"
 FAILED = "Kobo sync failed"
+CLICKED = "app"  # the trigger of Sync now in the Mac app: someone is waiting for an answer
 LOG_FILE = "agent.log"
 log = logging.getLogger(__name__)
 
@@ -105,7 +106,8 @@ def sync(
     on_step=None,
 ) -> Outcome:
     """trigger "mount": started because some volume was mounted, so without
-    a Kobo there is nothing to do. verbose: this run logs every book, and
+    a Kobo there is nothing to do. trigger "app": Sync now in the Mac app,
+    which always gets an answer, also when there is nothing to tell. verbose: this run logs every book, and
     shows the log while it runs. on_step: called with a term.Row as each
     step finishes, for a terminal that is watching. opener and
     hardcover_client let tests stand in for the network."""
@@ -119,6 +121,8 @@ def sync(
     mount = computer.find_kobo()
     if not mount and (cfg.server or trigger == "mount"):
         step(Row(NOTE, "Kobo", "No Kobo found: plug it in and tap Connect on the Kobo."))
+        if trigger == CLICKED:
+            return Outcome(True, message="No Kobo found: plug it in and tap Connect on the Kobo.")
         return Outcome(True)  # every volume that mounts starts us; most are not a Kobo
     lock = open(os.path.join(state_dir, "sync.lock"), "w")  # noqa: SIM115 (held until the end)
     try:
@@ -126,6 +130,8 @@ def sync(
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:
             step(Row(NOTE, "Sync", "Another sync is running; it carries on."))
+            if trigger == CLICKED:
+                return Outcome(True, message="A sync is already running. It says so when it is done.")
             return Outcome(True)  # a sync is already running; it wins
         log.debug("sync started (%s), Kobo: %s", f"by {trigger}" if trigger else "by hand", _describe(mount))
         try:
@@ -143,7 +149,10 @@ def sync(
             )
         if out.message:
             log.log(logging.INFO if out.ok else logging.ERROR, "said: %s: %s", out.title, out.message)
-        return remember(out)
+        out = remember(out)
+        if trigger == CLICKED and not out.message:  # an answer, but not one to keep over the last real news
+            out = replace(out, message="Nothing new since the last sync." if mount else "No Kobo plugged in, and nothing else to do.")
+        return out
     finally:
         lock.close()
 

@@ -7,6 +7,17 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Fixed
+
+- The Mac app: *Sync now* shows that it is busy, and then what the sync
+  did, in the app's window. When there was nothing new, or no Kobo is
+  plugged in, it says so; before, it said nothing at all.
+- The Mac app asks whether it may show notifications after setup's
+  windows are closed, and says beforehand that it will ask. Before, the
+  question came while they were open, and was easily missed or answered
+  no. When notifications are off, the app's window says so, with a
+  button to their settings.
+
 ## 0.11.0 - 2026-10-24
 
 A Mac app: download it, drag it to Applications, open it.

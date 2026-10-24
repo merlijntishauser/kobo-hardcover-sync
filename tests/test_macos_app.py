@@ -3,6 +3,7 @@ the trigger, a Mac keeps one trigger, and the app looks for a newer
 version once a day. The wrapper itself only runs on a Mac; what it and the
 tool must agree on is checked here against its files."""
 
+import fcntl
 import io
 import json
 import os
@@ -14,7 +15,7 @@ import pytest
 from kobo_hardcover_sync import cli
 from kobo_hardcover_sync.computer import config, macos, runner, update
 from tests import said
-from tests.test_computer import FakeMac
+from tests.test_computer import FakeComputer, FakeMac, plug_in, register, server  # noqa: F401 (the fixture)
 from tests.test_local import ORIGIN, local  # noqa: F401 (the fixture)
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -165,6 +166,28 @@ def test_a_triggered_sync_in_the_app_asks_after_the_notification(home, the_app, 
     with pytest.raises(SystemExit):
         cli.main(["sync", "--trigger", "mount"], computer=mac)
     assert order == ["notified"]
+
+
+def test_sync_now_in_the_app_always_answers(home, server):  # noqa: F811
+    mac = FakeComputer(home / "Volumes")
+    register(server, mac)
+    cfg = config.Config(server=server.url)
+    clicked = runner.sync(mac, cfg, trigger="app")
+    assert (clicked.ok, clicked.message) == (True, "No Kobo found: plug it in and tap Connect on the Kobo.")
+    assert runner.sync(mac, cfg, trigger="mount") == runner.Outcome(True)  # some other volume: still nothing said
+
+    plug_in(home)
+    assert runner.sync(mac, cfg, trigger="app").message == "9 books updated."
+    again = runner.sync(mac, cfg, trigger="app")
+    assert (again.ok, again.message) == (True, "Nothing new since the last sync.")
+    # The app's window shows the last news, not that nothing was new.
+    assert open(home / "state" / "last-message.txt").read().startswith("Kobo synced\n9 books updated.\n")
+    assert runner.sync(mac, cfg, trigger="mount").message == ""
+
+    with open(home / "state" / "sync.lock", "w") as held:  # a sync the Kobo started is still running
+        fcntl.flock(held, fcntl.LOCK_EX)
+        busy = runner.sync(mac, cfg, trigger="app")
+    assert (busy.ok, busy.message) == (True, "A sync is already running. It says so when it is done.")
 
 
 def test_the_page_shows_the_version_and_the_setting_in_the_app(local, home, the_app, monkeypatch):  # noqa: F811

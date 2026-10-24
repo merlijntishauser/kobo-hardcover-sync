@@ -9,11 +9,17 @@ Built so far: the parts of the tool that know they run inside the app,
 the wrapper, the build and signing scripts and the workflows. Seen: the
 app built and signed ad hoc on macOS 15 (CI) and macOS 27; there, started
 by a launch agent in the logged-in session, the wrapper ran a sync
-against a made-up Kobo and the update check. Not seen yet: setup through
-the app, its notifications, and anything with a Developer ID. Its first
-release is 0.11.0, the first build signed with a Developer ID. "Done"
-means a notarised build installs and syncs on a Mac that has never seen
-the project, with Gatekeeper on. What only a real Mac can show is listed
+against a made-up Kobo and the update check. Its first release is
+0.11.0, signed with a Developer ID and notarised. On the maintainer's Mac
+(macOS 27, until then a Homebrew installation in server mode) 0.11.0 set
+itself up, took the trigger over, and macOS asked by itself for the
+removable volume; the first sync at a plug-in uploaded. Two things were
+wrong there, and 0.11.1 changes them: *Sync now* said nothing when
+there was nothing new, and the question about notifications came while
+setup's windows were open, was answered no, and nothing said so after.
+Not seen yet: a click on a notification, and a Mac that has never had
+the project. "Done" means a notarised build installs and syncs on such a
+Mac, with Gatekeeper on. What only a real Mac can show is listed
 under *To see on a real Mac* at the end.
 
 ## Why an app at all
@@ -102,14 +108,22 @@ started in three ways:
   `KHS_TRIGGER=mount`. The wrapper runs `sync --trigger mount`, shows each
   `NOTIFY|title|message` line the tool prints as a notification, and quits.
 - **Opened by hand, before setup.** It asks: on this computer, or with a
-  server (and its address). It registers its launch agent, asks to show
-  notifications, and runs `setup`. It then shows what `setup` said. In
-  local mode it opens the page, where the reader connects to Hardcover; in
-  server mode what `setup` said includes this Mac's hash, to paste on the
-  server's page.
+  server (and its address). It registers its launch agent and runs
+  `setup`. It then shows what `setup` said, and says that macOS is about
+  to ask whether it may show notifications; macOS asks once that window
+  is closed. (macOS asks in a corner of the screen; asked while setup's
+  windows were still open, the question was missed.) In local mode it
+  opens the page, where the reader connects to Hardcover; in server mode
+  what `setup` said includes this Mac's hash, to paste on the server's
+  page.
 - **Opened by hand after setup, or by a click on a notification.** It
   shows the last message, a newer version if there is one, and the buttons
-  *Sync now*, *Open the page* and *OK*.
+  *Sync now*, *Open the page* and *OK*. When notifications are off, it
+  says so, with a button to their settings: without them a sync at a
+  plug-in says nothing. *Sync now* runs `sync --trigger app`, shows a
+  window while it runs, and then what the sync did, in a window: also
+  that nothing was new, or that no Kobo is plugged in. Those two answers
+  are not kept as the last message.
 
 It runs the tool as `Resources/python/bin/python3 -I -m
 kobo_hardcover_sync ...`, with two variables:

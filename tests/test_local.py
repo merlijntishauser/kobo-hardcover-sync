@@ -157,6 +157,8 @@ def test_without_a_kobo_only_the_hardcover_half_runs(home):
     assert writes(hc) == []
     out = runner.sync(mac, LOCAL, hardcover_client=hc)  # asked for: Hardcover gets what was waiting
     assert out.message == "1 sent to Hardcover." and len(hc.books) == 1
+    clicked = runner.sync(mac, LOCAL, hardcover_client=hc, trigger="app")  # Sync now in the Mac app: an answer all the same
+    assert (clicked.ok, clicked.message) == (True, "No Kobo plugged in, and nothing else to do.")
     assert runner.sync(mac, config.Config()).message == "Not set up yet: run `kobo-hardcover-sync setup`."
 
 

@@ -154,7 +154,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     tok.add_argument("--start-over", action="store_true", help="put your books on the shelf of the account you are connected to now")
     sub.add_parser("page")  # what `open` starts in local mode; no help text, so it is not listed
     syn = sub.add_parser("sync", help="one sync now")
-    syn.add_argument("--trigger", default="", help=argparse.SUPPRESS)  # "mount": started by the plug-in trigger
+    syn.add_argument("--trigger", default="", help=argparse.SUPPRESS)  # "mount": the plug-in trigger; "app": Sync now in the Mac app
     syn.add_argument("--verbose", action="store_true", help="also show the log while it runs: a line per book and per request")
     sub.add_parser("status", help="what is set up, and what it sees")
     sub.add_parser("doctor", help="check everything a sync depends on; changes nothing")
