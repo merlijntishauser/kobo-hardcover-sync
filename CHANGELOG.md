@@ -5,7 +5,11 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.13.0 - 2026-10-24
+
+The Mac app becomes the home of local mode: an overview that draws the
+way a sync goes, your books in the app, changed there, and connecting
+to Hardcover and going live without the page.
 
 ### Changed
 
@@ -17,8 +21,6 @@ minor version may change behaviour; the notes will say so.
   as well: how many came from the Kobo, how many the next sync sends,
   how many are in the collection. The marks are the page's, in the
   page's colours, where the window had coloured symbols.
-- `status --json` counts the books in local mode (`books`), for the
-  app's overview.
 - In local mode the Mac app's *Books* is the list of books itself, as
   the page has it: covers, titles, Sync, State and what the next sync
   does on Hardcover, in the page's marks, with search, filters, sorts
@@ -40,6 +42,8 @@ minor version may change behaviour; the notes will say so.
   what the next sync does with it; `--covers` fetches the covers this
   computer does not have yet, `--json` is for the Mac app.
 - `kobo-hardcover-sync open --book ID` opens the page at that book.
+- `status --json` counts the books in local mode (`books`), for the
+  app's overview.
 - `kobo-hardcover-sync token --json` signs in as lines of JSON (where to
   approve, then who signed in), for the Mac app; `settings --set
   live=true` goes live in local mode, and `settings --json` says whether

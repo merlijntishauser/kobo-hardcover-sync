@@ -174,13 +174,13 @@ def test_check_now_asks_also_when_the_daily_look_is_off_and_keeps_the_answer(hom
     found = update.now(gh, lambda: 1_000_100.0, current="0.13.0")
     assert (found["latest"], found["newer"], found["link"]) == ("0.13.0", False, "") and "GitHub did not answer" in found["problem"]
 
-    monkeypatch.setattr(update, "ask", lambda fetch=None: "0.13.0")
+    monkeypatch.setattr(update, "ask", lambda fetch=None: "99.0.0")  # newer than this tool, whichever it is
     mac = macos.MacOS(run=FakeMac(), home=str(home))
     cli.main(["update", "--json"], computer=mac)
-    same_shape(json.loads(capsys.readouterr().out), sample("update.json"))  # this tool is 0.13.0.dev0: 0.13.0 is newer
+    same_shape(json.loads(capsys.readouterr().out), sample("update.json"))
     cli.main(["update"], computer=mac)
     out = capsys.readouterr().out
-    assert "0.13.0 is out" in out and "Download it there." in out
+    assert "99.0.0 is out" in out and "Download it there." in out
 
 
 def test_a_triggered_sync_in_the_app_asks_after_the_notification(home, the_app, monkeypatch):
