@@ -5,17 +5,20 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.11.0 - 2026-10-24
+
+A Mac app: download it, drag it to Applications, open it.
 
 ### Added
 
 - A Mac app, signed and notarised, as a third way to install on a Mac:
-  download it from the release, drag it to Applications, open it. It
-  sets itself up (on this computer, or with a server) without a
-  terminal, and starts a sync when the Kobo is plugged in. It uses the
-  same folder and Keychain items as a Homebrew installation, and takes
-  over its trigger. See `docs/macos-app.md`. Not released yet: the first
-  signed build still has to be seen working on a real Mac.
+  `Kobo-Hardcover-Sync-0.11.0.dmg` on this release, for Apple silicon and
+  macOS 13 or newer. Drag it to Applications and open it. It sets itself
+  up (on this computer, or with a server) without a terminal, and starts
+  a sync when the Kobo is plugged in. It uses the same folder and
+  Keychain items as a Homebrew installation, and takes over its trigger.
+  See `docs/macos-app.md`. This is its first release: it has not yet
+  been tried on many Macs, so please say how it went in an issue.
 - The Mac app looks for a newer version once a day at most, after a
   sync, and says so on the page and in its window. It never updates
   itself, and it can be switched off. Homebrew and PyPI installations
