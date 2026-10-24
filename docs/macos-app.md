@@ -138,7 +138,8 @@ started in three ways:
   is changed on the page), the webhook (`webhook`, its token given on
   standard input, never as an argument) and *Export my reading…* (`export
   --output`, with a save dialog). *App*: the version, looking for a newer
-  one, notifications, and *Remove…*: the app unregisters its launch agent
+  one (and *Check now*, `update --json`, which is also *Check for
+  Updates…* in the app menu), notifications, and *Remove…*: the app unregisters its launch agent
   and runs `uninstall`, or `uninstall --purge` to delete the folder and
   the tokens as well, then says to drag the app to the Bin, and quits.
 - **The notification of a sync the Kobo started** is shown as soon as

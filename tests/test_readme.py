@@ -24,7 +24,10 @@ def test_every_link_to_a_file_leads_somewhere():
             assert anchor in headings, f"{page}: no heading for #{anchor}"
 
 
-COMMANDS = ("setup", "token", "sync", "status", "doctor", "history", "settings", "export", "webhook", "uninstall", "serve", "import")
+COMMANDS = (
+    *("setup", "token", "sync", "status", "doctor", "history", "settings"),
+    *("update", "export", "webhook", "uninstall", "serve", "import"),
+)
 
 
 def test_every_command_and_option_in_the_text_is_real(capsys):

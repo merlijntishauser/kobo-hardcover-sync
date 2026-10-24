@@ -18,6 +18,8 @@ final class SettingsModel: ObservableObject {
     @Published var working = false
     @Published var notifications = UNAuthorizationStatus.notDetermined
     @Published var previews = UNShowPreviewsSetting.always
+    @Published var update: Result<UpdateAnswer, NoAnswer>?
+    @Published var checking = false
 
     weak var window: NSWindow?  // where its sheets go
     let changed: () -> Void  // the main window looks again
@@ -35,6 +37,16 @@ final class SettingsModel: ObservableObject {
                 self.notifications = settings.authorizationStatus
                 self.previews = settings.showPreviewsSetting
             }
+        }
+    }
+
+    /// Check now: GitHub is asked, also with the daily look switched off.
+    func checkNow() {
+        checking = true
+        lookForUpdate { found in
+            self.checking = false
+            self.update = found
+            self.changed()
         }
     }
 
@@ -395,6 +407,14 @@ struct AppTab: View {
                     Choice(model: model, name: "check_for_updates", on: settings.settings.checkForUpdates, label: "Look for a newer version",
                            about: "At most once a day, after a sync, the app asks GitHub for the latest release. It only says so; it never updates itself.")
                 }
+                HStack {
+                    Text(updateSaid).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                    if case .success(let found) = model.update, found.newer, let link = URL(string: releases + found.latest) {
+                        Button("Get it") { NSWorkspace.shared.open(link) }
+                    }
+                    Button("Check now") { model.checkNow() }.disabled(model.checking)
+                }
             }
             Section {
                 LabeledContent("Notifications") {
@@ -419,6 +439,17 @@ struct AppTab: View {
             ProblemSection(model: model)
         }
         .formStyle(.grouped)
+    }
+
+    private var updateSaid: String {
+        if model.checking { return "Asking GitHub…" }
+        switch model.update {
+        case .none: return ""
+        case .failure(let why): return why.said
+        case .success(let found):
+            if found.newer { return "Version \(found.latest) is out." }
+            return found.problem.isEmpty ? "This is the newest version." : found.problem
+        }
     }
 
     private var notificationsSaid: String {

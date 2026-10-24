@@ -95,11 +95,40 @@ def now_and_then(fetch=None, clock=time.time) -> None:
         return
     if clock() - float(kept().get("checked") or 0) < EVERY:
         return
+    _ask_and_keep(fetch, clock)
+
+
+def now(fetch=None, clock=time.time, current: str = __version__) -> dict:
+    """Ask now, because someone asked (`update`, Check now in the app),
+    also when the daily look is switched off. What GitHub said, and
+    whether it is newer than this version; "problem" when it did not say."""
+    latest, problem = _ask_and_keep(fetch, clock)
+    found, mine = _order(latest), _order(current)
+    newer = bool(found and mine and found > mine)
+    return {
+        "version": current,
+        "latest": latest,
+        "newer": newer,
+        "link": RELEASE.format(version=latest) if newer else "",
+        "problem": problem,
+    }
+
+
+def _ask_and_keep(fetch, clock) -> tuple[str, str]:
+    """(the newest version GitHub knows, or the last one known; why there is
+    no answer). The answer is kept in update.json for the page and the app."""
     data = {"checked": clock(), "latest": kept().get("latest") or ""}
+    problem = ""
     try:
         data["latest"] = ask(fetch) or data["latest"]
-    except Exception as ex:  # noqa: BLE001 (any failure: no answer today)
+    except Exception as ex:  # noqa: BLE001 (any failure: no answer this time)
         log.info("no answer about a newer version: %s", ex)
+        problem = f"GitHub did not answer ({getattr(ex, 'reason', ex)})."
+    _keep(data)
+    return data["latest"], problem
+
+
+def _keep(data: dict) -> None:
     tmp = _path() + ".tmp"
     try:
         with open(tmp, "w") as fh:

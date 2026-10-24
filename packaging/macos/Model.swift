@@ -1,5 +1,5 @@
 // What the tool answers (`status --json`, `doctor --json`, `history --json`,
-// `settings --json`, `sync --steps`), as the app reads it. The samples in
+// `settings --json`, `update --json`, `sync --steps`), as the app reads it. The samples in
 // packaging/macos/samples have the same shape: tests/test_app_answers.py
 // holds the tool to them, CheckSamples.swift holds these types to them.
 //
@@ -71,6 +71,15 @@ struct SettingsAnswer: Codable {
     let uploadTokenHash: String
     let hardcoverConnected: Bool
     let settings: Values
+}
+
+struct UpdateAnswer: Codable {
+    let schema: Int
+    let version: String
+    let latest: String  // "" when GitHub never said
+    let newer: Bool
+    let link: String
+    let problem: String  // GitHub did not answer this time
 }
 
 /// One line of `sync --steps`: a step as it finishes, or, last, the outcome.

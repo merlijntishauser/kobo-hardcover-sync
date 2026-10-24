@@ -7,6 +7,13 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- `kobo-hardcover-sync update` asks GitHub now whether there is a newer
+  version, also when the Mac app's daily look is switched off; `--json`
+  for the app. In the Mac app: *Check now* in Settings, App, and *Check
+  for Updates…* in the app menu.
+
 ## 0.12.1 - 2026-10-24
 
 The Mac app's window shows a sync that plugging in the Kobo started, and

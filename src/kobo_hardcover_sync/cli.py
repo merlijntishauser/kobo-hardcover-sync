@@ -41,6 +41,11 @@ kobo-hardcover-sync settings [--set NAME=VALUE] [--json]
     (eject_after_sync, verbose_log, allow_untested_kobo,
     check_for_updates). Mode and server change with `setup`.
 
+kobo-hardcover-sync update [--json]
+    Ask GitHub now whether there is a newer version, also when the Mac
+    app's daily look is switched off. It only says so; Homebrew and pip
+    update the tool themselves.
+
 Every --json answer, and every line of sync --steps, carries "schema": 1,
 raised when a field changes meaning; the Mac app reads them.
 
@@ -159,7 +164,9 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     p = _Parser(prog="kobo-hardcover-sync")
     p.add_argument("--version", action="version", version=f"kobo-hardcover-sync {__version__}")
     sub = p.add_subparsers(
-        dest="cmd", required=True, metavar="{setup,token,sync,status,doctor,history,settings,open,export,webhook,uninstall,serve,import}"
+        dest="cmd",
+        required=True,
+        metavar="{setup,token,sync,status,doctor,history,settings,update,open,export,webhook,uninstall,serve,import}",
     )
     stp = sub.add_parser("setup", help="make this computer sync a plugged-in Kobo")
     stp.add_argument("--server", default="", help="the server's address, e.g. https://kobo.example.org")
@@ -187,6 +194,8 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     sts = sub.add_parser("settings", help="this computer's settings")
     sts.add_argument("--set", action="append", default=[], metavar="NAME=VALUE", help=f"change one: {', '.join(SETTABLE)}; true or false")
     sts.add_argument("--json", action="store_true", help="as JSON")
+    upd = sub.add_parser("update", help="ask now whether there is a newer version")
+    upd.add_argument("--json", action="store_true", help="as JSON")
     sub.add_parser("open", help="open the page")
     exp = sub.add_parser("export", help="your reading as JSON, for a database or dashboard of your own")
     exp.add_argument("--output", default="", metavar="FILE", help="write to FILE (readable by you only) instead of the screen")
@@ -239,6 +248,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
         "doctor": _doctor,
         "history": _history,
         "settings": _settings,
+        "update": _update,
         "open": _open,
         "uninstall": _uninstall,
         "token": _token,
@@ -780,6 +790,22 @@ def _settings(a, computer) -> None:
     if found["upload_token_hash"]:
         rows.insert(0, Row(OK, "upload token", f"its hash is {found['upload_token_hash']}"))
     term.Screen.of().rows(rows)
+
+
+def _update(a, computer) -> None:
+    from .computer import update
+
+    found = update.now()
+    if a.json:
+        return _json(found)
+    if found["problem"] and not found["latest"]:
+        row = Row(WARN, "Version", f"This is {found['version']}. {found['problem']}")
+    elif found["newer"]:
+        upgrade = "Download it there." if computer.in_app else "`brew upgrade` or `pip install -U kobo-hardcover-sync` gets it."
+        row = Row(NOTE, "Version", f"{found['latest']} is out; this is {found['version']}: {found['link']}", upgrade)
+    else:
+        row = Row(OK, "Version", f"{found['version']} is the newest version.")
+    term.Screen.of().rows([row])
 
 
 def _open(a, computer) -> None:

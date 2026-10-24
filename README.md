@@ -180,6 +180,7 @@ Other commands:
 | `kobo-hardcover-sync doctor` | Checks everything a sync depends on and says what to do about what is wrong. Changes nothing. |
 | `kobo-hardcover-sync history` | The last syncs on this computer, newest first: when, what started it, and what it said. The last hundred are kept, without book titles. |
 | `kobo-hardcover-sync settings` | This computer's settings. `--set eject_after_sync=true` changes one that is true or false (`eject_after_sync`, `verbose_log`, `allow_untested_kobo`, `check_for_updates`). |
+| `kobo-hardcover-sync update` | Asks GitHub now whether there is a newer version. It only says so. |
 | `kobo-hardcover-sync open` | The page. |
 | `kobo-hardcover-sync token --code` | Connect to Hardcover with a short code to approve, instead of in this computer's browser. |
 | `kobo-hardcover-sync token --remove` | End the connection to Hardcover and go back to dry run. |

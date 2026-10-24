@@ -139,6 +139,14 @@ func notificationStatus() -> UNAuthorizationStatus {
     return status
 }
 
+/// `update --json`: is there a newer version? Asked on another queue, answered on the main one.
+func lookForUpdate(_ answered: @escaping (Result<UpdateAnswer, NoAnswer>) -> Void) {
+    DispatchQueue.global(qos: .userInitiated).async {
+        let found = answer(UpdateAnswer.self, ["update", "--json"])
+        DispatchQueue.main.async { answered(found) }
+    }
+}
+
 func numbers(_ version: String) -> [Int]? {
     let parts = version.split(separator: ".", omittingEmptySubsequences: false).map { Int($0) }
     guard parts.count == 3, parts.allSatisfy({ $0 != nil && $0! >= 0 }) else { return nil }
@@ -240,6 +248,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         showWindow()
         showSettings()
+        settingsModel?.checkNow()  // so the App tab shows an answer
         let tabs = (settings?.contentViewController as? NSTabViewController)?.tabViewItems.count ?? 0
         var steps: [() -> Void] = [{ self.window.map { picture($0, folder.appendingPathComponent("window.png")) } }]
         for n in 0..<tabs {
@@ -358,6 +367,34 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         end()
     }
 
+    /// Check for Updates… in the app menu: GitHub now, the answer in a dialog.
+    @objc func checkForUpdates() {
+        lookForUpdate { found in
+            self.model?.refresh(check: false)
+            let a = NSAlert()
+            switch found {
+            case .success(let update) where update.newer:
+                a.messageText = "Version \(update.latest) is out"
+                a.informativeText = "This is \(update.version). The app does not update itself: download the new one, and drag it to Applications."
+                a.addButton(withTitle: "Get it")
+                a.addButton(withTitle: "Later")
+                if a.runModal() == .alertFirstButtonReturn, let link = URL(string: releases + update.latest) { NSWorkspace.shared.open(link) }
+                return
+            case .success(let update) where update.problem.isEmpty:
+                a.messageText = "This is the newest version"
+                a.informativeText = "\(name) \(update.version)."
+            case .success(let update):
+                a.messageText = "No answer about a newer version"
+                a.informativeText = update.problem
+            case .failure(let why):
+                a.messageText = "No answer about a newer version"
+                a.informativeText = why.said
+            }
+            a.addButton(withTitle: "OK")
+            _ = a.runModal()
+        }
+    }
+
     // ---------- Remove… ----------
     /// Stop syncing on this Mac, or also delete what the app keeps; then
     /// say how the app itself goes, and quit.
@@ -424,8 +461,11 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         }
         let settingsItem = item("Settings…", #selector(showSettings), ",")
         settingsItem.target = self
+        let updatesItem = item("Check for Updates…", #selector(checkForUpdates), "")
+        updatesItem.target = self
         _ = menu(name, [
             item("About \(name)", #selector(NSApplication.orderFrontStandardAboutPanel(_:)), ""),
+            updatesItem,
             .separator(),
             settingsItem,
             .separator(),

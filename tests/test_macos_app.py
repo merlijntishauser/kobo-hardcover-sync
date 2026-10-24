@@ -15,6 +15,7 @@ import pytest
 from kobo_hardcover_sync import cli
 from kobo_hardcover_sync.computer import config, macos, runner, update
 from tests import said
+from tests.test_app_answers import same_shape, sample
 from tests.test_computer import FakeComputer, FakeMac, plug_in, register, server  # noqa: F401 (the fixture)
 from tests.test_local import ORIGIN, local  # noqa: F401 (the fixture)
 
@@ -152,6 +153,33 @@ def test_only_a_plain_version_is_taken_from_the_answer(home, the_app, tag):
     config.save(config.Config())
     update.now_and_then(GitHub(tag), lambda: 1_000_000.0)
     assert update.kept()["latest"] == "" and update.newer("0.0.1") is None
+
+
+def test_check_now_asks_also_when_the_daily_look_is_off_and_keeps_the_answer(home, the_app, monkeypatch, capsys):
+    os.makedirs(home / "state")
+    config.save(config.Config(check_for_updates=False))  # someone who clicked asked, whatever the daily look says
+    gh = GitHub("v0.13.0")
+    found = update.now(gh, lambda: 1_000_000.0, current="0.12.1")
+    # The link is built from the version, never taken from the answer.
+    assert found == {
+        "version": "0.12.1",
+        "latest": "0.13.0",
+        "newer": True,
+        "link": "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v0.13.0",
+        "problem": "",
+    }
+    assert update.kept() == {"checked": 1_000_000.0, "latest": "0.13.0"} and len(gh.asked) == 1
+    gh.fail = OSError("no network")
+    found = update.now(gh, lambda: 1_000_100.0, current="0.13.0")
+    assert (found["latest"], found["newer"], found["link"]) == ("0.13.0", False, "") and "GitHub did not answer" in found["problem"]
+
+    monkeypatch.setattr(update, "ask", lambda fetch=None: "0.13.0")
+    mac = macos.MacOS(run=FakeMac(), home=str(home))
+    cli.main(["update", "--json"], computer=mac)
+    same_shape(json.loads(capsys.readouterr().out), sample("update.json"))  # this tool is 0.13.0.dev0: 0.13.0 is newer
+    cli.main(["update"], computer=mac)
+    out = capsys.readouterr().out
+    assert "0.13.0 is out" in out and "Download it there." in out
 
 
 def test_a_triggered_sync_in_the_app_asks_after_the_notification(home, the_app, monkeypatch):

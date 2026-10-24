@@ -28,6 +28,7 @@ struct CheckSamples {
         check("doctor.json", decode(DoctorAnswer.self, try text("doctor.json"))) { !$0.checks.isEmpty }
         check("history.json", decode(HistoryAnswer.self, try text("history.json"))) { $0.syncs.allSatisfy { $0.date != nil } }
         check("settings.json", decode(SettingsAnswer.self, try text("settings.json"))) { !$0.uploadTokenHash.isEmpty }
+        check("update.json", decode(UpdateAnswer.self, try text("update.json"))) { $0.newer && !$0.latest.isEmpty }
         let lines = try text("steps.jsonl").split(separator: "\n").map { decode(StepLine.self, String($0)) }
         for (n, line) in lines.enumerated() {
             check("steps.jsonl line \(n + 1)", line) { n == lines.count - 1 ? $0.done != nil : $0.step != nil }
