@@ -117,15 +117,20 @@ started in three ways:
   what `setup` said includes this Mac's hash, to paste on the server's
   page.
 - **Opened by hand after setup, or by a click on a notification.** It
-  shows what the last sync said, as the last sync ("Last sync: Today at
-  10:22", then "Kobo synced: 11 books updated.", not as how things are
-  now), a newer version if there is one, and the buttons
-  *Sync now*, *Open the page* and *OK*. When notifications are off, it
-  says so, with a button to their settings: without them a sync at a
-  plug-in says nothing. *Sync now* runs `sync --trigger app`, shows a
-  window while it runs, and then what the sync did, in a window: also
-  that nothing was new, or that no Kobo is plugged in. Those two answers
-  are not kept as the last message.
+  opens its window, about this Mac's machinery (the books stay on the
+  page); the design is `docs/plans/2026-10-24-mac-app-window-design.md`.
+  One line says whether it is ready for the Kobo, with the mode and the
+  last sync, beside *Sync now* and *Open the page*. Under it: Health
+  (`doctor --json`, with a button where the app can mend what a check
+  found, and whether notifications are on), the steps of a sync as it
+  runs (`sync --trigger app --steps`), and History (`history --json`),
+  with *Show the log*. A sync the Kobo starts while the window is open
+  shows up in History when it ends. With the window open the app has a
+  Dock icon and a menu bar; closing the window quits it.
+- **The notification of a sync the Kobo started** is shown as soon as
+  the tool prints it: the wrapper reads the tool's output line by line,
+  so the notification does not wait for what the tool does after it (the
+  update check).
 
 It runs the tool as `Resources/python/bin/python3 -I -m
 kobo_hardcover_sync ...`, with two variables:
@@ -170,7 +175,15 @@ hand. Which of the two happens is the first thing to see on a real Mac.
   checks the Python, installs the wheel and the locked packages, compiles
   the wrapper and puts the bundle together. It signs the result ad hoc, so
   that it runs on the Mac it was built on. CI builds it on every push and
-  starts the tool in it, so a broken bundle shows up before a release.
+  starts the tool in it, so a broken bundle shows up before a release, and
+  checks that the app reads the sample answers in `packaging/macos/samples`
+  (`CheckSamples.swift`), which the tool's tests hold the tool to.
+- `KHS_PREVIEW=1 packaging/macos/build.sh ...` builds a preview: its own
+  bundle id and name, its own folder
+  (`~/Library/Application Support/kobo-hardcover-sync-preview`, to copy a
+  tool folder into), no launch agent, and a *Sync now* that only plays
+  sample steps. The window can then be looked at on a Mac where the app
+  is installed, without touching that app, its permissions or its trigger.
 - `packaging/macos/sign.sh` signs every Mach-O file in the bundle, then
   the app. With a Developer ID it adds the hardened runtime and Apple's
   timestamp. An ad-hoc build gets no hardened runtime: under it, a library

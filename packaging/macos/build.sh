@@ -11,6 +11,12 @@
 # KHS_PYTHON_ONLY=1 builds only the Python half (no wrapper, no icon, no
 # signature), on any computer this Python build exists for: a quick look at
 # what goes into the bundle.
+#
+# KHS_PREVIEW=1 builds the preview: its own bundle id and name, its own
+# folder (~/Library/Application Support/kobo-hardcover-sync-preview, to
+# copy a tool folder into), no launch agent, and a Sync now that syncs
+# nothing. For looking at the window on a Mac with the app installed,
+# without touching that app, its permissions or its trigger.
 set -eu
 
 # The Python inside: python-build-standalone, pinned. The full build is only
@@ -117,8 +123,15 @@ rm -rf "$resources/python-licenses"
 cp -R "$out/full/python/licenses" "$resources/python-licenses"
 
 # ---------- the wrapper, its agent and its icon ----------
-swiftc -O -swift-version 5 -target arm64-apple-macos13.0 -o "$contents/MacOS/$NAME" "$here/KoboHardcoverSync.swift"
+swiftc -O -swift-version 5 -target arm64-apple-macos13.0 -parse-as-library -o "$contents/MacOS/$NAME" \
+	"$here/KoboHardcoverSync.swift" "$here/Window.swift" "$here/Model.swift"
 sed "s/__VERSION__/$short/g" "$here/Info.plist" >"$contents/Info.plist"
+if [ -n "${KHS_PREVIEW:-}" ]; then
+	plutil -replace CFBundleIdentifier -string org.gargleblaster.kobo-hardcover-sync.app.preview "$contents/Info.plist"
+	plutil -replace CFBundleDisplayName -string "$NAME Preview" "$contents/Info.plist"
+	plutil -replace CFBundleName -string "$NAME Preview" "$contents/Info.plist"
+	plutil -insert KHSPreview -bool YES "$contents/Info.plist"
+fi
 plutil -lint "$contents/Info.plist" >/dev/null
 cp "$here/org.gargleblaster.kobo-hardcover-sync.app.agent.plist" "$contents/Library/LaunchAgents/"
 iconset="$out/AppIcon.iconset"

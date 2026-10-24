@@ -17,14 +17,19 @@ minor version may change behaviour; the notes will say so.
   `config.toml`.
 - `--json` for `status`, `doctor`, `history` and `settings`, and `sync
   --steps` (each step and the outcome as a line of JSON): what the Mac
-  app's coming window reads, and usable in scripts. Each answer carries
+  app's window reads, and usable in scripts. Each answer carries
   `"schema": 1`.
 
 ### Changed
 
-- The Mac app's window says when the last sync was before what it said
-  ("Last sync: Today at 10:22", then "Kobo synced: 11 books updated."),
-  so it is not read as what is happening now, with no Kobo plugged in.
+- The Mac app has a window of its own, about this Mac: whether it is
+  ready for the Kobo, a check of everything a sync depends on with a
+  button where the app can mend something, a sync's steps as it runs,
+  and the last syncs, with the log a click away. It replaces the dialog
+  that showed the last message. While the window is open the app has a
+  Dock icon and a menu bar.
+- The notification of a sync the Kobo started shows as soon as the sync
+  has said it, instead of after the once-a-day look for a newer version.
 
 ## 0.11.1 - 2026-10-24
 

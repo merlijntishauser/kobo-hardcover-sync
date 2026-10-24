@@ -89,3 +89,8 @@ jobs:
           KHS_HOME="$RUNNER_TEMP/khs" KHS_APP="$app" "$py" -I -B -m kobo_hardcover_sync status
           test -z "$(find "$app" -newer "$RUNNER_TEMP/before")"
           ls "$app/Contents/Resources/python-licenses"
+      - name: The app reads the tool's answers as the tool writes them
+        run: |
+          swiftc -swift-version 5 -target arm64-apple-macos13.0 -parse-as-library -o "$RUNNER_TEMP/check-samples" \
+            packaging/macos/Model.swift packaging/macos/CheckSamples.swift
+          "$RUNNER_TEMP/check-samples" packaging/macos/samples

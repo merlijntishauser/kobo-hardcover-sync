@@ -6,42 +6,43 @@
 // - by its launch agent when a volume is mounted (KHS_TRIGGER=mount): a
 //   sync, its notification, and quit;
 // - opened by hand before it is set up: where the reading goes, then
-//   `setup`;
-// - opened by hand afterwards, or by a click on a notification: the last
-//   message, a newer version if there is one, whether notifications are
-//   off, Sync now and Open the page.
+//   `setup`, then its window;
+// - opened by hand afterwards, or by a click on a notification: its
+//   window (Window.swift), until that is closed.
 //
-// It is the AppleScript app that `setup` builds for a Homebrew
-// installation (computer/macos.py), ported, plus setup.
+// A preview build (build.sh with KHS_PREVIEW=1) has its own bundle id and
+// a folder of its own, registers no launch agent and syncs nothing: the
+// window can be looked at on a Mac without touching an installed app.
 
 import AppKit
 import ServiceManagement
+import SwiftUI
 import UserNotifications
 
 let name = "Kobo Hardcover Sync"
 let agentPlist = "org.gargleblaster.kobo-hardcover-sync.app.agent.plist"
 let releases = "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v"
-let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=org.gargleblaster.kobo-hardcover-sync.app"
+let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=" + (Bundle.main.bundleIdentifier ?? "")
+let privacySettings = "x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders"
 let stoppedWithoutWord = "The sync stopped before it could say why. Its log is agent.log, in Library/Application Support/kobo-hardcover-sync."
+let isPreview = Bundle.main.object(forInfoDictionaryKey: "KHSPreview") as? Bool ?? false
 
-/// The tool's folder: the same as a Homebrew installation's (computer/config.py).
+/// The tool's folder: the same as a Homebrew installation's (computer/config.py);
+/// the preview's own, beside it.
 func stateDir() -> URL {
     if let home = ProcessInfo.processInfo.environment["KHS_HOME"], !home.isEmpty {
         return URL(fileURLWithPath: home)
     }
     return FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Library/Application Support")
-        .appendingPathComponent("kobo-hardcover-sync")
+        .appendingPathComponent(isPreview ? "kobo-hardcover-sync-preview" : "kobo-hardcover-sync")
 }
 
 func stateFile(_ file: String) -> String? {
     try? String(contentsOf: stateDir().appendingPathComponent(file), encoding: .utf8)
 }
 
-/// Runs the tool and returns whether it ended well, and everything it printed.
-/// Notifications come back as NOTIFY|title|message lines, so that a click on
-/// one lands on this app.
-func tool(_ args: [String]) -> (ok: Bool, output: String) {
+func toolProcess(_ args: [String]) -> (Process, Pipe) {
     let p = Process()
     p.executableURL = Bundle.main.resourceURL!.appendingPathComponent("python/bin/python3")
     // -I: nothing from the environment or the person's own packages.
@@ -50,11 +51,20 @@ func tool(_ args: [String]) -> (ok: Bool, output: String) {
     var env = ProcessInfo.processInfo.environment
     env["KHS_APP"] = Bundle.main.bundlePath
     env["KHS_NOTIFY"] = "stdout"
+    env["KHS_HOME"] = stateDir().path
     env["PYTHONDONTWRITEBYTECODE"] = "1"  // for what the tool starts in turn (the page)
     p.environment = env
     let out = Pipe()
     p.standardOutput = out
     p.standardError = out  // a refusal (`setup` with a wrong address) is said there
+    return (p, out)
+}
+
+/// Runs the tool and returns whether it ended well, and everything it printed.
+/// Notifications come back as NOTIFY|title|message lines, so that a click on
+/// one lands on this app.
+func tool(_ args: [String]) -> (ok: Bool, output: String) {
+    let (p, out) = toolProcess(args)
     do {
         try p.run()
     } catch {
@@ -63,6 +73,29 @@ func tool(_ args: [String]) -> (ok: Bool, output: String) {
     let data = out.fileHandleForReading.readDataToEndOfFile()
     p.waitUntilExit()
     return (p.terminationStatus == 0, String(decoding: data, as: UTF8.self))
+}
+
+/// Runs the tool and hands over each line as it is printed; whether it ended well.
+func toolLines(_ args: [String], _ each: (String) -> Void) -> Bool {
+    let (p, out) = toolProcess(args)
+    do {
+        try p.run()
+    } catch {
+        each("NOTIFY|\(name)|\(name) could not start its tool: \(error.localizedDescription)")
+        return false
+    }
+    var rest = Data()
+    let reader = out.fileHandleForReading
+    while case let chunk = reader.availableData, !chunk.isEmpty {
+        rest.append(chunk)
+        while let end = rest.firstIndex(of: UInt8(ascii: "\n")) {
+            each(String(decoding: rest[rest.startIndex..<end], as: UTF8.self))
+            rest = Data(rest[rest.index(after: end)...])
+        }
+    }
+    if !rest.isEmpty { each(String(decoding: rest, as: UTF8.self)) }
+    p.waitUntilExit()
+    return p.terminationStatus == 0
 }
 
 /// "0.12.0" when the tool's last look (computer/update.py) found a release
@@ -75,46 +108,16 @@ func newerVersion() -> String? {
           let kept = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
           let latest = kept["latest"] as? String,
           let theirs = numbers(latest),
-          let mine = numbers(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
+          let mine = numbers(bundleVersion())
     else { return nil }
     return theirs.lexicographicallyPrecedes(mine) || theirs == mine ? nil : latest
 }
 
-/// What the last sync said (runner.remember: title, message, a blank line,
-/// when), worded as the last sync, so that it is not read as how things are
-/// now: "Last sync: Today at 10:22" and "Kobo synced: 11 books updated."
-func lastSync() -> String {
-    let lines = (stateFile("last-message.txt") ?? "").split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-    guard let title = lines.first, !title.isEmpty else { return "Nothing synced yet." }
-    let rest = lines.dropFirst()
-    let said = rest.prefix { !$0.isEmpty }.joined(separator: " ")
-    let stamp = rest.drop { !$0.isEmpty }.first { !$0.isEmpty } ?? ""
-    let what = said.isEmpty ? title : title == name ? said : "\(title): \(said)"
-    return stamp.isEmpty ? "Last sync:\n\(what)" : "Last sync: \(when(stamp))\n\(what)"
-}
-
-/// "24 Oct 2026, 10:22" as the tool writes it, said the way this Mac says
-/// dates ("Today at 10:22"); as it is when it cannot be read.
-func when(_ stamp: String) -> String {
-    let read = DateFormatter()
-    read.locale = Locale(identifier: "en_US_POSIX")
-    read.dateFormat = "d MMM yyyy, HH:mm"
-    guard let date = read.date(from: stamp) else { return stamp }
-    let say = DateFormatter()
-    say.dateStyle = .medium
-    say.timeStyle = .short
-    say.doesRelativeDateFormatting = true
-    return say.string(from: date)
-}
-
-/// The NOTIFY|title|message lines the tool printed.
-func notices(_ output: String) -> [(title: String, body: String)] {
-    var said: [(title: String, body: String)] = []
-    for line in output.split(separator: "\n") where line.hasPrefix("NOTIFY|") {
-        let parts = line.split(separator: "|", maxSplits: 2, omittingEmptySubsequences: false)
-        if parts.count == 3 { said.append((String(parts[1]), String(parts[2]))) }
-    }
-    return said
+/// A NOTIFY|title|message line the tool printed, as (title, body).
+func notice(_ line: String) -> (title: String, body: String)? {
+    guard line.hasPrefix("NOTIFY|") else { return nil }
+    let parts = line.split(separator: "|", maxSplits: 2, omittingEmptySubsequences: false)
+    return parts.count == 3 ? (String(parts[1]), String(parts[2])) : nil
 }
 
 /// What macOS lets this app do with notifications. The answer comes on
@@ -158,9 +161,21 @@ func textView(_ text: String) -> NSView {
     return scroll
 }
 
-final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
-    var busy = false  // a window is open
-    var running = 0  // things still to finish before quitting
+/// Notification Center shows a notification now.
+func post(_ title: String, _ body: String, then: @escaping () -> Void = {}) {
+    let content = UNMutableNotificationContent()
+    content.title = title
+    content.body = body
+    UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)) { _ in
+        then()
+    }
+}
+
+final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotificationCenterDelegate {
+    var busy = false  // setup's dialogs are open
+    var running = 0  // things still to finish before quitting: a sync, the window
+    var window: NSWindow?
+    var model: WindowModel?
 
     func begin() { running += 1 }
 
@@ -174,18 +189,31 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        if ProcessInfo.processInfo.environment["KHS_TRIGGER"] == "mount" {
+        if ProcessInfo.processInfo.environment["KHS_TRIGGER"] == "mount" && !isPreview {
             begin()
             DispatchQueue.global(qos: .userInitiated).async {
-                let (ok, output) = tool(["sync", "--trigger", "mount"])
-                DispatchQueue.main.async { self.tell(output, ok: ok) { self.end() } }
+                // Each notification as soon as the tool says it, not after
+                // what the tool does next (the update check).
+                let posting = DispatchGroup()
+                var said = false
+                let ok = toolLines(["sync", "--trigger", "mount"]) { line in
+                    guard let told = notice(line) else { return }
+                    said = true
+                    posting.enter()
+                    post(told.title, told.body) { posting.leave() }
+                }
+                if !ok && !said {
+                    posting.enter()
+                    post(name, stoppedWithoutWord) { posting.leave() }
+                }
+                posting.notify(queue: .main) { self.end() }
             }
             return
         }
         DispatchQueue.main.async { self.openedByHand() }
     }
 
-    // Opened again while a sync started by the Kobo is still running.
+    // Opened again while it runs: a sync the Kobo started, or the window.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         openedByHand()
         return false
@@ -207,17 +235,101 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
 
     func openedByHand() {
         guard !busy else { return }
+        if window != nil { return showWindow() }
         busy = true
         begin()
         NSApp.activate(ignoringOtherApps: true)
-        let setUp = stateFile("config.toml") != nil && SMAppService.agent(plistName: agentPlist).status == .enabled
-        if setUp { lastMessage() } else { setUpHere() }
+        if isPreview {
+            if stateFile("config.toml") == nil {
+                say("Nothing to preview", "The preview reads a copy of the tool's folder, at \(stateDir().path). Copy one there, then open it again.")
+            } else {
+                showWindow()
+            }
+        } else if stateFile("config.toml") != nil && SMAppService.agent(plistName: agentPlist).status == .enabled {
+            showWindow()
+        } else if setUpHere() {
+            showWindow()
+        }
         busy = false
         end()
     }
 
+    // ---------- the window ----------
+    func showWindow() {
+        if let window {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+        let model = WindowModel { [weak self] in
+            guard let self, !self.busy else { return }
+            self.busy = true
+            _ = self.setUpHere()
+            self.busy = false
+            self.model?.refresh()
+        }
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 620, height: 720),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        window.title = isPreview ? "\(name) (preview)" : name
+        window.contentView = NSHostingView(rootView: MainView(model: model))
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+        window.center()
+        window.setFrameAutosaveName("Main")
+        self.window = window
+        self.model = model
+        begin()  // the window keeps the app until it is closed
+        NSApp.setActivationPolicy(.regular)  // a Dock icon and a menu bar while it is open
+        NSApp.mainMenu = mainMenu()
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+        model.refresh()
+        model.watch()
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        model?.stop()
+        model = nil
+        window = nil
+        NSApp.setActivationPolicy(.accessory)
+        end()
+    }
+
+    func mainMenu() -> NSMenu {
+        let bar = NSMenu()
+        func menu(_ title: String, _ items: [NSMenuItem]) -> NSMenu {
+            let m = NSMenu(title: title)
+            items.forEach(m.addItem)
+            let holder = NSMenuItem()
+            holder.submenu = m
+            bar.addItem(holder)
+            return m
+        }
+        func item(_ title: String, _ action: Selector, _ key: String) -> NSMenuItem {
+            NSMenuItem(title: title, action: action, keyEquivalent: key)
+        }
+        _ = menu(name, [
+            item("About \(name)", #selector(NSApplication.orderFrontStandardAboutPanel(_:)), ""),
+            .separator(),
+            item("Hide \(name)", #selector(NSApplication.hide(_:)), "h"),
+            .separator(),
+            item("Quit \(name)", #selector(NSApplication.terminate(_:)), "q"),
+        ])
+        _ = menu("Edit", [
+            item("Copy", #selector(NSText.copy(_:)), "c"),
+            item("Select All", #selector(NSText.selectAll(_:)), "a"),
+        ])
+        NSApp.windowsMenu = menu("Window", [
+            item("Close", #selector(NSWindow.performClose(_:)), "w"),
+            item("Minimize", #selector(NSWindow.performMiniaturize(_:)), "m"),
+        ])
+        return bar
+    }
+
     // ---------- the first time ----------
-    func setUpHere() {
+    /// Where the reading goes, the launch agent, `setup`. Whether it ended set up.
+    func setUpHere() -> Bool {
         let ask = NSAlert()
         ask.messageText = "Set up \(name)"
         ask.informativeText = """
@@ -237,11 +349,11 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
         } else if choice == .alertSecondButtonReturn, let address = askAddress() {
             args = ["setup", "--server", address]
         } else {
-            return
+            return false
         }
         if let problem = registerAgent() {
             say("\(name) is not set up yet", problem)
-            return
+            return false
         }
         let (ok, output) = tool(args)
         let done = NSAlert()
@@ -262,6 +374,7 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
         let openPage = done.runModal() == .alertFirstButtonReturn && local
         if askNext { askForNotifications() }
         if openPage { _ = tool(["open"]) }
+        return ok
     }
 
     /// macOS's question whether this app may show notifications. The app
@@ -269,7 +382,10 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
     func askForNotifications() {
         begin()
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { _, _ in
-            DispatchQueue.main.async { self.end() }
+            DispatchQueue.main.async {
+                self.model?.refresh(check: false)
+                self.end()
+            }
         }
     }
 
@@ -309,74 +425,6 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
         return nil
     }
 
-    // ---------- afterwards ----------
-    func lastMessage() {
-        var text = lastSync()
-        let a = NSAlert()
-        a.messageText = name
-        var actions: [() -> Void] = []
-        func button(_ title: String, _ action: @escaping () -> Void) {
-            a.addButton(withTitle: title)
-            actions.append(action)
-        }
-        button("OK") {}
-        button("Open the page") { _ = tool(["open"]) }
-        button("Sync now") { self.syncByHand() }
-        if let version = newerVersion(), let link = URL(string: releases + version) {
-            text += "\n\nVersion \(version) is out."
-            button("Get the new version") { NSWorkspace.shared.open(link) }
-        }
-        let notifications = notificationStatus()
-        if notifications == .denied {
-            text += "\n\nNotifications are off, so a sync started by plugging in the Kobo does not say what it did."
-            if let settings = URL(string: notificationSettings) {
-                button("Turn on notifications") { NSWorkspace.shared.open(settings) }
-            }
-        }
-        a.informativeText = text
-        let chosen = a.runModal().rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
-        if actions.indices.contains(chosen) { actions[chosen]() }
-        if notifications == .notDetermined { askForNotifications() }  // never answered: asked once this window is gone
-    }
-
-    /// Sync now: a window that says it is busy while the tool runs, then
-    /// what the sync did, in a window rather than a notification.
-    func syncByHand() {
-        let busy = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 320, height: 90), styleMask: [.titled], backing: .buffered, defer: false)
-        busy.title = name
-        let spinner = NSProgressIndicator(frame: NSRect(x: 24, y: 29, width: 32, height: 32))
-        spinner.style = .spinning
-        spinner.startAnimation(nil)
-        let label = NSTextField(labelWithString: "Syncing…")
-        label.frame = NSRect(x: 72, y: 35, width: 230, height: 20)
-        busy.contentView?.addSubview(spinner)
-        busy.contentView?.addSubview(label)
-        busy.center()
-        var result = (ok: false, output: "")
-        DispatchQueue.global(qos: .userInitiated).async {
-            let finished = tool(["sync", "--trigger", "app"])
-            DispatchQueue.main.async {
-                result = finished
-                NSApp.stopModal()
-                // stopModal takes effect at the next event; this is one.
-                if let wake = NSEvent.otherEvent(
-                    with: .applicationDefined, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: 0, context: nil,
-                    subtype: 0, data1: 0, data2: 0)
-                {
-                    NSApp.postEvent(wake, atStart: true)
-                }
-            }
-        }
-        NSApp.runModal(for: busy)
-        busy.orderOut(nil)
-        let said = notices(result.output)
-        if said.isEmpty {
-            say(name, result.ok ? "Done." : stoppedWithoutWord)
-        } else {
-            say(said[0].title, said.map { $0.body }.joined(separator: "\n\n"))
-        }
-    }
-
     func say(_ title: String, _ text: String) {
         let a = NSAlert()
         a.messageText = title
@@ -384,30 +432,16 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
         a.addButton(withTitle: "OK")
         _ = a.runModal()
     }
-
-    // ---------- notifications ----------
-    /// Shows each NOTIFY| line as a notification, then calls done.
-    func tell(_ output: String, ok: Bool, done: @escaping () -> Void) {
-        var said = notices(output)
-        if said.isEmpty && !ok {
-            said = [(name, stoppedWithoutWord)]
-        }
-        let group = DispatchGroup()
-        for (title, body) in said {
-            let content = UNMutableNotificationContent()
-            content.title = title
-            content.body = body
-            group.enter()
-            UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)) { _ in
-                group.leave()
-            }
-        }
-        group.notify(queue: .main, execute: done)
-    }
 }
 
-let app = NSApplication.shared
-let delegate = App()  // the application only keeps a weak reference
-app.delegate = delegate
-app.setActivationPolicy(.accessory)
-app.run()
+@main
+struct Main {
+    static func main() {
+        let app = NSApplication.shared
+        let delegate = App()  // the application only keeps a weak reference
+        app.delegate = delegate
+        app.setActivationPolicy(.accessory)
+        app.run()
+        _ = delegate
+    }
+}
