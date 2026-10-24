@@ -13,6 +13,7 @@ import pytest
 
 from kobo_hardcover_sync import cli
 from kobo_hardcover_sync.computer import config, history, runner
+from kobo_hardcover_sync.computer.platform import UPLOAD
 from tests.test_computer import FakeComputer, plug_in, register, server  # noqa: F401 (the fixture)
 
 SAMPLES = pathlib.Path(__file__).resolve().parents[1] / "packaging" / "macos" / "samples"
@@ -162,3 +163,27 @@ def test_a_sync_with_steps_says_each_step_then_the_outcome(mac, home, capsys):
         "message": "9 books updated.",
     }
     assert "Made-up Book" not in json.dumps(lines)  # no book named: the window shows steps, not titles
+
+
+# ---------- what Settings changes ----------
+def test_setup_with_check_asks_the_server_first_and_changes_nothing_when_it_does_not_answer(home, server, capsys):  # noqa: F811
+    computer = FakeComputer(home / "Volumes")
+    config.save(config.Config())  # local mode, about to switch
+    for wrong, why in (
+        (server.url + "/not-here", "answered 404"),  # a typo in the path: something answers, but not as the tool would
+        ("http://127.0.0.1:9", "Could not reach"),
+    ):
+        with pytest.raises(SystemExit) as refused:
+            cli.main(["setup", "--server", wrong, "--check", "--no-trigger"], computer=computer)
+        assert why in str(refused.value) and str(refused.value).endswith("Nothing was changed.")
+        assert config.load().mode == "local" and not computer.secret(UPLOAD)
+
+    cli.main(["setup", "--server", server.url, "--check", "--no-trigger"], computer=computer)
+    assert config.load().server == server.url
+    assert "Paste this computer's hash" in capsys.readouterr().out  # the server does not know it yet
+
+    register(server, computer, computer.secret(UPLOAD))
+    cli.main(["setup", "--server", server.url, "--check", "--no-trigger"], computer=computer)
+    assert "knows this computer already" in capsys.readouterr().out
+    cli.main(["setup", "--new-token", "--check", "--no-trigger"], computer=computer)
+    assert "Paste this computer's hash" in capsys.readouterr().out  # a new token is a new device to the server

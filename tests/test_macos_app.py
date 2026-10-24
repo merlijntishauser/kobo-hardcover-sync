@@ -78,7 +78,9 @@ def test_setting_up_the_app_takes_the_trigger_over_from_homebrew(home, the_app, 
     assert not os.path.exists(mac.plist) and len(fake.ran("osacompile")) == 1 and fake.loaded == {APP_AGENT}
     assert "ok Trigger Plugging in the Kobo starts a sync in Kobo Hardcover Sync.app" in again
     # Uninstalling from there cannot take the app's agent away, and says so.
-    assert mac.remove_trigger() == ["The trigger of Kobo Hardcover Sync.app belongs to the app: move the app to the Bin to remove it."]
+    assert mac.remove_trigger() == [
+        "The trigger of Kobo Hardcover Sync.app belongs to the app: choose Remove… in its Settings, or move it to the Bin."
+    ]
     assert fake.loaded == {APP_AGENT}
 
 

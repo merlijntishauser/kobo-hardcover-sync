@@ -127,6 +127,18 @@ started in three ways:
   with *Show the log*. A sync the Kobo starts while the window is open
   shows up in History when it ends. With the window open the app has a
   Dock icon and a menu bar; closing the window quits it.
+- **Settings (⌘-,),** three tabs, each change through the tool. *Mode*:
+  local or a server, which runs `setup --local` or `setup --server ...
+  --check` (the server is asked first; nothing changes if it does not
+  answer), and in server mode the upload token's hash with *New upload
+  token…* (`setup --new-token`). *Sync*: the settings that are true or
+  false (`settings --set`); in local mode the Hardcover connection (it
+  is changed on the page), the webhook (`webhook`, its token given on
+  standard input, never as an argument) and *Export my reading…* (`export
+  --output`, with a save dialog). *App*: the version, looking for a newer
+  one, notifications, and *Remove…*: the app unregisters its launch agent
+  and runs `uninstall`, or `uninstall --purge` to delete the folder and
+  the tokens as well, then says to drag the app to the Bin, and quits.
 - **The notification of a sync the Kobo started** is shown as soon as
   the tool prints it: the wrapper reads the tool's output line by line,
   so the notification does not wait for what the tool does after it (the
@@ -184,6 +196,12 @@ hand. Which of the two happens is the first thing to see on a real Mac.
   tool folder into), no launch agent, and a *Sync now* that only plays
   sample steps. The window can then be looked at on a Mac where the app
   is installed, without touching that app, its permissions or its trigger.
+  In its Settings, what would touch this Mac (a mode change, a new token,
+  the webhook, *Remove…*) only says what it would do; the true-or-false
+  settings and an export work, on its own folder. Opened with
+  `open --env KHS_SNAPSHOT=<folder>`, it saves a picture of its window and
+  of each Settings tab there, and quits: a look from an SSH session, which
+  macOS does not let take a screenshot.
 - `packaging/macos/sign.sh` signs every Mach-O file in the bundle, then
   the app. With a Developer ID it adds the hardened runtime and Apple's
   timestamp. An ad-hoc build gets no hardened runtime: under it, a library

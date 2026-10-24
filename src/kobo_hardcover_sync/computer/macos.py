@@ -307,8 +307,10 @@ class MacOS(Computer):
 
     def remove_trigger(self) -> list[str]:
         self._remove_small_app()
-        if self.in_app or self._loaded(SIGNED_LABEL):
-            return [f"The trigger of {SIGNED_APP} belongs to the app: move the app to the Bin to remove it."]
+        if self.in_app:  # Remove… in the app's Settings unregisters its agent itself
+            return [f"{SIGNED_APP} no longer starts a sync when the Kobo is plugged in."]
+        if self._loaded(SIGNED_LABEL):
+            return [f"The trigger of {SIGNED_APP} belongs to the app: choose Remove… in its Settings, or move it to the Bin."]
         return ["Launch agent and app removed. Remove the Full Disk Access entry by hand if you like."]
 
     def _remove_small_app(self) -> None:

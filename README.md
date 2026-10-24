@@ -290,7 +290,8 @@ kobo-hardcover-sync setup --server https://kobo.example.org
 
 `setup` makes an upload token, keeps it in the secret store and prints its
 SHA-256. Paste that hash on the page under Settings, Devices. The hash
-alone cannot upload anything.
+alone cannot upload anything. With `--check` it asks the server first,
+and changes nothing when the server does not answer.
 
 Settings of the server, as environment variables: `KHS_DATA`, `KHS_HOST`,
 `KHS_TRUSTED_PROXIES`, `KHS_SECRET_KEY`, `KHS_INTERVAL` (seconds between

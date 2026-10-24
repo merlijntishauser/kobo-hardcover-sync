@@ -42,7 +42,7 @@ func stateFile(_ file: String) -> String? {
     try? String(contentsOf: stateDir().appendingPathComponent(file), encoding: .utf8)
 }
 
-func toolProcess(_ args: [String]) -> (Process, Pipe) {
+func toolProcess(_ args: [String], input: String? = nil) -> (Process, Pipe) {
     let p = Process()
     p.executableURL = Bundle.main.resourceURL!.appendingPathComponent("python/bin/python3")
     // -I: nothing from the environment or the person's own packages.
@@ -57,14 +57,20 @@ func toolProcess(_ args: [String]) -> (Process, Pipe) {
     let out = Pipe()
     p.standardOutput = out
     p.standardError = out  // a refusal (`setup` with a wrong address) is said there
+    if let input {  // a webhook's token: never in the arguments, which anyone on this Mac can see
+        let given = Pipe()
+        p.standardInput = given
+        given.fileHandleForWriting.write(Data(input.utf8))
+        try? given.fileHandleForWriting.close()
+    }
     return (p, out)
 }
 
 /// Runs the tool and returns whether it ended well, and everything it printed.
 /// Notifications come back as NOTIFY|title|message lines, so that a click on
 /// one lands on this app.
-func tool(_ args: [String]) -> (ok: Bool, output: String) {
-    let (p, out) = toolProcess(args)
+func tool(_ args: [String], input: String? = nil) -> (ok: Bool, output: String) {
+    let (p, out) = toolProcess(args, input: input)
     do {
         try p.run()
     } catch {
@@ -147,6 +153,15 @@ func configuredServer() -> String? {
     return nil
 }
 
+/// A window as it is drawn, with its title bar and toolbar, as a PNG.
+func picture(_ window: NSWindow, _ file: URL) {
+    guard let view = window.contentView?.superview else { return }
+    view.layoutSubtreeIfNeeded()
+    guard let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
+    view.cacheDisplay(in: view.bounds, to: rep)
+    try? rep.representation(using: .png, properties: [:])?.write(to: file)
+}
+
 func textView(_ text: String) -> NSView {
     let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 540, height: 280))
     scroll.hasVerticalScroller = true
@@ -176,6 +191,8 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     var running = 0  // things still to finish before quitting: a sync, the window
     var window: NSWindow?
     var model: WindowModel?
+    var settings: NSWindow?
+    var settingsModel: SettingsModel?
 
     func begin() { running += 1 }
 
@@ -210,7 +227,29 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             }
             return
         }
+        if isPreview, let folder = ProcessInfo.processInfo.environment["KHS_SNAPSHOT"], !folder.isEmpty {
+            return snapshots(into: URL(fileURLWithPath: folder))
+        }
         DispatchQueue.main.async { self.openedByHand() }
+    }
+
+    /// The preview's pictures of its windows (KHS_SNAPSHOT=folder): the
+    /// window and each Settings tab as a PNG, then quit. For a look from a
+    /// session that cannot see the screen.
+    func snapshots(into folder: URL) {
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        showWindow()
+        showSettings()
+        let tabs = (settings?.contentViewController as? NSTabViewController)?.tabViewItems.count ?? 0
+        var steps: [() -> Void] = [{ self.window.map { picture($0, folder.appendingPathComponent("window.png")) } }]
+        for n in 0..<tabs {
+            steps.append { (self.settings?.contentViewController as? NSTabViewController)?.selectedTabViewItemIndex = n }
+            steps.append { self.settings.map { picture($0, folder.appendingPathComponent("settings-\(n + 1).png")) } }
+        }
+        steps.append { NSApp.terminate(nil) }
+        for (n, step) in steps.enumerated() {  // the tool answers first, then a step a second
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(6 + n), execute: step)
+        }
     }
 
     // Opened again while it runs: a sync the Kobo started, or the window.
@@ -288,12 +327,86 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         model.watch()
     }
 
+    @objc func showSettings() {
+        if let settings {
+            NSApp.activate(ignoringOtherApps: true)
+            settings.makeKeyAndOrderFront(nil)
+            return
+        }
+        let model = SettingsModel(changed: { [weak self] in self?.model?.refresh(check: false) }, remove: { [weak self] in self?.removeHere() })
+        let settings = settingsWindow(model)
+        settings.delegate = self
+        settings.center()
+        self.settings = settings
+        settingsModel = model
+        begin()  // like the main window: the app stays while it is open
+        settings.makeKeyAndOrderFront(nil)
+        model.load()
+    }
+
     func windowWillClose(_ notification: Notification) {
-        model?.stop()
-        model = nil
-        window = nil
-        NSApp.setActivationPolicy(.accessory)
+        let closing = notification.object as? NSWindow
+        if closing === window {
+            model?.stop()
+            model = nil
+            window = nil
+        } else if closing === settings {
+            settingsModel = nil
+            settings = nil
+        }
+        if window == nil && settings == nil { NSApp.setActivationPolicy(.accessory) }
         end()
+    }
+
+    // ---------- Remove… ----------
+    /// Stop syncing on this Mac, or also delete what the app keeps; then
+    /// say how the app itself goes, and quit.
+    func removeHere() {
+        let server = settingsModel?.current?.mode == "server"
+        let keychain = server ? "the upload token" : "the Hardcover token and the webhook's token"
+        let goes = (server ? [] : ["your books and reading as read from the Kobo,"]) + [
+            "the copies of the Kobo's database, the settings and the log, in Library/Application Support/kobo-hardcover-sync,",
+            "\(keychain), in the Keychain.",
+        ]
+        var text = """
+            Stop syncing: plugging in the Kobo no longer starts a sync. Everything else stays, for when you open the app again.
+
+            Delete everything: also deletes, from this Mac,
+            """
+        text += goes.map { "\n• " + $0 }.joined()
+        if server { text += "\n\nYour books stay on the server. Remove this Mac there as well, under Settings, Devices." }
+        let ask = NSAlert()
+        ask.alertStyle = .warning
+        ask.messageText = "Remove \(name) from this Mac?"
+        ask.informativeText = text
+        ask.addButton(withTitle: "Stop syncing")
+        ask.addButton(withTitle: "Delete everything").hasDestructiveAction = true
+        ask.addButton(withTitle: "Cancel")
+        let finish = { (response: NSApplication.ModalResponse) in
+            guard response != .alertThirdButtonReturn else { return }
+            self.removed(purge: response == .alertSecondButtonReturn)
+        }
+        if let settings { ask.beginSheetModal(for: settings, completionHandler: finish) } else { finish(ask.runModal()) }
+    }
+
+    private func removed(purge: Bool) {
+        if isPreview {
+            say("Preview", "The preview removes nothing. The app would now stop its trigger\(purge ? ", and delete its folder and its tokens" : "").")
+            return
+        }
+        try? SMAppService.agent(plistName: agentPlist).unregister()
+        let (ok, output) = tool(purge ? ["uninstall", "--purge"] : ["uninstall"])
+        let done = NSAlert()
+        done.messageText = ok ? "\(name) no longer syncs on this Mac" : "Not everything was removed"
+        done.informativeText = ok
+            ? "\(purge ? "What it kept here is deleted. " : "")To remove the app as well, drag it from Applications to the Bin."
+            : output.replacingOccurrences(of: "kobo-hardcover-sync: ", with: "")
+        done.addButton(withTitle: "Quit")
+        done.addButton(withTitle: "Show the App in Finder")
+        if done.runModal() == .alertSecondButtonReturn {
+            NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
+        }
+        NSApp.terminate(nil)
     }
 
     func mainMenu() -> NSMenu {
@@ -309,8 +422,12 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         func item(_ title: String, _ action: Selector, _ key: String) -> NSMenuItem {
             NSMenuItem(title: title, action: action, keyEquivalent: key)
         }
+        let settingsItem = item("Settings…", #selector(showSettings), ",")
+        settingsItem.target = self
         _ = menu(name, [
             item("About \(name)", #selector(NSApplication.orderFrontStandardAboutPanel(_:)), ""),
+            .separator(),
+            settingsItem,
             .separator(),
             item("Hide \(name)", #selector(NSApplication.hide(_:)), "h"),
             .separator(),

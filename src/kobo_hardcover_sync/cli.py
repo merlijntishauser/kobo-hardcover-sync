@@ -167,6 +167,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     stp.add_argument("--new-token", action="store_true", help="replace the upload token (the device must be added again)")
     stp.add_argument("--rebuild-app", action="store_true", help="rebuild the small app (it then needs its permission again)")
     stp.add_argument("--no-trigger", action="store_true", help="only the settings: you run `sync` yourself")
+    stp.add_argument("--check", action="store_true", help="first ask the server whether it answers; change nothing if not")
     tok = sub.add_parser("token", help="local mode: store your Hardcover token")
     tok.add_argument("--remove", action="store_true", help="forget the token (and go back to dry run)")
     tok.add_argument("--paste", action="store_true", help="paste a token made on Hardcover, instead of connecting there")
@@ -288,6 +289,15 @@ def _setup(a, computer) -> None:
     server = "" if a.local else (a.server or cfg.server)
     if server and not server.startswith(("https://", "http://")):
         sys.exit("kobo-hardcover-sync: the server's address starts with https://")
+    known = False
+    if a.check and server:
+        from .computer import remote
+
+        try:
+            known = remote.Server(server, computer.secret(UPLOAD)).knows_me() and not a.new_token
+        except remote.ServerError as ex:
+            unlike = f" Is {server} the address of a kobo-hardcover-sync server?" if ex.status else ""
+            sys.exit(f"kobo-hardcover-sync: {ex}{unlike} Nothing was changed.")
     cfg.server = server.rstrip("/")
     config.save(cfg)
 
@@ -331,7 +341,11 @@ def _setup(a, computer) -> None:
 
     screen.line()
     screen.heading("Next")
-    if cfg.server:
+    if cfg.server and known:
+        screen.say(f"1. {cfg.server} knows this computer already. This is its hash:", indent=2, hang=3)
+        screen.line(f"     {screen.style(digest, term.CYAN)}")
+        screen.say("2. Plug in the Kobo and tap Connect on it.", indent=2, hang=3)
+    elif cfg.server:
         screen.say(f"1. Paste this computer's hash at {cfg.server}/settings under Devices, unless it is there already:", indent=2, hang=3)
         screen.line(f"     {screen.style(digest, term.CYAN)}")
         screen.say("2. Plug in the Kobo and tap Connect on it.", indent=2, hang=3)

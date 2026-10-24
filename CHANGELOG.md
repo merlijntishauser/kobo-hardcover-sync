@@ -19,6 +19,16 @@ minor version may change behaviour; the notes will say so.
   --steps` (each step and the outcome as a line of JSON): what the Mac
   app's window reads, and usable in scripts. Each answer carries
   `"schema": 1`.
+- `setup --check`: before anything changes, ask the server whether it
+  answers as kobo-hardcover-sync does. A typo in the address, or a
+  server that is down, then changes nothing. It also says when the
+  server knows this computer already.
+- The Mac app has Settings (⌘-,): where the reading goes and the
+  server's address, the upload token's hash and a new token, eject after
+  a sync, a detailed log, an untested Kobo version, looking for a newer
+  version; in local mode also the webhook and *Export my reading…*.
+  *Remove…* stops syncing on this Mac, or also deletes what the app
+  keeps there, and says how to remove the app itself.
 
 ### Changed
 

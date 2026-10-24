@@ -61,6 +61,17 @@ class Server:
         except ValueError as ex:
             raise ServerError(f"{self.host} gave an answer that is not from kobo-hardcover-sync.") from ex
 
+    def knows_me(self) -> bool:
+        """Whether the server knows this computer's token. ServerError when it
+        cannot be reached, or answers as kobo-hardcover-sync never does."""
+        try:
+            self._request("GET", "/collection", timeout=15)
+        except ServerError as ex:
+            if ex.status == 401:
+                return False
+            raise
+        return True
+
     def collection(self) -> tuple[str, list[str]] | None:
         """(name, book ids) of the collection to keep on the Kobo, or None
         when the reader set no collection name."""
