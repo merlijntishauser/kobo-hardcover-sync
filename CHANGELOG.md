@@ -5,7 +5,10 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.11.1 - 2026-10-24
+
+The Mac app's *Sync now* always answers, and notifications are asked for
+at a better moment.
 
 ### Fixed
 
