@@ -117,7 +117,9 @@ started in three ways:
   what `setup` said includes this Mac's hash, to paste on the server's
   page.
 - **Opened by hand after setup, or by a click on a notification.** It
-  shows the last message, a newer version if there is one, and the buttons
+  shows what the last sync said, as the last sync ("Last sync: Today at
+  10:22", then "Kobo synced: 11 books updated.", not as how things are
+  now), a newer version if there is one, and the buttons
   *Sync now*, *Open the page* and *OK*. When notifications are off, it
   says so, with a button to their settings: without them a sync at a
   plug-in says nothing. *Sync now* runs `sync --trigger app`, shows a

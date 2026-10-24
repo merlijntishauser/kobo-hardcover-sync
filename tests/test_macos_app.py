@@ -9,6 +9,7 @@ import json
 import os
 import pathlib
 import plistlib
+import re
 
 import pytest
 
@@ -213,7 +214,7 @@ def test_the_page_shows_the_version_and_the_setting_in_the_app(local, home, the_
 
 
 # ---------- what the wrapper and the tool agree on ----------
-def test_the_wrapper_and_the_tool_use_the_same_names():
+def test_the_wrapper_and_the_tool_use_the_same_names(home):
     swift = (MACOS / "KoboHardcoverSync.swift").read_text()
     with open(MACOS / "Info.plist", "rb") as fh:
         info = plistlib.load(fh)
@@ -228,6 +229,13 @@ def test_the_wrapper_and_the_tool_use_the_same_names():
         assert must in swift, must
     for file in ("last-message.txt", "update.json", "config.toml"):
         assert f'"{file}"' in swift, file
+    # The window reads the time of the last sync back as "d MMM yyyy, HH:mm".
+    os.makedirs(config.state_dir())
+    runner.remember(runner.Outcome(True, "Kobo synced", "11 books updated."))
+    title, said, blank, stamp = (pathlib.Path(config.state_dir()) / "last-message.txt").read_text().splitlines()
+    assert (title, said, blank) == ("Kobo synced", "11 books updated.", "")
+    assert re.fullmatch(r"\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}", stamp)
+    assert '"d MMM yyyy, HH:mm"' in swift and '"en_US_POSIX"' in swift
     assert f'"{config.APP}"' in swift  # the state folder
     for args in ('"sync", "--trigger", "mount"', '"sync", "--trigger", "app"', '"setup", "--local"', '"setup", "--server"', '"open"'):
         assert args in swift, args

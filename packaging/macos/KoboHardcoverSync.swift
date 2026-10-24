@@ -80,6 +80,33 @@ func newerVersion() -> String? {
     return theirs.lexicographicallyPrecedes(mine) || theirs == mine ? nil : latest
 }
 
+/// What the last sync said (runner.remember: title, message, a blank line,
+/// when), worded as the last sync, so that it is not read as how things are
+/// now: "Last sync: Today at 10:22" and "Kobo synced: 11 books updated."
+func lastSync() -> String {
+    let lines = (stateFile("last-message.txt") ?? "").split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+    guard let title = lines.first, !title.isEmpty else { return "Nothing synced yet." }
+    let rest = lines.dropFirst()
+    let said = rest.prefix { !$0.isEmpty }.joined(separator: " ")
+    let stamp = rest.drop { !$0.isEmpty }.first { !$0.isEmpty } ?? ""
+    let what = said.isEmpty ? title : title == name ? said : "\(title): \(said)"
+    return stamp.isEmpty ? "Last sync:\n\(what)" : "Last sync: \(when(stamp))\n\(what)"
+}
+
+/// "24 Oct 2026, 10:22" as the tool writes it, said the way this Mac says
+/// dates ("Today at 10:22"); as it is when it cannot be read.
+func when(_ stamp: String) -> String {
+    let read = DateFormatter()
+    read.locale = Locale(identifier: "en_US_POSIX")
+    read.dateFormat = "d MMM yyyy, HH:mm"
+    guard let date = read.date(from: stamp) else { return stamp }
+    let say = DateFormatter()
+    say.dateStyle = .medium
+    say.timeStyle = .short
+    say.doesRelativeDateFormatting = true
+    return say.string(from: date)
+}
+
 /// The NOTIFY|title|message lines the tool printed.
 func notices(_ output: String) -> [(title: String, body: String)] {
     var said: [(title: String, body: String)] = []
@@ -284,8 +311,7 @@ final class App: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelega
 
     // ---------- afterwards ----------
     func lastMessage() {
-        var text = stateFile("last-message.txt")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        if text.isEmpty { text = "Nothing synced yet." }
+        var text = lastSync()
         let a = NSAlert()
         a.messageText = name
         var actions: [() -> Void] = []

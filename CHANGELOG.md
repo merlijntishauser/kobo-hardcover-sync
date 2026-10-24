@@ -7,6 +7,12 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Changed
+
+- The Mac app's window says when the last sync was before what it said
+  ("Last sync: Today at 10:22", then "Kobo synced: 11 books updated."),
+  so it is not read as what is happening now, with no Kobo plugged in.
+
 ## 0.11.1 - 2026-10-24
 
 The Mac app's *Sync now* always answers, and notifications are asked for
