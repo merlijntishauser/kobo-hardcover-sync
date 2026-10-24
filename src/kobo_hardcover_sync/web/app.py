@@ -24,7 +24,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTex
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
-from .. import __version__, doctor
+from .. import __version__, booklist, doctor
 from ..engine import export, hardcover, job, oauth, state
 from ..engine.plan import action, desired, quiet_for
 from ..env import env
@@ -257,38 +257,10 @@ def healthz():
     return PlainTextResponse("ok")
 
 
-FILTERS = {
-    "all": "1=1",
-    "reading": "((status=1 or (status=0 and percent>0)) and coalesce(finished_at,'')='' and state!='finished') or state='rereading'",
-    "finished": "(status=2 or coalesce(finished_at,'')!='' or state='finished') and state!='rereading'",
-    "unread": "(status=0 and coalesce(percent,0)=0)",
-    "history": "history=1",
-    "new": "history=0",
-    "on": "(mode='on' or (mode='auto' and history=0))",
-    "off": "not (mode='on' or (mode='auto' and history=0))",
-    "needs_match": "(mode='on' or (mode='auto' and history=0)) and hc_book_id is null and hc_how in ('uncertain','none')",
-    # On the Hardcover shelf with an edition that is not marked Ebook: to fix there.
-    "not_ebook": "(mode='on' or (mode='auto' and history=0)) and last_sent is not null and coalesce(hc_format_id,0)!=4",
-}
-FILTER_GROUPS = [
-    ("progress", ["all", "reading", "finished", "unread"]),
-    ("kobo", ["history", "new"]),
-    ("hardcover", ["on", "off", "needs_match", "not_ebook"]),
-]
 FUNNEL = (
     '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"'
     ' stroke-linejoin="round"><path d="M1.5 2.5h13l-5 6v4.5l-3 1.5V8.5z"/></svg>'
 )
-# Each way round. A book never opened has no last-read date: it comes last either way. content_id ends
-# every order, so that the list is the same list from one "Show more" to the next.
-SORTS = {
-    "last_read": "last_read is null, last_read desc, content_id",
-    "last_read_old": "last_read is null, last_read asc, content_id",
-    "author": "author collate nocase, title collate nocase, content_id",
-    "author_za": "author collate nocase desc, title collate nocase desc, content_id",
-    "title": "title collate nocase, content_id",
-    "title_za": "title collate nocase desc, content_id",
-}
 PAGE = 100  # books shown at first, and added by each "Show more", unless the reader chose otherwise
 
 
@@ -296,42 +268,6 @@ def list_size(me) -> int:
     """How many books the reader's list shows at first (Settings): 25, 50, 100, or 0 for all of them."""
     size = me["list_size"] if "list_size" in me.keys() else None
     return PAGE if size is None else size
-
-
-def _where(reader, q, f):
-    # Each filter in its own parentheses: some contain a top-level OR, which
-    # would otherwise escape the reader condition.
-    where, args = [f"({FILTERS.get(f, '1=1')})", "reader=?"], [reader]
-    if q:
-        where.append("(title like ? or author like ?)")
-        args += [f"%{q}%", f"%{q}%"]
-    return " and ".join(where), args
-
-
-def query_rows(con, reader, q, f, sort, limit: int = -1, offset: int = 0):
-    """The books of a view, in its order; `limit` of them from `offset` (-1: all)."""
-    where, args = _where(reader, q, f)
-    order = SORTS.get(sort, SORTS["last_read"])
-    return con.execute(f"select * from reader_book where {where} order by {order} limit ? offset ?", [*args, limit, offset]).fetchall()
-
-
-def place_of(con, reader, q, f, sort, cid: str) -> int:
-    """Where a book stands in a view (0 = first), or -1 when the view does not hold it."""
-    where, args = _where(reader, q, f)
-    order = SORTS.get(sort, SORTS["last_read"])
-    found = con.execute(
-        f"select n from (select content_id, row_number() over (order by {order}) - 1 as n from reader_book where {where}) where content_id=?",
-        [*args, cid],
-    ).fetchone()
-    return found[0] if found else -1
-
-
-def filter_counts(con, reader, q):
-    out = {}
-    for k in FILTERS:
-        where, args = _where(reader, q, k)
-        out[k] = con.execute(f"select count(*) from reader_book where {where}", args).fetchone()[0]
-    return out
 
 
 # ---------- row pieces (also returned by /mode and /state for in-place redraw) ----------
@@ -370,27 +306,6 @@ def book_cell(r) -> str:
         f'<div class="bar{" done" if done else ""}" role="img" aria-label="{label}"><span style="width:{pct}%"></span></div>'
         f'<div class="meta">{"".join(m if m.startswith("<span") else f"<span>{e(m)}</span>" for m in meta)}</div></div></div>'
     )
-
-
-def hc_status(r, live: bool, quiet: dict) -> tuple[str, str]:
-    """(kind, text) of the Hardcover status line: what the next sync does.
-    kind: ok | next | wait | warn | err | none (marks.py). `quiet`: plan.quiet for this reader."""
-    if r["hc_error"]:
-        return "err", T["status_error"]
-    if (r["device"], r["content_id"]) in quiet:
-        return "none", T["other_copy"]
-    a = action(r)
-    if a.startswith("needs"):
-        return "warn", T["needs_match"]
-    if a.startswith("match pending"):
-        return "next", T["match_pending"]
-    if a:
-        return "next", f"{T['next_sync'] if live else T['would_send']}: {a}"
-    if state.syncs(r) and r["last_sent"]:
-        return "ok", T["up_to_date"]
-    if state.syncs(r):
-        return "wait", T["not_yet_sent"]
-    return "none", T["not_syncing"]
 
 
 def status_html(status: tuple[str, str]) -> str:
@@ -486,46 +401,11 @@ def sync_result(j) -> tuple[str, str]:
 def marked_line(con, reader: str, live: bool) -> str:
     """The second line of Sync now: how many books carry the red mark, so the
     button says what it is about to send. Empty when there are none."""
-    quiet = quiet_for(con, reader)
-    n = sum(1 for r in con.execute("select * from reader_book where reader=?", (reader,)) if hc_status(r, live, quiet)[0] == "next")
+    n = booklist.marked(con, reader, live, quiet_for(con, reader))
     if not n:
         return ""
     one, many = T["marked_send" if live else "marked_would"]
     return (one if n == 1 else many).format(n=n)
-
-
-def shelf_words(d: dict) -> str:
-    """'Currently reading, 37%' / 'Read, finished 30 Sep 2026': a shelf entry
-    in the page's words, for what Hardcover has (last_sent) or will get (desired)."""
-    st = d.get("status") if d else None
-    if not st:
-        return ""
-    words = T.get("hc_" + st, st)
-    if st == "reading" and d.get("progress") is not None:
-        words += f", {d['progress']}%"
-    if st == "read" and d.get("finished"):
-        words += ", " + T["shelf_finished"].format(date=fmt_date(d["finished"]))
-    return words
-
-
-def correction(r) -> tuple[str, str, str] | None:
-    """The proof mark for a row the next sync changes: (kept, struck, inserted),
-    'Currently reading,' '35%' '37%'. None when there is no shelf change to show
-    (no match yet, or only the edition changes)."""
-    a = action(r)
-    if not a or not r["hc_book_id"] or a.startswith(("needs", "match pending")):
-        return None
-    sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
-    now = shelf_words(desired(r) or {})
-    was = shelf_words(sent) if sent.get("user_book_id") else ""
-    if not now or now == was:
-        return None
-    if was:
-        h1, _, t1 = was.partition(", ")
-        h2, _, t2 = now.partition(", ")
-        if h1 == h2 and t1 and t2:
-            return h1 + ",", t1, t2
-    return "", was, now
 
 
 def row_json(con, reader, cid, back: str = "", with_details: bool = False):
@@ -534,7 +414,7 @@ def row_json(con, reader, cid, back: str = "", with_details: bool = False):
     row = con.execute("select * from reader_book where reader=? and content_id=?", (reader, cid)).fetchone()
     if row is None:
         return {"syncs": False, "action": "", "book": "", "status": '<div class="act"></div>', "hc": ""}
-    status = hc_status(row, live_for(reader), quiet_for(con, reader))
+    status = booklist.hc_status(row, live_for(reader), quiet_for(con, reader))
     d = {
         "marked": marked_line(con, reader, live_for(reader)),
         "on": sum(1 for r in con.execute("select mode, history from reader_book where reader=?", (reader,)) if state.syncs(r)),
@@ -601,7 +481,7 @@ def mark_html(r, status: tuple[str, str], labelled: bool = True) -> str:
     label, sep, rest = text.partition(": ")
     if kind != "next" or not sep:
         return marks.line(kind, text)
-    fix = correction(r)
+    fix = booklist.correction(r)
     if fix is None:
         drawn = f"<ins>{marks.INSERT}{e(rest)}</ins>"
     else:
@@ -907,7 +787,7 @@ def book_rows(rows, live: bool, quiet: dict, back: str, start: int = 0) -> str:
             f'<input type="hidden" name="back" value="{e(back)}">'
             f'<select name="mode" class="rowmode" aria-label="{T["col_mode"]}">{mode_sel}</select>{NOSCRIPT_SET}</form></td>'
             f'<td data-label="{T["col_state"]}" role="cell">{state_cell(r, back)}</td>'
-            f'<td class="hc" data-label="{T["col_hardcover"]}" role="cell"><div>{hc_cell(r, back, hc_status(r, live, quiet))}</div></td></tr>'
+            f'<td class="hc" data-label="{T["col_hardcover"]}" role="cell"><div>{hc_cell(r, back, booklist.hc_status(r, live, quiet))}</div></td></tr>'
         )
     return "".join(out)
 
@@ -935,12 +815,12 @@ def more_rows(request: Request, q: str = "", f: str = "all", sort: str = "last_r
     if me is None:
         return PlainTextResponse(T["unknown_user"], status_code=403)
     reader = me["name"]
-    sort = sort if sort in SORTS else "last_read"
+    sort = sort if sort in booklist.SORTS else "last_read"
     start = max(0, start)
     size = list_size(me) or PAGE  # with all of them there is no Show more; asked anyway, a lot as usual
-    counts = filter_counts(con, reader, q)
+    counts = booklist.filter_counts(con, reader, q)
     total = counts.get(f, counts["all"])
-    rows = query_rows(con, reader, q, f, sort, limit=size + 1, offset=start)
+    rows = booklist.query_rows(con, reader, q, f, sort, limit=size + 1, offset=start)
     next_cid = rows[size]["content_id"] if len(rows) > size else ""
     rows = rows[:size]
     shown = start + len(rows)
@@ -971,20 +851,20 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read",
         return HTMLResponse(frame(who, account_pages.signup(who), nav=False))
     reader = me["name"]
     live = bool(me["hardcover_live"])
-    sort = sort if sort in SORTS else "last_read"
-    counts = filter_counts(con, reader, q)
+    sort = sort if sort in booklist.SORTS else "last_read"
+    counts = booklist.filter_counts(con, reader, q)
     total = counts.get(f, counts["all"])
     size = list_size(me)
     if size:
         # As many as were shown before (show=), and enough to hold the book an action came back to (at=).
         show = max(size, show)
-        if at and (pos := place_of(con, reader, q, f, sort, at)) >= show:
+        if at and (pos := booklist.place_of(con, reader, q, f, sort, at)) >= show:
             show = (pos // size + 1) * size
-        rows = query_rows(con, reader, q, f, sort, limit=show + 1)
+        rows = booklist.query_rows(con, reader, q, f, sort, limit=show + 1)
         next_cid = rows[show]["content_id"] if len(rows) > show else ""
         rows = rows[:show]
     else:  # all of them
-        rows, next_cid = query_rows(con, reader, q, f, sort), ""
+        rows, next_cid = booklist.query_rows(con, reader, q, f, sort), ""
     back = view_query(request.url.query, len(rows), size)
     dev = con.execute("select max(last_import) from device where reader=?", (reader,)).fetchone()[0]
     j = con.execute(
@@ -1005,9 +885,10 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read",
     # One filter at a time, shown in three groups so the row reads as a
     # choice: by progress, by origin on this Kobo, by Hardcover state.
     chips = "".join(
-        f'<div class="fgroup"><span class="gname">{T["g_" + g]}</span>{"".join(chip(k) for k in keys)}</div>' for g, keys in FILTER_GROUPS
+        f'<div class="fgroup"><span class="gname">{T["g_" + g]}</span>{"".join(chip(k) for k in keys)}</div>'
+        for g, keys in booklist.FILTER_GROUPS
     )
-    sort_opts = "".join(f'<option value="{k}"{" selected" if k == sort else ""}>{T["sort_" + k]}</option>' for k in SORTS)
+    sort_opts = "".join(f'<option value="{k}"{" selected" if k == sort else ""}>{T["sort_" + k]}</option>' for k in booklist.SORTS)
     mode_opts = "".join(f'<option value="{m}">{T[m]}</option>' for m in state.MODES)
     body = book_rows(rows, live, quiet_for(con, reader), back)
     more = more_row(total, len(rows), size, link(show=len(rows) + size), next_cid, link(_rows=1, start=len(rows))) if size else ""
@@ -1044,7 +925,7 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read",
         for k, v in (("q", q), ("f", f), ("sort", sort))
         if v and (k, v) not in (("f", "all"), ("sort", "last_read"))
     )
-    fcur = f if f in FILTERS else "all"
+    fcur = f if f in booklist.FILTERS else "all"
     total = con.execute("select count(*) from reader_book where reader=?", (reader,)).fetchone()[0]
     first = first_run(con, reader, live)  # says what the line under the title would, and more
     # The sidebar: what the Kobo and Hardcover last did, and the buttons that act on it.
@@ -1114,8 +995,7 @@ def set_mode(
         # "Set all in this list": every book the search and filter match, shown or not yet. The
         # count the reader saw (n) must still hold, or nothing changes: the list moved meanwhile
         # (a sync, another tab), and they set again on what they can see.
-        where, args = _where(reader, q, f)
-        id_list = [r[0] for r in con.execute(f"select content_id from reader_book where {where}", args)]
+        id_list = booklist.ids(con, reader, q, f)
         if n and n != str(len(id_list)):
             return HTMLResponse(
                 frame_for(me, "books", account_pages.bulk_changed(int(n) if n.isdigit() else 0, len(id_list), back)), status_code=409
@@ -1259,7 +1139,7 @@ def details(request: Request, content_id: str, back: str = ""):
     r = con.execute("select * from reader_book where reader=? and content_id=?", (reader, content_id)).fetchone()
     if r is None:
         return PlainTextResponse("no such book", status_code=404)
-    frag = details_fragment(r, hc_status(r, live_for(reader), quiet_for(con, reader)), back)
+    frag = details_fragment(r, booklist.hc_status(r, live_for(reader), quiet_for(con, reader)), back)
     if request.headers.get("x-requested-with") == "fetch":
         return HTMLResponse(frag)
     return HTMLResponse(

@@ -332,7 +332,7 @@ def test_the_same_book_on_two_kobos_is_one_book_on_the_page(tmp_path, monkeypatc
     state.import_books(st, "robin", "kobo2", kobo_db.read_books(kobo_db.open_db(str(k))))
     page = c.get("/", headers=h).text
     assert page.count('id="b-mine"') == 1 and "60%" in page and "10%" not in page  # the Kobo it was read on last
-    from kobo_hardcover_sync.web.app import filter_counts
+    from kobo_hardcover_sync.booklist import filter_counts
 
     assert filter_counts(st, "robin", "")["all"] == 2  # old and mine, each once
     assert "60%" in c.get("/details/mine", headers=h).text
