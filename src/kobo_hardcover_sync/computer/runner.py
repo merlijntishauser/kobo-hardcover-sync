@@ -258,6 +258,7 @@ def _sync_here(
     computer: Computer, cfg: config.Config, mount: str | None, state_dir: str, client=None, by_hand: bool = False, step=lambda row: None
 ) -> Outcome:
     """Local mode: the books are imported here and the engine runs here."""
+    where = "in the app" if computer.in_app else "on the page"  # where a match is chosen and Hardcover connected
     db_path = os.path.join(state_dir, "state.db")
     con = state.connect(db_path)
     reader = accounts.local_reader(con, getpass.getuser())
@@ -339,18 +340,18 @@ def _sync_here(
             else:
                 step(Row(NOTE, "Hardcover", "Dry run: nothing to send"))
             if r.get("uncertain"):
-                said.append(f"{r['uncertain']} need a match on the page.")
+                said.append(f"{r['uncertain']} need a match {where}.")
                 step(
                     Row(
                         WARN,
                         "Matches",
-                        f"{plural(r['uncertain'], 'book')} {'needs' if r['uncertain'] == 1 else 'need'} a match on the page",
+                        f"{plural(r['uncertain'], 'book')} {'needs' if r['uncertain'] == 1 else 'need'} a match {where}",
                     )
                 )
         else:
             if imported:
-                said.append("Not connected to Hardcover yet: connect on the page.")
-            step(Row(NOTE, "Hardcover", "Not connected yet: connect on the page"))
+                said.append(f"Not connected to Hardcover yet: connect {where}.")
+            step(Row(NOTE, "Hardcover", f"Not connected yet: connect {where}"))
 
         name = (reader["kobo_collection"] or "").strip()
         if mount:

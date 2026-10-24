@@ -161,6 +161,11 @@ func configuredServer() -> String? {
     return nil
 }
 
+/// Connect to Hardcover, from wherever it is asked for.
+func connectToHardcover() {
+    (NSApp.delegate as? App)?.connectInWindow()
+}
+
 /// A window as it is drawn, with its title bar and toolbar, as a PNG.
 func picture(_ window: NSWindow, _ file: URL) {
     guard let view = window.contentView?.superview else { return }
@@ -260,6 +265,12 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             self.model?.chosenBook = self.model?.shownBooks.first { !$0.details.hardcover.isEmpty }?.id ?? self.model?.shownBooks.first?.id
         }
         steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-details.png")) } }
+        steps.append {  // the sign-in, as it shows a code to compare (the preview signs in nowhere)
+            self.model?.chosenBook = nil
+            self.model?.signIn = SignIn(link: "https://hardcover.app/link?code=ABCD-EFGH", code: "ABCD-EFGH")
+        }
+        steps.append { self.window?.attachedSheet.map { picture($0, folder.appendingPathComponent("window-connect.png")) } }
+        steps.append { self.model?.signIn = nil }
         steps.append {  // a sync on the chain: the preview's plays its sample steps
             self.model?.pane = .overview
             self.model?.syncNow()
@@ -317,6 +328,12 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     }
 
     // ---------- the window ----------
+    /// Settings' Connect…: the sign-in runs in the window, which has its sheet.
+    func connectInWindow() {
+        showWindow()
+        model?.connect()
+    }
+
     func showWindow() {
         if let window {
             NSApp.activate(ignoringOtherApps: true)

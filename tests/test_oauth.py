@@ -19,6 +19,7 @@ from kobo_hardcover_sync.engine import hardcover, oauth, state
 from kobo_hardcover_sync.server import accounts
 from tests import said
 from tests.test_accounts import ANNA, client
+from tests.test_app_answers import SAMPLES, same_shape
 from tests.test_computer import FakeComputer
 from tests.test_hardcover import FakeHC
 from tests.test_local import LOCAL, catalogue, kobo, st
@@ -480,6 +481,52 @@ def test_the_token_command_signs_in_through_the_browser_when_that_is_switched_on
     monkeypatch.setattr(cli.time, "sleep", lambda s: None)
     cli.main(["token", "--code"], computer=mac)
     assert hc.asked("device") and "Check that Hardcover shows this code: ABCD-EFGH" in said(capsys)
+
+
+def test_the_app_signs_in_through_the_tool_in_lines_of_json(home, monkeypatch, capsys, hc):
+    import json
+    import urllib.parse
+    import urllib.request
+
+    mac = FakeComputer(home / "Volumes")
+    mac.in_app = True
+    cli.main(["setup", "--local", "--no-trigger"], computer=mac)
+    capsys.readouterr()
+    monkeypatch.setattr(hardcover, "Client", Me)
+    monkeypatch.setenv("KHS_HARDCOVER_LOOPBACK", "1")
+    monkeypatch.setattr("sys.stdin", io.StringIO(""))  # the app: no terminal, nothing to read
+    page_said = []
+
+    def browser(url):
+        q = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(url).query))
+        back = q["redirect_uri"] + "?" + urllib.parse.urlencode({"code": "a-code", "state": q["state"], "iss": "https://api.hardcover.app"})
+        threading.Thread(target=lambda: page_said.append(urllib.request.urlopen(back, timeout=10).read().decode()), daemon=True).start()
+
+    monkeypatch.setattr(mac, "open_page", browser)
+    cli.main(["token", "--json"], computer=mac)
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert lines[0]["open"].startswith("https://hardcover.app/oauth2/authorize?") and lines[0]["code"] == ""
+    assert lines[-1] == {
+        "schema": 1,
+        "done": {"ok": True, "user": "anna_reads", "message": "Connected. Hardcover knows you as @anna_reads."},
+    }
+    assert "Back in Kobo Hardcover Sync" in page_said[0] and oauth.unpack(mac.secrets[HARDCOVER])
+    wanted = [json.loads(line) for line in (SAMPLES / "token.jsonl").read_text().splitlines()]
+    same_shape(lines[0], wanted[0])
+    same_shape(lines[-1], wanted[-1])
+
+    # With a code to compare, and a pasted token on standard input, as the app gives it.
+    cli.main(["token", "--remove", "--json"], computer=mac)
+    assert json.loads(capsys.readouterr().out)["done"]["message"].startswith("Disconnected")
+    monkeypatch.setattr(mac, "open_page", lambda url: setattr(hc, "approved", True))
+    monkeypatch.setattr(cli.time, "sleep", lambda s: None)
+    cli.main(["token", "--code", "--json"], computer=mac)
+    first, *_, last = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert (first["open"], first["code"], last["done"]["user"]) == ("https://hardcover.app/link?code=ABCD-EFGH", "ABCD-EFGH", "anna_reads")
+    monkeypatch.setattr(hardcover, "Client", lambda token, **kw: type("C", (), {"whoami": lambda self: {"username": "sam"}})())
+    monkeypatch.setattr("sys.stdin", io.StringIO("a-pasted-token\n"))
+    cli.main(["token", "--paste", "--json"], computer=mac)
+    assert json.loads(capsys.readouterr().out)["done"] == {"ok": True, "user": "sam", "message": "Stored. Hardcover knows you as @sam."}
 
 
 def test_connecting_again_on_your_own_computer_ends_the_earlier_connection(home, monkeypatch, capsys, hc):

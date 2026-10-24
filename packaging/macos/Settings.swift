@@ -1,8 +1,9 @@
 // The app's Settings, ⌘-, (docs/plans/2026-10-24-mac-app-window-design.md):
 // where the reading goes, how a sync behaves, the app itself and its
-// removal. Nothing about books: those are on the page. Every change goes
-// through the tool (`settings --set`, `setup`, `webhook`, `export`,
-// `uninstall`), as it would in a terminal.
+// removal; in local mode the Hardcover connection and going live. The
+// books are in the window. Every change goes through the tool
+// (`settings --set`, `setup`, `token`, `webhook`, `export`, `uninstall`),
+// as it would in a terminal.
 //
 // The preview build changes what is in its own folder, and nothing that
 // is this Mac's: the Keychain, the trigger, the server.
@@ -168,7 +169,7 @@ struct ModeTab: View {
 
     private var explained: String {
         choice == "local"
-            ? "This Mac reads the Kobo and keeps your shelf on Hardcover in step itself. You connect to Hardcover on the page."
+            ? "This Mac reads the Kobo and keeps your shelf on Hardcover in step itself. You connect to Hardcover under Sync."
             : "This Mac sends what the Kobo knows to the server, which keeps your shelf in step. The server is asked first; if it does not answer, nothing changes."
     }
 
@@ -266,7 +267,7 @@ struct SyncTab: View {
                     }
                 }
                 if settings.mode == "local" {
-                    HardcoverSection(connected: settings.hardcoverConnected)
+                    HardcoverSection(model: model, settings: settings)
                     WebhookSection(model: model, saved: settings.settings.webhookUrl)
                     ExportSection(model: model, everySync: settings.settings.exportTo)
                 }
@@ -278,21 +279,38 @@ struct SyncTab: View {
 }
 
 struct HardcoverSection: View {
-    let connected: Bool
+    @ObservedObject var model: SettingsModel
+    let settings: SettingsAnswer
 
     var body: some View {
         Section {
             LabeledContent("Connection") {
                 HStack {
-                    Mark(state: connected ? "ok" : "warn")
-                    Text(connected ? "Connected" : "Not connected")
+                    Mark(state: settings.hardcoverConnected ? "ok" : "note")
+                    Text(settings.hardcoverConnected ? (settings.hardcoverUser.isEmpty ? "Connected" : "Connected as @\(settings.hardcoverUser)") : "Not connected")
+                    if settings.hardcoverConnected {
+                        Button("Disconnect…") {
+                            guard model.allowed("disconnect from Hardcover") else { return }
+                            model.confirm(
+                                "Disconnect from Hardcover?", "The connection is ended on Hardcover too, and syncing goes back to a dry run.", "Disconnect",
+                                destructive: true
+                            ) { model.change(["token", "--remove"], done: "Disconnected") }
+                        }
+                    } else {
+                        Button("Connect…") { connectToHardcover() }
+                    }
                 }
             }
+            Toggle(isOn: Binding(get: { settings.live }, set: { model.set("live", $0) })) {
+                Text("Send to Hardcover")
+                Text(settings.live ? "Live: each sync sends what the red marks say." : "A dry run: each sync says what it would send, and sends nothing.")
+            }
+            .disabled(!settings.hardcoverConnected && !settings.live)
         } header: {
             Text("Hardcover")
         } footer: {
             HStack(alignment: .top) {
-                Text("Connecting, going live and the collection on the Kobo are on the page, under Settings.")
+                Text("The collection on the Kobo is named on the page, under Settings.")
                     .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 Spacer()
                 Button("Open the page") { _ = tool(["open"]) }

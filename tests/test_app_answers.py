@@ -253,6 +253,37 @@ def test_book_changes_what_the_page_changes_and_answers_the_book(home, capsys, m
         cli.main(["books", "--sync", "on", "--filter", "mine"], computer=computer)
 
 
+def test_the_first_run_and_going_live_in_local_mode(home, capsys):
+    from kobo_hardcover_sync.computer.platform import HARDCOVER
+    from tests.test_local import TOKEN
+
+    computer = FakeComputer(home / "Volumes")
+    computer.in_app = True
+    config.save(LOCAL)
+    kobo(home)
+    said = runner.sync(computer, LOCAL).message
+    assert said.endswith("Not connected to Hardcover yet: connect in the app.")  # the app's words, where there is no page to go to
+    first = answer(capsys, "books", "--json", computer=computer)["first_run"]
+    assert (first["on"], first["connected"], first["steps"]) == (0, False, ["Connect to Hardcover", "Pick your books", "Go live"])
+    assert "Your Kobo sent 9 books" in first["text"]
+
+    found = answer(capsys, "settings", "--json", computer=computer)
+    same_shape(found, sample("settings.json"))
+    assert found["live"] is False
+    with pytest.raises(SystemExit, match="connect to Hardcover first"):
+        cli.main(["settings", "--set", "live=true"], computer=computer)
+    computer.set_secret(HARDCOVER, TOKEN)
+    assert answer(capsys, "books", "--json", computer=computer)["first_run"]["connected"] is True
+    assert answer(capsys, "settings", "--set", "live=true", "--json", computer=computer)["live"] is True
+    assert answer(capsys, "books", "--json", computer=computer)["first_run"] is None  # going live ends it
+    assert answer(capsys, "status", "--json", computer=computer)["books"]["live"] is True
+    assert answer(capsys, "settings", "--set", "live=false", "--json", computer=computer)["live"] is False
+
+    config.save(config.Config(server="https://kobo.example.org"))
+    with pytest.raises(SystemExit, match="on the server's page"):
+        cli.main(["settings", "--set", "live=true"], computer=computer)
+
+
 def test_open_at_a_book_lands_on_its_row(home, monkeypatch):
     from kobo_hardcover_sync.computer import page
 

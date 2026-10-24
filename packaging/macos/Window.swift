@@ -32,6 +32,8 @@ final class WindowModel: ObservableObject {
     @Published var chosenBook: String?  // the book whose Details are open
     @Published var changing: Set<String> = []  // books the tool is changing now
     @Published var problem: String?  // what the tool said when a change did not happen
+    @Published var signIn: SignIn?  // connecting to Hardcover, while the sheet is open
+    var signInProcess: Process?
     private var coversFetched = false  // once per window: the covers this Mac does not have yet
 
     let setUp: () -> Void
@@ -277,6 +279,12 @@ struct MainView: View {
             }
         }
         .frame(minWidth: 880, minHeight: 520)  // the sidebar, the list and a book's Details side by side
+        .sheet(isPresented: Binding(get: { model.signIn != nil }, set: { if !$0 { model.cancelSignIn() } })) { ConnectSheet(model: model) }
+        .alert("Not changed", isPresented: Binding(get: { model.problem != nil }, set: { if !$0 { model.problem = nil } })) {
+            Button("OK") { model.problem = nil }
+        } message: {
+            Text(model.problem ?? "")
+        }
     }
 }
 
@@ -392,6 +400,8 @@ struct OverviewSections: View {
                 Button("Set up") { model.setUp() }
             case "Trigger":
                 Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() }
+            case "Hardcover" where model.status?.mode == "local":  // not connected, or no longer usable
+                Button("Connect…") { model.connect() }
             case "Database" where check.found.contains("does not let"):
                 Button("Open Privacy") { if let url = URL(string: privacySettings) { NSWorkspace.shared.open(url) } }
             case _ where check.todo.contains("on the page"):  // connecting to Hardcover, a match, the collection's name

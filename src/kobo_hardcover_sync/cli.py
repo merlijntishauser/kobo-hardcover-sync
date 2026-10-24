@@ -11,11 +11,13 @@ kobo-hardcover-sync setup [--server URL | --local] [--no-trigger] [--new-token] 
     again; takes over an older installation. --no-trigger leaves the
     trigger out: you run `sync` yourself.
 
-kobo-hardcover-sync token [--paste] [--remove]
-    Local mode: connect to Hardcover. It shows an address and a code, you
-    approve on Hardcover, and the connection is kept in the Keychain. (The
-    page's Settings does the same.) --paste takes a token you made on
-    Hardcover yourself instead; --remove ends the connection.
+kobo-hardcover-sync token [--code] [--paste] [--remove] [--json]
+    Local mode: connect to Hardcover. You approve on Hardcover in the
+    browser (--code: with a code to compare instead), and the connection
+    is kept in the Keychain. (The page's Settings does the same.) --paste
+    takes a token you made on Hardcover yourself instead; --remove ends
+    the connection. --json says each step as a line of JSON: where to
+    approve, then who signed in, for the Mac app.
 
 kobo-hardcover-sync sync [--verbose] [--steps]
     One sync now. It says each step as it finishes, and then names the
@@ -39,7 +41,9 @@ kobo-hardcover-sync history [--json]
 kobo-hardcover-sync settings [--set NAME=VALUE] [--json]
     This computer's settings; --set changes one that is true or false
     (eject_after_sync, verbose_log, allow_untested_kobo,
-    check_for_updates). Mode and server change with `setup`.
+    check_for_updates; in local mode also live, which ends the dry run
+    and needs a connection to Hardcover). Mode and server change with
+    `setup`.
 
 kobo-hardcover-sync update [--json]
     Ask GitHub now whether there is a newer version, also when the Mac
@@ -201,6 +205,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     tok.add_argument("--paste", action="store_true", help="paste a token made on Hardcover, instead of connecting there")
     tok.add_argument("--code", action="store_true", help="connect with a code to compare, instead of in the browser")
     tok.add_argument("--start-over", action="store_true", help="put your books on the shelf of the account you are connected to now")
+    tok.add_argument("--json", action="store_true", help="each step as a line of JSON, for the Mac app")
     sub.add_parser("page")  # what `open` starts in local mode; no help text, so it is not listed
     syn = sub.add_parser("sync", help="one sync now")
     syn.add_argument("--trigger", default="", help=argparse.SUPPRESS)  # "mount": the plug-in trigger; "app": Sync now in the Mac app
@@ -432,23 +437,31 @@ def _token(a, computer) -> None:
     con = state.connect(os.path.join(config.state_dir(), "state.db"))
     reader = accounts.local_reader(con)
     accounts.token_store = page.KeptToken(computer)
+
+    def told(text: str, user: str = "") -> None:
+        if a.json:
+            _json({"done": {"ok": True, "user": user, "message": text}})
+        else:
+            _one(OK, text)
+
     try:
         if a.remove:
             accounts.clear_token(con, reader["name"])
-            _one(OK, "Disconnected from Hardcover. Syncing is back in dry run.")
+            told("Disconnected from Hardcover. Syncing is back in dry run.")
             return
         if a.start_over:
             bound = state.hardcover_account(con, reader["name"])
             state.start_over(con, reader["name"])
             was = f" on the shelf of @{bound[1]}" if bound and bound[1] else ""
-            _one(OK, f"Started over: what was put{was} is forgotten here. The next sync puts your books on the connected account's shelf.")
+            told(f"Started over: what was put{was} is forgotten here. The next sync puts your books on the connected account's shelf.")
             return
-        # At a terminal, and with an app to connect through: sign in on Hardcover. A token that is
-        # piped in, or asked for with --paste, is taken as before.
-        if oauth.available() and sys.stdin.isatty() and not a.paste:
-            token, keep = _connect_browser(computer, oauth) if oauth.loopback() and not a.code else _connect(computer, oauth)
+        # At a terminal or in the Mac app (--json), and with an app to connect through: sign in on
+        # Hardcover. A token that is piped in, or asked for with --paste, is taken as before.
+        if oauth.available() and (sys.stdin.isatty() or a.json) and not a.paste:
+            connect = _connect_browser if oauth.loopback() and not a.code else _connect
+            token, keep = connect(computer, oauth, a.json)
         else:
-            if sys.stdin.isatty():
+            if sys.stdin.isatty() and not a.json:
                 import getpass
 
                 print(f"Make a token with the permissions this tool needs:\n  {hardcover.NEW_TOKEN_URL}", file=sys.stderr)
@@ -467,7 +480,8 @@ def _token(a, computer) -> None:
         connected = oauth.unpack(keep) is not None
         del token, keep
         done = "Connected" if connected else "Stored"
-        _one(OK, f"{done}. Hardcover knows you as @{who.get('username')}." if who.get("username") else f"{done}.")
+        user = str(who.get("username") or "")
+        told(f"{done}. Hardcover knows you as @{user}." if user else f"{done}.", user)
         assert computer.secret(HARDCOVER)
     finally:
         accounts.token_store = None
@@ -481,11 +495,13 @@ BACK_IN_THE_TERMINAL = (
 )
 
 
-def _connect_browser(computer, oauth) -> tuple[str, str]:
+def _connect_browser(computer, oauth, as_json: bool = False) -> tuple[str, str]:
     """Sign in on Hardcover in the browser (engine/oauth.py): Hardcover sends
     the browser back to a moment's address on this computer, and the tool
     takes the code from there. Returns the token to use now and the
-    connection to keep."""
+    connection to keep. as_json: where to approve as a line of JSON, for
+    the Mac app, instead of words for a terminal."""
+    back = "Kobo Hardcover Sync" if computer.in_app else "the terminal"
     import threading
     import urllib.parse
     from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -506,9 +522,9 @@ def _connect_browser(computer, oauth) -> tuple[str, str]:
             answer.update(urllib.parse.parse_qsl(u.query))
             refused = answer.get("error") == "access_denied"
             body = BACK_IN_THE_TERMINAL.format(
-                "The sign-in was refused on Hardcover. The terminal says what next."
+                f"The sign-in was refused on Hardcover. {back[:1].upper() + back[1:]} says what next."
                 if refused
-                else "Back in the terminal: it finishes the connection. You can close this tab."
+                else f"Back in {back}: it finishes the connection. You can close this tab."
             ).encode()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -522,16 +538,10 @@ def _connect_browser(computer, oauth) -> tuple[str, str]:
     threading.Thread(target=server.serve_forever, daemon=True).start()
     try:
         sign_in = oauth.browser_start(server.server_address[1])
-        screen = term.Screen.of()
-        screen.heading("Connect to Hardcover")
-        screen.say("Approve on Hardcover, in the browser that is being opened for you. If none opens, go to:", indent=2)
-        screen.line(f"  {screen.style(sign_in.url, term.CYAN)}")
-        screen.line()
-        screen.say(
-            "Waiting for your approval. Ctrl-C stops; `kobo-hardcover-sync token --code` connects with a code instead.",
-            style=(term.DIM,),
-        )
-        sys.stdout.flush()
+        if as_json:
+            _json({"open": sign_in.url, "code": ""})
+        else:
+            _tell_browser(sign_in.url)
         computer.open_page(sign_in.url)
         if not came.wait(600):
             sys.exit("kobo-hardcover-sync: the sign-in took too long. Nothing was stored.")
@@ -544,7 +554,20 @@ def _connect_browser(computer, oauth) -> tuple[str, str]:
     return got.access, got.pack()
 
 
-def _connect(computer, oauth) -> tuple[str, str]:
+def _tell_browser(url: str) -> None:
+    screen = term.Screen.of()
+    screen.heading("Connect to Hardcover")
+    screen.say("Approve on Hardcover, in the browser that is being opened for you. If none opens, go to:", indent=2)
+    screen.line(f"  {screen.style(url, term.CYAN)}")
+    screen.line()
+    screen.say(
+        "Waiting for your approval. Ctrl-C stops; `kobo-hardcover-sync token --code` connects with a code instead.",
+        style=(term.DIM,),
+    )
+    sys.stdout.flush()
+
+
+def _connect(computer, oauth, as_json: bool = False) -> tuple[str, str]:
     """Sign in on Hardcover by the device flow: show where to approve,
     wait until it is done. Returns the token to use now and the connection
     to keep."""
@@ -553,6 +576,10 @@ def _connect(computer, oauth) -> tuple[str, str]:
         device = oauth.start()
     except oauth.OAuthError as ex:
         sys.exit(f"kobo-hardcover-sync: {ex}. `kobo-hardcover-sync token --paste` takes a pasted token instead.")
+    if as_json:
+        _json({"open": device.link_with_code, "code": device.user_code})
+        computer.open_page(device.link_with_code)
+        return _collect(device, oauth)
     screen.heading("Connect to Hardcover")
     screen.say("1. Open this address (it is being opened for you) and approve:", indent=2, hang=3)
     screen.line(f"     {screen.style(device.link_with_code, term.CYAN)}")
@@ -561,6 +588,11 @@ def _connect(computer, oauth) -> tuple[str, str]:
     screen.say("Waiting for your approval. Ctrl-C stops.", style=(term.DIM,))
     sys.stdout.flush()
     computer.open_page(device.link_with_code)
+    return _collect(device, oauth)
+
+
+def _collect(device, oauth) -> tuple[str, str]:
+    """Ask Hardcover, at the pace it asks for, until the sign-in is approved."""
     wait = device.interval
     while True:
         time.sleep(wait)
@@ -819,17 +851,37 @@ def _settings(a, computer) -> None:
     from .computer.platform import HARDCOVER, UPLOAD
 
     cfg = config.load()
+    live = None  # local mode's switch from dry run to sending, kept with the books
     if a.set:
         if not cfg.mode:
             sys.exit("kobo-hardcover-sync: not set up yet: run setup first.")
         for change in a.set:
             name, _, value = change.partition("=")
-            if name not in SETTABLE:
-                sys.exit(f"kobo-hardcover-sync: {name or change!r} cannot be set here; these can: {', '.join(SETTABLE)}.")
+            if name not in (*SETTABLE, "live"):
+                sys.exit(f"kobo-hardcover-sync: {name or change!r} cannot be set here; these can: {', '.join(SETTABLE)}, live.")
             if value.lower() not in ("true", "false"):
                 sys.exit(f"kobo-hardcover-sync: {name} is true or false, not {value!r}.")
-            setattr(cfg, name, value.lower() == "true")
+            if name == "live":
+                if cfg.mode != "local":
+                    sys.exit("kobo-hardcover-sync: in server mode you go live on the server's page, under Settings.")
+                live = value.lower() == "true"
+                if live and not computer.secret(HARDCOVER):  # as the page: going live asks Hardcover nothing, but needs a connection
+                    sys.exit("kobo-hardcover-sync: connect to Hardcover first: nothing could be sent without it.")
+            else:
+                setattr(cfg, name, value.lower() == "true")
         config.save(cfg)
+    reader = None
+    if cfg.mode == "local":
+        from .server import accounts
+
+        con = state.connect(os.path.join(config.state_dir(), "state.db"))
+        row = accounts.local_reader(con)
+        if live is not None:
+            con.execute("update reader set hardcover_live=? where name=?", (int(live), row["name"]))
+            con.commit()
+            row = accounts.local_reader(con)
+        reader = (bool(row["hardcover_live"]), row["hardcover_user"] or "")
+        con.close()
     values = {name: getattr(cfg, name) for name in SETTABLE} | {"export_to": cfg.export_to, "webhook_url": cfg.webhook_url}
     token = computer.secret(UPLOAD) if cfg.mode == "server" else ""
     found = {
@@ -837,12 +889,16 @@ def _settings(a, computer) -> None:
         "server": cfg.server,
         "upload_token_hash": _token_hash(token) if token else "",
         "hardcover_connected": bool(computer.secret(HARDCOVER)) if cfg.mode == "local" else False,
+        "hardcover_user": reader[1] if reader else "",
+        "live": reader[0] if reader else False,  # local mode: sending to Hardcover, not a dry run
         "settings": values,
     }
     del token
     if a.json:
         return _json(found)
     rows = [Row(OK, name, str(value).lower() if isinstance(value, bool) else value or "(none)") for name, value in values.items()]
+    if reader:
+        rows.append(Row(OK, "live", "true: sending to Hardcover" if reader[0] else "false: a dry run, nothing is sent"))
     if found["upload_token_hash"]:
         rows.insert(0, Row(OK, "upload token", f"its hash is {found['upload_token_hash']}"))
     term.Screen.of().rows(rows)
@@ -919,13 +975,27 @@ def _books_list(a, computer) -> None:
         }
         for k in booklist.SORTS
     ]
-    summary = booklist.summary(con, "me") if con else {"user": ""}
+    summary = booklist.summary(con, "me") if con else {"user": "", "on": 0}
+    first = None
+    if con and rows and not live:  # the page's first run: until going live ends it
+        from .computer.platform import HARDCOVER
+
+        history = sum(1 for r in rows if r["history"])
+        first = {
+            "title": T["fr_title"],
+            "text": T["fr_text"].format(n=len(rows), h=history),
+            "on": summary["on"],
+            "tally": f"{T['fr_tally']} {T['fr_dry']}",
+            "connected": bool(computer.secret(HARDCOVER)),
+            "steps": [T["fr_connect"], T["fr_pick"], T["fr_live"]],
+        }
     if con:
         con.close()
     _json(
         {
             "live": live,
             "user": summary["user"],
+            "first_run": first,
             "books": books,
             "sorts": sorts,
             "words": {  # the page's words, so that the app says the same

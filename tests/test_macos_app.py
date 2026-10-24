@@ -14,6 +14,7 @@ import pytest
 
 from kobo_hardcover_sync import cli, doctor
 from kobo_hardcover_sync.computer import config, macos, runner, update
+from kobo_hardcover_sync.engine import hardcover
 from tests import said
 from tests.test_app_answers import same_shape, sample
 from tests.test_computer import FakeComputer, FakeMac, plug_in, register, server  # noqa: F401 (the fixture)
@@ -270,6 +271,7 @@ def test_the_wrapper_and_the_tool_use_the_same_names():
         assert must in swift, must
     for file in ("update.json", "config.toml", "agent.log"):
         assert f'"{file}"' in swift, file
+    assert f'"{hardcover.NEW_TOKEN_URL}"' in swift  # where the app sends someone to make a token
     assert f'"{config.APP}"' in swift  # the state folder
     for args in (
         '"sync", "--trigger", "mount"',
@@ -280,6 +282,9 @@ def test_the_wrapper_and_the_tool_use_the_same_names():
         '"books", "--json"',
         '"books", "--covers", "--json"',
         '"open", "--book"',
+        '"token", "--json"',
+        '"token", "--paste", "--json"',
+        '"settings", "--set", "live=true", "--json"',
         '["book", id]',
         '"--sync", sync, "--filter", filter',
         '"--expect"',

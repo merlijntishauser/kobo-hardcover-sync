@@ -1,6 +1,6 @@
 // What the tool answers (`status --json`, `doctor --json`, `books --json`,
 // `book --json`, `history --json`, `settings --json`, `update --json`,
-// `sync --steps`), as the app reads it. The samples in
+// `token --json`, `sync --steps`), as the app reads it. The samples in
 // packaging/macos/samples have the same shape: tests/test_app_answers.py
 // holds the tool to them, CheckSamples.swift holds these types to them.
 //
@@ -107,6 +107,16 @@ struct BooksAnswer: Codable {
         let onShelf: Bool
     }
 
+    /// Above the list until going live: the page's first run, in its words.
+    struct FirstRun: Codable {
+        let title: String
+        let text: String
+        let on: Int  // switched on so far
+        let tally: String
+        let connected: Bool
+        let steps: [String]  // connect, pick, go live
+    }
+
     struct Sort: Codable {
         let key: String
         let label: String
@@ -129,6 +139,7 @@ struct BooksAnswer: Codable {
     let schema: Int
     let live: Bool
     let user: String
+    let firstRun: FirstRun?  // nil once live
     var books: [Book]
     let sorts: [Sort]
     let words: Words
@@ -161,6 +172,8 @@ struct SettingsAnswer: Codable {
     let server: String
     let uploadTokenHash: String
     let hardcoverConnected: Bool
+    let hardcoverUser: String
+    let live: Bool  // local mode: sending to Hardcover, not a dry run
     let settings: Values
 }
 
@@ -185,6 +198,21 @@ struct StepLine: Codable {
     let step: String?
     let state: String?
     let text: String?
+    let done: Done?
+}
+
+/// One line of `token --json`: where to approve (with a code to compare,
+/// in the device flow), or, last, how it ended.
+struct TokenLine: Codable {
+    struct Done: Codable {
+        let ok: Bool
+        let user: String
+        let message: String
+    }
+
+    let schema: Int
+    let open: String?
+    let code: String?
     let done: Done?
 }
 

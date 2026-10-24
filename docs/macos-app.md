@@ -145,7 +145,16 @@ started in three ways:
   sets Sync for every book the search and filter show, after asking, and
   only while the list still holds as many (`books --sync ... --expect
   N`). Each change starts the tool once, about 0.06 s on an M-series Mac,
-  and the answer redraws the book. *Open on the Page* opens the page at
+  and the answer redraws the book. Until you go live, the page's first
+  run sits above the list ("Pick the books that are yours", from
+  `books --json`): *Connect…*, then picking your books, then a red *Go
+  live* that asks first (`settings --set live=true`). *Connect…* (also on
+  Overview's Hardcover link and in Settings, Sync) signs in as the page
+  does: `token --json` opens Hardcover in the browser and says each step
+  as a line of JSON, the sheet follows it, and *Paste a token instead…*
+  gives a token on standard input (`token --paste --json`). Settings,
+  Sync, has the connection with *Disconnect…* and *Send to Hardcover*,
+  the switch between live and a dry run. *Open on the Page* opens the page at
   the book (`open --book`). In server mode Books opens the server's
   page. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
   shows as "Syncing…" while it runs (`status --json` says so, from the
@@ -224,7 +233,9 @@ hand. Which of the two happens is the first thing to see on a real Mac.
   is installed, without touching that app, its permissions or its trigger.
   In its Settings, what would touch this Mac (a mode change, a new token,
   the webhook, *Remove…*) only says what it would do; the true-or-false
-  settings and an export work, on its own folder. Opened with
+  settings and an export work, on its own folder. It shares the
+  Hardcover connection in the Keychain with the app itself, so it does
+  not connect, disconnect or take a book off the shelf. Opened with
   `open --env KHS_SNAPSHOT=<folder>`, it saves a picture of each pane of
   its window, of a book's Details, of a sample sync on the chain, and of each Settings tab
   there, and quits (the sidebar comes out empty in these pictures: what

@@ -252,7 +252,9 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
         if kept:
             what = "The connection to Hardcover" if oauth.unpack(kept) else "A Hardcover token"
             out.append(Check("Token", OK, f"{what} is kept in {computer.secret_place(HARDCOVER)}."))
-        add_one = _said(computer, "`kobo-hardcover-sync token`, or Settings on the page.", "Connect on the page, under Settings.")
+        add_one = _said(
+            computer, "`kobo-hardcover-sync token`, or Settings on the page.", "Choose Connect to Hardcover, under Overview or Books."
+        )
         out.append(hardcover_check(token, add_one, client, run_out=bool(kept) and not token))
         has_token = bool(kept) or client is not None
         del token, kept

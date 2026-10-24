@@ -52,6 +52,10 @@ extension WindowModel {
 
     /// A change to one book through the tool; `shown` draws it at once, until the tool's answer replaces it.
     func change(_ id: String, _ args: [String], shown: ((inout BooksAnswer.Book) -> Void)? = nil) {
+        if isPreview && args.contains("--remove") {  // it would take the book off the real shelf
+            problem = previewLeavesHardcover
+            return
+        }
         if let shown, let n = books?.books.firstIndex(where: { $0.id == id }) { shown(&books!.books[n]) }
         changing.insert(id)
         DispatchQueue.global(qos: .userInitiated).async {
@@ -114,6 +118,7 @@ struct BooksPane: View {
             HStack(spacing: 0) {
                 VStack(spacing: 0) {
                     BooksBar(model: model, words: books.words)
+                    if let first = books.firstRun { FirstRun(model: model, first: first) }
                     Divider()
                     if books.books.isEmpty {
                         Spacer()
@@ -129,11 +134,7 @@ struct BooksPane: View {
                     DetailsPane(model: model, book: book, words: books.words).frame(width: 300)
                 }
             }
-            .alert("Not changed", isPresented: Binding(get: { model.problem != nil }, set: { if !$0 { model.problem = nil } })) {
-                Button("OK") { model.problem = nil }
-            } message: {
-                Text(model.problem ?? "")
-            }
+
         } else if let broken = model.booksBroken {
             Form { Section { Row(state: "fail", what: "Books", found: broken) } }.formStyle(.grouped)
         } else {

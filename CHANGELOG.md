@@ -25,6 +25,14 @@ minor version may change behaviour; the notes will say so.
   and each book's Details. Sync, State and its date, a match (from the
   books it could be, or a search on Hardcover), removing a book from
   Hardcover and *Set all* are changed there too, without the page.
+- In local mode the Mac app connects to Hardcover itself (*Connect…*, on
+  the Hardcover link, above the list and in Settings), with a pasted
+  token as the second way, and goes live: the page's first run is above
+  the list until then, with a red *Go live*. Settings, Sync, has the
+  connection and *Send to Hardcover*. Local mode on a Mac needs no
+  browser any more.
+- In the Mac app, a sync and the doctor say to connect and to choose a
+  match in the app, not on the page.
 
 ### Added
 
@@ -32,6 +40,10 @@ minor version may change behaviour; the notes will say so.
   what the next sync does with it; `--covers` fetches the covers this
   computer does not have yet, `--json` is for the Mac app.
 - `kobo-hardcover-sync open --book ID` opens the page at that book.
+- `kobo-hardcover-sync token --json` signs in as lines of JSON (where to
+  approve, then who signed in), for the Mac app; `settings --set
+  live=true` goes live in local mode, and `settings --json` says whether
+  it is live.
 - `kobo-hardcover-sync book ID` shows one book and changes what the
   page changes: `--sync`, `--state` (with `--date`), `--search` and
   `--pick` for a match, `--remove` from Hardcover. `books --sync MODE

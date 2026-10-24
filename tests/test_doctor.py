@@ -163,7 +163,7 @@ def test_in_the_app_what_to_do_names_its_buttons_not_commands(home):
     config.save(config.Config())
     checks = doctor.computer_checks(mac)
     assert found(checks, "Trigger").todo == "Until then, choose Sync now with the Kobo plugged in."
-    assert found(checks, "Hardcover").todo == "Connect on the page, under Settings."
+    assert found(checks, "Hardcover").todo == "Choose Connect to Hardcover, under Overview or Books."
     assert found(checks, "Kobo").todo == "Plug it in, tap Connect on the Kobo, and choose Check again."
     assert not [c for c in checks if "`kobo-hardcover-sync" in c.found + c.todo]
 
