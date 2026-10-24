@@ -39,7 +39,7 @@ log = logging.getLogger(__name__)
 GONE = (errno.ENOENT, errno.ENODEV, errno.ENXIO, errno.EIO, errno.ENOTDIR, errno.ESTALE)
 DAMAGED = (
     "The Kobo's database could not be read: it is damaged, or the Kobo was still writing it. Unplug the Kobo, let it "
-    "start, and plug it in again. If it stays, `kobo-hardcover-sync doctor` shows more."
+    "start, and plug it in again."
 )
 
 
@@ -65,7 +65,12 @@ def unreadable(computer: Computer, ex: OSError, by_hand: bool) -> str:
         return computer.cannot_read(by_hand)
     if ex.errno in GONE:
         return "The Kobo was unplugged during the sync. Nothing on it was changed. Plug it in again."
-    return f"The Kobo's database could not be read ({ex.strerror or ex}). Plug the Kobo in again; `kobo-hardcover-sync doctor` shows more."
+    more = "" if computer.in_app else "; `kobo-hardcover-sync doctor` shows more"  # the app's window shows its checks already
+    return f"The Kobo's database could not be read ({ex.strerror or ex}). Plug the Kobo in again{more}."
+
+
+def damaged(computer: Computer) -> str:
+    return DAMAGED if computer.in_app else f"{DAMAGED} If it stays, `kobo-hardcover-sync doctor` shows more."
 
 
 def remember(out: Outcome) -> Outcome:
@@ -119,7 +124,8 @@ def sync(
     os.makedirs(state_dir, mode=0o700, exist_ok=True)
     logs.to_file(os.path.join(state_dir, LOG_FILE), verbose=verbose or cfg.verbose_log, echo=verbose)
     if not cfg.server and not cfg.set_up:
-        return Outcome(False, message="Not set up yet: run `kobo-hardcover-sync setup`.")
+        how = "open Kobo Hardcover Sync and choose Set up" if computer.in_app else "run `kobo-hardcover-sync setup`"
+        return Outcome(False, message=f"Not set up yet: {how}.")
     mount = computer.find_kobo()
     if not mount and (cfg.server or trigger == "mount"):
         step(Row(NOTE, "Kobo", "No Kobo found: plug it in and tap Connect on the Kobo."))
@@ -288,7 +294,7 @@ def _sync_here(
                         kobo.close()
                 except kobo_db.NotAKoboDatabase as ex:
                     log.error("not a Kobo database: %s", ex)
-                    return Outcome(False, FAILED, DAMAGED, about="Kobo")
+                    return Outcome(False, FAILED, damaged(computer), about="Kobo")
                 device = kobo_db.device(mount).name
                 earlier = export.before(con, reader["name"], device)
                 result = state.import_books(con, reader["name"], device, on_kobo, source="usb")
@@ -408,7 +414,8 @@ def _sync_to_server(
     token = computer.secret(UPLOAD)
     if not token:
         log.error("no upload token in the secret store")
-        return Outcome(False, message="No upload token on this computer; run `kobo-hardcover-sync setup` again.", about="Setup")
+        how = "open Kobo Hardcover Sync and choose Set up" if computer.in_app else "run `kobo-hardcover-sync setup` again"
+        return Outcome(False, message=f"No upload token on this computer; {how}.", about="Setup")
     server = remote.Server(cfg.server, token, opener)
     hash_file = os.path.join(state_dir, "last-upload.sha256")
     try:
@@ -442,7 +449,7 @@ def _sync_to_server(
                 result = server.upload(small + ".gz")
             except kobo_db.NotAKoboDatabase as ex:
                 log.error("not a Kobo database: %s", ex)
-                return Outcome(False, FAILED, DAMAGED, about="Kobo")
+                return Outcome(False, FAILED, damaged(computer), about="Kobo")
             except remote.ServerError as ex:
                 log.error("upload failed: %s", ex)
                 return Outcome(False, FAILED, str(ex), about="Upload")

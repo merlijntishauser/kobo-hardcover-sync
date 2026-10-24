@@ -5,6 +5,7 @@ test_accounts."""
 
 import errno
 import hashlib
+import json
 import os
 import sqlite3
 
@@ -155,6 +156,18 @@ def test_set_up_and_nothing_else_yet(home):
     assert sorted(os.listdir(home / "state")) == ["config.toml"]  # no database made by looking
 
 
+def test_in_the_app_what_to_do_names_its_buttons_not_commands(home):
+    mac = FakeComputer(home / "Volumes")
+    mac.in_app = True
+    assert found(doctor.computer_checks(mac), "Setup").todo == "Choose Set up."
+    config.save(config.Config())
+    checks = doctor.computer_checks(mac)
+    assert found(checks, "Trigger").todo == "Until then, choose Sync now with the Kobo plugged in."
+    assert found(checks, "Hardcover").todo == "Connect on the page, under Settings."
+    assert found(checks, "Kobo").todo == "Plug it in, tap Connect on the Kobo, and choose Check again."
+    assert not [c for c in checks if "`kobo-hardcover-sync" in c.found + c.todo]
+
+
 @pytest.mark.parametrize(
     "kind, state_, said",
     [
@@ -203,6 +216,12 @@ def test_a_kobo_whose_software_was_not_tested(home):
     assert "syncing to Hardcover is not affected" in c.found and c.todo == collection.UNTESTED_HOW
     allowed = found(doctor.computer_checks(mac, config.Config(set_up=True, allow_untested_kobo=True), client=hc), "Kobo software")
     assert allowed.state == "note" and "allow_untested_kobo lets the collection be written anyway" in allowed.found
+    mac.in_app = True
+    c = found(doctor.computer_checks(mac, LOCAL, client=hc), "Kobo software")
+    assert c.todo == 'To try it anyway, turn on "Allow an untested Kobo software version" in Settings, Sync.'
+    allowed = found(doctor.computer_checks(mac, config.Config(set_up=True, allow_untested_kobo=True), client=hc), "Kobo software")
+    assert allowed.found == "Database version 223 has not been tested; Settings, Sync, lets the collection be written anyway."
+    mac.in_app = False
     # A database that lacks what the write needs: no setting lets that through.
     db = sqlite3.connect(home / "Volumes" / "KOBOeReader" / ".kobo" / "KoboReader.sqlite")
     db.execute("alter table Shelf drop column LastAccessed")
@@ -232,7 +251,7 @@ def test_the_collection_wanted_and_what_is_on_the_kobo(home):
     k.close()
     theirs = found(doctor.computer_checks(mac, LOCAL, client=hc), "Collection")
     assert theirs.state == "warn" and "was not made by this tool, so it is left alone" in theirs.found
-    assert theirs.todo == "Choose another name under Settings, or remove that collection on the Kobo."
+    assert theirs.todo == "Choose another name on the page, under Settings, or remove that collection on the Kobo."
 
 
 @pytest.mark.parametrize(
@@ -269,3 +288,28 @@ def test_a_file_on_the_kobo_that_is_not_its_database(home):
     )
     out = runner.sync(mac, LOCAL, hardcover_client=hc)
     assert (out.ok, out.title, out.message) == (False, "Kobo sync failed", c.found)
+
+
+@pytest.mark.parametrize(
+    "error, said",
+    [
+        (PermissionError(errno.EPERM, "Operation not permitted"), "This computer does not let the tool read the Kobo."),
+        (OSError(errno.ENOSPC, "No space left on device"), "The Kobo's database could not be read (No space left on device). Plug the Kobo in again."),
+    ],
+)  # fmt: skip
+def test_the_app_is_told_about_a_kobo_it_cannot_read_as_the_app(home, capsys, monkeypatch, error, said):
+    mac, hc = synced(home)
+    mac.in_app = True
+    config.save(LOCAL)
+    monkeypatch.setattr(hardcover, "Client", lambda token, **kw: hc)
+
+    def refuse(db, folder):
+        raise error
+
+    monkeypatch.setattr(runner, "copy_database", refuse)
+    with pytest.raises(SystemExit):
+        cli.main(["doctor", "--json"], computer=mac)  # not a terminal: the app reads the Kobo
+    (database,) = [c for c in json.loads(capsys.readouterr().out)["checks"] if c["what"] == "Database"]
+    assert database["found"] == said
+    monkeypatch.setattr(runner, "fingerprint", lambda db: (_ for _ in ()).throw(error))
+    assert runner.sync(mac, LOCAL, hardcover_client=hc, trigger="mount").message == said  # the sync says the same

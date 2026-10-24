@@ -7,6 +7,16 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Fixed
+
+- In the Mac app, what to do no longer names terminal commands: the
+  window's checks and a failed sync point at the app's own buttons and
+  Settings (*Set up*, *Sync now*, *Check again*, the untested Kobo
+  setting). A Kobo the app may not read says what to allow for the app,
+  not for a terminal, and has its *Open Privacy* button again.
+- Doctor's line about a collection of someone else's says the name is
+  chosen on the page, under Settings.
+
 ## 0.12.2 - 2026-10-24
 
 Look for a newer version at once: *Check now* in the Mac app's Settings,

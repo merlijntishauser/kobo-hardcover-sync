@@ -716,7 +716,7 @@ def _doctor(a, computer) -> None:
     from . import doctor
 
     if a.json:
-        checks = doctor.computer_checks(computer)
+        checks = doctor.computer_checks(computer, by_hand=not computer.in_app)  # the app reads the Kobo itself, not a terminal
         _json(
             {
                 "version": __version__,

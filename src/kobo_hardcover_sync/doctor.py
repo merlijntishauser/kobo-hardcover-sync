@@ -200,7 +200,9 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
     cfg = cfg or config.load()
     folder = config.state_dir()
     if not cfg.mode:
-        return [Check("Setup", FAIL, "This computer is not set up yet.", "Run `kobo-hardcover-sync setup`.")]
+        return [
+            Check("Setup", FAIL, "This computer is not set up yet.", _said(computer, "Run `kobo-hardcover-sync setup`.", "Choose Set up."))
+        ]
     out = [
         Check(
             "Setup",
@@ -210,18 +212,18 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
     ]
 
     works, said = computer.trigger_state()
-    out.append(
-        Check(
-            "Trigger", OK if works else WARN, said, "" if works else "Until then, run `kobo-hardcover-sync sync` with the Kobo plugged in."
-        )
-    )
+    until = _said(computer, "run `kobo-hardcover-sync sync`", "choose Sync now")
+    out.append(Check("Trigger", OK if works else WARN, said, "" if works else f"Until then, {until} with the Kobo plugged in."))
 
     if os.path.isdir(folder) and os.access(folder, os.W_OK | os.X_OK):
         out.append(Check("Folder", OK, f"The tool's folder is {folder}."))
     else:
         out.append(
             Check(
-                "Folder", FAIL, f"The tool's folder, {folder}, cannot be written to.", "Check who owns it; KHS_HOME names another folder."
+                "Folder",
+                FAIL,
+                f"The tool's folder, {folder}, cannot be written to.",
+                _said(computer, "Check who owns it; KHS_HOME names another folder.", "Check who owns it, under Get Info in the Finder."),
             )
         )
 
@@ -229,7 +231,8 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
     if cfg.server:
         token = computer.secret(UPLOAD)
         if not token:
-            out.append(Check("Upload token", FAIL, "No upload token on this computer.", "Run `kobo-hardcover-sync setup` again."))
+            again = _said(computer, "Run `kobo-hardcover-sync setup` again.", "Choose Set up.")
+            out.append(Check("Upload token", FAIL, "No upload token on this computer.", again))
         else:
             digest = hashlib.sha256(token.encode()).hexdigest()
             out.append(Check("Upload token", OK, f"Present, kept in {computer.secret_place(UPLOAD)}; its hash starts with {digest[:8]}."))
@@ -249,9 +252,8 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
         if kept:
             what = "The connection to Hardcover" if oauth.unpack(kept) else "A Hardcover token"
             out.append(Check("Token", OK, f"{what} is kept in {computer.secret_place(HARDCOVER)}."))
-        out.append(
-            hardcover_check(token, "`kobo-hardcover-sync token`, or Settings on the page.", client, run_out=bool(kept) and not token)
-        )
+        add_one = _said(computer, "`kobo-hardcover-sync token`, or Settings on the page.", "Connect on the page, under Settings.")
+        out.append(hardcover_check(token, add_one, client, run_out=bool(kept) and not token))
         has_token = bool(kept) or client is not None
         del token, kept
         own = os.path.join(folder, "state.db")
@@ -270,7 +272,9 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
                         "Books",
                         WARN,
                         f"This tool's own database could not be read ({ex}).",
-                        "Run `kobo-hardcover-sync sync` once, then check again.",
+                        _said(
+                            computer, "Run `kobo-hardcover-sync sync` once, then check again.", "Choose Sync now once, then Check again."
+                        ),
                     )
                 )
 
@@ -285,6 +289,12 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
         )
     )
     return out
+
+
+def _said(computer, cli: str, app: str) -> str:
+    """What to do, for where it is read: a terminal, or the Mac app's
+    window, which has buttons for what the commands do."""
+    return app if computer.in_app else cli
 
 
 def _read_only(path: str) -> sqlite3.Connection:
@@ -314,7 +324,11 @@ def kobo_checks(computer, cfg, wanted: str | None, collection_dir: str, kobo_db_
                 "Kobo",
                 NOTE,
                 "No Kobo found, so its database and the collection were not checked.",
-                "Plug it in, tap Connect on the Kobo, and run this check again.",
+                _said(
+                    computer,
+                    "Plug it in, tap Connect on the Kobo, and run this check again.",
+                    "Plug it in, tap Connect on the Kobo, and choose Check again.",
+                ),
             ),
             _backups(collection_dir),
         ]
@@ -331,15 +345,15 @@ def kobo_checks(computer, cfg, wanted: str | None, collection_dir: str, kobo_db_
             with contextlib.closing(kobo_db.open_db(copy, allow_user_table=True)) as con:  # the copy never leaves this folder
                 n = len(kobo_db.read_books(con))
                 out.append(Check("Database", OK, f"The Kobo's database can be read: {_books(n)} on it."))
-                out.append(_gate(con, cfg.allow_untested_kobo))
+                out.append(_gate(con, cfg.allow_untested_kobo, computer))
         except (kobo_db.NotAKoboDatabase, sqlite3.Error):
-            return [*out, Check("Database", FAIL, runner.DAMAGED), _backups(collection_dir)]
+            return [*out, Check("Database", FAIL, runner.damaged(computer)), _backups(collection_dir)]
         out.append(_collection(copy, db, wanted, collection_dir))
     out.append(_backups(collection_dir))
     return out
 
 
-def _gate(con, allowed: bool) -> Check:
+def _gate(con, allowed: bool, computer) -> Check:
     """May the collection be written to this Kobo? The same gate the write
     goes through."""
     what = "Kobo software"
@@ -351,15 +365,16 @@ def _gate(con, allowed: bool) -> Check:
         except collection.UnsupportedKobo:
             return Check(what, WARN, str(ex))  # it lacks something the write needs: no setting lets that through
         if allowed:
-            return Check(
-                what, NOTE, f"Database version {ex.version} has not been tested; allow_untested_kobo lets the collection be written anyway."
-            )
+            lets = _said(computer, "allow_untested_kobo lets", "Settings, Sync, lets")
+            return Check(what, NOTE, f"Database version {ex.version} has not been tested; {lets} the collection be written anyway.")
         return Check(
             what,
             WARN,
             f"This Kobo's software has not been tested with kobo-hardcover-sync yet (its database is version {ex.version}). "
             "The collection is not written to it; syncing to Hardcover is not affected.",
-            collection.UNTESTED_HOW,
+            _said(
+                computer, collection.UNTESTED_HOW, 'To try it anyway, turn on "Allow an untested Kobo software version" in Settings, Sync.'
+            ),
         )
     return Check(
         what, OK, f"Database version {version} is one this tool was tested with (Kobo software {collection.KNOWN_VERSIONS[version]})."
@@ -381,7 +396,7 @@ def _collection(copy: str, db: str, wanted: str | None, collection_dir: str) -> 
             what,
             WARN,
             f"A collection named '{wanted}' is on this Kobo and was not made by this tool, so it is left alone.",
-            "Choose another name under Settings, or remove that collection on the Kobo.",
+            "Choose another name on the page, under Settings, or remove that collection on the Kobo.",
         )
     if not os.access(db, os.W_OK):
         return Check(

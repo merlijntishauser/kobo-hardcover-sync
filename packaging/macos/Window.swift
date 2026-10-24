@@ -360,7 +360,7 @@ struct HealthSections: View {
                 Button("Set up") { model.setUp() }
             case "Trigger":
                 Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() }
-            case "Kobo" where check.found.contains("does not let"):
+            case "Database" where check.found.contains("does not let"):
                 Button("Open Privacy") { if let url = URL(string: privacySettings) { NSWorkspace.shared.open(url) } }
             default:
                 EmptyView()
