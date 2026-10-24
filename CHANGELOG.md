@@ -5,7 +5,10 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.12.2 - 2026-10-24
+
+Look for a newer version at once: *Check now* in the Mac app's Settings,
+*Check for Updates…* in its menu, and `update` in a terminal.
 
 ### Added
 
