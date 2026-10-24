@@ -1,8 +1,9 @@
 // Books, in local mode (docs/plans/2026-10-24-mac-app-native-books-design.md,
-// step 2): the page's list drawn here, from `books --json`. Searching,
-// filtering and sorting happen in the app, on what the tool said; what a
-// sync does with a book is still decided in the tool. A change opens the
-// page at the book, until changing books comes here too.
+// steps 2 and 3): the page's list drawn here, from `books --json`.
+// Searching, filtering and sorting happen in the app, on what the tool
+// said; a change (Sync, State, a match, removal, Set all) goes through the
+// tool (`book ID ...`, `books --sync ...`), which answers the book as it
+// is then. What a sync does with a book is still decided in the tool.
 
 import AppKit
 import CoreText
@@ -43,9 +44,61 @@ extension WindowModel {
         return out
     }
 
+    /// As the tool searches (SQL like): any case, but é is not e, so that Set all takes the books shown.
     private func found(_ book: BooksAnswer.Book) -> Bool {
         let q = search.trimmingCharacters(in: .whitespaces)
-        return q.isEmpty || [book.title, book.author].contains { $0.range(of: q, options: [.caseInsensitive, .diacriticInsensitive]) != nil }
+        return q.isEmpty || [book.title, book.author].contains { $0.range(of: q, options: .caseInsensitive) != nil }
+    }
+
+    /// A change to one book through the tool; `shown` draws it at once, until the tool's answer replaces it.
+    func change(_ id: String, _ args: [String], shown: ((inout BooksAnswer.Book) -> Void)? = nil) {
+        if let shown, let n = books?.books.firstIndex(where: { $0.id == id }) { shown(&books!.books[n]) }
+        changing.insert(id)
+        DispatchQueue.global(qos: .userInitiated).async {
+            let found = answer(BookAnswer.self, ["book", id] + args + ["--json"])
+            DispatchQueue.main.async {
+                self.changing.remove(id)
+                switch found {
+                case .success(let changed):
+                    if let n = self.books?.books.firstIndex(where: { $0.id == id }) { self.books?.books[n] = changed.book }
+                    self.status?.books = changed.books
+                case .failure(let why):
+                    self.problem = said(why)
+                    self.loadBooks()  // back to what the tool has
+                }
+            }
+        }
+    }
+
+    /// Set all: Sync for every book the search and filter show, while that is still as many.
+    func setAll(_ sync: String) {
+        let args = ["books", "--sync", sync, "--filter", filter, "--search", search.trimmingCharacters(in: .whitespaces)]
+        let expect = ["--expect", String(shownBooks.count), "--json"]
+        DispatchQueue.global(qos: .userInitiated).async {
+            let found = answer(BooksAnswer.self, args + expect)
+            let now = answer(StatusAnswer.self, ["status", "--json"])
+            DispatchQueue.main.async {
+                switch found {
+                case .success(let list): self.books = list
+                case .failure(let why): self.problem = said(why)
+                }
+                if case .success(let status) = now { self.status = status }
+            }
+        }
+    }
+
+    /// A field of a book as a control changes it.
+    func binding(_ id: String, _ field: WritableKeyPath<BooksAnswer.Book, String>, _ args: @escaping (String) -> [String]) -> Binding<String> {
+        Binding(
+            get: { self.books?.books.first { $0.id == id }?[keyPath: field] ?? "" },
+            set: { new in self.change(id, args(new)) { $0[keyPath: field] = new } })
+    }
+
+    /// The State, keeping its date where a date belongs to it.
+    func stateBinding(_ book: BooksAnswer.Book) -> Binding<String> {
+        binding(book.id, \.state) { new in
+            ["finished", "rereading"].contains(new) && !book.stateDate.isEmpty ? ["--state", new, "--date", book.stateDate] : ["--state", new]
+        }
     }
 
     func word(_ list: [[String]]?, _ key: String) -> String {
@@ -75,6 +128,11 @@ struct BooksPane: View {
                     Divider()
                     DetailsPane(model: model, book: book, words: books.words).frame(width: 300)
                 }
+            }
+            .alert("Not changed", isPresented: Binding(get: { model.problem != nil }, set: { if !$0 { model.problem = nil } })) {
+                Button("OK") { model.problem = nil }
+            } message: {
+                Text(model.problem ?? "")
             }
         } else if let broken = model.booksBroken {
             Form { Section { Row(state: "fail", what: "Books", found: broken) } }.formStyle(.grouped)
@@ -133,6 +191,34 @@ struct BooksBar: View {
             ForEach(model.books?.sorts ?? [], id: \.key) { sort in Text(sort.label).tag(sort.key) }
         }
         .fixedSize()
+        SetAll(model: model, syncs: words.syncs)
+    }
+}
+
+/// Set all: Sync for every book in the list as it is shown, asked first.
+struct SetAll: View {
+    @ObservedObject var model: WindowModel
+    let syncs: [[String]]
+    @State private var asked: [String]?  // the Sync chosen, while the question is open
+
+    var body: some View {
+        let n = model.shownBooks.count
+        Menu("Set all \(n)") {
+            ForEach(syncs, id: \.self) { sync in Button("Sync: \(sync.last ?? "")") { asked = sync } }
+        }
+        .fixedSize()
+        .disabled(n == 0)
+        .confirmationDialog(
+            "Set Sync to \(asked?.last ?? "") for \(n == 1 ? "1 book" : "\(n) books")?",
+            isPresented: Binding(get: { asked != nil }, set: { if !$0 { asked = nil } })
+        ) {
+            Button("Set \(n == 1 ? "1 book" : "\(n) books")") {
+                if let key = asked?.first { model.setAll(key) }
+                asked = nil
+            }
+        } message: {
+            Text("Every book in the list as it is shown now, also those further down.")
+        }
     }
 }
 
@@ -202,30 +288,45 @@ struct BooksTable: View {
         let words = model.books?.words
         Table(model.shownBooks, selection: $model.chosenBook) {
             TableColumn("Book") { book in BookCell(book: book) }
-                .width(min: 180, ideal: 260)
+                .width(min: 160, ideal: 200)
             TableColumn("Sync") { book in
-                Text(model.word(words?.syncs, book.sync)).foregroundStyle(book.syncs ? .primary : .secondary)
+                WordPicker(label: "Sync", options: words?.syncs ?? [], selection: model.binding(book.id, \.sync) { ["--sync", $0] })
             }
-            .width(min: 44, ideal: 64, max: 90)
+            .width(min: 64, ideal: 70, max: 100)
             TableColumn("State") { book in
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(model.word(words?.states, book.state))
-                    if !book.stateDate.isEmpty { Text(book.stateDate).font(.caption).foregroundStyle(.secondary) }
+                    WordPicker(label: "State", options: words?.states ?? [], selection: model.stateBinding(book))
+                    if !book.stateDate.isEmpty { Text(book.stateDate).font(.caption).foregroundStyle(.secondary).padding(.leading, 4) }
                 }
             }
-            .width(min: 70, ideal: 96, max: 150)
+            .width(min: 96, ideal: 110, max: 160)
             TableColumn("Hardcover status") { book in StatusCell(book: book) }
-                .width(min: 150, ideal: 220)
+                .width(min: 140, ideal: 190)
         }
         .contextMenu(forSelectionType: String.self) { ids in
-            if let id = ids.first { Button("Change on the Page") { openAt(id) } }
-        } primaryAction: { ids in
-            if let id = ids.first { openAt(id) }
+            if let id = ids.first { Button("Open on the Page") { openAt(id) } }
         }
     }
 }
 
-/// The page, at this book: where it is changed until the app can.
+/// A row's choice of the page's words: a pop-up menu, small.
+struct WordPicker: View {
+    let label: String
+    let options: [[String]]
+    @Binding var selection: String
+
+    var body: some View {
+        Picker(label, selection: $selection) {
+            ForEach(options, id: \.self) { option in Text(option.last ?? "").tag(option.first ?? "") }
+        }
+        .labelsHidden()
+        .pickerStyle(.menu)
+        .controlSize(.small)
+        .fixedSize()
+    }
+}
+
+/// The page, at this book: for what the app does not change.
 func openAt(_ id: String) {
     DispatchQueue.global(qos: .userInitiated).async { _ = tool(["open", "--book", id]) }
 }
@@ -325,7 +426,8 @@ struct StatusCell: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(headline).font(.callout.weight(book.status.kind == "next" ? .semibold : .regular))
                     .foregroundStyle(book.status.kind == "next" ? Pencil.red : book.status.kind == "none" ? .secondary : .primary)
-                if book.status.kind == "next" { Correction(book: book) }
+                    .fixedSize(horizontal: false, vertical: true)
+                if book.status.kind == "next" && book.status.text.contains(":") { Correction(book: book) }  // as the page: a change it can say
                 if !book.edition.isEmpty {
                     HStack(spacing: 4) {
                         if book.stet { Mark(state: "stet", size: 14) }
@@ -363,11 +465,19 @@ struct Correction: View {
     }
 }
 
-/// Everything known of one book, as the page's Details has it; changing it opens the page.
+/// What the tool said when it changed nothing, without its name in front.
+func said(_ why: NoAnswer) -> String {
+    let text = why.said.split(separator: "\n").last.map(String.init) ?? why.said
+    return text.hasPrefix("kobo-hardcover-sync: ") ? String(text.dropFirst("kobo-hardcover-sync: ".count)) : text
+}
+
+/// Everything known of one book, as the page's Details has it, with the changes the page makes.
 struct DetailsPane: View {
     @ObservedObject var model: WindowModel
     let book: BooksAnswer.Book
     let words: BooksAnswer.Words
+    @State private var looking = ""  // what to search Hardcover for
+    @State private var removing = false
 
     var body: some View {
         ScrollView {
@@ -379,6 +489,7 @@ struct DetailsPane: View {
                         Text(book.author).foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 0)
+                    if model.changing.contains(book.id) { ProgressView().controlSize(.small) }
                     Button {
                         model.chosenBook = nil
                     } label: {
@@ -389,26 +500,98 @@ struct DetailsPane: View {
                     .accessibilityLabel("Close Details")
                 }
                 StatusCell(book: book)
-                pairs(words.sections.first ?? "", book.details.kobo)
-                pairs(words.sections.last ?? "", book.details.hardcover)
-                if !book.details.candidates.isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Could be").font(.headline)
-                        ForEach(Array(book.details.candidates.enumerated()), id: \.offset) { _, c in
-                            Text("\(c.title), \(c.author)").font(.callout)
+                Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 6) {
+                    GridRow {
+                        Text("Sync").foregroundStyle(.secondary)
+                        WordPicker(label: "Sync", options: words.syncs, selection: model.binding(book.id, \.sync) { ["--sync", $0] })
+                    }
+                    GridRow {
+                        Text("State").foregroundStyle(.secondary)
+                        WordPicker(label: "State", options: words.states, selection: model.stateBinding(book))
+                    }
+                    if ["finished", "rereading"].contains(book.state) {
+                        GridRow {
+                            Text("Since").foregroundStyle(.secondary)
+                            if let date = day(book.stateDate) {
+                                DatePicker("Since", selection: Binding(get: { date }, set: { since($0) }), displayedComponents: .date)
+                                    .labelsHidden().controlSize(.small).fixedSize()
+                            } else {
+                                Button("Add a date") { since(Date()) }.controlSize(.small)
+                            }
                         }
                     }
                 }
+                .font(.callout)
+                if needsMatch { match }
+                pairs(words.sections.first ?? "", book.details.kobo.filter { !["Sync", "State"].contains($0.first ?? "") })
+                pairs(words.sections.last ?? "", book.details.hardcover)
                 HStack {
-                    Button("Change on the Page") { openAt(book.id) }
                     if let link = URL(string: book.details.link), !book.details.link.isEmpty {
                         Button("Open on Hardcover") { NSWorkspace.shared.open(link) }
                     }
+                    Button("Open on the Page") { openAt(book.id) }
+                }
+                if book.details.onShelf {
+                    Button("Remove from Hardcover…", role: .destructive) { removing = true }
+                        .confirmationDialog("Remove “\(book.title)” from your Hardcover shelf?", isPresented: $removing) {
+                            Button("Remove", role: .destructive) { model.change(book.id, ["--remove"]) }
+                        } message: {
+                            Text("It is taken off the shelf on Hardcover now, with its reading dates, and no longer synced.")
+                        }
                 }
             }
             .padding(16)
             .textSelection(.enabled)
+            .disabled(model.changing.contains(book.id))
         }
+        .onChange(of: book.id) { _ in looking = "" }
+    }
+
+    /// No match yet: the books it could be, and looking for others.
+    private var needsMatch: Bool { book.details.link.isEmpty && (book.status.kind == "warn" || !book.details.candidates.isEmpty) }
+
+    private var match: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Which book is it?").font(.headline)
+            if book.details.candidates.isEmpty {
+                Text("Hardcover found nothing for it. Look for it by another title.").font(.callout).foregroundStyle(.secondary)
+            }
+            ForEach(book.details.candidates, id: \.id) { c in
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(c.title).font(titleFont(13, .regular))
+                        if !c.author.isEmpty { Text(c.author).font(.caption).foregroundStyle(.secondary) }
+                    }
+                    Spacer(minLength: 6)
+                    Button("Use") { model.change(book.id, ["--pick", String(c.id)]) }.controlSize(.small)
+                }
+            }
+            HStack {
+                TextField("Title or author", text: $looking).textFieldStyle(.roundedBorder).onSubmit(look)
+                Button("Search Hardcover", action: look).disabled(looking.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            .controlSize(.small)
+        }
+    }
+
+    private func look() {
+        let q = looking.trimmingCharacters(in: .whitespaces)
+        if !q.isEmpty { model.change(book.id, ["--search", q]) }
+    }
+
+    private func day(_ text: String) -> Date? {
+        let read = DateFormatter()
+        read.dateFormat = "yyyy-MM-dd"
+        read.locale = Locale(identifier: "en_US_POSIX")
+        return text.isEmpty ? nil : read.date(from: text)
+    }
+
+    private func since(_ date: Date) {
+        let write = DateFormatter()
+        write.dateFormat = "yyyy-MM-dd"
+        write.locale = Locale(identifier: "en_US_POSIX")
+        let text = write.string(from: date)
+        model.change(book.id, ["--state", book.state, "--date", text]) { $0.stateDate = text }
     }
 
     @ViewBuilder private func pairs(_ title: String, _ pairs: [[String]]) -> some View {

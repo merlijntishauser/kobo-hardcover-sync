@@ -29,6 +29,7 @@ struct CheckSamples {
         check("books.json", decode(BooksAnswer.self, try text("books.json"))) {
             $0.books.first?.details.onShelf == true && $0.sorts.allSatisfy { $0.order == [0] } && $0.words.legend.count == 7
         }
+        check("book.json", decode(BookAnswer.self, try text("book.json"))) { $0.book.details.candidates.first?.id == 12345 && $0.books.on == 41 }
         check("doctor.json", decode(DoctorAnswer.self, try text("doctor.json"))) { !$0.checks.isEmpty }
         check("history.json", decode(HistoryAnswer.self, try text("history.json"))) { $0.syncs.allSatisfy { $0.date != nil } }
         check("settings.json", decode(SettingsAnswer.self, try text("settings.json"))) { !$0.uploadTokenHash.isEmpty }

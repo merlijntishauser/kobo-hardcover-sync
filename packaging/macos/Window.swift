@@ -30,6 +30,8 @@ final class WindowModel: ObservableObject {
     @Published var filter = "all"
     @Published var sort = "last_read"
     @Published var chosenBook: String?  // the book whose Details are open
+    @Published var changing: Set<String> = []  // books the tool is changing now
+    @Published var problem: String?  // what the tool said when a change did not happen
     private var coversFetched = false  // once per window: the covers this Mac does not have yet
 
     let setUp: () -> Void

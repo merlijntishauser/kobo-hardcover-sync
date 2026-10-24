@@ -137,10 +137,17 @@ started in three ways:
   Serif 4, its Sync, its State and its Hardcover status with the page's
   marks, a change struck and written in as on the page; search, the
   page's filters and its sorts above it, with the legend of the marks.
-  A click opens its Details beside the list. Changing a book still
-  happens on the page: *Change on the Page*, or a double click, opens the
-  page at that book (`open --book`). In server mode Books opens the
-  server's page. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
+  A click opens its Details beside the list. Sync and State are changed
+  in the row or in Details (`book ID --sync`, `--state`, `--date`); a
+  book without a match shows the books it could be, with *Use*
+  (`--pick`), and a search on Hardcover (`--search`); *Remove from
+  Hardcover…* takes it off the shelf after asking (`--remove`). *Set all*
+  sets Sync for every book the search and filter show, after asking, and
+  only while the list still holds as many (`books --sync ... --expect
+  N`). Each change starts the tool once, about 0.06 s on an M-series Mac,
+  and the answer redraws the book. *Open on the Page* opens the page at
+  the book (`open --book`). In server mode Books opens the server's
+  page. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
   shows as "Syncing…" while it runs (`status --json` says so, from the
   sync's lock; the sync keeps a `sync.running` marker in the tool's folder,
   which wakes the window), and in History when it ends. With the window open the app has a

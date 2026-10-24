@@ -86,6 +86,7 @@
         "link": "https://hardcover.app/id/book/12345",
         "candidates": [
           {
+            "id": 12345,
             "title": "Blindness",
             "author": "José Saramago"
           }

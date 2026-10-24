@@ -26,7 +26,7 @@ def test_every_link_to_a_file_leads_somewhere():
 
 COMMANDS = (
     *("setup", "token", "sync", "status", "doctor", "history", "settings"),
-    *("update", "books", "open", "export", "webhook", "uninstall", "serve", "import"),
+    *("update", "books", "book", "open", "export", "webhook", "uninstall", "serve", "import"),
 )
 
 

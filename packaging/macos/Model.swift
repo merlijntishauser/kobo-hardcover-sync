@@ -1,6 +1,6 @@
 // What the tool answers (`status --json`, `doctor --json`, `books --json`,
-// `history --json`, `settings --json`, `update --json`, `sync --steps`), as
-// the app reads it. The samples in
+// `book --json`, `history --json`, `settings --json`, `update --json`,
+// `sync --steps`), as the app reads it. The samples in
 // packaging/macos/samples have the same shape: tests/test_app_answers.py
 // holds the tool to them, CheckSamples.swift holds these types to them.
 //
@@ -31,7 +31,7 @@ struct StatusAnswer: Codable {
     let kobo: String?  // where it is mounted, when one is plugged in
     let lastSync: Sync?
     let syncing: String?  // what started the sync that runs now in another process ("mount", "app", "hand"); "" when none
-    let books: Books?  // local mode, once a Kobo was read: the books are on this Mac
+    var books: Books?  // local mode, once a Kobo was read: the books are on this Mac
 
     /// The books in counts, for the overview's arrows.
     struct Books: Codable {
@@ -76,10 +76,10 @@ struct BooksAnswer: Codable {
         let finished: Bool
         let facts: [String]  // "37%", "last read 2 Oct 2026", "4 h read"
         let lastRead: String
-        let sync: String  // "auto", "on", "off"
+        var sync: String  // "auto", "on", "off"; var: shown at once while the tool changes it
         let syncs: Bool
-        let state: String
-        let stateDate: String
+        var state: String
+        var stateDate: String
         let status: Status
         let correction: [String]  // kept, struck, inserted; [] when the next sync changes nothing on the shelf
         let edition: String
@@ -95,6 +95,7 @@ struct BooksAnswer: Codable {
 
     struct Details: Codable {
         struct Candidate: Codable {
+            let id: Int  // the book on Hardcover
             let title: String
             let author: String
         }
@@ -128,9 +129,16 @@ struct BooksAnswer: Codable {
     let schema: Int
     let live: Bool
     let user: String
-    let books: [Book]
+    var books: [Book]
     let sorts: [Sort]
     let words: Words
+}
+
+/// `book ID ... --json`: the book after a change, and the counts the overview shows.
+struct BookAnswer: Codable {
+    let schema: Int
+    let book: BooksAnswer.Book
+    let books: StatusAnswer.Books
 }
 
 struct HistoryAnswer: Codable {

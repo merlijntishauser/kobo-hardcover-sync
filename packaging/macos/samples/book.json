@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "book": {
+    "id": "file:///mnt/onboard/Saramago/Blindness.kepub.epub",
+    "title": "Blindness",
+    "author": "José Saramago",
+    "cover": "/Users/sam/Library/Application Support/kobo-hardcover-sync/covers/1f0c7e2a-9b51-4a8e-a1c2-3d4e5f6a7b8c.jpg",
+    "new": true,
+    "percent": 37,
+    "finished": false,
+    "facts": [
+      "37%",
+      "last read 2 Oct 2026",
+      "4 h 10 min read"
+    ],
+    "last_read": "2026-10-02T21:14:00Z",
+    "sync": "auto",
+    "syncs": true,
+    "state": "kobo",
+    "state_date": "",
+    "status": {
+      "kind": "next",
+      "text": "Next sync: progress 35% → 37%"
+    },
+    "correction": [
+      "Currently reading,",
+      "35%",
+      "37%"
+    ],
+    "edition": "Blindness, Ebook",
+    "stet": false,
+    "filters": [
+      "all",
+      "reading",
+      "new",
+      "on"
+    ],
+    "details": {
+      "kobo": [
+        [
+          "Sync",
+          "Auto"
+        ],
+        [
+          "State",
+          "As on the Kobo"
+        ],
+        [
+          "Kobo says",
+          "Reading, 37%"
+        ],
+        [
+          "Last read",
+          "2 Oct 2026"
+        ],
+        [
+          "Read time",
+          "4 h 10 min"
+        ],
+        [
+          "ISBN",
+          "9780156007757"
+        ]
+      ],
+      "hardcover": [
+        [
+          "Book",
+          "Blindness (matched by ISBN)"
+        ],
+        [
+          "Edition",
+          "Ebook, 326 pages"
+        ],
+        [
+          "On the shelf as",
+          "Currently reading, 35%"
+        ],
+        [
+          "Last sync",
+          "1 Oct 2026, 08:00"
+        ]
+      ],
+      "link": "https://hardcover.app/id/book/12345",
+      "candidates": [
+        {
+          "id": 12345,
+          "title": "Blindness",
+          "author": "José Saramago"
+        }
+      ],
+      "on_shelf": true
+    }
+  },
+  "books": {
+    "total": 312,
+    "on": 41,
+    "next": 8,
+    "needs_match": 2,
+    "live": true,
+    "user": "sam",
+    "collection": "On Hardcover"
+  }
+}

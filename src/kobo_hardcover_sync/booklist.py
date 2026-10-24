@@ -81,6 +81,16 @@ def filter_counts(con, reader, q):
     return out
 
 
+def filters_of(con, reader, cid: str) -> list[str]:
+    """The filters a book is in."""
+    out = []
+    for f in FILTERS:
+        w, args = where(reader, "", f)
+        if con.execute(f"select 1 from reader_book where {w} and content_id=?", [*args, cid]).fetchone():
+            out.append(f)
+    return out
+
+
 def ids(con, reader, q, f) -> list[str]:
     """Every book a search and filter match, shown or not: what Set all changes."""
     w, args = where(reader, q, f)
@@ -192,10 +202,43 @@ def details(r) -> dict:
         "kobo": [[k, v] for k, v in kobo if v],
         "hardcover": [[k, v] for k, v in hc if v],
         "link": f"https://hardcover.app/id/book/{int(r['hc_book_id'])}" if r["hc_book_id"] else "",
-        "candidates": [{"title": c["title"], "author": (c.get("authors") or [""])[0]} for c in json.loads(r["hc_candidates"] or "[]")]
+        "candidates": [
+            {"id": int(c["book_id"]), "title": c["title"], "author": (c.get("authors") or [""])[0]}
+            for c in json.loads(r["hc_candidates"] or "[]")
+        ]
         if waiting
         else [],
         "on_shelf": bool(sent.get("user_book_id")),
+    }
+
+
+def entry(r, live: bool, quiet: dict, filters: list[str], cover: str = "") -> dict:
+    """A book as the tool's JSON has it (`books --json`, `book --json`):
+    its row, its Details, and the filters it is in. `cover`: its
+    thumbnail's file, when there is one."""
+    pct, done, meta = progress(r)
+    kind, words = hc_status(r, live, quiet)
+    words_of_edition, kept = edition(r)
+    return {
+        "id": r["content_id"],
+        "title": r["title"] or "",
+        "author": r["author"] or "",
+        "cover": cover,
+        "new": not r["history"],
+        "percent": pct,
+        "finished": done,
+        "facts": meta,
+        "last_read": r["last_read"] or "",
+        "sync": r["mode"],
+        "syncs": state.syncs(r),
+        "state": r["state"] or "kobo",
+        "state_date": r["state_date"] or "",
+        "status": {"kind": kind, "text": words},
+        "correction": list(correction(r) or []) if kind == "next" else [],
+        "edition": words_of_edition,
+        "stet": kept,
+        "filters": filters,
+        "details": details(r),
     }
 
 

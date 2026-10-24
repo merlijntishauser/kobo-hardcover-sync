@@ -22,8 +22,9 @@ minor version may change behaviour; the notes will say so.
 - In local mode the Mac app's *Books* is the list of books itself, as
   the page has it: covers, titles, Sync, State and what the next sync
   does on Hardcover, in the page's marks, with search, filters, sorts
-  and each book's Details. Changes are still made on the page: *Change
-  on the Page* opens it at the book.
+  and each book's Details. Sync, State and its date, a match (from the
+  books it could be, or a search on Hardcover), removing a book from
+  Hardcover and *Set all* are changed there too, without the page.
 
 ### Added
 
@@ -31,6 +32,11 @@ minor version may change behaviour; the notes will say so.
   what the next sync does with it; `--covers` fetches the covers this
   computer does not have yet, `--json` is for the Mac app.
 - `kobo-hardcover-sync open --book ID` opens the page at that book.
+- `kobo-hardcover-sync book ID` shows one book and changes what the
+  page changes: `--sync`, `--state` (with `--date`), `--search` and
+  `--pick` for a match, `--remove` from Hardcover. `books --sync MODE
+  --filter F` is the page's Set all; `--expect N` changes nothing unless
+  that is still N books.
 
 ### Fixed
 

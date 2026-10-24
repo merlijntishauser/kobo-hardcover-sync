@@ -71,6 +71,6 @@ def test_details_in_words_say_what_the_pages_details_say(tmp_path):
         assert html.unescape(words) in html.unescape(app.edition_line(r)) and kept == (r["content_id"] == "old")
     assert booklist.edition(st.execute("select * from reader_book where content_id='old'").fetchone()) == ("Old, the book, Ebook", True)
     fam = booklist.details(st.execute("select * from reader_book where content_id='fam'").fetchone())
-    assert fam["candidates"] == [{"title": "Family", "author": "B"}] and not fam["on_shelf"] and fam["link"] == ""
+    assert fam["candidates"] == [{"id": 9, "title": "Family", "author": "B"}] and not fam["on_shelf"] and fam["link"] == ""
     old = booklist.details(st.execute("select * from reader_book where content_id='old'").fetchone())
     assert old["on_shelf"] and old["link"] == "https://hardcover.app/id/book/1"

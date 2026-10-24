@@ -56,6 +56,16 @@ kobo-hardcover-sync books [--json] [--covers]
     book with its row and its Details, the filters it is in, and the
     page's words for them.
 
+kobo-hardcover-sync book ID [--sync MODE] [--state STATE [--date DATE]] [--search TEXT] [--pick BOOK] [--remove] [--json]
+    Local mode: one book, and the changes the page makes to it: whether it
+    syncs (auto, on, off), its State, a match (--search looks on
+    Hardcover for the books it could be, --pick takes one of them), and
+    --remove, which takes it off your Hardcover shelf now. With --json it
+    answers the book as books --json has it. `books --sync MODE --filter
+    F [--search TEXT] [--expect N]` sets Sync for every book of a filter,
+    as Set all does on the page; with --expect, only when that is still N
+    books.
+
 kobo-hardcover-sync open [--book ID]
     Open the page (local mode: it is started for the occasion). --book
     opens it at that book.
@@ -128,6 +138,7 @@ COMMANDS = (
             ("history", "The last syncs, and what each did"),
             ("settings", "This computer's settings; --set NAME=VALUE changes one"),
             ("books", "Your books, and what the next sync does with each"),
+            ("book", "One book, and changing how it syncs"),
             ("open", "Open the page with your books"),
             ("export", "Your reading as JSON, for a database of your own"),
             ("webhook", "POST each sync to an address of your own"),
@@ -209,6 +220,19 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     bks = sub.add_parser("books", help="local mode: your books, and what the next sync does with each")
     bks.add_argument("--json", action="store_true", help="as JSON")
     bks.add_argument("--covers", action="store_true", help="first fetch the covers not on this computer yet")
+    bks.add_argument("--sync", choices=state.MODES, help="set Sync for every book of --filter and --search, as Set all on the page")
+    bks.add_argument("--filter", default="all", help="with --sync: one of the page's filters (all, on, needs_match, ...)")
+    bks.add_argument("--search", default="", metavar="TEXT", help="with --sync: only the books whose title or author holds TEXT")
+    bks.add_argument("--expect", type=int, metavar="N", help="with --sync: change nothing unless that is N books")
+    bk = sub.add_parser("book", help="local mode: one book, and changing how it syncs")
+    bk.add_argument("id", help="the book's id, as books --json gives it")
+    bk.add_argument("--sync", choices=state.MODES, help="whether it syncs")
+    bk.add_argument("--state", choices=state.STATES, help="its State; the Kobo's own is kobo")
+    bk.add_argument("--date", default="", metavar="YYYY-MM-DD", help="with --state finished or rereading: since when")
+    bk.add_argument("--search", default="", metavar="TEXT", help="look on Hardcover for the books it could be")
+    bk.add_argument("--pick", default="", metavar="BOOK", help="its match: one of the books it could be, by its Hardcover id")
+    bk.add_argument("--remove", action="store_true", help="take it off your Hardcover shelf, and stop syncing it")
+    bk.add_argument("--json", action="store_true", help="as JSON")
     opn = sub.add_parser("open", help="open the page")
     opn.add_argument("--book", default="", metavar="ID", help="at this book (its id in books --json)")
     exp = sub.add_parser("export", help="your reading as JSON, for a database or dashboard of your own")
@@ -264,6 +288,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
         "settings": _settings,
         "update": _update,
         "books": _books_list,
+        "book": _book,
         "open": _open,
         "uninstall": _uninstall,
         "token": _token,
@@ -852,68 +877,40 @@ def _open(a, computer) -> None:
 
 def _books_list(a, computer) -> None:
     from . import booklist
-    from .computer import config
-    from .engine.plan import quiet_for
-    from .web import covers
     from .web.strings import T
 
-    cfg = config.load()
-    if cfg.mode != "local":
-        sys.exit(
-            f"kobo-hardcover-sync: your books are on {cfg.server}: open the page there."
-            if cfg.server
-            else "kobo-hardcover-sync: not set up yet: run setup first."
-        )
-    folder = config.state_dir()
-    path = os.path.join(folder, "state.db")
-    con = state.connect(path) if os.path.exists(path) else None
+    folder, con = _local_books()
+    if a.sync:  # Set all: every book of a filter and search, as on the page
+        if con is None:
+            sys.exit("kobo-hardcover-sync: no books yet: nothing was read from a Kobo so far.")
+        if a.filter not in booklist.FILTERS:
+            sys.exit(f"kobo-hardcover-sync: --filter is one of {', '.join(booklist.FILTERS)}, not '{a.filter}'.")
+        ids = booklist.ids(con, "me", a.search, a.filter)
+        if a.expect is not None and a.expect != len(ids):  # the list moved since it was counted: nothing changes
+            con.close()
+            sys.exit(f"kobo-hardcover-sync: the list holds {plural(len(ids), 'book')} now, not {a.expect}: nothing was changed.")
+        state.set_mode(con, "me", ids, a.sync)
     rows = booklist.query_rows(con, "me", "", "all", "last_read") if con else []
     if a.covers:  # the thumbnails the page and the app show; one that Kobo does not have is asked for again in a week
+        from .web import covers
+
         for r in rows:
             covers.cover_path(folder, r["image_id"])
-    summary = booklist.summary(con, "me") if con else {"live": False, "user": ""}
-    quiet = quiet_for(con, "me") if con else {}
+    live = bool(con and booklist.summary(con, "me")["live"])
+    quiet = _quiet(con)
     if not a.json:
         screen = term.Screen.of()
         if not rows:
             screen.say("No books yet: nothing was read from a Kobo so far.")
         for r in rows:
             pct, done, _ = booklist.progress(r)
-            screen.book(r["title"] or "", pct, done, booklist.hc_status(r, summary["live"], quiet)[1])
+            screen.book(r["title"] or "", pct, done, booklist.hc_status(r, live, quiet)[1])
         if con:
             con.close()
         return
     member = {f: set(booklist.ids(con, "me", "", f)) if con else set() for f in booklist.FILTERS}
     place = {r["content_id"]: n for n, r in enumerate(rows)}
-    books = []
-    for r in rows:
-        pct, done, meta = booklist.progress(r)
-        kind, words = booklist.hc_status(r, summary["live"], quiet)
-        edition, kept = booklist.edition(r)
-        thumb = os.path.join(folder, "covers", f"{r['image_id']}.jpg") if r["image_id"] and covers.ID_OK.match(r["image_id"]) else ""
-        books.append(
-            {
-                "id": r["content_id"],
-                "title": r["title"] or "",
-                "author": r["author"] or "",
-                "cover": thumb if thumb and os.path.exists(thumb) else "",
-                "new": not r["history"],
-                "percent": pct,
-                "finished": done,
-                "facts": meta,
-                "last_read": r["last_read"] or "",
-                "sync": r["mode"],
-                "syncs": state.syncs(r),
-                "state": r["state"] or "kobo",
-                "state_date": r["state_date"] or "",
-                "status": {"kind": kind, "text": words},
-                "correction": list(booklist.correction(r) or []) if kind == "next" else [],
-                "edition": edition,
-                "stet": kept,
-                "filters": [f for f in booklist.FILTERS if r["content_id"] in member[f]],
-                "details": booklist.details(r),
-            }
-        )
+    books = [booklist.entry(r, live, quiet, [f for f in booklist.FILTERS if r["content_id"] in member[f]], _cover(folder, r)) for r in rows]
     sorts = [  # each sort of the page, with its order as places in books
         {
             "key": k,
@@ -922,11 +919,12 @@ def _books_list(a, computer) -> None:
         }
         for k in booklist.SORTS
     ]
+    summary = booklist.summary(con, "me") if con else {"user": ""}
     if con:
         con.close()
     _json(
         {
-            "live": summary["live"],
+            "live": live,
             "user": summary["user"],
             "books": books,
             "sorts": sorts,
@@ -939,6 +937,92 @@ def _books_list(a, computer) -> None:
             },
         }
     )
+
+
+def _book(a, computer) -> None:
+    """One book: what it is, and the changes the page makes to it."""
+    from . import booklist
+    from .computer import page
+    from .engine import hardcover, job
+
+    folder, con = _local_books()
+    row = con and con.execute("select * from reader_book where reader='me' and content_id=?", (a.id,)).fetchone()
+    if not row:
+        sys.exit(f"kobo-hardcover-sync: no book with the id '{a.id}': `books --json` gives each book's id.")
+
+    def client(**kw):
+        return hardcover.Client(page.KeptToken(computer).usable(), **kw)
+
+    try:
+        if a.search:  # the books it could be, while it has no match
+            if row["hc_book_id"]:
+                sys.exit("kobo-hardcover-sync: this book has its match already.")
+            found = hardcover.shown(client(tries=1).search(a.search))
+            con.execute(
+                "update book set hc_how=?, hc_candidates=? where reader='me' and content_id=? and hc_book_id is null",
+                ("uncertain" if found else "none", json.dumps(found), a.id),
+            )
+            con.commit()
+        if a.pick:
+            row = con.execute("select * from reader_book where reader='me' and content_id=?", (a.id,)).fetchone()
+            chosen = [c for c in json.loads(row["hc_candidates"] or "[]") if str(c["book_id"]) == a.pick]
+            if not chosen:
+                sys.exit(f"kobo-hardcover-sync: {a.pick} is not one of the books it could be (`book ID --json`, details, candidates).")
+            job.pick(con, "me", a.id, int(chosen[0]["book_id"]), chosen[0]["title"], chosen[0].get("pages") or None)
+        if a.sync:
+            state.set_mode(con, "me", [a.id], a.sync)
+        if a.state:
+            state.set_state(con, "me", a.id, a.state, a.date if a.state in ("finished", "rereading") else "")
+        if a.remove:  # off the Hardcover shelf now, and no longer synced
+            job.remove(con, "me", a.id, client())
+    except hardcover.HardcoverError as ex:
+        con.close()
+        sys.exit(f"kobo-hardcover-sync: {ex}")
+    except ValueError as ex:  # a date that is not one
+        con.close()
+        sys.exit(f"kobo-hardcover-sync: {ex}")
+    row = con.execute("select * from reader_book where reader='me' and content_id=?", (a.id,)).fetchone()
+    summary = booklist.summary(con, "me")
+    book = booklist.entry(row, summary["live"], _quiet(con), booklist.filters_of(con, "me", a.id), _cover(folder, row))
+    con.close()
+    if a.json:
+        return _json({"book": book, "books": summary})
+    screen = term.Screen.of()
+    screen.book(book["title"], book["percent"], book["finished"], book["status"]["text"])
+    for label, value in book["details"]["kobo"] + book["details"]["hardcover"]:
+        screen.say(f"{label}: {value}", indent=2)
+
+
+def _local_books():
+    """Local mode's folder and its database (None before a Kobo was read); refused elsewhere."""
+    from .computer import config
+
+    cfg = config.load()
+    if cfg.mode != "local":
+        sys.exit(
+            f"kobo-hardcover-sync: your books are on {cfg.server}: open the page there."
+            if cfg.server
+            else "kobo-hardcover-sync: not set up yet: run setup first."
+        )
+    folder = config.state_dir()
+    path = os.path.join(folder, "state.db")
+    return folder, state.connect(path) if os.path.exists(path) else None
+
+
+def _quiet(con) -> dict:
+    from .engine.plan import quiet_for
+
+    return quiet_for(con, "me") if con else {}
+
+
+def _cover(folder: str, r) -> str:
+    """The book's cached thumbnail (web/covers.py), or "" while there is none."""
+    from .web import covers
+
+    if not r["image_id"] or not covers.ID_OK.match(r["image_id"]):
+        return ""
+    path = os.path.join(folder, "covers", f"{r['image_id']}.jpg")
+    return path if os.path.exists(path) else ""
 
 
 def _export(a) -> None:

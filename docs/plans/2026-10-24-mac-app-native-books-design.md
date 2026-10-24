@@ -146,6 +146,12 @@ Each step ships on its own:
 ## Open
 
 - A change starts the tool, about 0.3 s each. Measure it in step 3; only
-  then decide whether the app keeps one tool process running.
+  then decide whether the app keeps one tool process running. *Measured
+  in step 3: about 0.06 s per change, ten in a row in 0.64 s, and 0.09 s
+  for the whole list of 448 books, on an M-series Mac. The app starts
+  the tool per change.*
+- Details came with the list (`books --json`) instead of from
+  `book <id> --json`, so that opening one starts nothing; `book ID
+  --json` answers only after a change.
 - The chain in a narrow window: it stacks vertically, or folds into a
   short list. Decide when it is built and looked at.

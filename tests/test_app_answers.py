@@ -186,6 +186,73 @@ def test_books_answers_every_book_with_its_row_and_details(home, capsys, monkeyp
         cli.main(["books", "--json"], computer=computer)
 
 
+def test_book_changes_what_the_page_changes_and_answers_the_book(home, capsys, monkeypatch):
+    from kobo_hardcover_sync.computer.platform import HARDCOVER
+    from kobo_hardcover_sync.engine import hardcover
+    from tests.test_hardcover import FakeHC
+    from tests.test_local import TOKEN
+
+    computer = FakeComputer(home / "Volumes")
+    config.save(LOCAL)
+    kobo(home)
+    runner.sync(computer, LOCAL)
+    one, two = BOOKS[:2]
+    hits = [{"book_id": 77, "title": "Made-up Book 0", "pages": 210, "authors": ["Someone"], "also": ["x"]}]
+    hc = FakeHC(search={"Made-up": hits})
+    real = hardcover.Client
+
+    def client(token, **kw):
+        real(token)  # refuses no token as Hardcover's client does
+        return hc
+
+    monkeypatch.setattr(hardcover, "Client", client)
+
+    found = answer(capsys, "book", one, "--sync", "on", "--json", computer=computer)
+    same_shape(found, sample("book.json"))
+    assert found["book"]["syncs"] and "on" in found["book"]["filters"] and found["books"]["on"] == 1
+
+    changed = answer(capsys, "book", one, "--state", "finished", "--date", "2026-10-01", "--json", computer=computer)["book"]
+    assert (changed["state"], changed["state_date"]) == ("finished", "2026-10-01")
+    with pytest.raises(SystemExit, match="date must be YYYY-MM-DD"):
+        cli.main(["book", one, "--state", "finished", "--date", "1 Oct"], computer=computer)
+    assert answer(capsys, "book", one, "--state", "want", "--date", "2026-10-01", "--json", computer=computer)["book"]["state_date"] == ""
+
+    # A match: looked for on Hardcover, then one of what it found is taken.
+    with pytest.raises(SystemExit, match="Not connected to Hardcover"):
+        cli.main(["book", one, "--search", "Made-up Book"], computer=computer)
+    computer.set_secret(HARDCOVER, TOKEN)
+    looked = answer(capsys, "book", one, "--search", "Made-up Book", "--json", computer=computer)["book"]
+    assert looked["details"]["candidates"] == [{"id": 77, "title": "Made-up Book 0", "author": "Someone"}]
+    with pytest.raises(SystemExit, match="not one of the books it could be"):
+        cli.main(["book", one, "--pick", "78"], computer=computer)
+    picked = answer(capsys, "book", one, "--pick", "77", "--json", computer=computer)["book"]
+    assert picked["details"]["link"] == "https://hardcover.app/id/book/77" and picked["details"]["candidates"] == []
+    with pytest.raises(SystemExit, match="has its match already"):
+        cli.main(["book", one, "--search", "Made-up"], computer=computer)
+
+    # Off the shelf: Hardcover is asked to delete it, and the book stops syncing.
+    con = state.connect(str(home / "state" / "state.db"))
+    con.execute("update book set last_sent=? where content_id=?", (json.dumps({"user_book_id": 501, "status": "read"}), one))
+    con.commit()
+    gone = answer(capsys, "book", one, "--remove", "--json", computer=computer)["book"]
+    assert ("delete_ub", 501) in hc.calls and not gone["syncs"] and not gone["details"]["on_shelf"]
+
+    with pytest.raises(SystemExit, match="no book with the id"):
+        cli.main(["book", "nothing-like-it", "--json"], computer=computer)
+
+    # Set all, through the page's filter and search; only while the list holds what was counted.
+    with pytest.raises(SystemExit, match="holds 9 books now, not 8: nothing was changed"):
+        cli.main(["books", "--sync", "on", "--filter", "all", "--expect", "8"], computer=computer)
+    assert sum(b["syncs"] for b in answer(capsys, "books", "--json", computer=computer)["books"]) == 0
+    every = answer(capsys, "books", "--sync", "on", "--filter", "all", "--expect", "9", "--json", computer=computer)["books"]
+    assert all(b["syncs"] for b in every)
+    answer(capsys, "books", "--sync", "off", "--filter", "all", "--search", "Made-up Book 1", "--json", computer=computer)
+    off = {b["id"] for b in answer(capsys, "books", "--json", computer=computer)["books"] if not b["syncs"]}
+    assert two in off and one not in off
+    with pytest.raises(SystemExit, match="--filter is one of"):
+        cli.main(["books", "--sync", "on", "--filter", "mine"], computer=computer)
+
+
 def test_open_at_a_book_lands_on_its_row(home, monkeypatch):
     from kobo_hardcover_sync.computer import page
 
