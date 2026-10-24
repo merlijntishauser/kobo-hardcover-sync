@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "version": "0.13.0",
+  "mode": "local",
+  "server": "",
+  "folder": "/Users/sam/Library/Application Support/kobo-hardcover-sync",
+  "kobo": null,
+  "last_sync": {"at": "2026-10-24T10:22:01+02:00", "trigger": "mount", "ok": true, "title": "Kobo synced", "message": "3 sent to Hardcover."},
+  "syncing": "",
+  "books": {"total": 312, "on": 41, "next": 8, "needs_match": 2, "live": true, "user": "sam", "collection": "On Hardcover"}
+}

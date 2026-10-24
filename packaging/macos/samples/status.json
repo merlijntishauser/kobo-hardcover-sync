@@ -6,5 +6,6 @@
   "folder": "/Users/sam/Library/Application Support/kobo-hardcover-sync",
   "kobo": "/Volumes/KOBOeReader",
   "last_sync": {"at": "2026-10-24T10:22:01+02:00", "trigger": "mount", "ok": true, "title": "Kobo synced", "message": "11 books updated."},
-  "syncing": ""
+  "syncing": "",
+  "books": null
 }

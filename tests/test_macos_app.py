@@ -12,7 +12,7 @@ import plistlib
 
 import pytest
 
-from kobo_hardcover_sync import cli
+from kobo_hardcover_sync import cli, doctor
 from kobo_hardcover_sync.computer import config, macos, runner, update
 from tests import said
 from tests.test_app_answers import same_shape, sample
@@ -243,6 +243,18 @@ def test_the_page_shows_the_version_and_the_setting_in_the_app(local, home, the_
 
 
 # ---------- what the wrapper and the tool agree on ----------
+def test_the_chain_is_built_from_doctors_groups_and_the_steps_of_a_sync():
+    chain = (MACOS / "Chain.swift").read_text()
+    for group in (doctor.COMPUTER, doctor.KOBO, doctor.HARDCOVER, "Also"):
+        assert f'"{group}"' in chain, group
+    checks = {what for whats in doctor.GROUPS.values() for what in whats}
+    for what in ("Server", "Trigger", "Kobo", "Hardcover"):  # a link of its own, or the check that says a link is there
+        assert what in checks and f'"{what}"' in chain, what
+    steps = (ROOT / "src" / "kobo_hardcover_sync" / "computer" / "runner.py").read_text()
+    for step in ("Kobo", "Collection", "Upload", "Hardcover", "Matches"):  # where linkOf puts them
+        assert f'"{step}"' in steps and f'"{step}"' in chain, step
+
+
 def test_the_wrapper_and_the_tool_use_the_same_names():
     swift = "".join(p.read_text() for p in sorted(MACOS.glob("*.swift")))
     with open(MACOS / "Info.plist", "rb") as fh:

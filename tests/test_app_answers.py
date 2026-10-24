@@ -14,7 +14,10 @@ import pytest
 from kobo_hardcover_sync import cli
 from kobo_hardcover_sync.computer import config, history, runner
 from kobo_hardcover_sync.computer.platform import UPLOAD
+from kobo_hardcover_sync.engine import state
+from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer, plug_in, register, server  # noqa: F401 (the fixture)
+from tests.test_local import LOCAL, kobo
 
 SAMPLES = pathlib.Path(__file__).resolve().parents[1] / "packaging" / "macos" / "samples"
 
@@ -124,6 +127,22 @@ def test_status_says_when_a_sync_started_elsewhere_is_running(mac, home, capsys)
         assert answer(capsys, "status", "--json", computer=mac)["syncing"] == "hand"
         cli.main(["status"], computer=mac)
         assert "A sync is running now" in capsys.readouterr().out
+
+
+def test_status_in_local_mode_counts_the_books_for_the_overview(home, capsys):
+    computer = FakeComputer(home / "Volumes")
+    config.save(LOCAL)
+    assert answer(capsys, "status", "--json", computer=computer)["books"] is None  # nothing read from a Kobo yet
+    kobo(home)
+    runner.sync(computer, LOCAL)
+    found = answer(capsys, "status", "--json", computer=computer)
+    same_shape(found, sample("status-local.json"))
+    assert found["books"] == {"total": 9, "on": 0, "next": 0, "needs_match": 0, "live": False, "user": "", "collection": ""}
+    con = state.connect(str(home / "state" / "state.db"))
+    state.set_mode(con, "me", BOOKS[:3], "on")
+    con.close()
+    books = answer(capsys, "status", "--json", computer=computer)["books"]
+    assert (books["on"], books["next"]) == (3, 3)  # not matched yet: the next sync looks them up
 
 
 def test_doctor_answers_with_its_checks_and_says_when_something_stops_a_sync(mac, home, capsys):

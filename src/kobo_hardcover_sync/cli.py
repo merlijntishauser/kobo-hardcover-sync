@@ -622,6 +622,21 @@ def _last_sync() -> dict | None:
     return {"at": at, "trigger": "", "ok": True, "title": lines[0], "message": " ".join(lines[1:-1])}
 
 
+def _book_counts() -> dict | None:
+    """The books in counts (booklist.summary), before the first sync None."""
+    from . import booklist
+    from .computer import config
+
+    path = os.path.join(config.state_dir(), "state.db")
+    if not os.path.exists(path):
+        return None
+    con = state.connect(path)
+    try:
+        return booklist.summary(con, "me")
+    finally:
+        con.close()
+
+
 _STARTED = {"mount": "plugging in the Kobo", "app": "Sync now in the app", "hand": "hand"}
 
 
@@ -641,6 +656,7 @@ def _status(a, computer) -> None:
                 "kobo": computer.find_kobo(),
                 "last_sync": _last_sync(),
                 "syncing": runner.running(),
+                "books": _book_counts() if cfg.mode == "local" else None,  # in server mode they are on the server
             }
         )
     rows = []

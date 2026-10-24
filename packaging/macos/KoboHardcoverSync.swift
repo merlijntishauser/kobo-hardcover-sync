@@ -241,8 +241,8 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         DispatchQueue.main.async { self.openedByHand() }
     }
 
-    /// The preview's pictures of its windows (KHS_SNAPSHOT=folder): the
-    /// window and each Settings tab as a PNG, then quit. For a look from a
+    /// The preview's pictures of its windows (KHS_SNAPSHOT=folder): each
+    /// pane of the window and each Settings tab as a PNG, then quit. For a look from a
     /// session that cannot see the screen.
     func snapshots(into folder: URL) {
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -250,7 +250,16 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         showSettings()
         settingsModel?.checkNow()  // so the App tab shows an answer
         let tabs = (settings?.contentViewController as? NSTabViewController)?.tabViewItems.count ?? 0
-        var steps: [() -> Void] = [{ self.window.map { picture($0, folder.appendingPathComponent("window.png")) } }]
+        var steps: [() -> Void] = []
+        for pane in Pane.allCases {
+            steps.append { self.model?.pane = pane }
+            steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-\(pane.rawValue.lowercased()).png")) } }
+        }
+        steps.append {  // a sync on the chain: the preview's plays its sample steps
+            self.model?.pane = .overview
+            self.model?.syncNow()
+        }
+        steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-syncing.png")) } }
         for n in 0..<tabs {
             steps.append { (self.settings?.contentViewController as? NSTabViewController)?.selectedTabViewItemIndex = n }
             steps.append { self.settings.map { picture($0, folder.appendingPathComponent("settings-\(n + 1).png")) } }
@@ -317,14 +326,16 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             self.model?.refresh()
         }
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 620, height: 720),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+            contentRect: NSRect(x: 0, y: 0, width: 880, height: 640),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
         window.title = isPreview ? "\(name) (preview)" : name
+        window.toolbar = NSToolbar()  // the sidebar reaches up under the title, as in a Mac app
+        window.toolbarStyle = .unified
         window.contentView = NSHostingView(rootView: MainView(model: model))
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.center()
-        window.setFrameAutosaveName("Main")
+        window.setFrameAutosaveName("Window")  // not "Main": that one kept the narrower window before the sidebar
         self.window = window
         self.model = model
         begin()  // the window keeps the app until it is closed

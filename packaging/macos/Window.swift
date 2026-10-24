@@ -1,8 +1,8 @@
-// The app's window (docs/plans/2026-10-24-mac-app-window-design.md): this
-// Mac's machinery, not the books. One line that answers "is it ready",
-// then Health (`doctor`), a sync as it runs, and History. Everything comes
-// from the tool, as JSON (Model.swift); what only macOS knows (whether
-// notifications are on) is added here.
+// The app's window (docs/plans/2026-10-24-mac-app-native-books-design.md):
+// one line that answers "is it ready", above a sidebar of Overview (the
+// chain, Chain.swift), Books and History. Everything comes from the tool,
+// as JSON (Model.swift); what only macOS knows (whether notifications are
+// on) is added here.
 
 import AppKit
 import ServiceManagement
@@ -23,6 +23,7 @@ final class WindowModel: ObservableObject {
     @Published var notifications = UNAuthorizationStatus.notDetermined
     @Published var previews = UNShowPreviewsSetting.always
     @Published var newer: String?
+    @Published var pane: Pane? = .overview
 
     let setUp: () -> Void
     private var foldSince: String?  // the newest sync in History when Sync now was clicked
@@ -192,22 +193,52 @@ func answer<T: Codable>(_ type: T.Type, _ args: [String]) -> Result<T, NoAnswer>
 }
 
 // ---------- the window ----------
+/// What the sidebar holds.
+enum Pane: String, CaseIterable, Identifiable {
+    case overview = "Overview", books = "Books", history = "History"
+
+    var id: String { rawValue }
+    var symbol: String {
+        switch self {
+        case .overview: return "link"
+        case .books: return "books.vertical"
+        case .history: return "clock"
+        }
+    }
+}
+
 struct MainView: View {
     @ObservedObject var model: WindowModel
 
     var body: some View {
-        Form {
-            Section { TopLine(model: model) }
-            if let broken = model.broken {
-                Section { Row(state: "fail", what: "The tool", found: broken) }
-            } else {
-                if model.syncing || model.outcome != nil { SyncSection(model: model) }
-                HealthSections(model: model)
-                HistorySection(model: model)
+        NavigationSplitView {
+            List(selection: $model.pane) {
+                ForEach(Pane.allCases) { pane in
+                    Label(pane.rawValue, systemImage: pane.symbol)
+                        .badge(pane == .books ? model.status?.books?.needsMatch ?? 0 : 0)  // books that wait for a match
+                        .tag(pane)
+                }
+            }
+            .navigationSplitViewColumnWidth(min: 150, ideal: 170, max: 220)
+        } detail: {
+            VStack(spacing: 0) {
+                TopLine(model: model).padding(.horizontal, 20).padding(.vertical, 12)
+                Divider()
+                Form {
+                    if let broken = model.broken {
+                        Section { Row(state: "fail", what: "The tool", found: broken) }
+                    } else {
+                        switch model.pane ?? .overview {
+                        case .overview: OverviewSections(model: model)
+                        case .books: BooksSections(model: model)
+                        case .history: HistorySection(model: model)
+                        }
+                    }
+                }
+                .formStyle(.grouped)
             }
         }
-        .formStyle(.grouped)
-        .frame(minWidth: 520, minHeight: 480)
+        .frame(minWidth: 700, minHeight: 520)
     }
 }
 
@@ -220,11 +251,10 @@ struct TopLine: View {
                 if busy {
                     ProgressView().controlSize(.small)
                 } else {
-                    Image(systemName: "circle.fill").font(.system(size: 11)).foregroundStyle(readiness.color)
+                    Mark(state: readiness.state, size: 22)
                 }
             }
-            .frame(width: 16)
-            .accessibilityHidden(true)
+            .frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
                 Text(busy ? "Syncing…" : readiness.sentence).font(.title3.weight(.semibold))
                 Text(subtitle).foregroundStyle(.secondary).textSelection(.enabled)
@@ -234,23 +264,22 @@ struct TopLine: View {
                 .disabled(model.status?.mode.isEmpty ?? true)
             Button("Sync now") { model.syncNow() }
                 .buttonStyle(.borderedProminent)
+                .tint(Pencil.fill)  // red fills only what a sync sends
                 .keyboardShortcut("r", modifiers: .command)
                 .disabled(busy || (model.status?.mode.isEmpty ?? true))
         }
-        .padding(.vertical, 4)
     }
 
     private var busy: Bool { model.syncing || !model.elsewhere.isEmpty }
 
-    private var readiness: (sentence: String, color: Color) {
-        guard let status = model.status else { return ("Kobo Hardcover Sync", .secondary) }
-        if status.mode.isEmpty { return ("Not set up yet", .orange) }
-        guard let checks = model.checks else { return ("Checking…", .secondary) }
-        if let fail = checks.first(where: { $0.state == "fail" }) { return ("Needs attention: \(fail.what)", .red) }
-        if checks.contains(where: { $0.state == "warn" }) || model.notifications == .denied {
-            return ("Ready, with a warning", .orange)
-        }
-        return ("Ready for the Kobo", .green)
+    private var readiness: (sentence: String, state: String) {
+        guard let status = model.status else { return ("Kobo Hardcover Sync", "note") }
+        if status.mode.isEmpty { return ("Not set up yet", "warn") }
+        guard model.checks != nil else { return ("Checking…", "note") }
+        let links = model.links
+        if let broken = links.first(where: { $0.state == "fail" }) { return ("Needs attention: \(broken.id)", "fail") }
+        if links.contains(where: { $0.state == "warn" }) { return ("Ready, with a warning", "warn") }
+        return ("Ready for the Kobo", "ok")
     }
 
     private var subtitle: String {
@@ -261,12 +290,78 @@ struct TopLine: View {
         var parts: [String] = []
         switch status.mode {
         case "server": parts.append("With the server \(URL(string: status.server)?.host ?? status.server)")
-        case "local": parts.append("On this computer")
+        case "local": parts.append("On this Mac")
         default: parts.append("Choose where your reading goes")
         }
         if let last = status.lastSync, let date = last.date { parts.append("last sync \(spoken(date).lowercased())") }
         if status.kobo != nil { parts.append("Kobo plugged in") }
         return parts.joined(separator: " · ")
+    }
+}
+
+/// The chain, a sync as it runs, and the checks of the link that is open:
+/// by itself the first that needs the reader, else the one clicked.
+struct OverviewSections: View {
+    @ObservedObject var model: WindowModel
+    @State private var chosen: String?  // nil: the first link with a problem; "": none
+
+    var body: some View {
+        if let version = model.newer {
+            Section {
+                Row(state: "note", what: "Version \(version) is out", found: "This is \(bundleVersion()).") {
+                    Button("Get it") { if let link = URL(string: releases + version) { NSWorkspace.shared.open(link) } }
+                }
+            }
+        }
+        Section {
+            ChainView(model: model, open: $chosen)
+        } footer: {
+            HStack {
+                Text(model.checks == nil ? "Checking everything a sync depends on…" : model.summary).foregroundStyle(.secondary)
+                Spacer()
+                Button("Check again") { model.refresh() }.disabled(model.checks == nil)
+            }
+        }
+        if model.syncing || model.outcome != nil { SyncSection(model: model) }
+        if let link = model.links.first(where: { $0.id == open }), model.checks != nil {
+            Section(link.id) {
+                ForEach(link.checks) { check in
+                    Row(state: check.state, what: check.what, found: check.found, todo: check.todo) { fix(check) }
+                }
+            }
+        }
+    }
+
+    private var open: String? {
+        if let chosen { return chosen.isEmpty ? nil : chosen }
+        return model.links.first { $0.state == "fail" || $0.state == "warn" }?.id
+    }
+
+    /// The button that mends what a check found, where the app can.
+    @ViewBuilder private func fix(_ check: Check) -> some View {
+        if check.what == "Notifications" {
+            switch model.notifications {
+            case .denied: Button("Turn on") { if let url = URL(string: notificationSettings) { NSWorkspace.shared.open(url) } }
+            case .notDetermined: Button("Allow") { model.askForNotifications() }
+            default:
+                if model.previews == .never {
+                    Button("Show previews") { if let url = URL(string: notificationSettings) { NSWorkspace.shared.open(url) } }
+                }
+            }
+        } else if check.state == "fail" || check.state == "warn" {
+            switch check.what {
+            case "Setup", "Upload token":
+                Button("Set up") { model.setUp() }
+            case "Trigger":
+                Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() }
+            case "Database" where check.found.contains("does not let"):
+                Button("Open Privacy") { if let url = URL(string: privacySettings) { NSWorkspace.shared.open(url) } }
+            case _ where check.todo.contains("on the page"):  // connecting to Hardcover, a match, the collection's name
+                Button("Open the page") { _ = tool(["open"]) }
+            default:
+                EmptyView()
+            }
+        }
     }
 }
 
@@ -290,80 +385,33 @@ struct SyncSection: View {
     }
 }
 
-struct HealthSections: View {
+/// Until the books are drawn here, what is known of them, and the page.
+struct BooksSections: View {
     @ObservedObject var model: WindowModel
 
     var body: some View {
-        if let version = model.newer {
-            Section {
-                Row(state: "note", what: "Version \(version) is out", found: "This is \(bundleVersion()).") {
-                    Button("Get it") { if let link = URL(string: releases + version) { NSWorkspace.shared.open(link) } }
+        Section {
+            if let books = model.status?.books {
+                LabeledContent("From the Kobo", value: "\(books.total) \(books.total == 1 ? "book" : "books")")
+                LabeledContent("Switched on to sync", value: "\(books.on)")
+                if books.needsMatch > 0 {
+                    Row(state: "warn", what: "\(books.needsMatch) need a match", found: "Hardcover has more than one book that could be it, or none.")
                 }
-            }
-        }
-        if let checks = model.checks {
-            let groups = checks.reduce(into: [String]()) { if !$0.contains($1.group) { $0.append($1.group) } }
-            ForEach(groups, id: \.self) { group in
-                Section {
-                    ForEach(checks.filter { $0.group == group }) { check in
-                        Row(state: check.state, what: check.what, found: check.found, todo: check.todo) { fix(check) }
-                    }
-                    if group == "This computer" { notificationsRow }
-                } header: {
-                    Text(group)
-                } footer: {
-                    if group == groups.last {
-                        HStack {
-                            Text(model.summary).foregroundStyle(.secondary)
-                            Spacer()
-                            Button("Check again") { model.refresh() }
-                        }
-                    }
+                if books.next > 0 {
+                    Row(
+                        state: "next", what: books.live ? "\(books.next) change at the next sync" : "\(books.next) would change at the next sync",
+                        found: books.live ? "Sync now sends them." : "A dry run: nothing is sent until you go live, on the page.")
                 }
-            }
-        } else if model.status?.mode.isEmpty == false {
-            Section("Health") {
-                HStack(spacing: 8) {
-                    ProgressView().controlSize(.small)
-                    Text("Checking everything a sync depends on…").foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder private var notificationsRow: some View {
-        switch model.notifications {
-        case .denied:
-            Row(state: "warn", what: "Notifications", found: "Off: a sync started by plugging in the Kobo does not say what it did.") {
-                Button("Turn on") { if let url = URL(string: notificationSettings) { NSWorkspace.shared.open(url) } }
-            }
-        case .notDetermined:
-            Row(state: "note", what: "Notifications", found: "Not allowed yet: they say what a sync did.") {
-                Button("Allow") { model.askForNotifications() }
-            }
-        default:
-            if model.previews == .never {
-                Row(state: "note", what: "Notifications", found: "On, but they show only the app's name: Show previews is Never in macOS's settings.") {
-                    Button("Show previews") { if let url = URL(string: notificationSettings) { NSWorkspace.shared.open(url) } }
-                }
+            } else if model.status?.mode == "server" {
+                Text("Your books are on the server, behind its sign-in.").foregroundStyle(.secondary)
             } else {
-                Row(state: "ok", what: "Notifications", found: "On: each sync says what it did.")
+                Text("No books yet: nothing was read from a Kobo so far. Plug it in.").foregroundStyle(.secondary)
             }
-        }
-    }
-
-    /// The button that mends what a check found, where the app can.
-    @ViewBuilder private func fix(_ check: Check) -> some View {
-        if check.state == "fail" || check.state == "warn" {
-            switch check.what {
-            case "Setup", "Upload token":
-                Button("Set up") { model.setUp() }
-            case "Trigger":
-                Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() }
-            case "Database" where check.found.contains("does not let"):
-                Button("Open Privacy") { if let url = URL(string: privacySettings) { NSWorkspace.shared.open(url) } }
-            default:
-                EmptyView()
+        } footer: {
+            HStack {
+                Text("The books open on the page, in your browser.").foregroundStyle(.secondary)
+                Spacer()
+                Button("Open the books") { _ = tool(["open"]) }.disabled(model.status?.mode.isEmpty ?? true)
             }
         }
     }
@@ -380,7 +428,7 @@ struct HistorySection: View {
             }
             ForEach(model.syncs.prefix(25)) { sync in
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    Mark(state: sync.ok ? "ok" : "fail")
+                    Mark(state: sync.ok ? "ok" : "fail").alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
                     VStack(alignment: .leading, spacing: 2) {
                         Text(sync.message.isEmpty ? "Nothing new." : sync.message)
                         Text([sync.date.map(spoken), started[sync.trigger]].compactMap { $0 }.joined(separator: " · "))
@@ -411,7 +459,7 @@ struct Row<Fix: View>: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Mark(state: state)
+            Mark(state: state).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
             VStack(alignment: .leading, spacing: 2) {
                 Text(what).fontWeight(strong ? .semibold : .medium)
                 Text(found).foregroundStyle(.secondary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
@@ -429,23 +477,6 @@ struct Row<Fix: View>: View {
 extension Row where Fix == EmptyView {
     init(state: String, what: String, found: String, todo: String = "", strong: Bool = false) {
         self.init(state: state, what: what, found: found, todo: todo, strong: strong) { EmptyView() }
-    }
-}
-
-struct Mark: View {
-    let state: String
-
-    var body: some View {
-        Image(systemName: look.symbol).foregroundStyle(look.color).accessibilityLabel(look.said)
-    }
-
-    private var look: (symbol: String, color: Color, said: String) {
-        switch state {
-        case "ok": return ("checkmark.circle.fill", .green, "In order")
-        case "warn": return ("exclamationmark.triangle.fill", .orange, "Warning")
-        case "fail": return ("xmark.octagon.fill", .red, "Problem")
-        default: return ("info.circle", .secondary, "Note")
-        }
     }
 }
 

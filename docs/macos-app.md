@@ -117,14 +117,23 @@ started in three ways:
   what `setup` said includes this Mac's hash, to paste on the server's
   page.
 - **Opened by hand after setup, or by a click on a notification.** It
-  opens its window, about this Mac's machinery (the books stay on the
-  page); the design is `docs/plans/2026-10-24-mac-app-window-design.md`.
-  One line says whether it is ready for the Kobo, with the mode and the
-  last sync, beside *Sync now* and *Open the page*. Under it: Health
-  (`doctor --json`, with a button where the app can mend what a check
-  found, and whether notifications are on), the steps of a sync as it
-  runs (`sync --trigger app --steps`), and History (`history --json`),
-  with *Show the log*. A sync the Kobo starts while the window is open
+  opens its window; the design is
+  `docs/plans/2026-10-24-mac-app-native-books-design.md`, which follows
+  `docs/plans/2026-10-24-mac-app-window-design.md`. One line says whether
+  it is ready for the Kobo, with the mode and the last sync, beside
+  *Open the page* and *Sync now*. Beside it a sidebar: *Overview*,
+  *Books* and *History*. Overview is the chain a sync takes: Kobo, This
+  Mac, the server in server mode, Hardcover. Each link has the page's
+  mark for how it is, from `doctor --json` and whether notifications are
+  on. In local mode the arrows carry the counts of `status --json`: the
+  books from the Kobo, what the next sync sends, the collection. A click
+  on a link shows its checks, with a button where the app can mend what
+  a check found; the first link that needs something is open by itself.
+  While a sync runs (`sync --trigger app --steps`) a red line sweeps along
+  the arrow it works on, the links it passed get their marks, and the
+  steps are listed under the chain. Books has the counts and the page,
+  until the books are drawn in the app. History (`history --json`) has
+  *Show the log*. A sync the Kobo starts while the window is open
   shows as "Syncing…" while it runs (`status --json` says so, from the
   sync's lock; the sync keeps a `sync.running` marker in the tool's folder,
   which wakes the window), and in History when it ends. With the window open the app has a
@@ -202,8 +211,10 @@ hand. Which of the two happens is the first thing to see on a real Mac.
   In its Settings, what would touch this Mac (a mode change, a new token,
   the webhook, *Remove…*) only says what it would do; the true-or-false
   settings and an export work, on its own folder. Opened with
-  `open --env KHS_SNAPSHOT=<folder>`, it saves a picture of its window and
-  of each Settings tab there, and quits: a look from an SSH session, which
+  `open --env KHS_SNAPSHOT=<folder>`, it saves a picture of each pane of
+  its window, of a sample sync on the chain, and of each Settings tab
+  there, and quits (the sidebar comes out empty in these pictures: what
+  is drawn behind it is not in them): a look from an SSH session, which
   macOS does not let take a screenshot.
 - `packaging/macos/sign.sh` signs every Mach-O file in the bundle, then
   the app. With a Developer ID it adds the hardened runtime and Apple's

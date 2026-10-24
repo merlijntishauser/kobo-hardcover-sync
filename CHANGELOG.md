@@ -7,6 +7,19 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Changed
+
+- The Mac app's window has a sidebar: *Overview*, *Books* and *History*.
+  Overview draws the way a sync goes, Kobo, this Mac, the server (in
+  server mode), Hardcover, each with the page's mark for how it is; a
+  click shows its checks, and the first that needs something opens by
+  itself. A sync plays out along it. In local mode it counts the books
+  as well: how many came from the Kobo, how many the next sync sends,
+  how many are in the collection. The marks are the page's, in the
+  page's colours, where the window had coloured symbols.
+- `status --json` counts the books in local mode (`books`), for the
+  app's overview.
+
 ### Fixed
 
 - In the Mac app, what to do no longer names terminal commands: the

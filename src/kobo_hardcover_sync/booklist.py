@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 
 from .engine import state
-from .engine.plan import action, desired
+from .engine.plan import action, desired, quiet_for
 from .web.fmt import fmt_date
 from .web.strings import T
 
@@ -111,6 +111,24 @@ def hc_status(r, live: bool, quiet: dict) -> tuple[str, str]:
 def marked(con, reader: str, live: bool, quiet: dict) -> int:
     """How many books carry the red mark: what the next sync sends."""
     return sum(1 for r in con.execute("select * from reader_book where reader=?", (reader,)) if hc_status(r, live, quiet)[0] == "next")
+
+
+def summary(con, reader: str) -> dict:
+    """The books in a few counts, for the Mac app's overview: how many the
+    Kobo told of, how many are switched on, how many the next sync changes
+    and how many wait for a match; whether it sends (live) or only says
+    what it would, as whom, and the collection the switched-on books go to."""
+    counts = filter_counts(con, reader, "")
+    row = con.execute("select hardcover_live, hardcover_user, kobo_collection from reader where name=?", (reader,)).fetchone()
+    return {
+        "total": counts["all"],
+        "on": counts["on"],
+        "next": marked(con, reader, bool(row and row[0]), quiet_for(con, reader)),
+        "needs_match": counts["needs_match"],
+        "live": bool(row and row[0]),
+        "user": (row[1] if row else "") or "",
+        "collection": ((row[2] if row else "") or "").strip(),
+    }
 
 
 def shelf_words(d: dict) -> str:

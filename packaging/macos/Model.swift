@@ -30,6 +30,18 @@ struct StatusAnswer: Codable {
     let kobo: String?  // where it is mounted, when one is plugged in
     let lastSync: Sync?
     let syncing: String?  // what started the sync that runs now in another process ("mount", "app", "hand"); "" when none
+    let books: Books?  // local mode, once a Kobo was read: the books are on this Mac
+
+    /// The books in counts, for the overview's arrows.
+    struct Books: Codable {
+        let total: Int
+        let on: Int  // switched on
+        let next: Int  // what the next sync changes on Hardcover (or, in a dry run, would)
+        let needsMatch: Int
+        let live: Bool
+        let user: String  // the Hardcover account, "" before connecting
+        let collection: String  // the collection on the Kobo, "" for none
+    }
 }
 
 struct Check: Codable, Equatable, Identifiable {
