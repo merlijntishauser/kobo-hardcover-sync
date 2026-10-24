@@ -83,7 +83,7 @@ What the app needs, each also usable in a terminal:
   The server or Hardcover are asked with a time limit; the window shows
   the rows as being checked until they come.
 - `history.jsonl` in the tool's folder: one line per sync (when, what
-  started it, whether it went well, what it said, the counts), the last
+  started it, whether it went well, what it said), the last
   hundred kept. `history` shows them; `history --json` gives them.
 - `sync --steps`: each step as a line of JSON while it runs, so the app
   shows them as they come instead of after the end.

@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "mode": "server",
+  "server": "https://kobo.example.org",
+  "upload_token_hash": "3f9a0c2e5b1d4a6f8e7c9b0a1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e",
+  "hardcover_connected": false,
+  "settings": {
+    "eject_after_sync": false,
+    "verbose_log": false,
+    "allow_untested_kobo": false,
+    "check_for_updates": true,
+    "export_to": "",
+    "webhook_url": ""
+  }
+}

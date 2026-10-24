@@ -7,6 +7,19 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- `kobo-hardcover-sync history`: the last syncs on this computer, newest
+  first, with what started each and what it said. The last hundred are
+  kept in `history.jsonl` in the tool's folder, without book titles.
+- `kobo-hardcover-sync settings`: this computer's settings, and `--set
+  NAME=VALUE` to change one that is true or false, instead of editing
+  `config.toml`.
+- `--json` for `status`, `doctor`, `history` and `settings`, and `sync
+  --steps` (each step and the outcome as a line of JSON): what the Mac
+  app's coming window reads, and usable in scripts. Each answer carries
+  `"schema": 1`.
+
 ### Changed
 
 - The Mac app's window says when the last sync was before what it said

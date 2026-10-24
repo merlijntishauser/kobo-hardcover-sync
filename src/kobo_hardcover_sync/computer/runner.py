@@ -24,7 +24,7 @@ from .. import ISSUES, __version__, logs
 from ..engine import collection, export, hardcover, job, kobo_db, state
 from ..server import accounts, stats
 from ..term import FAIL, NOTE, OK, WARN, Row, plural
-from . import config, page, remote, webhook
+from . import config, history, page, remote, webhook
 from .platform import KOBO_DB, UPLOAD, WEBHOOK, Computer
 
 NAME = "Kobo Hardcover Sync"
@@ -150,6 +150,7 @@ def sync(
         if out.message:
             log.log(logging.INFO if out.ok else logging.ERROR, "said: %s: %s", out.title, out.message)
         out = remember(out)
+        history.record(out.ok, out.title, out.message, trigger)
         if trigger == CLICKED and not out.message:  # an answer, but not one to keep over the last real news
             out = replace(out, message="Nothing new since the last sync." if mount else "No Kobo plugged in, and nothing else to do.")
         return out

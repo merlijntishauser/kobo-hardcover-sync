@@ -17,19 +17,32 @@ kobo-hardcover-sync token [--paste] [--remove]
     page's Settings does the same.) --paste takes a token you made on
     Hardcover yourself instead; --remove ends the connection.
 
-kobo-hardcover-sync sync [--verbose]
+kobo-hardcover-sync sync [--verbose] [--steps]
     One sync now. It says each step as it finishes, and then names the
     books that went to Hardcover, each with how far it is read. Those
     titles are shown in the terminal and written nowhere. --verbose also
-    shows the log while it runs.
+    shows the log while it runs. --steps says each step, and then the
+    outcome, as a line of JSON, and names no book: what the Mac app reads.
 
-kobo-hardcover-sync status
+kobo-hardcover-sync status [--json]
     What is set up, and what it sees. Quick, and never uses the network.
 
-kobo-hardcover-sync doctor
+kobo-hardcover-sync doctor [--json]
     Check everything a sync depends on, and say what to do about what is
     wrong. Changes nothing; asks Hardcover (or your server) one question.
     Ends with status 1 when something stops syncing from working.
+
+kobo-hardcover-sync history [--json]
+    The last syncs on this computer, newest first: when, what started it,
+    and what it said. The last hundred are kept, without book titles.
+
+kobo-hardcover-sync settings [--set NAME=VALUE] [--json]
+    This computer's settings; --set changes one that is true or false
+    (eject_after_sync, verbose_log, allow_untested_kobo,
+    check_for_updates). Mode and server change with `setup`.
+
+Every --json answer, and every line of sync --steps, carries "schema": 1,
+raised when a field changes meaning; the Mac app reads them.
 
 kobo-hardcover-sync open
     Open the page (local mode: it is started for the occasion).
@@ -81,6 +94,7 @@ import sqlite3
 import sys
 import tempfile
 import time
+from datetime import datetime
 
 from . import __version__, term
 from .engine import kobo_db, state
@@ -97,6 +111,8 @@ COMMANDS = (
             ("sync", "One sync now"),
             ("status", "What is set up, and what it sees"),
             ("doctor", "Check everything a sync depends on; changes nothing"),
+            ("history", "The last syncs, and what each did"),
+            ("settings", "This computer's settings; --set NAME=VALUE changes one"),
             ("open", "Open the page with your books"),
             ("export", "Your reading as JSON, for a database of your own"),
             ("webhook", "POST each sync to an address of your own"),
@@ -113,6 +129,8 @@ COMMANDS = (
     ),
 )
 SHOWN_BOOKS = 12  # a run by hand names this many books, and counts the rest
+SCHEMA = 1  # of every JSON answer (--json, sync --steps): what the Mac app reads; raised when a field changes meaning
+SETTABLE = ("eject_after_sync", "verbose_log", "allow_untested_kobo", "check_for_updates")  # settings --set
 
 
 class _Parser(argparse.ArgumentParser):
@@ -140,7 +158,9 @@ class _Parser(argparse.ArgumentParser):
 def main(argv: list[str] | None = None, computer=None) -> None:
     p = _Parser(prog="kobo-hardcover-sync")
     p.add_argument("--version", action="version", version=f"kobo-hardcover-sync {__version__}")
-    sub = p.add_subparsers(dest="cmd", required=True, metavar="{setup,token,sync,status,doctor,open,export,webhook,uninstall,serve,import}")
+    sub = p.add_subparsers(
+        dest="cmd", required=True, metavar="{setup,token,sync,status,doctor,history,settings,open,export,webhook,uninstall,serve,import}"
+    )
     stp = sub.add_parser("setup", help="make this computer sync a plugged-in Kobo")
     stp.add_argument("--server", default="", help="the server's address, e.g. https://kobo.example.org")
     stp.add_argument("--local", action="store_true", help="everything on this computer, no server")
@@ -156,8 +176,16 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     syn = sub.add_parser("sync", help="one sync now")
     syn.add_argument("--trigger", default="", help=argparse.SUPPRESS)  # "mount": the plug-in trigger; "app": Sync now in the Mac app
     syn.add_argument("--verbose", action="store_true", help="also show the log while it runs: a line per book and per request")
-    sub.add_parser("status", help="what is set up, and what it sees")
-    sub.add_parser("doctor", help="check everything a sync depends on; changes nothing")
+    syn.add_argument("--steps", action="store_true", help="each step, then the outcome, as a line of JSON (for the Mac app)")
+    sta = sub.add_parser("status", help="what is set up, and what it sees")
+    sta.add_argument("--json", action="store_true", help="as JSON")
+    doc = sub.add_parser("doctor", help="check everything a sync depends on; changes nothing")
+    doc.add_argument("--json", action="store_true", help="as JSON")
+    his = sub.add_parser("history", help="the last syncs, and what each did")
+    his.add_argument("--json", action="store_true", help="as JSON")
+    sts = sub.add_parser("settings", help="this computer's settings")
+    sts.add_argument("--set", action="append", default=[], metavar="NAME=VALUE", help=f"change one: {', '.join(SETTABLE)}; true or false")
+    sts.add_argument("--json", action="store_true", help="as JSON")
     sub.add_parser("open", help="open the page")
     exp = sub.add_parser("export", help="your reading as JSON, for a database or dashboard of your own")
     exp.add_argument("--output", default="", metavar="FILE", help="write to FILE (readable by you only) instead of the screen")
@@ -208,6 +236,8 @@ def main(argv: list[str] | None = None, computer=None) -> None:
         "sync": _sync,
         "status": _status,
         "doctor": _doctor,
+        "history": _history,
+        "settings": _settings,
         "open": _open,
         "uninstall": _uninstall,
         "token": _token,
@@ -482,6 +512,21 @@ def _connect(computer, oauth) -> tuple[str, str]:
 def _sync(a, computer) -> None:
     from .computer import runner
 
+    if a.steps:  # the Mac app's window: each step as it finishes, then the outcome, a line of JSON each
+
+        def step(row: Row) -> None:
+            _json({"step": row.what, "state": row.state, "text": row.text})
+
+        out = runner.sync(computer, trigger=a.trigger, verbose=a.verbose, on_step=step)
+        _json({"done": {"ok": out.ok, "title": out.title, "message": out.message}})
+        if computer.in_app and a.trigger:
+            from .computer import update
+
+            update.now_and_then()
+        if not out.ok:
+            sys.exit(1)
+        return
+
     if a.trigger:  # started by the plug-in trigger or the small app: one notification, there
         out = runner.sync(computer, trigger=a.trigger, verbose=a.verbose)
         if out.message:
@@ -532,12 +577,44 @@ def _books(screen: term.Screen, books: list[dict], live: bool) -> None:
             screen.say(f"and {plural(len(some) - SHOWN_BOOKS, 'more book')}; the page lists them all.", indent=2, style=(term.DIM,))
 
 
+def _json(data: dict) -> None:
+    print(json.dumps({"schema": SCHEMA, **data}), flush=True)
+
+
+def _last_sync() -> dict | None:
+    """The newest sync: from the history, or, before there was one, from
+    the last thing a sync said (last-message.txt: title, message, when)."""
+    from .computer import config, history
+
+    kept = history.syncs()
+    if kept:
+        return kept[0]
+    try:
+        with open(os.path.join(config.state_dir(), "last-message.txt")) as fh:
+            lines = [line.strip() for line in fh if line.strip()]
+        at = datetime.strptime(lines[-1], "%d %b %Y, %H:%M").astimezone().isoformat(timespec="seconds")
+    except (OSError, IndexError, ValueError):
+        return None
+    return {"at": at, "trigger": "", "ok": True, "title": lines[0], "message": " ".join(lines[1:-1])}
+
+
 def _status(a, computer) -> None:
     from .computer import config, runner
     from .computer.platform import HARDCOVER, KOBO_DB, UPLOAD
     from .engine import collection
 
     cfg = config.load()
+    if a.json:  # what the Mac app's window opens with: local files only, so it is quick
+        return _json(
+            {
+                "version": __version__,
+                "mode": cfg.mode,
+                "server": cfg.server,
+                "folder": config.state_dir(),
+                "kobo": computer.find_kobo(),
+                "last_sync": _last_sync(),
+            }
+        )
     rows = []
     if not cfg.mode:
         rows.append(Row(FAIL, "Mode", "Not set up on this computer yet.", "Run `kobo-hardcover-sync setup`."))
@@ -608,6 +685,23 @@ def _doctor(a, computer) -> None:
 
     from . import doctor
 
+    if a.json:
+        checks = doctor.computer_checks(computer)
+        _json(
+            {
+                "version": __version__,
+                "summary": doctor.summary(checks),
+                "problems": doctor.problems(checks),
+                "checks": [
+                    {"group": group, "what": c.what, "state": c.state, "found": c.found, "todo": c.todo}
+                    for group, some in doctor.grouped(checks)
+                    for c in some
+                ],
+            }
+        )
+        if doctor.problems(checks):
+            sys.exit(1)
+        return
     screen = term.Screen.of()
     screen.heading(f"Kobo Hardcover Sync {__version__}")
     screen.say(f"Python {os_platform.python_version()}, {os_platform.platform(terse=True)}", style=(term.DIM,))
@@ -616,6 +710,56 @@ def _doctor(a, computer) -> None:
     doctor.show(checks, screen)
     if doctor.problems(checks):
         sys.exit(1)
+
+
+def _history(a, computer) -> None:
+    from .computer import history
+
+    kept = history.syncs()
+    if a.json:
+        return _json({"syncs": kept})
+    if not kept:
+        return term.Screen.of().rows([Row(NOTE, "History", "No syncs kept yet: plug in the Kobo.")])
+    rows = []
+    for s in kept:
+        when = datetime.fromisoformat(s["at"]).astimezone().strftime("%-d %b %H:%M")
+        said = f"{s['title']}: {s['message']}" if s["message"] else "Nothing new."
+        rows.append(Row(OK if s["ok"] else FAIL, when, f"{history.STARTED_BY.get(s['trigger'], s['trigger'])}. {said}"))
+    term.Screen.of().rows(rows)
+
+
+def _settings(a, computer) -> None:
+    from .computer import config
+    from .computer.platform import HARDCOVER, UPLOAD
+
+    cfg = config.load()
+    if a.set:
+        if not cfg.mode:
+            sys.exit("kobo-hardcover-sync: not set up yet: run setup first.")
+        for change in a.set:
+            name, _, value = change.partition("=")
+            if name not in SETTABLE:
+                sys.exit(f"kobo-hardcover-sync: {name or change!r} cannot be set here; these can: {', '.join(SETTABLE)}.")
+            if value.lower() not in ("true", "false"):
+                sys.exit(f"kobo-hardcover-sync: {name} is true or false, not {value!r}.")
+            setattr(cfg, name, value.lower() == "true")
+        config.save(cfg)
+    values = {name: getattr(cfg, name) for name in SETTABLE} | {"export_to": cfg.export_to, "webhook_url": cfg.webhook_url}
+    token = computer.secret(UPLOAD) if cfg.mode == "server" else ""
+    found = {
+        "mode": cfg.mode,
+        "server": cfg.server,
+        "upload_token_hash": _token_hash(token) if token else "",
+        "hardcover_connected": bool(computer.secret(HARDCOVER)) if cfg.mode == "local" else False,
+        "settings": values,
+    }
+    del token
+    if a.json:
+        return _json(found)
+    rows = [Row(OK, name, str(value).lower() if isinstance(value, bool) else value or "(none)") for name, value in values.items()]
+    if found["upload_token_hash"]:
+        rows.insert(0, Row(OK, "upload token", f"its hash is {found['upload_token_hash']}"))
+    term.Screen.of().rows(rows)
 
 
 def _open(a, computer) -> None:
