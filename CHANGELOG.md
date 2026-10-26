@@ -7,12 +7,18 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+## 0.14.0 - 2026-10-26
+
+The Mac app gets an icon of its own, drawn like the page, and the disk
+image it comes on says what to do with it.
+
 ### Changed
 
 - The Mac app has a new icon, drawn like the page: a galley of your books
   with the next sync's red caret in its margin. On macOS 26 and later it
   is a proper icon for those versions, with the system's glass, where the
-  old one was shrunk into a grey tile.
+  old one was shrunk into a grey tile. At the smallest sizes it is drawn
+  for the size, not made smaller.
 - The disk image the app comes on has its own icon, and its window shows
   what to do: drag the app onto Applications.
 
