@@ -7,6 +7,15 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Changed
+
+- The Mac app has a new icon, drawn like the page: a galley of your books
+  with the next sync's red caret in its margin. On macOS 26 and later it
+  is a proper icon for those versions, with the system's glass, where the
+  old one was shrunk into a grey tile.
+- The disk image the app comes on has its own icon, and its window shows
+  what to do: drag the app onto Applications.
+
 ## 0.13.0 - 2026-10-24
 
 The Mac app becomes the home of local mode: an overview that draws the

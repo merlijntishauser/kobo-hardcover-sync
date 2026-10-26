@@ -293,3 +293,34 @@ def test_the_wrapper_and_the_tool_use_the_same_names():
         '"open"',
     ):
         assert args in swift, args
+
+
+def test_the_pictures_are_what_art_py_draws(tmp_path, monkeypatch):
+    """The SVGs beside art.py are its drawing, not edited by hand (and the PNGs are made from them)."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("art", MACOS / "art.py")
+    art = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(art)
+    monkeypatch.setattr(art, "HERE", tmp_path)
+    art.icon_composer()
+    flat = art.flat_icon()
+    assert flat == (MACOS / "AppIcon.svg").read_text()
+    assert art.volume_icon() == (MACOS / "VolumeIcon.svg").read_text()
+    assert art.window(flat) == (MACOS / "dmg-background.svg").read_text()
+    for name in ("icon.json", "Assets/slip.svg", "Assets/marks.svg"):
+        assert (tmp_path / "AppIcon.icon" / name).read_text() == (MACOS / "AppIcon.icon" / name).read_text(), name
+    assert (MACOS / "AppIcon.icon" / "Assets" / "slip.svg").read_text().count("filter") == 0  # not drawn by actool
+
+
+def test_the_icon_and_the_disk_window_are_packed():
+    with open(MACOS / "Info.plist", "rb") as fh:
+        info = plistlib.load(fh)
+    assert info["CFBundleIconFile"] == info["CFBundleIconName"] == "AppIcon"  # .icns before macOS 26, Assets.car from it
+    build, package = (MACOS / "build.sh").read_text(), (MACOS / "package.sh").read_text()
+    assert '"$here/AppIcon.icon"' in build and "Assets.car" in build
+    for file in ("dmg-background.png", "dmg-background@2x.png", "dmg.DS_Store", "VolumeIcon.png"):
+        assert (MACOS / file).is_file() and f'"$here/{file}"' in package, file
+    # Where dmg-layout.sh puts the two icons is where the move mark in the window is drawn.
+    assert '"Kobo Hardcover Sync.app": (170, 190), "Applications": (470, 190)' in (MACOS / "dmg-layout.sh").read_text()
+    assert b"Kobo Hardcover Sync.app" in (MACOS / "dmg.DS_Store").read_bytes().replace(b"\x00", b"")

@@ -88,7 +88,8 @@ Kobo Hardcover Sync.app/Contents/
     python/                              a standalone CPython, with the tool
       bin/python3                        and its packages in site-packages
     python-licenses/                     the licences of what Python is built with
-    AppIcon.icns
+    AppIcon.icns                         the icon up to macOS 15
+    Assets.car                           the icon from macOS 26 on
     LICENSE, THIRD-PARTY-NOTICES.md, PYTHON-LICENSE.txt
 ```
 
@@ -248,8 +249,8 @@ hand. Which of the two happens is the first thing to see on a real Mac.
   So the hardened runtime is first tried in the release's signing job,
   which starts the tool once more after signing.
 - `packaging/macos/package.sh` notarises and staples the app, puts it on
-  a disk image with a link to Applications, then signs, notarises and
-  staples that.
+  a disk image with a link to Applications, its window and its icon (see
+  *The pictures*), then signs, notarises and staples that.
 - `.github/workflows/macos-app.yml` does both at a release. Building
   happens in a job without secrets. Signing happens in a second job, in the
   `macos-signing` environment, which downloads the built app and runs only
@@ -260,6 +261,46 @@ hand. Which of the two happens is the first thing to see on a real Mac.
 
 What the environment holds, and how to set it up once, is in
 `docs/releasing.md`.
+
+## The pictures
+
+Drawn in the page's Galley Proof (`DESIGN.md`) by
+`packaging/macos/art.py`, which writes the SVGs; a test holds them to it.
+
+- **The app's icon** is a galley of the list of books: three books with
+  their covers and line gauges on a slip, and in its proof margin the red
+  caret, the tick and the dashed caret, on the non-repro blue. From macOS
+  26 on it is `AppIcon.icon`, two layers for Icon Composer (the slip, and
+  its marks in glass), which `build.sh` compiles into `Assets.car` with
+  `actool`. Only Xcode 26 or later reads that format: `build.sh` takes the
+  selected Xcode's `actool`, or else the newest Xcode installed, and stops
+  when none can. Without `Assets.car`, macOS 26 shrinks an older icon into
+  a grey tile. Up to macOS 15 it is `AppIcon.png`, the same drawn flat on
+  Apple's grid, made into `AppIcon.icns`.
+- **The disk's icon** (`VolumeIcon.png`) is the slip lying in a galley
+  tray, so the disk and the app tell apart on the desktop. A downloaded
+  `.dmg` file itself keeps the plain disk image icon: a file's own icon
+  does not come along in a download.
+- **The disk's window** (`dmg-background.png` and its `@2x`) is the app's
+  icon printed in non-repro blue, which stays behind Finder's icons and
+  names, under one sentence, *Drag Kobo Hardcover Sync onto Applications.*,
+  and the proofreader's move mark in blue pencil: a loop round the app and
+  a line to Applications. The picture is the same in dark mode; Finder is
+  said to keep the names black on a window with a picture (not yet seen
+  in dark mode).
+
+The window's size, its picture and where the two icons stand are in
+`dmg.DS_Store`, which `dmg-layout.sh` writes with
+[dmgbuild](https://github.com/dmgbuild/dmgbuild) on a Mac, once, when the
+window changes. `package.sh` copies it onto each image, with the picture at
+the same path; Finder finds it there on a new image, so no tool from
+elsewhere runs in the signing job. `package.sh` also sets the two flags
+that show the disk's icon and hide *.app* on the mounted image, which
+`hdiutil` does not copy from a folder.
+
+The icons' PNGs are made with `rsvg-convert`. The window's are made in a
+browser, which has the page's font: `dmg-background.svg` at 640 by 400 and
+at 1280 by 800, as PNG.
 
 ## To see on a real Mac
 
@@ -280,3 +321,5 @@ never had the project, with the notarised build.
    connection, and leaves a single trigger.
 8. Dragging the app to the Bin: what is left under Login Items, and in
    the permission lists.
+9. The icon on macOS 13 to 15, from `AppIcon.icns`, and the disk's window
+   there (seen on macOS 27 only).

@@ -5,7 +5,7 @@
 #
 # The app lands in folder (build/macos by default), signed ad hoc so that it
 # runs on this Mac; sign.sh signs it with a Developer ID. Needs a Mac with
-# the Xcode command line tools, uv and zstd. Nothing here is secret, and
+# Xcode (26 or later, for the icon), uv and zstd. Nothing here is secret, and
 # nothing here needs one.
 #
 # KHS_PYTHON_ONLY=1 builds only the Python half (no wrapper, no icon, no
@@ -142,6 +142,25 @@ for size in 16 32 128 256 512; do
 	sips -z $((size * 2)) $((size * 2)) "$here/AppIcon.png" --out "$iconset/icon_${size}x${size}@2x.png" >/dev/null
 done
 iconutil -c icns -o "$resources/AppIcon.icns" "$iconset"
+# From macOS 26 on the icon is AppIcon.icon, compiled into Assets.car; without it the
+# system shrinks the one above into a grey tile. Only actool from Xcode 26 on reads that
+# format: the selected Xcode's, or else the newest installed. (Its own AppIcon.icns, at
+# most 256 pixels, is left out for the one above.)
+car="$out/car"
+for xcode in "" $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -rV); do
+	rm -rf "$car"
+	mkdir "$car"
+	if env ${xcode:+DEVELOPER_DIR="$xcode/Contents/Developer"} xcrun actool "$here/AppIcon.icon" --compile "$car" \
+		--platform macosx --minimum-deployment-target 13.0 --app-icon AppIcon \
+		--output-partial-info-plist "$car/partial.plist" >/dev/null 2>&1 && grep -q CFBundleIconName "$car/partial.plist"; then
+		cp "$car/Assets.car" "$resources/"
+		break
+	fi
+done
+[ -s "$resources/Assets.car" ] || {
+	echo "build.sh: no actool here compiles AppIcon.icon; it needs Xcode 26 or later" >&2
+	exit 1
+}
 
 "$here/sign.sh" - "$app"
 echo "$NAME.app $version: $app"
