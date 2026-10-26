@@ -56,6 +56,8 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
     def about(r, what, went, error=""):
         books.append(
             {
+                "id": r["content_id"],
+                "image_id": r["image_id"],
                 "title": r["hc_title"] or r["title"],
                 "percent": r["percent"],
                 "finished": desired(r)["status"] == "read",

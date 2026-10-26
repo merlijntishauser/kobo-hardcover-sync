@@ -66,7 +66,8 @@ class Computer:
         return "this computer's secret store"
 
     # --- the person
-    def notify(self, title: str, message: str) -> None:
+    def notify(self, title: str, message: str, picture: str = "") -> None:
+        """A notification; picture, a file to show with it where the system can."""
         raise NotImplementedError
 
     def open_page(self, url: str) -> None:

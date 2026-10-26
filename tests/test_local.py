@@ -4,6 +4,7 @@ Hardcover plays Hardcover, and the computer's seams are the stand-ins from
 test_computer."""
 
 import importlib
+import json
 import os
 import shutil
 import sqlite3
@@ -121,6 +122,39 @@ def test_plug_in_dry_run_live_collection_and_then_nothing(home):
         if path.is_file():
             assert TOKEN.encode() not in path.read_bytes(), name
     assert mac.secrets == {HARDCOVER: TOKEN} and mac.ejected == []
+
+
+def test_a_book_marked_read_gets_a_notification_of_its_own_with_its_cover(home, monkeypatch, capsys):
+    from kobo_hardcover_sync.web import covers
+
+    kobo(home)
+    mac = FakeComputer(home / "Volumes")
+    hc = FakeHC(isbn=catalogue())
+    runner.sync(mac, LOCAL)
+    mac.set_secret(HARDCOVER, TOKEN)
+    con = st(home)
+    state.set_mode(con, "me", BOOKS[:3], "on")
+    state.set_state(con, "me", BOOKS[2], "finished", "2026-10-01")
+    con.execute("update book set image_id='cover-2' where content_id=?", (BOOKS[2],))
+    con.commit()
+    monkeypatch.setattr(covers, "download", lambda image_id, size="thumb": b"\xff\xd8jpeg")
+
+    assert runner.sync(mac, LOCAL, hardcover_client=hc).finished == []  # a dry run marks nothing
+    con.execute("update reader set hardcover_live = 1 where name = 'me'")
+    con.commit()
+    live = runner.sync(mac, LOCAL, hardcover_client=hc)
+    assert [b["title"] for b in live.finished] == ["Made-up Book 2"]  # the other two are being read, not finished
+    assert live.finished[0]["cover"] == str(home / "state" / "covers" / "cover-2.jpg") and os.path.exists(live.finished[0]["cover"])
+
+    # Started by the trigger: the sync's notification, then one for the finished book, with its cover.
+    monkeypatch.setattr(runner, "sync", lambda computer, **kw: live)
+    cli.main(["sync", "--trigger", "mount"], computer=mac)
+    assert mac.told[-2:] == [(live.title, live.message), ("Finished: Made-up Book 2", "Marked as read on your Hardcover shelf.")]
+    assert mac.pictures[-2:] == ["", live.finished[0]["cover"]]
+    # The app's window reads them from the sync's last line.
+    cli.main(["sync", "--trigger", "app", "--steps"], computer=mac)
+    done = json.loads(capsys.readouterr().out.splitlines()[-1])["done"]
+    assert done["finished"] == live.finished
 
 
 def test_a_new_collection_name_replaces_the_old_collection_and_a_cleared_one_removes_it(home):

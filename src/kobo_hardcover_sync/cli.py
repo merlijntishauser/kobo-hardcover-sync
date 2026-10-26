@@ -617,7 +617,7 @@ def _sync(a, computer) -> None:
             _json({"step": row.what, "state": row.state, "text": row.text})
 
         out = runner.sync(computer, trigger=a.trigger, verbose=a.verbose, on_step=step)
-        _json({"done": {"ok": out.ok, "title": out.title, "message": out.message}})
+        _json({"done": {"ok": out.ok, "title": out.title, "message": out.message, "finished": out.finished}})
         if computer.in_app and a.trigger:
             from .computer import update
 
@@ -630,6 +630,8 @@ def _sync(a, computer) -> None:
         out = runner.sync(computer, trigger=a.trigger, verbose=a.verbose)
         if out.message:
             computer.notify(out.title, out.message)
+        for book in out.finished:  # one more for each book this sync marked Read, with its cover
+            computer.notify(f"Finished: {book['title']}", "Marked as read on your Hardcover shelf.", book["cover"])
         if computer.in_app:  # after the notification, so a sync is never slower for it
             from .computer import update
 

@@ -36,6 +36,7 @@ class FakeComputer(Computer):
     def __init__(self, volumes):
         self.volumes = str(volumes)
         self.secrets, self.told, self.ejected, self.opened, self.triggers = {}, [], [], [], []
+        self.pictures = []  # what came with each notification in told, "" for none
 
     def volume_roots(self):
         return [self.volumes]
@@ -53,8 +54,9 @@ class FakeComputer(Computer):
     def delete_secret(self, name):
         self.secrets.pop(name, None)
 
-    def notify(self, title, message):
+    def notify(self, title, message, picture=""):
         self.told.append((title, message))
+        self.pictures.append(picture)
 
     def open_page(self, url):
         self.opened.append(url)

@@ -119,11 +119,11 @@ func newerVersion() -> String? {
     return theirs.lexicographicallyPrecedes(mine) || theirs == mine ? nil : latest
 }
 
-/// A NOTIFY|title|message line the tool printed, as (title, body).
-func notice(_ line: String) -> (title: String, body: String)? {
+/// A NOTIFY|title|message[|picture] line the tool printed, as (title, body, picture file or "").
+func notice(_ line: String) -> (title: String, body: String, picture: String)? {
     guard line.hasPrefix("NOTIFY|") else { return nil }
-    let parts = line.split(separator: "|", maxSplits: 2, omittingEmptySubsequences: false)
-    return parts.count == 3 ? (String(parts[1]), String(parts[2])) : nil
+    let parts = line.split(separator: "|", maxSplits: 3, omittingEmptySubsequences: false).map(String.init)
+    return parts.count >= 3 ? (parts[1], parts[2], parts.count == 4 ? parts[3] : "") : nil
 }
 
 /// What macOS lets this app do with notifications. The answer comes on
@@ -189,11 +189,20 @@ func textView(_ text: String) -> NSView {
     return scroll
 }
 
-/// Notification Center shows a notification now.
-func post(_ title: String, _ body: String, then: @escaping () -> Void = {}) {
+/// Notification Center shows a notification now; with a picture (a book's cover) where there is one.
+func post(_ title: String, _ body: String, picture: String = "", then: @escaping () -> Void = {}) {
     let content = UNMutableNotificationContent()
     content.title = title
     content.body = body
+    // Notification Center moves an attached file into its own store: it gets a copy, never the cover the window shows.
+    if !picture.isEmpty, FileManager.default.fileExists(atPath: picture) {
+        let copy = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".jpg")
+        if (try? FileManager.default.copyItem(at: URL(fileURLWithPath: picture), to: copy)) != nil,
+            let attached = try? UNNotificationAttachment(identifier: "cover", url: copy)
+        {
+            content.attachments = [attached]
+        }
+    }
     UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)) { _ in
         then()
     }
@@ -230,7 +239,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
                     guard let told = notice(line) else { return }
                     said = true
                     posting.enter()
-                    post(told.title, told.body) { posting.leave() }
+                    post(told.title, told.body, picture: told.picture) { posting.leave() }
                 }
                 if !ok && !said {
                     posting.enter()
@@ -287,6 +296,17 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     }
 
     // Opened again while it runs: a sync the Kobo started, or the window.
+    /// A book chosen in Spotlight: the window, on Covers, at that book.
+    func application(
+        _ application: NSApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([NSUserActivityRestoring]) -> Void
+    ) -> Bool {
+        guard let id = spotlitBook(userActivity) else { return false }
+        openedByHand()
+        model?.pane = .covers
+        model?.spotlit = id
+        return true
+    }
+
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         openedByHand()
         return false
@@ -466,6 +486,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             return
         }
         try? SMAppService.agent(plistName: agentPlist).unregister()
+        forgetBooks()  // out of Spotlight: the app no longer looks after them here
         let (ok, output) = tool(purge ? ["uninstall", "--purge"] : ["uninstall"])
         let done = NSAlert()
         done.messageText = ok ? "\(name) no longer syncs on this Mac" : "Not everything was removed"

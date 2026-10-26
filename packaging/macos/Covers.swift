@@ -168,6 +168,8 @@ struct CoversPane: View {
         .focusable()
         .focused($focused)
         .onMoveCommand { move($0, rows: rows, k: k, width: size.width) }
+        .onAppear { bringUp(rows: rows, k: k, width: size.width) }
+        .onChange(of: model.spotlit) { _ in bringUp(rows: rows, k: k, width: size.width) }
         .onExitCommand {
             if large != nil { large = nil } else { keyed = false; lifted = nil }
         }
@@ -258,7 +260,22 @@ struct CoversPane: View {
     }
 
     /// A book chosen in Spotlight: lifted on its row, a third in, as the keyboard would have it.
-    private func bringUp(rows: [[BooksAnswer.Book]], k: CGFlf large != nil {
+    private func bringUp(rows: [[BooksAnswer.Book]], k: CGFloat, width: CGFloat) {
+        guard let id = model.spotlit else { return }
+        model.spotlit = nil
+        for row in RunRow.allCases {
+            guard let index = rows[row.rawValue].firstIndex(where: { $0.id == id }) else { continue }
+            keyed = true
+            lifted = (row, id)
+            drift.offset[row.rawValue] = CGFloat(index) * runStep(row, count: rows[row.rawValue].count, k: k, width: width) - width / 3
+            byHand += 1
+            return
+        }
+    }
+
+    private func toggleLarge(_ books: BooksAnswer) {
+        withAnimation(reduceMotion ? nil : .timingCurve(0.16, 1, 0.3, 1, duration: 0.18)) {
+            if large != nil {
                 large = nil
             } else if let id = lifted?.id {
                 large = books.books.first { $0.id == id }

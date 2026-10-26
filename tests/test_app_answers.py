@@ -416,8 +416,9 @@ def test_a_sync_with_steps_says_each_step_then_the_outcome(mac, home, capsys):
         "ok": True,
         "title": "Kobo synced",
         "message": "9 books updated.",
+        "finished": [],  # in server mode the server marks books Read, after the upload: nothing to tell here
     }
-    assert "Made-up Book" not in json.dumps(lines)  # no book named: the window shows steps, not titles
+    assert "Made-up Book" not in json.dumps(lines)  # no book named: the window shows steps, not titles (a finished one aside)
 
 
 # ---------- what Settings changes ----------

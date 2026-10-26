@@ -30,6 +30,13 @@ minor version may change behaviour; the notes will say so.
   fingers move them. A red caret marks a book the next sync changes.
   Below the rows: the book you are reading, and the tip. With Reduce
   motion on, the rows stand still. Full screen with ⌃⌘F.
+- Your books in Spotlight on your Mac: type a title, and the app opens
+  Covers at that book. The index is your Mac's own; removing the app
+  takes the books out again.
+- When a sync marks a book as read on Hardcover, the Mac app says so in
+  a notification of its own, "Finished: …", with the book's cover; on
+  Linux the cover is the notification's icon. In local mode: in server
+  mode the server marks books read, after the upload.
 
 ## 0.14.0 - 2026-10-26
 

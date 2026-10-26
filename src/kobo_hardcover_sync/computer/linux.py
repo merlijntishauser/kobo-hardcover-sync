@@ -128,9 +128,9 @@ class Linux(Computer):
         return "the desktop keyring"
 
     # --- the person
-    def notify(self, title: str, message: str) -> None:
+    def notify(self, title: str, message: str, picture: str = "") -> None:
         if self.which("notify-send"):
-            self._call("notify-send", "--app-name", "Kobo Hardcover Sync", "--icon", "media-removable", title, message)
+            self._call("notify-send", "--app-name", "Kobo Hardcover Sync", "--icon", picture or "media-removable", title, message)
 
     def open_page(self, url: str) -> None:
         if not self.which("xdg-open"):

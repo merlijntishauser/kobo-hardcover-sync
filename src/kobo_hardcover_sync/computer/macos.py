@@ -182,12 +182,12 @@ class MacOS(Computer):
         return "the Keychain"
 
     # --- the person
-    def notify(self, title: str, message: str) -> None:
+    def notify(self, title: str, message: str, picture: str = "") -> None:
         def clean(s):
             return " ".join(s.replace("|", "/").split())
 
         if os.environ.get("KHS_NOTIFY") == "stdout":  # the app shows it, so a click lands on the app
-            print(f"NOTIFY|{clean(title)}|{clean(message)}", flush=True)
+            print(f"NOTIFY|{clean(title)}|{clean(message)}" + (f"|{picture}" if picture else ""), flush=True)
             return
         self._call(
             "/usr/bin/osascript",

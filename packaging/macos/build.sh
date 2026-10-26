@@ -124,7 +124,7 @@ cp -R "$out/full/python/licenses" "$resources/python-licenses"
 
 # ---------- the wrapper, its agent and its icon ----------
 swiftc -O -swift-version 5 -target arm64-apple-macos13.0 -parse-as-library -o "$contents/MacOS/$NAME" \
-	"$here/KoboHardcoverSync.swift" "$here/Window.swift" "$here/Chain.swift" "$here/Books.swift" "$here/Covers.swift" "$here/Hardcover.swift" "$here/Settings.swift" "$here/Model.swift"
+	"$here/KoboHardcoverSync.swift" "$here/Window.swift" "$here/Chain.swift" "$here/Books.swift" "$here/Covers.swift" "$here/Spotlight.swift" "$here/Hardcover.swift" "$here/Settings.swift" "$here/Model.swift"
 sed "s/__VERSION__/$short/g" "$here/Info.plist" >"$contents/Info.plist"
 if [ -n "${KHS_PREVIEW:-}" ]; then
 	plutil -replace CFBundleIdentifier -string org.gargleblaster.kobo-hardcover-sync.app.preview "$contents/Info.plist"

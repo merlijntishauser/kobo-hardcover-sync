@@ -56,6 +56,7 @@ class Outcome:
     books: list = field(default_factory=list)  # what went, or would go, to Hardcover (job.run)
     live: bool = False
     closing: str = ""  # the last word: eject, or safe to unplug
+    finished: list = field(default_factory=list)  # books this sync marked Read on Hardcover, each {"title", "cover"}
 
 
 def unreadable(computer: Computer, ex: OSError, by_hand: bool) -> str:
@@ -376,7 +377,20 @@ def _sync_here(
     con.close()
     out = _finish(computer, cfg, mount, said, wrote)
     out.books, out.live = books, live
+    out.finished = finished_books(books, state_dir)
     return out
+
+
+def finished_books(books: list[dict], state_dir: str) -> list[dict]:
+    """The books a sync marked Read on Hardcover, each with its cover's file ("" without one):
+    a notification each, with the picture. Only what was sent: a dry run marks nothing."""
+    from ..web import covers
+
+    return [
+        {"title": b["title"], "cover": covers.cover_path(state_dir, b["image_id"]) or ""}
+        for b in books
+        if b["went"] == "sent" and b["what"].startswith("mark Read")
+    ]
 
 
 def _keep_export(con, reader: str, path: str, said: list[str], step) -> None:

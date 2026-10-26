@@ -171,6 +171,14 @@ started in three ways:
   the run. The drift pauses when the app is hidden, and stands still
   under Reduce motion. A row without books takes no room, and a short
   row is not shown twice across the window.
+  Each book is in Spotlight (`Spotlight.swift`: title, author, cover,
+  indexed again only when the list changed, not by the preview); a
+  result opens Covers with that book lifted. *Remove…* takes them out.
+  A sync that marks books Read on Hardcover says each one in a
+  notification of its own with its cover: a fourth field on the tool's
+  `NOTIFY|` line after a plug-in, `finished` in the last line of
+  `sync --steps` after *Sync now*. The app attaches a copy of the cover,
+  because Notification Center moves an attached file into its own store.
   In server mode Books is the same, with the
   server's books for this Mac's reader: the tool asks the server
   (`/api/app/`, with the upload token) and keeps its covers in

@@ -30,6 +30,7 @@ final class WindowModel: ObservableObject {
     @Published var filter = "all"
     @Published var sort = "last_read"
     @Published var chosenBook: String?  // the book whose Details are open
+    @Published var spotlit: String?  // a book chosen in Spotlight: Covers brings it up
     @Published var changing: Set<String> = []  // books the tool is changing now
     @Published var problem: String?  // what the tool said when a change did not happen
     @Published var signIn: SignIn?  // connecting to Hardcover, while the sheet is open
@@ -103,6 +104,7 @@ final class WindowModel: ObservableObject {
                 case .success(let list):
                     self.books = list
                     self.booksBroken = nil
+                    DispatchQueue.global(qos: .utility).async { indexBooks(list.books) }
                     if !covers && !self.coversFetched && list.books.contains(where: { $0.cover.isEmpty }) {
                         self.coversFetched = true
                         self.loadBooks(covers: true)
@@ -136,6 +138,9 @@ final class WindowModel: ObservableObject {
                 guard case .success(let step) = decode(StepLine.self, line) else { return }
                 DispatchQueue.main.async {
                     if let done = step.done { self.outcome = done } else { self.steps.append(step) }
+                }
+                for book in step.done?.finished ?? [] {  // marked Read on Hardcover: a notification with its cover, as after a plug-in
+                    post("Finished: \(book.title)", "Marked as read on your Hardcover shelf.", picture: book.cover)
                 }
             }
             DispatchQueue.main.async {

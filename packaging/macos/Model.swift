@@ -199,9 +199,16 @@ struct UpdateAnswer: Codable {
 /// One line of `sync --steps`: a step as it finishes, or, last, the outcome.
 struct StepLine: Codable {
     struct Done: Codable {
+        /// A book the sync marked Read on Hardcover: a notification of its own, with its cover.
+        struct Finished: Codable {
+            let title: String
+            let cover: String  // its file, "" without one
+        }
+
         let ok: Bool
         let title: String
         let message: String
+        var finished: [Finished]? = nil  // nil from a tool before 0.15.0
     }
 
     let schema: Int
