@@ -156,8 +156,13 @@ started in three ways:
   gives a token on standard input (`token --paste --json`). Settings,
   Sync, has the connection with *Disconnect…* and *Send to Hardcover*,
   the switch between live and a dry run. *Open on the Page* opens the page at
-  the book (`open --book`). In server mode Books opens the server's
-  page. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
+  the book (`open --book`). In server mode Books is the same, with the
+  server's books for this Mac's reader: the tool asks the server
+  (`/api/app/`, with the upload token) and keeps its covers in
+  `server-covers` in its folder; *Connect on the page…* opens the
+  server's Settings, where that reader's Hardcover connection is made.
+  A server older than 0.15.0, or a proxy that does not let `/api/app/`
+  past its sign-in, is said so, with *Open the page*. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
   shows as "Syncing…" while it runs (`status --json` says so, from the
   sync's lock; the sync keeps a `sync.running` marker in the tool's folder,
   which wakes the window), and in History when it ends. With the window open the app has a

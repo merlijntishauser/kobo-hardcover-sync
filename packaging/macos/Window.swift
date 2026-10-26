@@ -90,9 +90,9 @@ final class WindowModel: ObservableObject {
         }
     }
 
-    /// The list of books, in local mode; then, once, again with the covers fetched.
+    /// The list of books (in server mode the server's, for this Mac's reader); then, once, again with the covers fetched.
     func loadBooks(covers: Bool = false) {
-        guard status?.mode == "local" else {
+        guard status?.mode == "local" || status?.mode == "server" else {
             books = nil
             return
         }
@@ -260,7 +260,7 @@ struct MainView: View {
             VStack(spacing: 0) {
                 TopLine(model: model).padding(.horizontal, 20).padding(.vertical, 12)
                 Divider()
-                if model.broken == nil && model.pane == .books && model.status?.mode == "local" {
+                if model.broken == nil && model.pane == .books && !(model.status?.mode ?? "").isEmpty {
                     BooksPane(model: model)
                 } else {
                     Form {
@@ -433,21 +433,18 @@ struct SyncSection: View {
     }
 }
 
-/// Books in server mode, or before setup: they are on the server's page.
+/// Books before setup.
 struct BooksSections: View {
     @ObservedObject var model: WindowModel
 
     var body: some View {
-        Section {
-            Text(model.status?.mode == "server" ? "Your books are on the server, behind its sign-in." : "Not set up yet.")
-                .foregroundStyle(.secondary)
-        } footer: {
-            HStack {
-                Spacer()
-                Button("Open the books") { _ = tool(["open"]) }.disabled(model.status?.mode.isEmpty ?? true)
-            }
-        }
+        Section { Text("Not set up yet.").foregroundStyle(.secondary) }
     }
+}
+
+/// The server's page, at Settings: in server mode the Hardcover connection is made there.
+func openServerSettings(_ server: String) {
+    if let url = URL(string: server)?.appendingPathComponent("settings") { NSWorkspace.shared.open(url) }
 }
 
 struct HistorySection: View {

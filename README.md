@@ -275,9 +275,11 @@ line.
   (*Connect to Hardcover*: a link and a short code, approved on Hardcover).
   What the server keeps for that is encrypted in the database with
   `KHS_SECRET_KEY`; keep that key out of the data folder and its backups.
-- `/upload` and `/collection` are for the computers that send a Kobo's
-  books: route them past the sign-in, because they carry a token of their
-  own. `/api/stats/<reader>` gives reading minutes and the current book to
+- `/upload`, `/collection` and everything under `/api/app/` are for the
+  computers that send a Kobo's books, and the Mac app on them: route them
+  past the sign-in, because they carry a token of their own. That token
+  answers only for the reader whose device it is, and removing the device
+  under Settings ends it. `/api/stats/<reader>` gives reading minutes and the current book to
   a dashboard, once that reader made a stats token under Settings.
   Each reader can download their whole shelf as JSON under Settings, *Your
   reading as a file*, behind the sign-in; `kobo-hardcover-sync export

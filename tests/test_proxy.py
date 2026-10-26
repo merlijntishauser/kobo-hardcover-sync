@@ -54,8 +54,9 @@ def test_a_forged_login_from_anywhere_but_the_proxy_gets_403_on_every_route(tmp_
             r = outside.request(method, path, headers=FORGED, data={"x": "1"}, follow_redirects=False)
             assert (r.status_code, r.text) == (403, NOT_THROUGH), (method, path, r.status_code)
             checked.append((method, path))
-    # Every page and every form was refused; exactly these four routes are open (each with a key of its own, or no data).
-    assert left_open == {"/healthz", "/upload", "/collection", "/api/stats/{reader}"}
+    # Every page and every form was refused; exactly these routes are open (each with a key of its own, or no data).
+    app = {"/api/app/books", "/api/app/book", "/api/app/books/sync", "/api/app/live", "/api/app/cover"}
+    assert left_open == {"/healthz", "/upload", "/collection", "/api/stats/{reader}"} | app
     assert {
         ("GET", "/"),
         ("GET", "/settings"),
@@ -82,10 +83,14 @@ def test_what_anyone_may_reach_gives_nothing_away(tmp_path, monkeypatch):
     outside = client_at(web.app, ELSEWHERE)
     assert outside.get("/healthz").text == "ok"
     assert outside.get("/static/kobo.css").status_code == 200
-    # The three paths with a token of their own still want it, forged login or not.
+    # The paths with a token of their own still want it, forged login or not.
     assert outside.put("/upload", headers=FORGED, content=b"x").status_code == 401
     assert outside.get("/collection", headers=FORGED).status_code == 401
     assert outside.get("/api/stats/robin", headers=FORGED).status_code == 401
+    for method, path in (("GET", "/api/app/books"), ("POST", "/api/app/book"), ("POST", "/api/app/books/sync"), ("POST", "/api/app/live")):
+        r = outside.request(method, path, headers=FORGED, json={"id": "old", "sync": "on", "live": True})
+        assert (r.status_code, r.json()) == (401, {"error": "missing bearer token"}), (method, path)
+    assert outside.get("/api/app/cover?id=old", headers=FORGED | {"Authorization": "Bearer nonsense"}).status_code == 401
 
 
 def test_without_a_proxy_address_nothing_is_served_and_the_server_does_not_start(tmp_path, monkeypatch, capsys):

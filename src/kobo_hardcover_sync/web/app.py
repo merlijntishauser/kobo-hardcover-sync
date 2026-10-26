@@ -22,9 +22,10 @@ from urllib.parse import parse_qsl, quote, urlencode, urlparse
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from starlette.middleware.gzip import GZipMiddleware
 
-from .. import __version__, booklist, doctor
+from .. import __version__, appbooks, booklist, doctor
 from ..engine import export, hardcover, job, oauth, state
 from ..engine.plan import action, quiet_for
 from ..env import env
@@ -64,7 +65,7 @@ class Compress(GZipMiddleware):
     compressed already and pass untouched."""
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] == "http" and scope["path"].startswith(("/static/fonts/", "/cover/")):
+        if scope["type"] == "http" and scope["path"].startswith(("/static/fonts/", "/cover/", "/api/app/cover")):
             await self.app(scope, receive, send)
             return
         await super().__call__(scope, receive, send)
@@ -153,15 +154,16 @@ SYNC_INTERVAL = int(env("INTERVAL", "3600"))
 # The reader comes from the proxy's headers, so everything that shows or
 # changes a reader's things is only answered to the proxy (server/proxy.py).
 # Open to anyone who can reach the port: the health check, the page's own
-# files, and the three paths that carry a token of their own.
+# files, and the paths that carry a token of their own (a device's, or a
+# reader's stats token).
 TRUSTED_PROXIES = proxy.parse(env("TRUSTED_PROXIES", ""))
 OPEN_PATHS = ("/healthz", "/upload", "/collection")
-OPEN_PREFIXES = ("/static/", "/api/stats/")
+OPEN_PREFIXES = ("/static/", "/api/stats/", "/api/app/")
 
 
 # Local mode has none of these: one reader, no uploads, no proxy.
 LOCAL_OFF = ("/upload", "/collection", "/signup", "/admin")
-LOCAL_OFF_PREFIXES = ("/api/stats/", "/admin/", "/settings/devices/", "/settings/stats/")
+LOCAL_OFF_PREFIXES = ("/api/stats/", "/api/app/", "/admin/", "/settings/devices/", "/settings/stats/")
 LOOPBACK = ("127.0.0.1", "::1")
 
 
@@ -1069,6 +1071,125 @@ def api_stats(request: Request, reader: str):
     return JSONResponse(stats_mod.stats(con, reader))
 
 
+# ---------- the Mac app in server mode ----------
+# The books of the reader whose device sends the Kobo's database, for the
+# app on that computer (appbooks.py; the tool asks, computer/remote.py).
+# The device's bearer token is the key, as for /upload: never the proxy's
+# headers, which reach these paths unchecked.
+
+
+def device_reader(request: Request) -> str:
+    auth = request.headers.get("authorization", "")
+    return upload.device_for(auth[7:].strip() if auth.lower().startswith("bearer ") else "", db())[0]
+
+
+def app_cover(r) -> str:
+    return f"/api/app/cover?id={quote(r['content_id'], safe='')}" if r["image_id"] and covers.ID_OK.match(r["image_id"]) else ""
+
+
+def for_the_app(request: Request, fn):
+    """fn(con, reader) answers as JSON; a device it does not know gets 401, a refusal its words.
+    An async route reads its body first, then comes here through run_in_threadpool: the
+    database and Hardcover are not to hold up the server's loop."""
+    try:
+        reader = device_reader(request)
+    except upload.UploadError as ex:
+        return JSONResponse({"error": str(ex)}, status_code=ex.status, headers={"WWW-Authenticate": "Bearer"})
+    con = db()
+    try:
+        return JSONResponse(fn(con, reader))
+    except appbooks.Refused as ex:
+        return JSONResponse({"error": str(ex)}, status_code=ex.status)
+    except accounts.AccountError as ex:
+        return JSONResponse({"error": T[ex.key]}, status_code=400)
+    except hardcover.HardcoverError as ex:
+        return JSONResponse({"error": str(ex)}, status_code=502)
+
+
+@app.get("/api/app/books")
+def app_books(request: Request):
+    def answer(con, reader):
+        return appbooks.listing(con, reader, app_cover, lambda: accounts.has_token(con, reader))
+
+    return for_the_app(request, answer)
+
+
+@app.post("/api/app/book")
+async def app_book(request: Request):
+    """One book's changes, as `book ID` makes them; answers the book."""
+    asked = await app_json(request)
+
+    def answer(con, reader):
+        def client(**kw):
+            return hardcover.Client(accounts.token_for(con, reader), **kw)
+
+        cid = str(asked.get("id") or "")
+        appbooks.change(
+            con,
+            reader,
+            cid,
+            client,
+            search=str(asked.get("search") or ""),
+            pick=str(asked.get("pick") or ""),
+            sync=str(asked.get("sync") or ""),
+            state_=str(asked.get("state") or ""),
+            date=str(asked.get("date") or ""),
+            remove=asked.get("remove") is True,
+        )
+        return appbooks.one(con, reader, cid, app_cover)
+
+    return await run_in_threadpool(for_the_app, request, answer)
+
+
+@app.post("/api/app/books/sync")
+async def app_set_all(request: Request):
+    asked = await app_json(request)
+
+    def answer(con, reader):
+        expect = asked.get("expect")
+        appbooks.set_all(
+            con,
+            reader,
+            str(asked.get("sync") or ""),
+            str(asked.get("filter") or "all"),
+            str(asked.get("search") or ""),
+            expect if isinstance(expect, int) else None,
+        )
+        return {"ok": True}
+
+    return await run_in_threadpool(for_the_app, request, answer)
+
+
+@app.post("/api/app/live")
+async def app_live(request: Request):
+    """Going live, or back to a dry run, as under Settings on the page."""
+    asked = await app_json(request)
+
+    def answer(con, reader):
+        accounts.set_live(con, reader, asked.get("live") is True)
+        row = accounts.get(con, reader)
+        return {"live": bool(row["hardcover_live"]), "user": row["hardcover_user"] or "", "connected": accounts.has_token(con, reader)}
+
+    return await run_in_threadpool(for_the_app, request, answer)
+
+
+@app.get("/api/app/cover")
+def app_cover_file(request: Request, id: str = "", size: str = "thumb"):
+    try:
+        reader = device_reader(request)
+    except upload.UploadError as ex:
+        return JSONResponse({"error": str(ex)}, status_code=ex.status, headers={"WWW-Authenticate": "Bearer"})
+    return cover_file(reader, id, size)
+
+
+async def app_json(request: Request) -> dict:
+    try:
+        asked = json.loads(await request.body() or b"{}")
+    except ValueError:
+        asked = {}
+    return asked if isinstance(asked, dict) else {}
+
+
 def to_row(back: str, cid: str) -> RedirectResponse:
     """Back to the same filtered view, scrolled to the book's row, with enough of the list
     shown to hold it (at=)."""
@@ -1081,6 +1202,10 @@ def cover(request: Request, content_id: str, size: str = "thumb"):
     reader = reader_for(request)
     if reader is None:
         return PlainTextResponse(T["unknown_user"], status_code=403)
+    return cover_file(reader, content_id, size)
+
+
+def cover_file(reader: str, content_id: str, size: str) -> Response:
     row = db().execute("select image_id from reader_book where reader=? and content_id=?", (reader, content_id)).fetchone()
     path = covers.cover_path(DATA, row["image_id"], size) if row else None
     if path is None:

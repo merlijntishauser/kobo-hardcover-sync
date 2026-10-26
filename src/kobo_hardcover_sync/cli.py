@@ -54,14 +54,15 @@ Every --json answer, and every line of sync --steps, carries "schema": 1,
 raised when a field changes meaning; the Mac app reads them.
 
 kobo-hardcover-sync books [--json] [--covers]
-    Local mode: your books, newest read first, each with what the next
-    sync does with it on Hardcover. --covers first fetches the covers this
-    computer does not have yet, from Kobo. --json for the Mac app: every
+    Your books, newest read first, each with what the next sync does with
+    it on Hardcover; in server mode the server's, for this computer's
+    reader. --covers first fetches the covers this computer does not have
+    yet, from Kobo or the server. --json for the Mac app: every
     book with its row and its Details, the filters it is in, and the
     page's words for them.
 
 kobo-hardcover-sync book ID [--sync MODE] [--state STATE [--date DATE]] [--search TEXT] [--pick BOOK] [--remove] [--json]
-    Local mode: one book, and the changes the page makes to it: whether it
+    One book, and the changes the page makes to it: whether it
     syncs (auto, on, off), its State, a match (--search looks on
     Hardcover for the books it could be, --pick takes one of them), and
     --remove, which takes it off your Hardcover shelf now. With --json it
@@ -851,7 +852,7 @@ def _settings(a, computer) -> None:
     from .computer.platform import HARDCOVER, UPLOAD
 
     cfg = config.load()
-    live = None  # local mode's switch from dry run to sending, kept with the books
+    live = None  # the switch from dry run to sending, kept with the books (on the server in server mode)
     if a.set:
         if not cfg.mode:
             sys.exit("kobo-hardcover-sync: not set up yet: run setup first.")
@@ -862,10 +863,9 @@ def _settings(a, computer) -> None:
             if value.lower() not in ("true", "false"):
                 sys.exit(f"kobo-hardcover-sync: {name} is true or false, not {value!r}.")
             if name == "live":
-                if cfg.mode != "local":
-                    sys.exit("kobo-hardcover-sync: in server mode you go live on the server's page, under Settings.")
                 live = value.lower() == "true"
-                if live and not computer.secret(HARDCOVER):  # as the page: going live asks Hardcover nothing, but needs a connection
+                # As the page: going live asks Hardcover nothing, but needs a connection (the server checks its own).
+                if cfg.mode == "local" and live and not computer.secret(HARDCOVER):
                     sys.exit("kobo-hardcover-sync: connect to Hardcover first: nothing could be sent without it.")
             else:
                 setattr(cfg, name, value.lower() == "true")
@@ -882,13 +882,22 @@ def _settings(a, computer) -> None:
             row = accounts.local_reader(con)
         reader = (bool(row["hardcover_live"]), row["hardcover_user"] or "")
         con.close()
+    connected = bool(computer.secret(HARDCOVER)) if cfg.mode == "local" else False
+    if cfg.mode == "server" and live is not None:  # the server answers for this computer's reader, and refuses without a connection
+        from .computer import remote
+
+        try:
+            there = _books_server(computer).app("POST", "live", {"live": live})
+        except remote.ServerError as ex:
+            sys.exit(f"kobo-hardcover-sync: {ex}")
+        reader, connected = (there["live"], there["user"]), there["connected"]
     values = {name: getattr(cfg, name) for name in SETTABLE} | {"export_to": cfg.export_to, "webhook_url": cfg.webhook_url}
     token = computer.secret(UPLOAD) if cfg.mode == "server" else ""
     found = {
         "mode": cfg.mode,
         "server": cfg.server,
         "upload_token_hash": _token_hash(token) if token else "",
-        "hardcover_connected": bool(computer.secret(HARDCOVER)) if cfg.mode == "local" else False,
+        "hardcover_connected": connected,
         "hardcover_user": reader[1] if reader else "",
         "live": reader[0] if reader else False,  # local mode: sending to Hardcover, not a dry run
         "settings": values,
@@ -932,131 +941,71 @@ def _open(a, computer) -> None:
 
 
 def _books_list(a, computer) -> None:
-    from . import booklist
-    from .web.strings import T
+    from . import appbooks, booklist
+    from .computer.platform import HARDCOVER
 
+    if (server := _books_server(computer)) is not None:
+        return _server_books_list(a, server)
     folder, con = _local_books()
-    if a.sync:  # Set all: every book of a filter and search, as on the page
-        if con is None:
-            sys.exit("kobo-hardcover-sync: no books yet: nothing was read from a Kobo so far.")
-        if a.filter not in booklist.FILTERS:
-            sys.exit(f"kobo-hardcover-sync: --filter is one of {', '.join(booklist.FILTERS)}, not '{a.filter}'.")
-        ids = booklist.ids(con, "me", a.search, a.filter)
-        if a.expect is not None and a.expect != len(ids):  # the list moved since it was counted: nothing changes
-            con.close()
-            sys.exit(f"kobo-hardcover-sync: the list holds {plural(len(ids), 'book')} now, not {a.expect}: nothing was changed.")
-        state.set_mode(con, "me", ids, a.sync)
-    rows = booklist.query_rows(con, "me", "", "all", "last_read") if con else []
-    if a.covers:  # the thumbnails the page and the app show; one that Kobo does not have is asked for again in a week
-        from .web import covers
-
-        for r in rows:
-            covers.cover_path(folder, r["image_id"])
-    live = bool(con and booklist.summary(con, "me")["live"])
-    quiet = _quiet(con)
-    if not a.json:
-        screen = term.Screen.of()
-        if not rows:
-            screen.say("No books yet: nothing was read from a Kobo so far.")
-        for r in rows:
-            pct, done, _ = booklist.progress(r)
-            screen.book(r["title"] or "", pct, done, booklist.hc_status(r, live, quiet)[1])
+    try:
+        if a.sync:  # Set all: every book of a filter and search, as on the page
+            appbooks.set_all(con, "me", a.sync, a.filter, a.search, a.expect)
+    except appbooks.Refused as ex:
         if con:
             con.close()
-        return
-    member = {f: set(booklist.ids(con, "me", "", f)) if con else set() for f in booklist.FILTERS}
-    place = {r["content_id"]: n for n, r in enumerate(rows)}
-    books = [booklist.entry(r, live, quiet, [f for f in booklist.FILTERS if r["content_id"] in member[f]], _cover(folder, r)) for r in rows]
-    sorts = [  # each sort of the page, with its order as places in books
-        {
-            "key": k,
-            "label": T["sort_" + k],
-            "order": [place[r["content_id"]] for r in booklist.query_rows(con, "me", "", "all", k)] if con else [],
-        }
-        for k in booklist.SORTS
-    ]
-    summary = booklist.summary(con, "me") if con else {"user": "", "on": 0}
-    first = None
-    if con and rows and not live:  # the page's first run: until going live ends it
-        from .computer.platform import HARDCOVER
+        sys.exit(f"kobo-hardcover-sync: {ex}")
+    if a.covers and con:  # the thumbnails the page and the app show; one that Kobo does not have is asked for again in a week
+        from .web import covers
 
-        history = sum(1 for r in rows if r["history"])
-        first = {
-            "title": T["fr_title"],
-            "text": T["fr_text"].format(n=len(rows), h=history),
-            "on": summary["on"],
-            "tally": f"{T['fr_tally']} {T['fr_dry']}",
-            "connected": bool(computer.secret(HARDCOVER)),
-            "steps": [T["fr_connect"], T["fr_pick"], T["fr_live"]],
-        }
+        for r in booklist.query_rows(con, "me", "", "all", "last_read"):
+            covers.cover_path(folder, r["image_id"])
+    found = appbooks.listing(con, "me", lambda r: _cover(folder, r), lambda: bool(computer.secret(HARDCOVER)))
     if con:
         con.close()
-    _json(
-        {
-            "live": live,
-            "user": summary["user"],
-            "first_run": first,
-            "books": books,
-            "sorts": sorts,
-            "words": {  # the page's words, so that the app says the same
-                "filters": [{"group": T["g_" + g], "keys": [[k, T["f_" + k]] for k in keys]} for g, keys in booklist.FILTER_GROUPS],
-                "sections": [T["d_section_kobo"], T["d_section_hardcover"]],
-                "syncs": [[m, T[m]] for m in state.MODES],
-                "states": [[s, T[booklist.STATE_LABEL[s]]] for s in state.STATES],
-                "legend": [[k, T["legend_" + k]] for k in ("next", "wait", "ok", "stet", "warn", "err", "none")],
-            },
-        }
-    )
+    _books_said(a, found)
+
+
+def _books_said(a, found: dict) -> None:
+    """books' answer: JSON for the app, or in a terminal each title with its status line."""
+    if a.json:
+        return _json(found)
+    screen = term.Screen.of()
+    if not found["books"]:
+        screen.say("No books yet: nothing was read from a Kobo so far.")
+    for b in found["books"]:
+        screen.book(b["title"], b["percent"], b["finished"], b["status"]["text"])
 
 
 def _book(a, computer) -> None:
     """One book: what it is, and the changes the page makes to it."""
-    from . import booklist
+    from . import appbooks
     from .computer import page
-    from .engine import hardcover, job
+    from .engine import hardcover
 
+    if (server := _books_server(computer)) is not None:
+        return _book_said(a, _server_book(a, server))
     folder, con = _local_books()
-    row = con and con.execute("select * from reader_book where reader='me' and content_id=?", (a.id,)).fetchone()
-    if not row:
-        sys.exit(f"kobo-hardcover-sync: no book with the id '{a.id}': `books --json` gives each book's id.")
 
     def client(**kw):
         return hardcover.Client(page.KeptToken(computer).usable(), **kw)
 
     try:
-        if a.search:  # the books it could be, while it has no match
-            if row["hc_book_id"]:
-                sys.exit("kobo-hardcover-sync: this book has its match already.")
-            found = hardcover.shown(client(tries=1).search(a.search))
-            con.execute(
-                "update book set hc_how=?, hc_candidates=? where reader='me' and content_id=? and hc_book_id is null",
-                ("uncertain" if found else "none", json.dumps(found), a.id),
-            )
-            con.commit()
-        if a.pick:
-            row = con.execute("select * from reader_book where reader='me' and content_id=?", (a.id,)).fetchone()
-            chosen = [c for c in json.loads(row["hc_candidates"] or "[]") if str(c["book_id"]) == a.pick]
-            if not chosen:
-                sys.exit(f"kobo-hardcover-sync: {a.pick} is not one of the books it could be (`book ID --json`, details, candidates).")
-            job.pick(con, "me", a.id, int(chosen[0]["book_id"]), chosen[0]["title"], chosen[0].get("pages") or None)
-        if a.sync:
-            state.set_mode(con, "me", [a.id], a.sync)
-        if a.state:
-            state.set_state(con, "me", a.id, a.state, a.date if a.state in ("finished", "rereading") else "")
-        if a.remove:  # off the Hardcover shelf now, and no longer synced
-            job.remove(con, "me", a.id, client())
-    except hardcover.HardcoverError as ex:
-        con.close()
+        appbooks.change(
+            con, "me", a.id, client, search=a.search, pick=a.pick, sync=a.sync or "", state_=a.state or "", date=a.date, remove=a.remove
+        )
+        found = appbooks.one(con, "me", a.id, lambda r: _cover(folder, r))
+    except (appbooks.Refused, hardcover.HardcoverError) as ex:
         sys.exit(f"kobo-hardcover-sync: {ex}")
-    except ValueError as ex:  # a date that is not one
-        con.close()
-        sys.exit(f"kobo-hardcover-sync: {ex}")
-    row = con.execute("select * from reader_book where reader='me' and content_id=?", (a.id,)).fetchone()
-    summary = booklist.summary(con, "me")
-    book = booklist.entry(row, summary["live"], _quiet(con), booklist.filters_of(con, "me", a.id), _cover(folder, row))
-    con.close()
+    finally:
+        if con:
+            con.close()
+    _book_said(a, found)
+
+
+def _book_said(a, found: dict) -> None:
     if a.json:
-        return _json({"book": book, "books": summary})
+        return _json(found)
+    book = found["book"]
     screen = term.Screen.of()
     screen.book(book["title"], book["percent"], book["finished"], book["status"]["text"])
     for label, value in book["details"]["kobo"] + book["details"]["hardcover"]:
@@ -1064,25 +1013,94 @@ def _book(a, computer) -> None:
 
 
 def _local_books():
-    """Local mode's folder and its database (None before a Kobo was read); refused elsewhere."""
+    """Local mode's folder and its database (None before a Kobo was read); refused before setup."""
     from .computer import config
 
     cfg = config.load()
     if cfg.mode != "local":
-        sys.exit(
-            f"kobo-hardcover-sync: your books are on {cfg.server}: open the page there."
-            if cfg.server
-            else "kobo-hardcover-sync: not set up yet: run setup first."
-        )
+        sys.exit("kobo-hardcover-sync: not set up yet: run setup first.")
     folder = config.state_dir()
     path = os.path.join(folder, "state.db")
     return folder, state.connect(path) if os.path.exists(path) else None
 
 
-def _quiet(con) -> dict:
-    from .engine.plan import quiet_for
+def _books_server(computer):
+    """Server mode: the server this computer sends to, which answers for its
+    reader (/api/app/); None in local mode and before setup."""
+    from .computer import config, remote
+    from .computer.platform import UPLOAD
 
-    return quiet_for(con, "me") if con else {}
+    cfg = config.load()
+    if cfg.mode != "server":
+        return None
+    token = computer.secret(UPLOAD)
+    if not token:
+        sys.exit("kobo-hardcover-sync: this computer has no upload token: run setup again.")
+    return remote.Server(cfg.server, token)
+
+
+def _server_books_list(a, server) -> None:
+    from .computer import remote
+
+    try:
+        if a.sync:
+            server.app("POST", "books/sync", {"sync": a.sync, "filter": a.filter, "search": a.search, "expect": a.expect})
+        found = server.app("GET", "books")
+        for b in found["books"]:
+            b["cover"] = _server_cover(server, b["cover"], a.covers)
+    except remote.ServerError as ex:
+        sys.exit(f"kobo-hardcover-sync: {ex}")
+    _books_said(a, found)
+
+
+def _server_book(a, server) -> dict:
+    from .computer import remote
+
+    change = {
+        "id": a.id,
+        "sync": a.sync or "",
+        "state": a.state or "",
+        "date": a.date,
+        "search": a.search,
+        "pick": a.pick,
+        "remove": a.remove,
+    }
+    try:
+        found = server.app("POST", "book", change)
+    except remote.ServerError as ex:
+        sys.exit(f"kobo-hardcover-sync: {ex}")
+    found["book"]["cover"] = _server_cover(server, found["book"]["cover"], False)
+    return found
+
+
+def _server_cover(server, path: str, fetch: bool) -> str:
+    """The file of a cover the server has (path, as its answer gives it),
+    kept on this computer; fetched only with fetch (books --covers). One
+    the server does not have is asked for again in a week."""
+    from .computer import config, remote
+
+    if not path:
+        return ""
+    folder = os.path.join(config.state_dir(), "server-covers")
+    file = os.path.join(folder, hashlib.sha256(path.encode()).hexdigest()[:40] + ".jpg")
+    none = file[:-4] + ".none"
+    if os.path.exists(file):
+        return file
+    if not fetch or (os.path.exists(none) and time.time() - os.path.getmtime(none) < 7 * 86400):
+        return ""
+    try:
+        data = server.cover(path)
+    except remote.ServerError:  # not now; the next books --covers asks again
+        return ""
+    os.makedirs(folder, exist_ok=True)
+    if data is None:
+        with open(none, "w"):
+            pass
+        return ""
+    with tempfile.NamedTemporaryFile(dir=folder, delete=False) as out:
+        out.write(data)
+    os.replace(out.name, file)
+    return file
 
 
 def _cover(folder: str, r) -> str:

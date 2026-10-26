@@ -98,12 +98,13 @@ Each is the pile, at another size, read from what the app last fetched:
 
 ## The tool's side
 
-- The server: `GET /api/books`, `POST /api/book/{id}` (the same changes
-  as `book ID`), `POST /api/books/sync` (Set all), `GET /api/cover/{id}`
-  (`thumb` or `large`), all with the device's bearer token, all answered
-  for that device's reader only, through the same row model as the page.
-  Open paths like `/upload`: the proxy lets them through, the token is
-  the key. Not for Admin, signing up, tokens or devices.
+- The server, under `/api/app/`: `GET books`, `POST book` (the same
+  changes as `book ID`, the id in the body), `POST books/sync` (Set all),
+  `POST live`, `GET cover?id=` (`thumb` or `large`), all with the
+  device's bearer token, all answered for that device's reader only,
+  through the same row model as the page (`appbooks.py`). Open paths
+  like `/upload`: the proxy has to let them through, the token is the
+  key. Not for Admin, signing up, tokens or devices.
 - The tool on the Mac, in server mode: `books --json` and `book …` ask
   those, and keep the covers they fetch in the same cover cache as local
   mode, so `cover` in the answer is still a file.

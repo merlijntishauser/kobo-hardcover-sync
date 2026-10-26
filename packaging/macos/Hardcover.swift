@@ -202,6 +202,8 @@ struct FirstRun: View {
                 step(1, first.steps.first ?? "", done: first.connected) {
                     if first.connected {
                         Text("Done.").font(.callout).foregroundStyle(.secondary)
+                    } else if let status = model.status, status.mode == "server" {  // the connection is the server's, made on its page
+                        Button("Connect on the page…") { openServerSettings(status.server) }.controlSize(.small)
                     } else {
                         Button("Connect…") { model.connect() }.controlSize(.small)
                     }
@@ -226,7 +228,7 @@ struct FirstRun: View {
         .confirmationDialog("Go live?", isPresented: $asking) {
             Button("Go Live") { model.goLive() }
         } message: {
-            Text("From the next sync on, Hardcover is told what the red marks say, for the \(first.on == 1 ? "book" : "\(first.on) books") switched on. Settings, Sync, turns it off again.")
+            Text("From the next sync on, Hardcover is told what the red marks say, for the \(first.on == 1 ? "book" : "\(first.on) books") switched on. \(model.status?.mode == "server" ? "Settings on the page" : "Settings, Sync,") turns it off again.")
         }
     }
 

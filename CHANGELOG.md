@@ -7,6 +7,14 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- In server mode the Mac app has your books too, as in local mode: the
+  list with its marks, Details, Sync, State, a match, *Set all* and going
+  live, all made on the server for you. It asks with this Mac's upload
+  token, so nothing new to set up on the Mac; the server's proxy has to
+  let `/api/app/` past its sign-in, as it does `/upload` (README).
+
 ## 0.14.0 - 2026-10-26
 
 The Mac app gets an icon of its own, drawn like the page, and the disk

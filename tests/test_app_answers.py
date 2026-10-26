@@ -182,7 +182,7 @@ def test_books_answers_every_book_with_its_row_and_details(home, capsys, monkeyp
     assert "Made-up" in capsys.readouterr().out  # in a terminal: the titles, each with its status line
 
     config.save(config.Config(server="https://kobo.example.org"))
-    with pytest.raises(SystemExit, match="your books are on https://kobo.example.org"):
+    with pytest.raises(SystemExit, match="no upload token: run setup again"):  # server mode asks the server, with this computer's token
         cli.main(["books", "--json"], computer=computer)
 
 
@@ -279,9 +279,73 @@ def test_the_first_run_and_going_live_in_local_mode(home, capsys):
     assert answer(capsys, "status", "--json", computer=computer)["books"]["live"] is True
     assert answer(capsys, "settings", "--set", "live=false", "--json", computer=computer)["live"] is False
 
-    config.save(config.Config(server="https://kobo.example.org"))
-    with pytest.raises(SystemExit, match="on the server's page"):
-        cli.main(["settings", "--set", "live=true"], computer=computer)
+
+def test_in_server_mode_the_books_come_from_the_server_for_this_computers_reader(mac, home, server, capsys, monkeypatch):  # noqa: F811
+    from cryptography.fernet import Fernet
+
+    from kobo_hardcover_sync.engine import hardcover
+    from kobo_hardcover_sync.server import accounts
+    from kobo_hardcover_sync.web import covers
+    from tests.test_hardcover import FakeHC
+
+    runner.sync(mac, config.load())  # the Kobo's books, sent to the server for sam
+    found = answer(capsys, "books", "--json", computer=mac)
+    same_shape(found, sample("books.json"))
+    assert len(found["books"]) == 9 and found["first_run"]["connected"] is False and not found["live"]
+    one, two = BOOKS[:2]
+
+    # Covers: the server's, kept on this computer; fetched once, and only with --covers.
+    srv = state.connect(os.path.join(server.data, "state.db"))
+    srv.execute("update book set image_id = 'cover-' || substr(content_id, -1) where content_id in (?, ?)", (one, two))
+    srv.commit()
+    fetched = []
+    monkeypatch.setattr(covers, "download", lambda image_id, size="thumb": fetched.append(image_id) or b"\xff\xd8jpeg")
+    assert all(b["cover"] == "" for b in answer(capsys, "books", "--json", computer=mac)["books"])
+    shown = [b["cover"] for b in answer(capsys, "books", "--covers", "--json", computer=mac)["books"] if b["cover"]]
+    assert len(shown) == 2 and all(c.startswith(str(home / "state" / "server-covers")) and os.path.exists(c) for c in shown)
+    assert len([b for b in answer(capsys, "books", "--covers", "--json", computer=mac)["books"] if b["cover"]]) == 2
+    assert len(fetched) == 2  # kept: not asked for again
+
+    # Changes, as in local mode, made on the server.
+    changed = answer(capsys, "book", one, "--sync", "on", "--state", "finished", "--date", "2026-10-01", "--json", computer=mac)
+    same_shape(changed, sample("book.json"))
+    assert changed["book"]["syncs"] and changed["book"]["state_date"] == "2026-10-01" and changed["books"]["on"] == 1
+    assert changed["book"]["cover"].startswith(str(home / "state" / "server-covers"))
+    assert srv.execute("select mode from book where reader='sam' and content_id=?", (one,)).fetchone()[0] == "on"
+    with pytest.raises(SystemExit, match="date must be YYYY-MM-DD"):
+        cli.main(["book", one, "--state", "finished", "--date", "1 Oct"], computer=mac)
+    with pytest.raises(SystemExit, match="no book with the id"):
+        cli.main(["book", "nothing-like-it", "--json"], computer=mac)
+    with pytest.raises(SystemExit, match="holds 9 books now, not 8: nothing was changed"):
+        cli.main(["books", "--sync", "on", "--filter", "all", "--expect", "8"], computer=mac)
+    assert all(
+        b["syncs"] for b in answer(capsys, "books", "--sync", "on", "--filter", "all", "--expect", "9", "--json", computer=mac)["books"]
+    )
+
+    # A match and going live need sam's Hardcover connection, which is on the server.
+    with pytest.raises(SystemExit, match="Connect to Hardcover first"):
+        cli.main(["settings", "--set", "live=true"], computer=mac)
+    monkeypatch.setenv("KHS_SECRET_KEY", Fernet.generate_key().decode())
+    accounts.set_token(srv, "sam", "hc-token", "sam")
+    srv.execute("update book set hc_book_id=null, hc_how='none' where reader='sam' and content_id=?", (two,))
+    srv.commit()
+    hits = [{"book_id": 77, "title": "Made-up Book 1", "pages": 210, "authors": ["Someone"], "also": []}]
+    monkeypatch.setattr(hardcover, "Client", lambda token, **kw: FakeHC(search={"Made-up": hits}))
+    looked = answer(capsys, "book", two, "--search", "Made-up Book", "--json", computer=mac)["book"]
+    assert looked["details"]["candidates"] == [{"id": 77, "title": "Made-up Book 1", "author": "Someone"}]
+    assert (
+        answer(capsys, "book", two, "--pick", "77", "--json", computer=mac)["book"]["details"]["link"] == "https://hardcover.app/id/book/77"
+    )
+    went = answer(capsys, "settings", "--set", "live=true", "--json", computer=mac)
+    assert (went["live"], went["hardcover_connected"], went["hardcover_user"]) == (True, True, "sam")
+    assert answer(capsys, "books", "--json", computer=mac)["first_run"] is None  # going live ends it
+    srv.close()
+
+    # Only this computer's token opens them: never the proxy's headers, and not a token the server does not know.
+    assert server.page.get("/api/app/books").status_code == 401
+    mac.set_secret(UPLOAD, "u" * 64)
+    with pytest.raises(SystemExit, match="does not know this computer"):
+        cli.main(["books", "--json"], computer=mac)
 
 
 def test_open_at_a_book_lands_on_its_row(home, monkeypatch):

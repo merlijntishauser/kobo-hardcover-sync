@@ -417,6 +417,10 @@ def test_the_server_client_says_what_a_person_can_act_on():
     with pytest.raises(remote.ServerError, match="not from kobo-hardcover-sync"):
         s.upload(__file__)
     assert remote.Server("https://x.example", "t", lambda req, timeout: Answer(204, b"")).collection() is None
+    # The app's questions (/api/app/): a sign-in page means the proxy does not let them through.
+    with pytest.raises(remote.ServerError, match="older than 0.15.0, or its proxy does not route /api/app/"):
+        s.app("GET", "books")
+    assert s.cover("/api/app/cover?id=x") is None and s.cover("https://elsewhere.example/x.jpg") is None
 
 
 # ---------- macOS, as a recording ----------
