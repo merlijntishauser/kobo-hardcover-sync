@@ -265,9 +265,89 @@ text {{ font-family: "Schibsted Grotesk"; }}
 """
 
 
+def mark(d, colour, width):
+    return f'<path d="{d}" fill="none" stroke="{colour}" stroke-width="{width}" stroke-linecap="round" stroke-linejoin="round"/>'
+
+
+def small_icon(size):
+    """The flat icon at 16 and 32 pixels, drawn on their own pixel grid rather than shrunk:
+    fewer books, no type, and the red caret as large as the margin allows."""
+    if size == 32:
+        tile, slip_, rule, books = (
+            squircle(3, 3, 26, steps=128),
+            (6, 8, 20),
+            18,
+            [(10, COVERS[0], 5, 3), (20, COVERS[1], 4, 3), (30, COVERS[2], 5, 3)],
+        )
+        caret, tick = mark("M20 15 L22.5 10.5 L25 15", RED, 1.6), mark("M20.3 22.3 L21.8 23.8 L24.6 20.4", GREEN, 1.4)
+        type_ = "".join(
+            f'<rect x="12" y="{y}" width="{w}" height="2" fill="{INK}"/><rect x="12" y="{y + 3}" width="3" height="1" fill="{GRAPHITE}"/>'
+            for y, _, w, _ in books
+        )
+        soft = f'<rect x="6" y="18" width="20" height="1" fill="{SOFT}"/><rect x="6" y="28" width="20" height="1" fill="{SOFT}"/>'
+    else:
+        tile, slip_, rule, books = squircle(1, 1, 14, steps=96), (3, 5, 10), 7, [(6, COVERS[0], 0, 2), (12, COVERS[1], 0, 2)]
+        caret, tick = mark("M8.8 10.2 L10.5 6.6 L12.2 10.2", RED, 1.3), mark("M8.9 14 L10 15.1 L12.3 12.6", GREEN, 1.1)
+        type_ = ""
+        soft = f'<rect x="3" y="11" width="10" height="0.75" fill="{SOFT}"/>'
+    x, y, w = slip_
+    covers = "".join(
+        f'<rect x="{x + 2 - (size == 16)}" y="{top}" width="{cw}" height="{cw * 5 // 3 + (size == 16)}" fill="{c}"/>'
+        for top, c, _, cw in books
+    )
+    defs = (
+        f'<clipPath id="tile"><path d="{tile}"/></clipPath>'
+        '<linearGradient id="rail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe9f4"/>'
+        '<stop offset="1" stop-color="#b3d7e7"/></linearGradient>'
+    )
+    body = (
+        f'<path d="{tile}" fill="url(#rail)"/><g clip-path="url(#tile)">'
+        f'<rect x="{x}" y="{y}" width="{w}" height="{size}" fill="{SHEET}"/>'
+        f'<rect x="{rule + 1}" y="{y}" width="{x + w - rule - 1}" height="{size}" fill="{MARGIN}"/>'
+        f'<rect x="{rule}" y="{y}" width="1" height="{size}" fill="{RULE}"/>'
+        f"{soft}{covers}{type_}{caret}{tick}</g>"
+    )
+    return svg(body, defs, size)
+
+
+def small_volume(size):
+    """The disk's icon at 16 and 32 pixels: the tray as a plain shape, the slip standing
+    up out of it, square to the grid, with one or two books and the red caret."""
+    if size == 32:
+        tray = (2, 13, 28, 13, 2)  # x, y, width, height, wall
+        slip_, rule, books = (9, 5, 16, 19), 18, [(7, COVERS[0]), (15, COVERS[1])]
+        marks_ = mark("M19.8 12.4 L21.8 8.6 L23.8 12.4", RED, 1.5) + mark("M19.9 18.4 L21.1 19.6 L23.5 16.8", GREEN, 1.3)
+        type_ = "".join(f'<rect x="15" y="{top}" width="2" height="2" fill="{INK}"/>' for top, _ in books)
+        cover = 3, 5
+    else:
+        tray = (1, 7, 14, 6, 1)
+        slip_, rule, books = (4, 2, 9, 9), 8, [(3, COVERS[0])]
+        marks_ = mark("M9.3 7.4 L10.8 4.4 L12.3 7.4", RED, 1.2)
+        type_ = ""
+        cover = 2, 4
+    tx, ty, tw, th, wall = tray
+    x, y, w, h = slip_
+    body = (
+        f'<rect x="{tx}" y="{ty + 1}" width="{tw}" height="{th}" rx="1" fill="#4f565e"/>'  # the front edge
+        f'<rect x="{tx}" y="{ty}" width="{tw}" height="{th}" rx="1" fill="#7c838b"/>'  # the walls
+        f'<rect x="{tx + wall}" y="{ty + wall}" width="{tw - wall}" height="{th - 2 * wall}" fill="#c4c9ce"/>'  # the floor
+        f'<rect x="{x}" y="{y + 1}" width="{w}" height="{h}" fill="#000" opacity="0.18"/>'  # the slip's shadow
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{SHEET}"/>'
+        f'<rect x="{rule + 1}" y="{y}" width="{x + w - rule - 1}" height="{h}" fill="{MARGIN}"/>'
+        f'<rect x="{rule}" y="{y}" width="1" height="{h}" fill="{RULE}"/>'
+        + "".join(f'<rect x="{x + 1 + (size == 32)}" y="{top}" width="{cover[0]}" height="{cover[1]}" fill="{c}"/>' for top, c in books)
+        + type_
+        + marks_
+    )
+    return svg(body, size=size)
+
+
 if __name__ == "__main__":
     icon_composer()
     flat = flat_icon()
     (HERE / "AppIcon.svg").write_text(flat)
     (HERE / "VolumeIcon.svg").write_text(volume_icon())
     (HERE / "dmg-background.svg").write_text(window(flat))
+    for size in (16, 32):
+        (HERE / f"AppIcon-{size}.svg").write_text(small_icon(size))
+        (HERE / f"VolumeIcon-{size}.svg").write_text(small_volume(size))

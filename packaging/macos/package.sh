@@ -57,6 +57,10 @@ for size in 16 32 128 256 512; do
 	sips -z $size $size "$here/VolumeIcon.png" --out "$work/VolumeIcon.iconset/icon_${size}x${size}.png" >/dev/null
 	sips -z $((size * 2)) $((size * 2)) "$here/VolumeIcon.png" --out "$work/VolumeIcon.iconset/icon_${size}x${size}@2x.png" >/dev/null
 done
+# 16 and 32 pixels are drawn for their size (art.py), not made smaller.
+cp "$here/VolumeIcon-16.png" "$work/VolumeIcon.iconset/icon_16x16.png"
+cp "$here/VolumeIcon-32.png" "$work/VolumeIcon.iconset/icon_16x16@2x.png"
+cp "$here/VolumeIcon-32.png" "$work/VolumeIcon.iconset/icon_32x32.png"
 iconutil -c icns -o "$work/image/.VolumeIcon.icns" "$work/VolumeIcon.iconset"
 # Made writable first: the flags that show the disk's icon and hide ".app" are
 # set on the mounted image, where they last (on the folder they are not copied).

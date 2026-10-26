@@ -308,6 +308,9 @@ def test_the_pictures_are_what_art_py_draws(tmp_path, monkeypatch):
     assert flat == (MACOS / "AppIcon.svg").read_text()
     assert art.volume_icon() == (MACOS / "VolumeIcon.svg").read_text()
     assert art.window(flat) == (MACOS / "dmg-background.svg").read_text()
+    for size in (16, 32):  # drawn for their size
+        assert art.small_icon(size) == (MACOS / f"AppIcon-{size}.svg").read_text()
+        assert art.small_volume(size) == (MACOS / f"VolumeIcon-{size}.svg").read_text()
     for name in ("icon.json", "Assets/slip.svg", "Assets/marks.svg"):
         assert (tmp_path / "AppIcon.icon" / name).read_text() == (MACOS / "AppIcon.icon" / name).read_text(), name
     assert (MACOS / "AppIcon.icon" / "Assets" / "slip.svg").read_text().count("filter") == 0  # not drawn by actool
@@ -319,6 +322,9 @@ def test_the_icon_and_the_disk_window_are_packed():
     assert info["CFBundleIconFile"] == info["CFBundleIconName"] == "AppIcon"  # .icns before macOS 26, Assets.car from it
     build, package = (MACOS / "build.sh").read_text(), (MACOS / "package.sh").read_text()
     assert '"$here/AppIcon.icon"' in build and "Assets.car" in build
+    for size in (16, 32):
+        assert (MACOS / f"AppIcon-{size}.png").is_file() and f'"$here/AppIcon-{size}.png"' in build
+        assert (MACOS / f"VolumeIcon-{size}.png").is_file() and f'"$here/VolumeIcon-{size}.png"' in package
     for file in ("dmg-background.png", "dmg-background@2x.png", "dmg.DS_Store", "VolumeIcon.png"):
         assert (MACOS / file).is_file() and f'"$here/{file}"' in package, file
     # Where dmg-layout.sh puts the two icons is where the move mark in the window is drawn.

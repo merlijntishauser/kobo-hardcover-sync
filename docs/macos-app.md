@@ -276,9 +276,15 @@ Drawn in the page's Galley Proof (`DESIGN.md`) by
   selected Xcode's `actool`, or else the newest Xcode installed, and stops
   when none can. Without `Assets.car`, macOS 26 shrinks an older icon into
   a grey tile. Up to macOS 15 it is `AppIcon.png`, the same drawn flat on
-  Apple's grid, made into `AppIcon.icns`.
+  Apple's grid, made into `AppIcon.icns`, with `AppIcon-16.png` and
+  `AppIcon-32.png` for the two smallest sizes: drawn on their own pixel
+  grid, two books and the red caret as large as the margin takes, where
+  the large one shrunk is grey noise. (From macOS 26 on the system draws
+  every size from `AppIcon.icon` itself.)
 - **The disk's icon** (`VolumeIcon.png`) is the slip lying in a galley
-  tray, so the disk and the app tell apart on the desktop. A downloaded
+  tray, so the disk and the app tell apart on the desktop; at 16 and 32
+  pixels (`VolumeIcon-16.png`, `VolumeIcon-32.png`) a plain tray with the
+  slip standing up out of it. A downloaded
   `.dmg` file itself keeps the plain disk image icon: a file's own icon
   does not come along in a download.
 - **The disk's window** (`dmg-background.png` and its `@2x`) is the app's

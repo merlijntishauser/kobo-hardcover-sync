@@ -141,6 +141,10 @@ for size in 16 32 128 256 512; do
 	sips -z $size $size "$here/AppIcon.png" --out "$iconset/icon_${size}x${size}.png" >/dev/null
 	sips -z $((size * 2)) $((size * 2)) "$here/AppIcon.png" --out "$iconset/icon_${size}x${size}@2x.png" >/dev/null
 done
+# 16 and 32 pixels are drawn for their size (art.py), not made smaller.
+cp "$here/AppIcon-16.png" "$iconset/icon_16x16.png"
+cp "$here/AppIcon-32.png" "$iconset/icon_16x16@2x.png"
+cp "$here/AppIcon-32.png" "$iconset/icon_32x32.png"
 iconutil -c icns -o "$resources/AppIcon.icns" "$iconset"
 # From macOS 26 on the icon is AppIcon.icon, compiled into Assets.car; without it the
 # system shrinks the one above into a grey tile. Only actool from Xcode 26 on reads that
