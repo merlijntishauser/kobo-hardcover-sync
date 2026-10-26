@@ -25,6 +25,9 @@ enum Pencil {
     static let onFlag = tone(0xfbfbf8, 0x171a1e)
     static let faint = tone(0x5f656e, 0x959ca4)
     static let edge = tone(0x80868e, 0x6e757e)
+    static let ground = tone(0xedefea, 0x0f1114)  // galley stock: under the covers
+    static let sheet = tone(0xfbfbf8, 0x171a1e)  // proof sheet: a slip, a cover's ground
+    static let rule = tone(0xcdd1cb, 0x30353c)
 }
 
 // ---------- the marks ----------

@@ -231,13 +231,14 @@ func answer<T: Codable>(_ type: T.Type, _ args: [String]) -> Result<T, NoAnswer>
 // ---------- the window ----------
 /// What the sidebar holds.
 enum Pane: String, CaseIterable, Identifiable {
-    case overview = "Overview", books = "Books", history = "History"
+    case overview = "Overview", books = "Books", covers = "Covers", history = "History"
 
     var id: String { rawValue }
     var symbol: String {
         switch self {
         case .overview: return "link"
         case .books: return "books.vertical"
+        case .covers: return "rectangle.stack"
         case .history: return "clock"
         }
     }
@@ -262,6 +263,8 @@ struct MainView: View {
                 Divider()
                 if model.broken == nil && model.pane == .books && !(model.status?.mode ?? "").isEmpty {
                     BooksPane(model: model)
+                } else if model.broken == nil && model.pane == .covers && !(model.status?.mode ?? "").isEmpty {
+                    CoversPane(model: model)
                 } else {
                     Form {
                     if let broken = model.broken {
@@ -269,7 +272,7 @@ struct MainView: View {
                     } else {
                         switch model.pane ?? .overview {
                         case .overview: OverviewSections(model: model)
-                        case .books: BooksSections(model: model)
+                        case .books, .covers: BooksSections(model: model)
                         case .history: HistorySection(model: model)
                         }
                     }

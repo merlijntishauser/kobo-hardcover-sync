@@ -21,6 +21,15 @@ minor version may change behaviour; the notes will say so.
   aside for a month. It is chosen from what the tool already knows;
   nothing is asked of Hardcover or anyone else. In a terminal,
   `book ID --not-now`.
+- *Covers* in the Mac app's sidebar: your library as a press run. Three
+  rows of covers drift slowly left: at the front the books you read in
+  the last year, behind them the rest you read, at the back the ones you
+  never opened. Pointing at a cover stops its row and lifts it, with its
+  title, how far you are and what the next sync does; a click opens its
+  Details, Space shows it large, the arrow keys walk the rows, two
+  fingers move them. A red caret marks a book the next sync changes.
+  Below the rows: the book you are reading, and the tip. With Reduce
+  motion on, the rows stand still. Full screen with ⌃⌘F.
 
 ## 0.14.0 - 2026-10-26
 

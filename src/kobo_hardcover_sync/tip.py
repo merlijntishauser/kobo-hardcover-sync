@@ -23,11 +23,11 @@ def _left_off(r, pct: int, done: bool, today: date) -> bool:
 
 def _wanted(r, pct: int, done: bool, today: date) -> bool:
     """On the reader's Want to read (set here, or taken over from Hardcover), and on the Kobo, unopened."""
-    return r["state"] == "want" and not done and pct == 0
+    return r["state"] == "want" and not done and not booklist.opened(r)
 
 
 def _never_opened(r, pct: int, done: bool, today: date) -> bool:
-    return r["state"] == "kobo" and not done and pct == 0 and not r["last_read"] and not r["status"]
+    return r["state"] == "kobo" and not done and not booklist.opened(r)
 
 
 RULES = (("left_off", _left_off), ("wanted", _wanted), ("never_opened", _never_opened))

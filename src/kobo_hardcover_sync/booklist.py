@@ -212,6 +212,13 @@ def details(r) -> dict:
     }
 
 
+def opened(r) -> bool:
+    """Whether the book was ever opened on the Kobo: a status, a percentage
+    or any time read. Not its last read date: the Kobo sets that on books
+    never opened too (seen on a real Kobo, 2026-10-26)."""
+    return bool(r["status"] or r["percent"] or r["seconds_read"])
+
+
 def entry(r, live: bool, quiet: dict, filters: list[str], cover: str = "") -> dict:
     """A book as the tool's JSON has it (`books --json`, `book --json`):
     its row, its Details, and the filters it is in. `cover`: its
@@ -227,6 +234,7 @@ def entry(r, live: bool, quiet: dict, filters: list[str], cover: str = "") -> di
         "new": not r["history"],
         "percent": pct,
         "finished": done,
+        "opened": done or opened(r),
         "facts": meta,
         "last_read": r["last_read"] or "",
         "sync": r["mode"],

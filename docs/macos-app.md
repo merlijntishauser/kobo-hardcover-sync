@@ -160,6 +160,17 @@ started in three ways:
   `books --json`, from `tip.py`): one book from your own shelf, with the
   blue circled query because it asks you something; *Open* shows it in
   Details, *Not now* puts it aside for a month (`book ID --not-now`).
+  *Covers* is the library as a press run
+  (`docs/plans/2026-10-26-mac-app-server-books-and-covers-design.md`):
+  three rows drifting left, by `opened` (from `books --json`: a Kobo
+  status, a percentage or time read; not the last read date, which the
+  Kobo sets on unopened books too) and by the last year; under a double
+  rule, the book being read and the tip. Hover stops a row and lifts a
+  cover with a caption; a click opens Details as a sheet; Space shows
+  it large; arrows, Return and Escape for the keyboard; two fingers move
+  the run. The drift pauses when the app is hidden, and stands still
+  under Reduce motion. A row without books takes no room, and a short
+  row is not shown twice across the window.
   In server mode Books is the same, with the
   server's books for this Mac's reader: the tool asks the server
   (`/api/app/`, with the upload token) and keeps its covers in

@@ -24,8 +24,9 @@ def shelf(home):
 
 
 def unopened(con, *ids):
+    """Never opened, as a real Kobo has it: no status, no percentage, no time read, but a last read date all the same."""
     for cid in ids:
-        con.execute("update book set percent=0, status=0, last_read=null where content_id=?", (cid,))
+        con.execute("update book set percent=0, status=0, seconds_read=0, last_read='2024-01-01T10:00:00Z' where content_id=?", (cid,))
     con.commit()
 
 
@@ -35,6 +36,10 @@ def test_left_off_then_wanted_then_never_opened(home):
 
     unopened(con, BOOKS[6])
     assert tip.pick(con, "me", TODAY) == {"id": BOOKS[6], "rule": "never_opened", "text": "On your Kobo, never opened."}
+    con.execute("update book set seconds_read=60 where content_id=?", (BOOKS[6],))  # a minute in: opened after all
+    con.commit()
+    assert tip.pick(con, "me", TODAY) is None
+    unopened(con, BOOKS[6])
 
     unopened(con, BOOKS[5])
     state.set_state(con, "me", BOOKS[5], "want")

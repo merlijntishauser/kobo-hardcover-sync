@@ -74,6 +74,7 @@ struct BooksAnswer: Codable {
         let new: Bool  // not read before this tool first saw the Kobo
         let percent: Int
         let finished: Bool
+        let opened: Bool  // ever opened on the Kobo (not its last read date: the Kobo sets that on unopened books too)
         let facts: [String]  // "37%", "last read 2 Oct 2026", "4 h read"
         let lastRead: String
         var sync: String  // "auto", "on", "off"; var: shown at once while the tool changes it

@@ -8,6 +8,7 @@
     "new": true,
     "percent": 37,
     "finished": false,
+    "opened": true,
     "facts": [
       "37%",
       "last read 2 Oct 2026",
