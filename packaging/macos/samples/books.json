@@ -14,6 +14,11 @@
       "Go live"
     ]
   },
+  "tip": {
+    "id": "file:///mnt/onboard/Saramago/Blindness.kepub.epub",
+    "rule": "left_off",
+    "text": "You stopped at 37% in March 2025. Pick it up again?"
+  },
   "books": [
     {
       "id": "file:///mnt/onboard/Saramago/Blindness.kepub.epub",
@@ -25,10 +30,10 @@
       "finished": false,
       "facts": [
         "37%",
-        "last read 2 Oct 2026",
+        "last read 11 Mar 2025",
         "4 h 10 min read"
       ],
-      "last_read": "2026-10-02T21:14:00Z",
+      "last_read": "2025-03-11T21:14:00Z",
       "sync": "auto",
       "syncs": true,
       "state": "kobo",
@@ -66,7 +71,7 @@
           ],
           [
             "Last read",
-            "2 Oct 2026"
+            "11 Mar 2025"
           ],
           [
             "Read time",

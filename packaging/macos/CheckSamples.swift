@@ -28,9 +28,9 @@ struct CheckSamples {
         check("status-local.json", decode(StatusAnswer.self, try text("status-local.json"))) { $0.books?.needsMatch == 2 && $0.kobo == nil }
         check("books.json", decode(BooksAnswer.self, try text("books.json"))) {
             $0.books.first?.details.onShelf == true && $0.sorts.allSatisfy { $0.order == [0] } && $0.words.legend.count == 7
-                && $0.firstRun?.steps.count == 3
+                && $0.firstRun?.steps.count == 3 && $0.tip?.rule == "left_off"
         }
-        check("book.json", decode(BookAnswer.self, try text("book.json"))) { $0.book.details.candidates.first?.id == 12345 && $0.books.on == 41 }
+        check("book.json", decode(BookAnswer.self, try text("book.json"))) { $0.book.details.candidates.first?.id == 12345 && $0.books.on == 41 && $0.tip == nil }
         check("doctor.json", decode(DoctorAnswer.self, try text("doctor.json"))) { !$0.checks.isEmpty }
         check("history.json", decode(HistoryAnswer.self, try text("history.json"))) { $0.syncs.allSatisfy { $0.date != nil } }
         check("settings.json", decode(SettingsAnswer.self, try text("settings.json"))) { !$0.uploadTokenHash.isEmpty }

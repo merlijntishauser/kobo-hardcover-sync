@@ -1135,6 +1135,7 @@ async def app_book(request: Request):
             state_=str(asked.get("state") or ""),
             date=str(asked.get("date") or ""),
             remove=asked.get("remove") is True,
+            not_now=asked.get("not_now") is True,
         )
         return appbooks.one(con, reader, cid, app_cover)
 

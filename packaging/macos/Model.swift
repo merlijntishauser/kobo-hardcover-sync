@@ -117,6 +117,13 @@ struct BooksAnswer: Codable {
         let steps: [String]  // connect, pick, go live
     }
 
+    /// One book from your own shelf, as a question (tip.py); nil when no rule finds one.
+    struct Tip: Codable {
+        let id: String
+        let rule: String  // "left_off", "wanted", "never_opened"
+        let text: String
+    }
+
     struct Sort: Codable {
         let key: String
         let label: String
@@ -140,6 +147,7 @@ struct BooksAnswer: Codable {
     let live: Bool
     let user: String
     let firstRun: FirstRun?  // nil once live
+    var tip: Tip?
     var books: [Book]
     let sorts: [Sort]
     let words: Words
@@ -150,6 +158,7 @@ struct BookAnswer: Codable {
     let schema: Int
     let book: BooksAnswer.Book
     let books: StatusAnswer.Books
+    let tip: BooksAnswer.Tip?  // a change can make another book the tip
 }
 
 struct HistoryAnswer: Codable {

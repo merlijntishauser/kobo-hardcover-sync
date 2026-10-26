@@ -156,7 +156,11 @@ started in three ways:
   gives a token on standard input (`token --paste --json`). Settings,
   Sync, has the connection with *Disconnect…* and *Send to Hardcover*,
   the switch between live and a dry run. *Open on the Page* opens the page at
-  the book (`open --book`). In server mode Books is the same, with the
+  the book (`open --book`). Above the list sits the tip (`tip` in
+  `books --json`, from `tip.py`): one book from your own shelf, with the
+  blue circled query because it asks you something; *Open* shows it in
+  Details, *Not now* puts it aside for a month (`book ID --not-now`).
+  In server mode Books is the same, with the
   server's books for this Mac's reader: the tool asks the server
   (`/api/app/`, with the upload token) and keeps its covers in
   `server-covers` in its folder; *Connect on the page…* opens the

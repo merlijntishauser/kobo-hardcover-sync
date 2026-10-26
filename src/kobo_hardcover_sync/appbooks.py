@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 
-from . import booklist
+from . import booklist, tip
 from .engine import state
 from .term import plural
 from .web.strings import T
@@ -64,6 +64,7 @@ def listing(con, reader: str, cover_of, connected) -> dict:
         "live": live,
         "user": summary["user"],
         "first_run": first,
+        "tip": tip.pick(con, reader) if con else None,
         "books": books,
         "sorts": sorts,
         "words": {  # the page's words, so that the app says the same
@@ -84,16 +85,17 @@ def _row(con, reader: str, cid: str):
 
 
 def one(con, reader: str, cid: str, cover_of) -> dict:
-    """One book as listing() has it, and the counts that changed with it."""
+    """One book as listing() has it, the counts that changed with it, and the tip, which may have."""
     row = _row(con, reader, cid)
     summary = booklist.summary(con, reader)
     return {
         "book": booklist.entry(row, summary["live"], _quiet(con, reader), booklist.filters_of(con, reader, cid), cover_of(row)),
         "books": summary,
+        "tip": tip.pick(con, reader),
     }
 
 
-def change(con, reader: str, cid: str, client, *, search="", pick="", sync="", state_="", date="", remove=False) -> None:
+def change(con, reader: str, cid: str, client, *, search="", pick="", sync="", state_="", date="", remove=False, not_now=False) -> None:
     """The changes the page makes to one book. client(**kw) is a Hardcover
     client, asked for only by a search and a removal; its HardcoverError
     goes to the caller."""
@@ -128,6 +130,8 @@ def change(con, reader: str, cid: str, client, *, search="", pick="", sync="", s
             raise Refused(str(ex)) from ex
     if remove:  # off the Hardcover shelf now, and no longer synced
         job.remove(con, reader, cid, client())
+    if not_now:  # not the tip for a month
+        tip.put_aside(con, reader, cid)
 
 
 def set_all(con, reader: str, sync: str, filter_: str, search: str, expect: int | None) -> None:

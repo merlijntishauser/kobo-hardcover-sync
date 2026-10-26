@@ -14,6 +14,13 @@ minor version may change behaviour; the notes will say so.
   live, all made on the server for you. It asks with this Mac's upload
   token, so nothing new to set up on the Mac; the server's proxy has to
   let `/api/app/` past its sign-in, as it does `/upload` (README).
+- A tip above the Mac app's list of books: one book from your own shelf,
+  asked as a question. A book you stopped halfway through more than half
+  a year ago, then one on your Want to read that is already on your Kobo,
+  then one you never opened. The same one all day; *Not now* puts it
+  aside for a month. It is chosen from what the tool already knows;
+  nothing is asked of Hardcover or anyone else. In a terminal,
+  `book ID --not-now`.
 
 ## 0.14.0 - 2026-10-26
 

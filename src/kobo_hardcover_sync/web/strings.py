@@ -176,6 +176,10 @@ T = {
     "last_read": "last read",
     "not_started": "Not started",
     "read_time": "read",
+    # The tip (tip.py): one book from your own shelf, as a question
+    "tip_left_off": "You stopped at {pct}% in {month}. Pick it up again?",
+    "tip_wanted": "On your Want to read, and already on your Kobo.",
+    "tip_never_opened": "On your Kobo, never opened.",
     "account_time_help": "Reading time across every Kobo on the account",
     # Hardcover cell
     "how_isbn": "matched by ISBN",

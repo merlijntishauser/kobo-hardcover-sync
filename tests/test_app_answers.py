@@ -336,6 +336,9 @@ def test_in_server_mode_the_books_come_from_the_server_for_this_computers_reader
     assert (
         answer(capsys, "book", two, "--pick", "77", "--json", computer=mac)["book"]["details"]["link"] == "https://hardcover.app/id/book/77"
     )
+    aside = answer(capsys, "book", two, "--not-now", "--json", computer=mac)  # the tip is put aside on the server
+    assert aside["tip"] is None or aside["tip"]["id"] != two
+    assert srv.execute("select count(*) from tip_aside where reader='sam' and content_id=?", (two,)).fetchone()[0] == 1
     went = answer(capsys, "settings", "--set", "live=true", "--json", computer=mac)
     assert (went["live"], went["hardcover_connected"], went["hardcover_user"]) == (True, True, "sam")
     assert answer(capsys, "books", "--json", computer=mac)["first_run"] is None  # going live ends it

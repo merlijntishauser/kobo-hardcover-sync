@@ -61,11 +61,12 @@ kobo-hardcover-sync books [--json] [--covers]
     book with its row and its Details, the filters it is in, and the
     page's words for them.
 
-kobo-hardcover-sync book ID [--sync MODE] [--state STATE [--date DATE]] [--search TEXT] [--pick BOOK] [--remove] [--json]
+kobo-hardcover-sync book ID [--sync MODE] [--state STATE [--date DATE]] [--search TEXT] [--pick BOOK] [--remove] [--not-now] [--json]
     One book, and the changes the page makes to it: whether it
     syncs (auto, on, off), its State, a match (--search looks on
     Hardcover for the books it could be, --pick takes one of them), and
-    --remove, which takes it off your Hardcover shelf now. With --json it
+    --remove, which takes it off your Hardcover shelf now; --not-now puts
+    it aside as the tip for a month. With --json it
     answers the book as books --json has it. `books --sync MODE --filter
     F [--search TEXT] [--expect N]` sets Sync for every book of a filter,
     as Set all does on the page; with --expect, only when that is still N
@@ -238,6 +239,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     bk.add_argument("--search", default="", metavar="TEXT", help="look on Hardcover for the books it could be")
     bk.add_argument("--pick", default="", metavar="BOOK", help="its match: one of the books it could be, by its Hardcover id")
     bk.add_argument("--remove", action="store_true", help="take it off your Hardcover shelf, and stop syncing it")
+    bk.add_argument("--not-now", action="store_true", help="not the tip for a month: books --json gives another")
     bk.add_argument("--json", action="store_true", help="as JSON")
     opn = sub.add_parser("open", help="open the page")
     opn.add_argument("--book", default="", metavar="ID", help="at this book (its id in books --json)")
@@ -991,7 +993,17 @@ def _book(a, computer) -> None:
 
     try:
         appbooks.change(
-            con, "me", a.id, client, search=a.search, pick=a.pick, sync=a.sync or "", state_=a.state or "", date=a.date, remove=a.remove
+            con,
+            "me",
+            a.id,
+            client,
+            search=a.search,
+            pick=a.pick,
+            sync=a.sync or "",
+            state_=a.state or "",
+            date=a.date,
+            remove=a.remove,
+            not_now=a.not_now,
         )
         found = appbooks.one(con, "me", a.id, lambda r: _cover(folder, r))
     except (appbooks.Refused, hardcover.HardcoverError) as ex:
@@ -1064,6 +1076,7 @@ def _server_book(a, server) -> dict:
         "search": a.search,
         "pick": a.pick,
         "remove": a.remove,
+        "not_now": a.not_now,
     }
     try:
         found = server.app("POST", "book", change)

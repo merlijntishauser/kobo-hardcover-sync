@@ -66,6 +66,7 @@ extension WindowModel {
                 case .success(let changed):
                     if let n = self.books?.books.firstIndex(where: { $0.id == id }) { self.books?.books[n] = changed.book }
                     self.status?.books = changed.books
+                    self.books?.tip = changed.tip
                 case .failure(let why):
                     self.problem = said(why)
                     self.loadBooks()  // back to what the tool has
@@ -119,6 +120,9 @@ struct BooksPane: View {
                 VStack(spacing: 0) {
                     BooksBar(model: model, words: books.words)
                     if let first = books.firstRun { FirstRun(model: model, first: first) }
+                    if let tip = books.tip, let book = books.books.first(where: { $0.id == tip.id }) {
+                        TipBand(model: model, tip: tip, book: book)
+                    }
                     Divider()
                     if books.books.isEmpty {
                         Spacer()
@@ -161,6 +165,33 @@ struct BooksPane: View {
 }
 
 /// Search, the page's filters and its sort, then the legend of the marks.
+/// The tip: one book from your own shelf, a question for you, so the blue circled query.
+/// Open shows it in Details; Not now puts it aside for a month and the tool gives the next.
+struct TipBand: View {
+    @ObservedObject var model: WindowModel
+    let tip: BooksAnswer.Tip
+    let book: BooksAnswer.Book
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Mark(state: "warn", size: 20)
+            Cover(path: book.cover, width: 30)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(book.title).font(titleFont(14)).lineLimit(1)
+                Text(tip.text).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
+            Button("Open") { model.chosenBook = book.id }
+            Button("Not now") { model.change(book.id, ["--not-now"]) }
+                .disabled(model.changing.contains(book.id))
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("A tip: \(book.title). \(tip.text)")
+    }
+}
+
 struct BooksBar: View {
     @ObservedObject var model: WindowModel
     let words: BooksAnswer.Words

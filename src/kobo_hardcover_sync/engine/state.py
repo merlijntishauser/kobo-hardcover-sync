@@ -63,6 +63,9 @@ create table if not exists meta (key text primary key, value text);
 -- The Hardcover account a reader's shelf records (book.last_sent) belong to.
 create table if not exists hardcover_account (
   reader text primary key, user_id integer not null, username text, since text not null);
+-- Books the reader put aside as the tip, until a day (tip.py).
+create table if not exists tip_aside (
+  reader text not null, content_id text not null, until text not null, primary key (reader, content_id));
 """
 # What is set for a book rather than read from a Kobo: the same on each Kobo's row of it.
 PER_BOOK = (
