@@ -10,20 +10,34 @@ import CoreText
 import SwiftUI
 
 /// Source Serif 4 for book titles: the page's own font, in the tool's package inside the app.
+/// The page has it as two subsets under one name, and the latin-ext one holds no lowercase
+/// letters; registered side by side, macOS took that one and set the rest in the system font.
+/// So a title is the latin subset, with latin-ext behind it for the letters only it has.
+private var titleFaces: (latin: CTFontDescriptor, ext: CTFontDescriptor?)?
+
 func registerTitleFont() {
     let lib = Bundle.main.resourceURL?.appendingPathComponent("python/lib")
     let python = (try? FileManager.default.contentsOfDirectory(atPath: lib?.path ?? ""))?.first { $0.hasPrefix("python3.") }
     guard let lib, let python else { return }
     let fonts = lib.appendingPathComponent(python).appendingPathComponent("site-packages/kobo_hardcover_sync/web/static/fonts")
-    for file in ["SourceSerif4-latin.woff2", "SourceSerif4-latin-ext.woff2"] {
-        CTFontManagerRegisterFontsForURL(fonts.appendingPathComponent(file) as CFURL, .process, nil)
+    func face(_ file: String) -> CTFontDescriptor? {
+        (CTFontManagerCreateFontDescriptorsFromURL(fonts.appendingPathComponent(file) as CFURL) as? [CTFontDescriptor])?.first
     }
+    guard let latin = face("SourceSerif4-latin.woff2") else { return }
+    titleFaces = (latin, face("SourceSerif4-latin-ext.woff2"))
 }
 
-/// A book title: Source Serif 4, else the serif macOS has.
+/// A book title: Source Serif 4 at this weight, sized optically as on the page; else the serif macOS has.
 func titleFont(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
-    NSFontManager.shared.availableMembers(ofFontFamily: "Source Serif 4") != nil
-        ? .custom("Source Serif 4", size: size).weight(weight) : .system(size: size, weight: weight, design: .serif)
+    guard let faces = titleFaces else { return .system(size: size, weight: weight, design: .serif) }
+    let wght = weight == .regular ? 400 : weight == .medium ? 500 : weight == .bold ? 700 : weight == .heavy ? 800 : 600
+    let axes: [Int: CGFloat] = [0x7767_6874: CGFloat(wght), 0x6F70_737A: min(max(size, 8), 60)]  // "wght", "opsz"
+    func at(_ face: CTFontDescriptor) -> CTFontDescriptor {
+        CTFontDescriptorCreateCopyWithAttributes(face, [kCTFontVariationAttribute: axes] as CFDictionary)
+    }
+    var attributes: [CFString: Any] = [kCTFontVariationAttribute: axes]
+    if let ext = faces.ext { attributes[kCTFontCascadeListAttribute] = [at(ext)] }
+    return Font(CTFontCreateWithFontDescriptor(CTFontDescriptorCreateCopyWithAttributes(faces.latin, attributes as CFDictionary), size, nil))
 }
 
 extension WindowModel {

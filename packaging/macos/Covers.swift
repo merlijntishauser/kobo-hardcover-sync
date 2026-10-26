@@ -26,6 +26,13 @@ func runRow(_ book: BooksAnswer.Book, since yearAgo: String) -> RunRow {
     return book.lastRead >= yearAgo ? .front : .middle
 }
 
+/// From one cover to the next in a row. A row shorter than the window spreads out to fill it:
+/// each book on the run once, and no stretch of bare ground.
+func runStep(_ row: RunRow, count: Int, k: CGFloat, width: CGFloat) -> CGFloat {
+    let w = row.height * k / 1.5
+    return max(w + max(10, w * 0.22), (width + w) / CGFloat(max(count, 1)))
+}
+
 /// Where each row stands, advanced a frame at a time. A reference, not state:
 /// the timeline redraws every frame, and a frame must not redraw again.
 final class Drift {
@@ -78,7 +85,7 @@ struct CoversPane: View {
                 }
             }
             .background(Pencil.ground)
-            .overlay { if let large { Lightbox(book: large) { self.large = nil } } }
+            .overlay { if let large { Lightbox(book: large) { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { self.large = nil } } } }
             .sheet(isPresented: Binding(get: { model.chosenBook != nil }, set: { if !$0 { model.chosenBook = nil } })) {
                 if let id = model.chosenBook, let book = books.books.first(where: { $0.id == id }) {
                     DetailsPane(model: model, book: book, words: books.words).frame(width: 380, height: 560)
@@ -182,8 +189,8 @@ struct CoversPane: View {
         let width = size.width
         let h = row.height * k
         let w = h / 1.5
-        let step = w + max(10, w * 0.22)
-        let period = max(step * CGFloat(books.count), width + step)  // a short row: each book on the run once at a time
+        let step = runStep(row, count: books.count, k: k, width: width)
+        let period = step * CGFloat(books.count)
         let gap = (size.height - present.reduce(0) { $0 + $1.height * k }) / CGFloat(present.count + 1)
         let y = gap * CGFloat(n + 1) + present.prefix(n).reduce(0) { $0 + $1.height * k }
         let shift = drift.offset[row.rawValue].truncatingRemainder(dividingBy: period)
@@ -246,16 +253,16 @@ struct CoversPane: View {
         index = (index % books.count + books.count) % books.count
         keyed = true
         lifted = (row, books[index].id)
-        let w = row.height * k / 1.5
-        drift.offset[row.rawValue] = CGFloat(index) * (w + max(10, w * 0.22)) - width / 3  // the chosen cover a third in
+        drift.offset[row.rawValue] = CGFloat(index) * runStep(row, count: books.count, k: k, width: width) - width / 3  // a third in
         byHand += 1
     }
 
-    private func toggleLarge(_ books: BooksAnswer) {
-        if large != nil {
-            large = nil
-        } else if let id = lifted?.id {
-            large = books.books.first { $0.id == id }
+    /// A book chosen in Spotlight: lifted on its row, a third in, as the keyboard would have it.
+    private func bringUp(rows: [[BooksAnswer.Book]], k: CGFlf large != nil {
+                large = nil
+            } else if let id = lifted?.id {
+                large = books.books.first { $0.id == id }
+            }
         }
     }
 
