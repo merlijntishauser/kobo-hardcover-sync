@@ -37,6 +37,20 @@ notarise() {
 	exit 1
 }
 
+# Up to three tries as well: stapler fetches the ticket from Apple's
+# CloudKit, which dropped the connection once after an accepted
+# notarisation (error 68, 0.14.0).
+staple() {
+	for try in 1 2 3; do
+		xcrun stapler staple "$1" && return 0
+		[ "$try" = 3 ] && break
+		echo "package.sh: stapling $(basename "$1"), try $try failed; again in 30 seconds" >&2
+		sleep 30
+	done
+	echo "package.sh: stapling $(basename "$1") failed three times" >&2
+	exit 1
+}
+
 here=$(cd "$(dirname "$0")" && pwd)
 work=$(mktemp -d)
 trap 'hdiutil detach "$work/volume" >/dev/null 2>&1 || true; rm -rf "$work"' EXIT
@@ -44,7 +58,7 @@ trap 'hdiutil detach "$work/volume" >/dev/null 2>&1 || true; rm -rf "$work"' EXI
 # The app first, so that it is stapled itself and opens offline once copied out.
 ditto -c -k --keepParent "$app" "$work/app.zip"
 notarise "$work/app.zip"
-xcrun stapler staple "$app"
+staple "$app"
 
 mkdir "$work/image"
 ditto "$app" "$work/image/$(basename "$app")"
@@ -73,7 +87,7 @@ rm -f "$dmg"
 hdiutil convert "$work/rw.dmg" -format UDZO -o "$dmg" >/dev/null
 codesign --force --sign "$identity" --timestamp "$dmg"
 notarise "$dmg"
-xcrun stapler staple "$dmg"
+staple "$dmg"
 
 # What Gatekeeper will say on a Mac that downloads it.
 spctl --assess --type execute --verbose=2 "$app"
