@@ -26,7 +26,7 @@ env:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-26 # AppIcon.icon is compiled with Xcode 26 (build.sh)
     steps:
       - name: The tag is a version
         run: echo "$TAG" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+'

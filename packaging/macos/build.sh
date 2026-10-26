@@ -151,17 +151,20 @@ iconutil -c icns -o "$resources/AppIcon.icns" "$iconset"
 # format: the selected Xcode's, or else the newest installed. (Its own AppIcon.icns, at
 # most 256 pixels, is left out for the one above.)
 car="$out/car"
+: >"$out/actool.log"
 for xcode in "" $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -rV); do
 	rm -rf "$car"
 	mkdir "$car"
+	echo "== actool of ${xcode:-the selected Xcode}:" >>"$out/actool.log"
 	if env ${xcode:+DEVELOPER_DIR="$xcode/Contents/Developer"} xcrun actool "$here/AppIcon.icon" --compile "$car" \
 		--platform macosx --minimum-deployment-target 13.0 --app-icon AppIcon \
-		--output-partial-info-plist "$car/partial.plist" >/dev/null 2>&1 && grep -q CFBundleIconName "$car/partial.plist"; then
+		--output-partial-info-plist "$car/partial.plist" >>"$out/actool.log" 2>&1 && grep -q CFBundleIconName "$car/partial.plist"; then
 		cp "$car/Assets.car" "$resources/"
 		break
 	fi
 done
 [ -s "$resources/Assets.car" ] || {
+	cat "$out/actool.log" >&2
 	echo "build.sh: no actool here compiles AppIcon.icon; it needs Xcode 26 or later" >&2
 	exit 1
 }

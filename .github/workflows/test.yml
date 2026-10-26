@@ -70,7 +70,7 @@ jobs:
   # ad hoc, so without the hardened runtime: that needs the Developer ID,
   # which only the release has (macos-app.yml).
   macos-app:
-    runs-on: macos-15
+    runs-on: macos-26 # AppIcon.icon is compiled with Xcode 26 (build.sh)
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
