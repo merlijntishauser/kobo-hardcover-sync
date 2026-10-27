@@ -115,7 +115,10 @@ struct ChainView: View {
         ViewThatFits(in: .horizontal) {
             HStack(alignment: .top, spacing: 0) {
                 ForEach(Array(links.enumerated()), id: \.element.id) { n, link in
-                    if n > 0 { ArrowView(above: above(n, links), below: below(n, links), working: working(n, links)).frame(minWidth: 70, maxWidth: 130) }
+                    if n > 0 {
+                        ArrowView(above: above(n, links), below: below(n, links), working: working(n, links), sends: sends(n, links))
+                            .frame(minWidth: 70, maxWidth: 130)
+                    }
                     linkView(link).frame(width: 118)
                 }
             }
@@ -124,7 +127,6 @@ struct ChainView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 6)
     }
 
     private func linkView(_ link: ChainLink) -> some View {
@@ -147,6 +149,12 @@ struct ChainView: View {
         }
     }
 
+    /// Live, with books to send: the count on the way to Hardcover is what the next sync sends.
+    private func sends(_ n: Int, _ links: [ChainLink]) -> Bool {
+        guard let books = model.status?.books else { return false }
+        return links[n].id == "Hardcover" && books.live && books.next > 0
+    }
+
     private func below(_ n: Int, _ links: [ChainLink]) -> String {
         guard links[n].id == "This Mac", let books = model.status?.books, !books.collection.isEmpty else { return "" }
         return "← \(books.on) in \(books.collection)"
@@ -163,12 +171,26 @@ struct ChainView: View {
     }
 }
 
+/// A link of the chain on the overview's proof sheet. Your Kobo is the
+/// page's non-repro blue rail, Hardcover its proof margin behind the double
+/// rule; This Mac and the server are on the sheet itself. What it says is in
+/// the colour of its mark when it needs you: blue for a question, ink for a failure.
 struct LinkView: View {
     let link: ChainLink
     let state: String
     let checking: Bool
     let chosen: Bool
     let choose: () -> Void
+
+    private var kobo: Bool { link.id == "Kobo" }
+    private var name: Color { kobo ? Pencil.railInk : Pencil.ink }
+    private var line: Color {
+        switch state {
+        case "warn": return Pencil.blue
+        case "fail": return name
+        default: return kobo ? Pencil.railGraphite : Pencil.graphite
+        }
+    }
 
     var body: some View {
         Button(action: choose) {
@@ -177,22 +199,39 @@ struct LinkView: View {
                     if checking && link.id != "Kobo" && link.checks.count <= 1 {
                         ProgressView().controlSize(.small)
                     } else {
-                        Mark(state: state, size: 24)
+                        Mark(state: state, size: 24, dash: kobo ? Pencil.railGraphite : Pencil.faint)
                     }
                 }
                 .frame(height: 26)
-                Text(link.id).font(.headline)
-                Text(link.said).font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center).lineLimit(3)
+                Text(link.id).font(.headline).foregroundStyle(name)
+                Text(link.said).font(.caption.weight(state == "fail" ? .semibold : .regular)).foregroundStyle(line)
+                    .multilineTextAlignment(.center).lineLimit(3)
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 6)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 8)
             .frame(maxWidth: .infinity)
-            .background(RoundedRectangle(cornerRadius: 8).fill(chosen ? Color.primary.opacity(0.07) : .clear))
-            .contentShape(RoundedRectangle(cornerRadius: 8))
+            .background { slip }
+            .overlay(alignment: .bottom) {  // the open link: a rule under it, as the page marks where you are
+                if chosen { Rectangle().fill(name).frame(height: 2).padding(.horizontal, 18).padding(.bottom, 3) }
+            }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(chosen ? .isSelected : [])
         .accessibilityHint(chosen ? "Hides its checks" : "Shows its checks")
+    }
+
+    @ViewBuilder private var slip: some View {
+        if kobo {
+            RoundedRectangle(cornerRadius: 3).fill(Pencil.rail)
+        } else if link.id == "Hardcover" {
+            HStack(spacing: 1) {  // the proofreader's double rule, down the margin's left
+                Pencil.rule.frame(width: 1)
+                Pencil.rule.frame(width: 1)
+                Pencil.margin
+            }
+        }
     }
 }
 
@@ -202,13 +241,18 @@ struct ArrowView: View {
     let above: String
     let below: String
     let working: Bool
+    var sends = false  // what it carries goes to Hardcover at the next sync: in red, with the caret
     @Environment(\.accessibilityReduceMotion) private var still
     @State private var sweep = false
 
     var body: some View {
         VStack(spacing: 3) {
-            Text(above).font(.caption.monospacedDigit()).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.center)
-                .frame(minHeight: 16, alignment: .bottom)
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                if sends { Mark(state: "next", size: 12).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 2 } }
+                Text(above).font(.caption.monospacedDigit().weight(sends ? .semibold : .regular))
+                    .foregroundStyle(sends ? Pencil.red : Pencil.graphite).lineLimit(2).multilineTextAlignment(.center)
+            }
+            .frame(minHeight: 16, alignment: .bottom)
             GeometryReader { box in
                 let w = box.size.width
                 ZStack(alignment: .leading) {
@@ -232,7 +276,7 @@ struct ArrowView: View {
                 }
             }
             .frame(height: 10)
-            Text(below).font(.caption.monospacedDigit()).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.center)
+            Text(below).font(.caption.monospacedDigit()).foregroundStyle(Pencil.graphite).lineLimit(2).multilineTextAlignment(.center)
         }
         .padding(.horizontal, 6)
         .padding(.top, 14)

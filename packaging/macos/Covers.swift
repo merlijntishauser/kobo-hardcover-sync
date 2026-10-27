@@ -112,7 +112,7 @@ struct CoversPane: View {
                 visible = NSApp.occlusionState.contains(.visible)
             }
         } else if let broken = model.booksBroken {
-            Form { Section { Row(state: "fail", what: "Covers", found: broken) } }.formStyle(.grouped)
+            Galley { ProofSheet { Row(state: "fail", what: "Covers", found: broken).onSheet() } }
         } else {
             VStack {
                 Spacer()

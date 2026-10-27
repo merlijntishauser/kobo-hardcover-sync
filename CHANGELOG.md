@@ -13,6 +13,10 @@ minor version may change behaviour; the notes will say so.
   the rows drift, and next to nothing while a book or its large cover is
   open over them: each row now moves as one, and the rows stop drawing
   when they stand still.
+- The Mac app's overview and History are on the page's paper: your Kobo
+  in the rail's blue, Hardcover in the proof margin, the status in its
+  mark's colour, and a sync's outcome as the page shows it. The count of
+  books a live sync will send is in red.
 
 ## 0.16.0 - 2026-10-27
 

@@ -603,6 +603,33 @@ reading matter: the title and *Close* stay put above a double rule while
 the text scrolls, and the words and marks from the page stand in their own
 11rem column.
 
+### The overview (Mac app)
+The window's first pane is the page's paper too, not a grey form: Galley
+Stock, with each part on a Proof Sheet inside a 1pt Rule, 4pt corners,
+720pt wide at most.
+
+- **The chain:** Kobo → This Mac → (Server) → Hardcover on one sheet. *Your
+  Kobo* is a slip of Non-repro Blue, its name in Rail Ink, its line in Rail
+  Graphite, its dash Rail Graphite, as the page's rail. *Hardcover* is the
+  proof margin: Margin Tint behind the double rule down its left. This Mac
+  and the server stand on the sheet. A link's line is Graphite, Blue Pencil
+  when it needs you, ink at 600 when it failed. The open link has a 2pt
+  rule under it in its name's colour.
+- **The arrows:** Field Edge. The count on the way to Hardcover is Red
+  Pencil at 600 with the caret only when the sync is live and has books to
+  send (the Two Pencils Rule); in a dry run it is Graphite.
+- **The status line above:** *Ready for the Kobo* in Tick Green, *Ready,
+  with a warning* in Blue Pencil, *Needs attention* in ink: the first line
+  in its mark's colour, as in the margin.
+- **A sync:** its steps on a sheet, rows parted by Soft Rule; the outcome as
+  the page's messages, on Green Wash when it worked and on the sheet inside
+  a 1px Flag Ink rule when it failed.
+- **History** is on the same stock: its syncs on one sheet, parted by Soft
+  Rule, each with its mark, what it did in ink and when in Graphite. So are
+  the panes' other states (not set up, the tool not answering): no pane of
+  the window is a grey form; only Settings, a window of its own, is.
+- What was found, in every pane's rows, is Graphite.
+
 ### The tip (Mac app)
 One book from the reader's own shelf, chosen by the tool, with a question
 for them. It takes the blue circled query (*Needs you*), because it asks

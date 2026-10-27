@@ -292,23 +292,21 @@ struct MainView: View {
             VStack(spacing: 0) {
                 TopLine(model: model).padding(.horizontal, 20).padding(.vertical, 12)
                 Divider()
-                if model.broken == nil && model.pane == .books && !(model.status?.mode ?? "").isEmpty {
-                    BooksPane(model: model)
-                } else if model.broken == nil && model.pane == .covers && !(model.status?.mode ?? "").isEmpty {
-                    CoversPane(model: model)
+                if let broken = model.broken {
+                    Galley { ProofSheet { Row(state: "fail", what: "The tool", found: broken).onSheet() } }
                 } else {
-                    Form {
-                    if let broken = model.broken {
-                        Section { Row(state: "fail", what: "The tool", found: broken) }
-                    } else {
-                        switch model.pane ?? .overview {
-                        case .overview: OverviewSections(model: model)
-                        case .books, .covers: BooksSections(model: model)
-                        case .history: HistorySection(model: model)
+                    switch model.pane ?? .overview {
+                    case .overview: OverviewSections(model: model)
+                    case .history: HistorySection(model: model)
+                    case .books, .covers:
+                        if (model.status?.mode ?? "").isEmpty {
+                            Galley { ProofSheet { Text("Not set up yet.").foregroundStyle(Pencil.graphite).onSheet() } }
+                        } else if model.pane == .books {
+                            BooksPane(model: model)
+                        } else {
+                            CoversPane(model: model)
                         }
                     }
-                    }
-                    .formStyle(.grouped)
                 }
             }
         }
@@ -339,7 +337,8 @@ struct TopLine: View {
             .frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
                 Text(busy ? "Syncing…" : readiness.sentence).font(.title3.weight(.semibold))
-                Text(subtitle).foregroundStyle(.secondary).textSelection(.enabled)
+                    .foregroundStyle(busy ? Pencil.ink : said(readiness.state))  // the first line in its mark's colour
+                Text(subtitle).foregroundStyle(Pencil.graphite).textSelection(.enabled)
             }
             Spacer(minLength: 12)
             Button("Open the page") { _ = tool(["open"]) }
@@ -353,6 +352,14 @@ struct TopLine: View {
     }
 
     private var busy: Bool { model.syncing || !model.elsewhere.isEmpty }
+
+    private func said(_ state: String) -> Color {
+        switch state {
+        case "ok": return Pencil.green
+        case "warn": return Pencil.blue
+        default: return Pencil.ink
+        }
+    }
 
     private var readiness: (sentence: String, state: String) {
         guard let status = model.status else { return ("Kobo Hardcover Sync", "note") }
@@ -381,34 +388,41 @@ struct TopLine: View {
     }
 }
 
-/// The chain, a sync as it runs, and the checks of the link that is open:
-/// by itself the first that needs the reader, else the one clicked.
+/// The overview on the galley stock: the chain on a proof sheet, a sync as
+/// it runs, and the checks of the link that is open: by itself the first that
+/// needs the reader, else the one clicked.
 struct OverviewSections: View {
     @ObservedObject var model: WindowModel
     @State private var chosen: String?  // nil: the first link with a problem; "": none
 
     var body: some View {
-        if let version = model.newer {
-            Section {
-                Row(state: "note", what: "Version \(version) is out", found: "This is \(bundleVersion()).") {
-                    Button("Get it") { if let link = URL(string: releases + version) { NSWorkspace.shared.open(link) } }
+        Galley {
+            if let version = model.newer {
+                ProofSheet {
+                    Row(state: "note", what: "Version \(version) is out", found: "This is \(bundleVersion()).") {
+                        Button("Get it") { if let link = URL(string: releases + version) { NSWorkspace.shared.open(link) } }
+                    }
+                    .onSheet()
                 }
+                .padding(.bottom, 8)
             }
-        }
-        Section {
-            ChainView(model: model, open: $chosen)
-        } footer: {
+            ProofSheet {
+                ChainView(model: model, open: $chosen).padding(12)
+            }
             HStack {
-                Text(model.checks == nil ? "Checking everything a sync depends on…" : model.summary).foregroundStyle(.secondary)
+                Text(model.checks == nil ? "Checking everything a sync depends on…" : model.summary).font(.callout).foregroundStyle(Pencil.graphite)
                 Spacer()
                 Button("Check again") { model.refresh() }.disabled(model.checks == nil)
             }
-        }
-        if model.syncing || model.outcome != nil { SyncSection(model: model) }
-        if let link = model.links.first(where: { $0.id == open }), model.checks != nil {
-            Section(link.id) {
-                ForEach(link.checks) { check in
-                    Row(state: check.state, what: check.what, found: check.found, todo: check.todo) { fix(check) }
+            .padding(.horizontal, 4)
+            if model.syncing || model.outcome != nil { SyncSection(model: model).padding(.top, 14) }
+            if let link = model.links.first(where: { $0.id == open }), model.checks != nil {
+                SheetHead(link.id).padding(.top, 14)
+                ProofSheet {
+                    ForEach(Array(link.checks.enumerated()), id: \.element.id) { n, check in
+                        if n > 0 { SoftRule() }
+                        Row(state: check.state, what: check.what, found: check.found, todo: check.todo) { fix(check) }.onSheet()
+                    }
                 }
             }
         }
@@ -453,29 +467,79 @@ struct SyncSection: View {
     @ObservedObject var model: WindowModel
 
     var body: some View {
-        Section("Sync now") {
-            ForEach(Array(model.steps.enumerated()), id: \.offset) { _, step in
-                Row(state: step.state ?? "note", what: step.step ?? "", found: step.text ?? "")
-            }
-            if let done = model.outcome {
-                Row(state: done.ok ? "ok" : "fail", what: done.title, found: done.message, strong: true)
-            } else if model.steps.isEmpty {
-                HStack(spacing: 8) {
-                    ProgressView().controlSize(.small)
-                    Text("Looking for the Kobo…").foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 10) {
+            SheetHead("Sync now")
+            if !model.steps.isEmpty || model.outcome == nil {
+                ProofSheet {
+                    ForEach(Array(model.steps.enumerated()), id: \.offset) { n, step in
+                        if n > 0 { SoftRule() }
+                        Row(state: step.state ?? "note", what: step.step ?? "", found: step.text ?? "").onSheet()
+                    }
+                    if model.steps.isEmpty {
+                        HStack(spacing: 8) {
+                            ProgressView().controlSize(.small)
+                            Text("Looking for the Kobo…").foregroundStyle(Pencil.graphite)
+                        }
+                        .onSheet()
+                    }
                 }
+            }
+            if let done = model.outcome {  // as the page's messages: what worked on Green Wash, a failure ruled in ink
+                Row(state: done.ok ? "ok" : "fail", what: done.title, found: done.message, strong: true)
+                    .onSheet()
+                    .background(done.ok ? Pencil.greenWash : Pencil.sheet, in: RoundedRectangle(cornerRadius: 4))
+                    .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(done.ok ? Pencil.greenWash : Pencil.flag, lineWidth: 1))
             }
         }
     }
 }
 
-/// Books before setup.
-struct BooksSections: View {
-    @ObservedObject var model: WindowModel
+/// The galley stock under the overview and History: its sheets at most 720 points wide, in the middle, scrolled.
+struct Galley<Content: View>: View {
+    @ViewBuilder let content: () -> Content
 
     var body: some View {
-        Section { Text("Not set up yet.").foregroundStyle(.secondary) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10, content: content)
+                .frame(maxWidth: 720)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 22)
+                .frame(maxWidth: .infinity)
+        }
+        .background(Pencil.ground)
     }
+}
+
+/// A proof sheet on the galley stock (DESIGN.md): the sheet's colour inside a hairline rule, square-cut.
+struct ProofSheet<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0, content: content)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Pencil.sheet, in: RoundedRectangle(cornerRadius: 4))
+            .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Pencil.rule, lineWidth: 1))
+    }
+}
+
+/// The head over a sheet.
+struct SheetHead: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+
+    var body: some View {
+        Text(text).font(.headline).foregroundStyle(Pencil.ink).padding(.leading, 4).accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// The line between rows on a sheet.
+struct SoftRule: View {
+    var body: some View { Pencil.ruleSoft.frame(height: 1).padding(.leading, 14) }
+}
+
+extension View {
+    /// A row on a proof sheet, set in from its edge.
+    func onSheet() -> some View { padding(.horizontal, 14).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading) }
 }
 
 /// The server's page, at Settings: in server mode the Hardcover connection is made there.
@@ -488,24 +552,26 @@ struct HistorySection: View {
     private let started = ["mount": "Kobo plugged in", "app": "Sync now", "hand": "By hand"]
 
     var body: some View {
-        Section {
-            if model.syncs.isEmpty {
-                Text("No syncs yet. Plug in the Kobo.").foregroundStyle(.secondary)
-            }
-            ForEach(model.syncs.prefix(25)) { sync in
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    Mark(state: sync.ok ? "ok" : "fail").alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(sync.message.isEmpty ? "Nothing new." : sync.message)
-                        Text([sync.date.map(spoken), started[sync.trigger]].compactMap { $0 }.joined(separator: " · "))
-                            .font(.callout).foregroundStyle(.secondary)
-                    }
+        Galley {
+            SheetHead("History")
+            ProofSheet {
+                if model.syncs.isEmpty {
+                    Text("No syncs yet. Plug in the Kobo.").foregroundStyle(Pencil.graphite).onSheet()
                 }
-                .accessibilityElement(children: .combine)
+                ForEach(Array(model.syncs.prefix(25).enumerated()), id: \.element.id) { n, sync in
+                    if n > 0 { SoftRule() }
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        Mark(state: sync.ok ? "ok" : "fail").alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(sync.message.isEmpty ? "Nothing new." : sync.message).foregroundStyle(Pencil.ink)
+                            Text([sync.date.map(spoken), started[sync.trigger]].compactMap { $0 }.joined(separator: " · "))
+                                .font(.callout).foregroundStyle(Pencil.graphite)
+                        }
+                    }
+                    .onSheet()
+                    .accessibilityElement(children: .combine)
+                }
             }
-        } header: {
-            Text("History")
-        } footer: {
             HStack {
                 Spacer()
                 Button("Show the log") { showLog() }
@@ -528,7 +594,7 @@ struct Row<Fix: View>: View {
             Mark(state: state).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
             VStack(alignment: .leading, spacing: 2) {
                 Text(what).fontWeight(strong ? .semibold : .medium)
-                Text(found).foregroundStyle(.secondary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                Text(found).foregroundStyle(Pencil.graphite).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                 if !todo.isEmpty {
                     Text(todo).font(.callout).fixedSize(horizontal: false, vertical: true)
                 }

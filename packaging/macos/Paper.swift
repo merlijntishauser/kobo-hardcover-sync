@@ -20,13 +20,21 @@ enum Pencil {
     static let fill = tone(0xc0212b, 0xc0212b)  // Sync now: white words need the darker red in dark mode too
     static let blue = tone(0x1c5e8b, 0x86c5ea)  // the reader's choice, or a question for them
     static let green = tone(0x2c6a39, 0x86cf95)
+    static let greenWash = tone(0xe1f0e2, 0x18301e)  // behind a message that something worked
     static let flag = tone(0x17191c, 0xe7e9e4)
     static let onFlag = tone(0xfbfbf8, 0x171a1e)
+    static let ink = tone(0x17191c, 0xe7e9e4)
+    static let graphite = tone(0x4a4f57, 0xaeb4bb)  // what was found, facts, labels
     static let faint = tone(0x5f656e, 0x959ca4)
     static let edge = tone(0x80868e, 0x6e757e)
-    static let ground = tone(0xedefea, 0x0f1114)  // galley stock: under the covers
+    static let ground = tone(0xedefea, 0x0f1114)  // galley stock: under the covers, under the overview's sheets
     static let sheet = tone(0xfbfbf8, 0x171a1e)  // proof sheet: a slip, a cover's ground
+    static let margin = tone(0xf4f5f1, 0x1b1f24)  // the proof margin: Hardcover's side
     static let rule = tone(0xcdd1cb, 0x30353c)
+    static let ruleSoft = tone(0xe3e6e0, 0x24282e)  // between rows
+    static let rail = tone(0xc3e2ef, 0x123040)  // non-repro blue: your Kobo
+    static let railInk = tone(0x14222b, 0xe3f1f7)
+    static let railGraphite = tone(0x2f4653, 0xa9c6d4)
 }
 
 // ---------- the marks ----------
@@ -37,6 +45,7 @@ enum Pencil {
 struct Mark: View {
     let state: String
     var size: CGFloat = 18
+    var dash = Pencil.faint  // the dash and the dashed caret; on the rail, Rail Graphite
 
     var body: some View {
         if state == "stet" {  // the word itself: kept as Hardcover has it
@@ -71,7 +80,7 @@ struct Mark: View {
             case "next":
                 stroke(caret, Pencil.red)
             case "wait":
-                stroke(caret, Pencil.faint, dash: [2.2, 2.6])
+                stroke(caret, dash, dash: [2.2, 2.6])
             case "warn":
                 stroke(Path(ellipseIn: CGRect(x: 2.4 * s, y: 2.4 * s, width: 15.2 * s, height: 15.2 * s)), Pencil.blue, 1.7)
                 stroke(Path { p in  // the hook of the query: the arc of marks.py, then its curve down
@@ -92,7 +101,7 @@ struct Mark: View {
                 stroke(Path { p in
                     p.move(to: at(5, 10))
                     p.addLine(to: at(15, 10))
-                }, Pencil.faint)
+                }, dash)
             }
         }
         .frame(width: size, height: size)

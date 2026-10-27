@@ -130,19 +130,15 @@ struct BooksPane: View {
             }
 
         } else if let broken = model.booksBroken {
-            Form {
-                Section {
-                    Row(state: "fail", what: "Books", found: broken)
-                } footer: {
-                    if model.status?.mode == "server" {  // an older server, or a proxy that does not let the app through: the page still has them
-                        HStack {
-                            Spacer()
-                            Button("Open the page") { _ = tool(["open"]) }
-                        }
+            Galley {
+                ProofSheet { Row(state: "fail", what: "Books", found: broken).onSheet() }
+                if model.status?.mode == "server" {  // an older server, or a proxy that does not let the app through: the page still has them
+                    HStack {
+                        Spacer()
+                        Button("Open the page") { _ = tool(["open"]) }
                     }
                 }
             }
-            .formStyle(.grouped)
         } else {
             VStack {
                 Spacer()
