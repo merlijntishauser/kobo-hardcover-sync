@@ -50,13 +50,20 @@ final class Drift {
             offset[r] += speeds[r] * pace[r] * CGFloat(dt)
         }
     }
+
+    /// These rows have eased to a stop, and no move by hand still holds them.
+    func stopped(_ rows: [RunRow], at now: Date) -> Bool {
+        now >= byHandUntil && rows.allSatisfy { pace[$0.rawValue] < 0.002 }
+    }
 }
 
-/// A cover on the run: which book, and where it is drawn now.
+/// A cover on the run: which book, and where it stands on its row's strip.
+/// The row moves as one; a cover keeps its place on the strip, so a frame
+/// changes one offset per row, not one per cover.
 struct Placed: Identifiable {
-    let id: String  // the book, and which pass of the loop
+    let id: Int  // the place on the strip, counted from the row's start; the loop repeats the books along it
     let book: BooksAnswer.Book
-    let frame: CGRect
+    let frame: CGRect  // on the strip: the row's shift brings it into the window
 }
 
 struct CoversPane: View {
@@ -72,14 +79,16 @@ struct CoversPane: View {
     @AppStorage("CoversShow") private var show = "all"  // which books the run holds: one of the list's filters, kept apart from Books'
     @State private var watcher: Any?
     @FocusState private var focused: Bool
+    @State private var settled = false  // the whole run stands and has eased to a stop: no frames until it moves
 
     var body: some View {
         if let books = model.books {
             GeometryReader { box in
                 let runHeight = box.size.height * 0.62
-                let present = RunRow.allCases.filter { row in rows(books)[row.rawValue].count > 0 }
+                let rows = rows(books)
+                let present = RunRow.allCases.filter { !rows[$0.rawValue].isEmpty }  // a row without books takes no room
                 VStack(spacing: 0) {
-                    run(books, size: CGSize(width: box.size.width, height: runHeight))
+                    run(books, rows: rows, present: present, size: CGSize(width: box.size.width, height: runHeight))
                     DoubleRule().padding(.horizontal, 20)
                         .overlay(alignment: .trailing) {  // on the rule, which breaks for it: a mark in the margin
                             Show(show: $show, books: books).padding(.horizontal, 8).background(Pencil.ground).padding(.trailing, 28)
@@ -136,21 +145,31 @@ struct CoversPane: View {
         return min(1, max(0.45, height / max(full, 1)))
     }
 
-    @ViewBuilder private func run(_ books: BooksAnswer, size: CGSize) -> some View {
-        let rows = rows(books)
-        let present = RunRow.allCases.filter { !rows[$0.rawValue].isEmpty }  // a row without books takes no room
+    @ViewBuilder private func run(_ books: BooksAnswer, rows: [[BooksAnswer.Book]], present: [RunRow], size: CGSize) -> some View {
         let k = scale(size.height, present)
-        let paused = reduceMotion || !visible || books.books.isEmpty
+        let standing = RunRow.allCases.map { row in keyed || lifted?.row == row || model.enlarged != nil || model.chosenBook != nil }
+        let still = present.allSatisfy { standing[$0.rawValue] }  // nothing on the run drifts: under the spread, the large cover, the keyboard
+        let paused = reduceMotion || !visible || present.isEmpty || (still && settled)
         TimelineView(.animation(minimumInterval: nil, paused: paused)) { time in
-            let standing = RunRow.allCases.map { row in keyed || lifted?.row == row || model.enlarged != nil || model.chosenBook != nil }
             let _ = paused ? () : drift.step(to: time.date, standing: standing, speeds: RunRow.allCases.map { $0.speed * k })
+            let _ = paused || !still || !drift.stopped(present, at: time.date) ? () : DispatchQueue.main.async { settled = true }
             let _ = byHand
+            let shift = drift.offset
             let placed = RunRow.allCases.map { place(rows[$0.rawValue], row: $0, present: present, k: k, size: size) }
+            let shown = { (row: RunRow, item: Placed) in item.frame.offsetBy(dx: -shift[row.rawValue], dy: 0) }  // in the window
             ZStack(alignment: .topLeading) {
                 ForEach(RunRow.allCases, id: \.self) { row in
-                    ForEach(placed[row.rawValue]) { item in
-                        cover(item, row: row, k: k)
+                    ZStack(alignment: .topLeading) {
+                        ForEach(placed[row.rawValue]) { item in
+                            RunCover(
+                                book: item.book, frame: item.frame, k: k, up: lifted?.row == row && lifted?.id == item.book.id,
+                                reduceMotion: reduceMotion, open: { model.chosenBook = item.book.id }
+                            )
+                            .equatable()
+                        }
                     }
+                    .offset(x: -shift[row.rawValue])
+                    .zIndex(lifted?.row == row ? 1 : 0)  // the lifted cover over the rest
                 }
                 if present.isEmpty && !books.books.isEmpty {
                     Text("No books in this selection.").foregroundStyle(.secondary)
@@ -158,15 +177,16 @@ struct CoversPane: View {
                 }
                 if let lifted, let item = placed[lifted.row.rawValue].first(where: { $0.book.id == lifted.id }) {
                     // Under the cover; where the run has no room under it (the front row), above the lifted cover.
-                    let below = item.frame.maxY + 10
-                    let top = item.frame.maxY - item.frame.height * (reduceMotion ? 1 : 1.12)
+                    let frame = shown(lifted.row, item)
+                    let below = frame.maxY + 10
+                    let top = frame.maxY - frame.height * (reduceMotion ? 1 : 1.12)
                     Caption(book: item.book)
                         .frame(width: 260, alignment: .leading)
                         .background(GeometryReader { g in
                             Color.clear.onAppear { captionHeight = g.size.height }.onChange(of: g.size.height) { captionHeight = $0 }
                         })
                         .offset(
-                            x: min(max(8, item.frame.minX), size.width - 268),
+                            x: min(max(8, frame.minX), size.width - 268),
                             y: below + captionHeight <= size.height ? below : max(4, top - 10 - captionHeight)
                         )
                         .zIndex(2)  // over the lifted cover, which stands over the rest
@@ -180,7 +200,7 @@ struct CoversPane: View {
                 switch phase {
                 case .active(let point):
                     let hit = RunRow.allCases.reversed().lazy.compactMap { row in
-                        placed[row.rawValue].first { $0.frame.contains(point) }.map { (row, $0.book.id) }
+                        placed[row.rawValue].first { shown(row, $0).contains(point) }.map { (row, $0.book.id) }
                     }.first
                     if hit?.0 != lifted?.row || hit?.1 != lifted?.id { lifted = hit }
                 case .ended:
@@ -201,6 +221,9 @@ struct CoversPane: View {
             lifted = nil
             bringUp(rows: rows, k: k, width: size.width)  // a book from Spotlight or the widget, after showing all
         }
+        .onChange(of: still) { stands in
+            if !stands { settled = false }  // it drifts again; when it next stands, it eases to a stop first
+        }
         .onExitCommand {
             if model.enlarged != nil { model.enlarged = nil } else { keyed = false; lifted = nil }
         }
@@ -217,53 +240,23 @@ struct CoversPane: View {
         .accessibilityLabel("Covers: read in the last year, then the rest read, then never opened")
     }
 
-    /// The covers of a row where they are now: the loop repeated across the width, only what shows.
+    /// The covers of a row that show now, at their places on its strip: the loop repeated along it.
     private func place(_ books: [BooksAnswer.Book], row: RunRow, present: [RunRow], k: CGFloat, size: CGSize) -> [Placed] {
         guard !books.isEmpty, let n = present.firstIndex(of: row) else { return [] }
-        let width = size.width
         let h = row.height * k
         let w = h / 1.5
-        let step = runStep(row, count: books.count, k: k, width: width)
-        let period = step * CGFloat(books.count)
+        let step = runStep(row, count: books.count, k: k, width: size.width)
         let gap = (size.height - present.reduce(0) { $0 + $1.height * k }) / CGFloat(present.count + 1)
         let y = gap * CGFloat(n + 1) + present.prefix(n).reduce(0) { $0 + $1.height * k }
-        let shift = drift.offset[row.rawValue].truncatingRemainder(dividingBy: period)
+        let shift = drift.offset[row.rawValue]
         var out: [Placed] = []
-        var pass = 0
-        var start = -shift - (shift < 0 ? period : 0)
-        while start < width {
-            for (i, book) in books.enumerated() {
-                let x = start + CGFloat(i) * step
-                if x > -w && x < width { out.append(Placed(id: "\(book.id)#\(pass)", book: book, frame: CGRect(x: x, y: y, width: w, height: h))) }
-            }
-            start += period
-            pass += 1
+        var place = Int(((shift - w) / step).rounded(.down)) + 1  // the first whose right edge is in the window
+        while CGFloat(place) * step - shift < size.width {
+            let book = books[(place % books.count + books.count) % books.count]
+            out.append(Placed(id: place, book: book, frame: CGRect(x: CGFloat(place) * step, y: y, width: w, height: h)))
+            place += 1
         }
         return out
-    }
-
-    private func cover(_ item: Placed, row: RunRow, k: CGFloat) -> some View {
-        let up = lifted?.row == row && lifted?.id == item.book.id
-        return ZStack(alignment: .bottomLeading) {
-            Cover(path: item.book.cover, width: item.frame.width)
-                .background(Pencil.sheet)
-                .shadow(color: .black.opacity(up ? 0.22 : 0.28), radius: up ? 6 : 1, y: up ? 6 : 1)
-                .shadow(color: .black.opacity(0.1), radius: 4, y: 3)
-            if item.book.status.kind == "next" {  // the one mark on the run: the next sync changes this book
-                Mark(state: "next", size: max(12, 16 * k))
-                    .background(Circle().fill(Pencil.sheet).padding(-1))
-                    .offset(x: -5, y: 6)
-            }
-        }
-        .scaleEffect(up && !reduceMotion ? 1.12 : 1, anchor: .bottom)
-        .zIndex(up ? 1 : 0)
-        .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.25), value: up)
-        .offset(x: item.frame.minX, y: item.frame.minY)
-        .onTapGesture { model.chosenBook = item.book.id }
-        .accessibilityElement()
-        .accessibilityLabel("\(item.book.title), \(item.book.author). \(item.book.status.text)")
-        .accessibilityAddTraits(.isButton)
-        .accessibilityAction { model.chosenBook = item.book.id }
     }
 
     // ---------- by hand and by keyboard ----------
@@ -333,6 +326,47 @@ struct CoversPane: View {
         if let watcher { NSEvent.removeMonitor(watcher) }
         watcher = nil
         model.enlarged = nil  // it belongs to Covers
+    }
+}
+
+/// A cover on the run, at its place on the strip. Equal to the last frame's
+/// while the book, the place and the lift are: the run moves it without
+/// drawing it again.
+struct RunCover: View, Equatable {
+    let book: BooksAnswer.Book
+    let frame: CGRect
+    let k: CGFloat
+    let up: Bool
+    let reduceMotion: Bool
+    let open: () -> Void
+
+    static func == (a: RunCover, b: RunCover) -> Bool {
+        a.book.id == b.book.id && a.book.cover == b.book.cover && a.book.title == b.book.title && a.book.author == b.book.author
+            && a.book.status.kind == b.book.status.kind && a.book.status.text == b.book.status.text
+            && a.frame == b.frame && a.k == b.k && a.up == b.up && a.reduceMotion == b.reduceMotion
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            Cover(path: book.cover, width: frame.width)
+                .background(Pencil.sheet)
+                .shadow(color: .black.opacity(up ? 0.22 : 0.28), radius: up ? 6 : 1, y: up ? 6 : 1)
+                .shadow(color: .black.opacity(0.1), radius: 4, y: 3)
+            if book.status.kind == "next" {  // the one mark on the run: the next sync changes this book
+                Mark(state: "next", size: max(12, 16 * k))
+                    .background(Circle().fill(Pencil.sheet).padding(-1))
+                    .offset(x: -5, y: 6)
+            }
+        }
+        .scaleEffect(up && !reduceMotion ? 1.12 : 1, anchor: .bottom)
+        .zIndex(up ? 1 : 0)
+        .animation(.timingCurve(0.16, 1, 0.3, 1, duration: 0.25), value: up)
+        .offset(x: frame.minX, y: frame.minY)
+        .onTapGesture(perform: open)
+        .accessibilityElement()
+        .accessibilityLabel("\(book.title), \(book.author). \(book.status.text)")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { open() }
     }
 }
 

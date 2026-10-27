@@ -7,6 +7,13 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Changed
+
+- Covers in the Mac app takes about a third less of the processor while
+  the rows drift, and next to nothing while a book or its large cover is
+  open over them: each row now moves as one, and the rows stop drawing
+  when they stand still.
+
 ## 0.16.0 - 2026-10-27
 
 ### Added
