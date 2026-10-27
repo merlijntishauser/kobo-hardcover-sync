@@ -286,6 +286,7 @@ def test_the_wrapper_and_the_tool_use_the_same_names():
         '"token", "--paste", "--json"',
         '"settings", "--set", "live=true", "--json"',
         '["book", id]',
+        '"--large-cover", "--json"',
         '"--sync", sync, "--filter", filter',
         '"--expect"',
         '"setup", "--local"',

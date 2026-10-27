@@ -178,6 +178,15 @@ def test_books_answers_every_book_with_its_row_and_details(home, capsys, monkeyp
     answer(capsys, "books", "--covers", "--json", computer=computer)
     assert len(fetched) == len(set(BOOKS[:2]))  # kept: not fetched again
 
+    # A cover large, for Covers: only when asked, fetched once and kept.
+    sizes = []
+    monkeypatch.setattr(covers, "download", lambda image_id, size="thumb": sizes.append(size) or b"\xff\xd8large")
+    assert "large" not in answer(capsys, "book", BOOKS[0], "--json", computer=computer)
+    large = answer(capsys, "book", BOOKS[0], "--large-cover", "--json", computer=computer)["large"]
+    assert large.endswith(".large.jpg") and open(large, "rb").read() == b"\xff\xd8large"
+    assert answer(capsys, "book", BOOKS[0], "--large-cover", "--json", computer=computer)["large"] == large and sizes == ["large"]
+    assert answer(capsys, "book", BOOKS[5], "--large-cover", "--json", computer=computer)["large"] == ""  # no cover on Kobo
+
     cli.main(["books"], computer=computer)
     assert "Made-up" in capsys.readouterr().out  # in a terminal: the titles, each with its status line
 
@@ -305,6 +314,9 @@ def test_in_server_mode_the_books_come_from_the_server_for_this_computers_reader
     assert len(shown) == 2 and all(c.startswith(str(home / "state" / "server-covers")) and os.path.exists(c) for c in shown)
     assert len([b for b in answer(capsys, "books", "--covers", "--json", computer=mac)["books"] if b["cover"]]) == 2
     assert len(fetched) == 2  # kept: not asked for again
+    large = answer(capsys, "book", one, "--large-cover", "--json", computer=mac)["large"]
+    assert large.startswith(str(home / "state" / "server-covers")) and large not in shown and os.path.exists(large)
+    assert answer(capsys, "book", one, "--large-cover", "--json", computer=mac)["large"] == large and len(fetched) == 3
 
     # Changes, as in local mode, made on the server.
     changed = answer(capsys, "book", one, "--sync", "on", "--state", "finished", "--date", "2026-10-01", "--json", computer=mac)

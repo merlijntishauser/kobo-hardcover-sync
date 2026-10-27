@@ -65,7 +65,6 @@ struct CoversPane: View {
     @State private var drift = Drift()
     @State private var lifted: (row: RunRow, id: String)?  // under the pointer, or the keyboard's
     @State private var keyed = false  // the keyboard is in the run: it stands
-    @State private var large: BooksAnswer.Book?  // Space: the cover, large
     @State private var visible = true
     @State private var byHand = 0  // redraws a standing run after a move by hand
     @State private var runFrame = CGRect.zero  // in the window, for the trackpad
@@ -86,12 +85,13 @@ struct CoversPane: View {
                 }
             }
             .background(Pencil.ground)
-            .overlay { if let large { Lightbox(book: large) { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { self.large = nil } } } }
-            .sheet(isPresented: Binding(get: { model.chosenBook != nil }, set: { if !$0 { model.chosenBook = nil } })) {
+            .overlay {
                 if let id = model.chosenBook, let book = books.books.first(where: { $0.id == id }) {
-                    DetailsPane(model: model, book: book, words: books.words).frame(width: 380, height: 560)
+                    Spread(model: model, book: book, words: books.words)
+                        .transition(.opacity.combined(with: .scale(scale: 0.96)))
                 }
             }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: model.chosenBook)
             .onAppear(perform: watch)
             .onDisappear(perform: unwatch)
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeOcclusionStateNotification)) { _ in
@@ -131,7 +131,7 @@ struct CoversPane: View {
         let k = scale(size.height, present)
         let paused = reduceMotion || !visible || books.books.isEmpty
         TimelineView(.animation(minimumInterval: nil, paused: paused)) { time in
-            let standing = RunRow.allCases.map { row in keyed || lifted?.row == row || large != nil || model.chosenBook != nil }
+            let standing = RunRow.allCases.map { row in keyed || lifted?.row == row || model.enlarged != nil || model.chosenBook != nil }
             let _ = paused ? () : drift.step(to: time.date, standing: standing, speeds: RunRow.allCases.map { $0.speed * k })
             let _ = byHand
             let placed = RunRow.allCases.map { place(rows[$0.rawValue], row: $0, present: present, k: k, size: size) }
@@ -177,12 +177,13 @@ struct CoversPane: View {
         .clipped()
         .background(GeometryReader { g in Color.clear.onAppear { runFrame = g.frame(in: .global) }.onChange(of: g.size) { _ in runFrame = g.frame(in: .global) } })
         .focusable()
+        .withoutFocusRing()  // the lifted cover shows where the keyboard is
         .focused($focused)
         .onMoveCommand { move($0, rows: rows, k: k, width: size.width) }
         .onAppear { bringUp(rows: rows, k: k, width: size.width) }
         .onChange(of: model.spotlit) { _ in bringUp(rows: rows, k: k, width: size.width) }
         .onExitCommand {
-            if large != nil { large = nil } else { keyed = false; lifted = nil }
+            if model.enlarged != nil { model.enlarged = nil } else { keyed = false; lifted = nil }
         }
         .background {  // Return opens, Space shows it large: the keys of the run
             Group {
@@ -191,6 +192,7 @@ struct CoversPane: View {
             }
             .opacity(0)
             .accessibilityHidden(true)
+            .disabled(model.chosenBook != nil || model.enlarged != nil)  // the book is open: its own fields and keys
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Covers: read in the last year, then the rest read, then never opened")
@@ -285,13 +287,7 @@ struct CoversPane: View {
     }
 
     private func toggleLarge(_ books: BooksAnswer) {
-        withAnimation(reduceMotion ? nil : .timingCurve(0.16, 1, 0.3, 1, duration: 0.18)) {
-            if large != nil {
-                large = nil
-            } else if let id = lifted?.id {
-                large = books.books.first { $0.id == id }
-            }
-        }
+        if let id = lifted?.id { model.enlarged = books.books.first { $0.id == id } }
     }
 
     /// Two fingers on the trackpad move the run; it drifts again a few seconds after.
@@ -313,6 +309,7 @@ struct CoversPane: View {
     private func unwatch() {
         if let watcher { NSEvent.removeMonitor(watcher) }
         watcher = nil
+        model.enlarged = nil  // it belongs to Covers
     }
 }
 
@@ -414,24 +411,92 @@ struct Pile: View {
     }
 }
 
-/// Space: the cover large, over the run; a click or Space again puts it back.
-struct Lightbox: View {
+/// A click on a cover: the book over the pane, its cover as large as the height
+/// allows in the left third, its Details and what can be done with it in the
+/// rest. The thumbnail first, then the cover large once the tool has it.
+struct Spread: View {
+    @ObservedObject var model: WindowModel
     let book: BooksAnswer.Book
-    let close: () -> Void
+    let words: BooksAnswer.Words
+    @State private var large: (id: String, path: String)?
+
+    var body: some View {
+        GeometryReader { box in
+            HStack(spacing: 0) {
+                Cover(path: large?.id == book.id ? large?.path ?? "" : book.cover, width: max(96, min(box.size.width / 3 - 56, (box.size.height - 64) / 1.5)))
+                    .background(Pencil.sheet)
+                    .shadow(color: .black.opacity(0.28), radius: 1, y: 1)
+                    .shadow(color: .black.opacity(0.16), radius: 18, y: 12)
+                    .onTapGesture { model.enlarged = book }
+                    .accessibilityElement()
+                    .accessibilityLabel("The cover of \(book.title)")
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { model.enlarged = book }
+                    .frame(width: box.size.width / 3, height: box.size.height)
+                Pencil.rule.frame(width: 1).padding(.vertical, 32)
+                DetailsPane(model: model, book: book, words: words, spread: true)
+                    .frame(maxWidth: 620, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .background(Pencil.ground)
+        .onAppear(perform: fetch)
+        .onChange(of: book.id) { _ in fetch() }
+    }
+
+    private func fetch() {
+        let id = book.id
+        model.largeCover(id) { large = (id, $0) }
+    }
+}
+
+extension View {
+    /// No focus ring (macOS 14 and later; before, macOS draws one).
+    @ViewBuilder func withoutFocusRing() -> some View {
+        if #available(macOS 14, *) { focusEffectDisabled() } else { self }
+    }
+}
+
+/// The cover over the whole window, as large as it fits (Space on the run, or a
+/// click on the cover in the spread); a click, Space or Escape puts it back.
+struct Lightbox: View {
+    @ObservedObject var model: WindowModel
+    let book: BooksAnswer.Book
+    @State private var large: (id: String, path: String)?
 
     var body: some View {
         GeometryReader { box in
             ZStack {
                 Color(red: 10 / 255, green: 12 / 255, blue: 14 / 255).opacity(0.88)
                 VStack(spacing: 14) {
-                    Cover(path: book.cover, width: min(box.size.width * 0.5, (box.size.height - 90) / 1.5, 360))
+                    Cover(path: large?.id == book.id ? large?.path ?? "" : book.cover, width: max(96, min(box.size.width - 96, (box.size.height - 104) / 1.5)))
                         .shadow(color: .black.opacity(0.55), radius: 32, y: 24)
-                    Text(book.title).font(titleFont(22)).foregroundStyle(.white)
+                    Text(book.title).font(titleFont(22)).foregroundStyle(.white).lineLimit(1)
                 }
             }
         }
         .contentShape(Rectangle())
         .onTapGesture(perform: close)
+        .background {
+            Group {
+                Button("", action: close).keyboardShortcut(" ", modifiers: [])
+                Button("", action: close).keyboardShortcut(.cancelAction)
+            }
+            .opacity(0)
+            .accessibilityHidden(true)
+        }
+        .onAppear {
+            let id = book.id
+            model.largeCover(id) { large = (id, $0) }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("The cover of \(book.title)")
+        .accessibilityAddTraits(.isModal)
+        .accessibilityAction(named: "Close", close)
         .transition(.opacity.combined(with: .scale(scale: 0.96)))
     }
+
+    private func close() { model.enlarged = nil }
 }

@@ -25,8 +25,9 @@ minor version may change behaviour; the notes will say so.
   rows of covers drift slowly left: at the front the books you read in
   the last year, behind them the rest you read, at the back the ones you
   never opened. Pointing at a cover stops its row and lifts it, with its
-  title, how far you are and what the next sync does; a click opens its
-  Details, Space shows it large, the arrow keys walk the rows, two
+  title, how far you are and what the next sync does; a click opens the
+  cover large in a third of the window with its Details and what you can
+  do with it beside it, Space shows it large, the arrow keys walk the rows, two
   fingers move them. A red caret marks a book the next sync changes.
   Below the rows: the book you are reading, and the tip. With Reduce
   motion on, the rows stand still. Full screen with ⌃⌘F.

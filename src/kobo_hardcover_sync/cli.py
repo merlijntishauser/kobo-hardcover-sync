@@ -61,13 +61,14 @@ kobo-hardcover-sync books [--json] [--covers]
     book with its row and its Details, the filters it is in, and the
     page's words for them.
 
-kobo-hardcover-sync book ID [--sync MODE] [--state STATE [--date DATE]] [--search TEXT] [--pick BOOK] [--remove] [--not-now] [--json]
+kobo-hardcover-sync book ID [--sync MODE] [--state STATE [--date DATE]] [--search TEXT] [--pick BOOK] [--remove] [--not-now] [--large-cover] [--json]
     One book, and the changes the page makes to it: whether it
     syncs (auto, on, off), its State, a match (--search looks on
     Hardcover for the books it could be, --pick takes one of them), and
     --remove, which takes it off your Hardcover shelf now; --not-now puts
     it aside as the tip for a month. With --json it
-    answers the book as books --json has it. `books --sync MODE --filter
+    answers the book as books --json has it; --large-cover adds its
+    cover large (large: the file, fetched once and kept). `books --sync MODE --filter
     F [--search TEXT] [--expect N]` sets Sync for every book of a filter,
     as Set all does on the page; with --expect, only when that is still N
     books.
@@ -240,6 +241,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     bk.add_argument("--pick", default="", metavar="BOOK", help="its match: one of the books it could be, by its Hardcover id")
     bk.add_argument("--remove", action="store_true", help="take it off your Hardcover shelf, and stop syncing it")
     bk.add_argument("--not-now", action="store_true", help="not the tip for a month: books --json gives another")
+    bk.add_argument("--large-cover", action="store_true", help="also its cover large (fetched once and kept): large in the answer")
     bk.add_argument("--json", action="store_true", help="as JSON")
     opn = sub.add_parser("open", help="open the page")
     opn.add_argument("--book", default="", metavar="ID", help="at this book (its id in books --json)")
@@ -1007,7 +1009,10 @@ def _book(a, computer) -> None:
             remove=a.remove,
             not_now=a.not_now,
         )
-        found = appbooks.one(con, "me", a.id, lambda r: _cover(folder, r))
+        rows = []
+        found = appbooks.one(con, "me", a.id, lambda r: rows.append(r) or _cover(folder, r))
+        if a.large_cover:
+            found["large"] = _large_cover(folder, rows[0]) if rows else ""
     except (appbooks.Refused, hardcover.HardcoverError) as ex:
         sys.exit(f"kobo-hardcover-sync: {ex}")
     finally:
@@ -1084,7 +1089,10 @@ def _server_book(a, server) -> dict:
         found = server.app("POST", "book", change)
     except remote.ServerError as ex:
         sys.exit(f"kobo-hardcover-sync: {ex}")
-    found["book"]["cover"] = _server_cover(server, found["book"]["cover"], False)
+    path = found["book"]["cover"]
+    found["book"]["cover"] = _server_cover(server, path, False)
+    if a.large_cover:
+        found["large"] = _server_cover(server, path + "&size=large", True) if path else ""
     return found
 
 
@@ -1126,6 +1134,15 @@ def _cover(folder: str, r) -> str:
         return ""
     path = os.path.join(folder, "covers", f"{r['image_id']}.jpg")
     return path if os.path.exists(path) else ""
+
+
+def _large_cover(folder: str, r) -> str:
+    """The book's cover large (web/covers.py), fetched once and kept; "" when Kobo has none."""
+    from .web import covers
+
+    if not r["image_id"] or not covers.ID_OK.match(r["image_id"]):
+        return ""
+    return covers.cover_path(folder, r["image_id"], "large") or ""
 
 
 def _export(a) -> None:

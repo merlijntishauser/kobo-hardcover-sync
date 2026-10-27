@@ -39,6 +39,8 @@ final class WindowModel: ObservableObject {
     @Published var sort = "last_read"
     @Published var chosenBook: String?  // the book whose Details are open
     @Published var spotlit: String?  // a book chosen in Spotlight: Covers brings it up
+    @Published var enlarged: BooksAnswer.Book?  // its cover over the whole window (Covers: Space, or a click in the spread)
+    private var largeCovers: [String: String] = [:]  // id: the cover large, as the tool gave it
     @Published var changing: Set<String> = []  // books the tool is changing now
     @Published var problem: String?  // what the tool said when a change did not happen
     @Published var signIn: SignIn?  // connecting to Hardcover, while the sheet is open
@@ -95,6 +97,19 @@ final class WindowModel: ObservableObject {
             DispatchQueue.main.async {
                 self.notifications = settings.authorizationStatus
                 self.previews = settings.showPreviewsSetting
+            }
+        }
+    }
+
+    /// A book's cover large (`book ID --large-cover`): the tool fetches it once and keeps it; asked once here.
+    func largeCover(_ id: String, _ then: @escaping (String) -> Void) {
+        if let kept = largeCovers[id] { return then(kept) }
+        DispatchQueue.global(qos: .userInitiated).async {
+            let found = answer(BookAnswer.self, ["book", id, "--large-cover", "--json"])
+            DispatchQueue.main.async {
+                guard case .success(let one) = found, let large = one.large, !large.isEmpty else { return }
+                self.largeCovers[id] = large
+                then(large)
             }
         }
     }
@@ -259,6 +274,7 @@ enum Pane: String, CaseIterable, Identifiable {
 
 struct MainView: View {
     @ObservedObject var model: WindowModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         NavigationSplitView {
@@ -294,6 +310,8 @@ struct MainView: View {
                 }
             }
         }
+        .overlay { if let book = model.enlarged { Lightbox(model: model, book: book) } }  // over the whole window
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: model.enlarged?.id)
         .frame(minWidth: 880, minHeight: 520)  // the sidebar, the list and a book's Details side by side
         .sheet(isPresented: Binding(get: { model.signIn != nil }, set: { if !$0 { model.cancelSignIn() } })) { ConnectSheet(model: model) }
         .alert("Not changed", isPresented: Binding(get: { model.problem != nil }, set: { if !$0 { model.problem = nil } })) {

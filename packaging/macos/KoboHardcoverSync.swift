@@ -277,6 +277,16 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             self.model?.chosenBook = self.model?.shownBooks.first { !$0.details.hardcover.isEmpty }?.id ?? self.model?.shownBooks.first?.id
         }
         steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-details.png")) } }
+        var opened: String?
+        steps.append {  // the same book, opened on Covers: the spread (Covers lets go of what Books chose)
+            opened = self.model?.chosenBook
+            self.model?.pane = .covers
+        }
+        steps.append { self.model?.chosenBook = opened }
+        steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-spread.png")) } }
+        steps.append { self.model?.enlarged = self.model?.books?.books.first { $0.id == opened } }  // its cover over the window
+        steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-cover.png")) } }
+        steps.append { self.model?.enlarged = nil }
         steps.append {  // the sign-in, as it shows a code to compare (the preview signs in nowhere)
             self.model?.chosenBook = nil
             self.model?.signIn = SignIn(link: "https://hardcover.app/link?code=ABCD-EFGH", code: "ABCD-EFGH")

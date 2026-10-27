@@ -450,6 +450,7 @@ struct DetailsPane: View {
     @ObservedObject var model: WindowModel
     let book: BooksAnswer.Book
     let words: BooksAnswer.Words
+    var spread = false  // beside the cover large (Covers): no small cover, a larger title
     @State private var looking = ""  // what to search Hardcover for
     @State private var removing = false
 
@@ -457,10 +458,10 @@ struct DetailsPane: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .top, spacing: 12) {
-                    Cover(path: book.cover, width: 56)
+                    if !spread { Cover(path: book.cover, width: 56) }
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(book.title).font(titleFont(18)).fixedSize(horizontal: false, vertical: true)
-                        Text(book.author).foregroundStyle(.secondary)
+                        Text(book.title).font(titleFont(spread ? 28 : 18)).fixedSize(horizontal: false, vertical: true)
+                        Text(book.author).font(spread ? .title3 : .body).foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 0)
                     if model.changing.contains(book.id) { ProgressView().controlSize(.small) }
@@ -470,7 +471,7 @@ struct DetailsPane: View {
                         Image(systemName: "xmark")
                     }
                     .buttonStyle(.borderless)
-                    .keyboardShortcut(.cancelAction)
+                    .keyboardShortcut(model.enlarged == nil ? .cancelAction : nil)  // Escape closes the cover over it first
                     .accessibilityLabel("Close Details")
                 }
                 StatusCell(book: book)

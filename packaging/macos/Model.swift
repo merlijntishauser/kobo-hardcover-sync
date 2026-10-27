@@ -160,6 +160,7 @@ struct BookAnswer: Codable {
     let book: BooksAnswer.Book
     let books: StatusAnswer.Books
     let tip: BooksAnswer.Tip?  // a change can make another book the tip
+    let large: String?  // with --large-cover: the cover large, "" when there is none
 }
 
 struct HistoryAnswer: Codable {

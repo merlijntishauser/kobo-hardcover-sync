@@ -628,11 +628,12 @@ nothing else. The one mark on the run is the red caret, at the foot of a
 cover the next sync changes, on a small disc of Proof Sheet so it reads on
 any picture; every other mark waits for the caption.
 
-- **Lift:** the cover under the pointer, or reached by the arrow keys or from Spotlight, grows 1.12x from its foot and its shadow deepens (22% black, 6pt blur, 6pt down); its row stands. Click opens Details as a sheet; Return opens the lifted one; arrows move along a row and between rows, a third in from the left, and the run stands while the keyboard is in it; Escape lets go. Two fingers on the trackpad move the run by hand.
+- **Lift:** the cover under the pointer, or reached by the arrow keys or from Spotlight, grows 1.12x from its foot and its shadow deepens (22% black, 6pt blur, 6pt down); its row stands. A click opens the spread; Return opens the lifted one; arrows move along a row and between rows, a third in from the left, and the run stands while the keyboard is in it; Escape lets go. Two fingers on the trackpad move the run by hand.
 - **Caption:** under a lifted cover (above it where the run has no room below, as under the front row), always over the covers, a 260pt slip of Proof Sheet, 2px, a 1px Rule, padded 10pt, lying over the run with a soft fall of shadow (18% black, 10pt blur, 6pt down): the title in Source Serif 4 at 15pt, the author in graphite, the line gauge, and the book's status line with its mark at 14pt.
 - **Double rule:** two 1pt Rule lines 1pt apart, 3pt in all, inset 20pt from the sides: where the run ends and the pile begins.
 - **Delivery pile:** the lower 38%, padded 24pt across and 22pt below the rule. The book being read (the most recently read that is started and not finished) and the tip, 36pt apart, each a cover lying as wide as the front row's (less when the pile is short) with its words 16pt beside it. The book being read: its title in Source Serif 4 at 22pt, the author in graphite, the line gauge, the facts (tabular). The tip: the circled query at 18pt with the question, the title at 16pt, the author, *Open* and *Not now*. With no books the pile is one line: plug in the Kobo.
-- **Lightbox:** Space shows the lifted cover large over the pane, up to half the width or 360pt, with the page's lightbox shadow over the same `rgba(10, 12, 14, 0.88)`, its title in Source Serif 4 at 22pt in white. A click or Space again puts it back.
+- **Spread:** a click on a cover (or Return, or *Open* on the pile) lays the book over the pane on Galley Stock: the cover in the left third, as large as the height allows (32pt clear of the edges), on Proof Sheet with a deeper fall of shadow (16% black, 18pt blur, 12pt down), the thumbnail first and the large cover once the tool has it; a 1pt Rule; then Details in the other two thirds, at most 620pt wide, without its small cover and with the title in Source Serif 4 at 28pt. A click on its cover shows it in the lightbox; Escape or the close button puts the spread back. The run has no focus ring: the lifted cover shows where the keyboard is.
+- **Lightbox:** Space on the run, or a click on the cover in the spread, shows the cover over the whole window, sidebar included, as large as it fits (48pt clear at the sides, room for the title below), the large cover once the tool has it, with the page's lightbox shadow over the same `rgba(10, 12, 14, 0.88)`, its title in Source Serif 4 at 22pt in white. A click, Space or Escape puts it back (Escape first closes the lightbox, then the spread).
 - **Tones:** the app's pencils hold the page's Galley Stock, Proof Sheet and Rule (`ground`, `sheet`, `rule`) at the same values in light and dark: the ground under the covers, the sheet behind a cover and of the caption, the rule of the caption and the double rule. No colour outside the page's.
 
 ### Motion
@@ -655,12 +656,12 @@ rows move left at 7, 11 and 17pt a second (back, middle, front, at full
 size, scaled with the run), the front row one cover in about six seconds.
 A row eases to a stop and back on an exponential ease (0.18s time
 constant) while a cover in it is lifted, while the keyboard is in the run,
-and while the large cover or Details is open; a move by hand holds all
+and while the large cover or the spread is open; a move by hand holds all
 three rows for 3s. The lift is 1.12x on the expo ease-out over 0.25s; the
-large cover comes and goes in 0.18s, fading and growing from 0.96. Under
+large cover and the spread come and go in 0.18s, fading and growing from 0.96. Under
 Reduce motion, and whenever the window is not visible, the run stands
 still and moves only by hand; under Reduce motion a lifted cover does not
-grow and the large cover appears without moving. Nowhere else does
+grow and the large cover and the spread appear without moving. Nowhere else does
 anything drift or lift.
 
 ## Do's and Don'ts

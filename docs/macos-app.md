@@ -174,7 +174,8 @@ started in three ways:
   status, a percentage or time read; not the last read date, which the
   Kobo sets on unopened books too) and by the last year; under a double
   rule, the book being read and the tip. Hover stops a row and lifts a
-  cover with a caption; a click opens Details as a sheet; Space shows
+  cover with a caption; a click opens the spread (the cover large in the
+  left third, from `book ID --large-cover`, and Details beside it); Space shows
   it large; arrows, Return and Escape for the keyboard; two fingers move
   the run. The drift pauses when the app is hidden, and stands still
   under Reduce motion. A row without books takes no room, and a short
