@@ -118,8 +118,10 @@ final class WindowModel: ObservableObject {
         if let kept = largeCovers[id] { return then(kept) }
         DispatchQueue.global(qos: .userInitiated).async {
             let found = answer(BookAnswer.self, ["book", id, "--large-cover", "--json"])
+            guard case .success(let one) = found, let large = one.large, !large.isEmpty else { return }
+            let ready = Cover.prepare(large)  // read and decoded here, not while drawing
             DispatchQueue.main.async {
-                guard case .success(let one) = found, let large = one.large, !large.isEmpty else { return }
+                if let ready { Cover.keep(large, ready) }
                 self.largeCovers[id] = large
                 then(large)
             }

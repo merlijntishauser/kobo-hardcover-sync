@@ -3,6 +3,7 @@
 
 import AppKit
 import CoreText
+import ImageIO
 import SwiftUI
 
 // ---------- the page's colours, light and dark ----------
@@ -222,10 +223,15 @@ func quiet(_ selected: Bool) -> AnyShapeStyle { selected ? AnyShapeStyle(.second
 func pencil(_ color: Color, _ selected: Bool) -> AnyShapeStyle { selected ? AnyShapeStyle(onSelection) : AnyShapeStyle(color) }
 
 /// A cover from the tool's cache, or the crossed box of a book without one.
+/// The small ones (240 points wide, the run's) are all kept, as the run shows
+/// them again and again; of the large ones (`book --large-cover`, some 9 MB
+/// each when drawn) only the last few.
 struct Cover: View {
     let path: String
     let width: CGFloat
     private static var cache: [String: NSImage] = [:]
+    private static var large: [(path: String, image: NSImage)] = []  // the last used first
+    private static let largeKept = 4
 
     var body: some View {
         Group {
@@ -250,8 +256,28 @@ struct Cover: View {
     private static func image(_ path: String) -> NSImage? {
         guard !path.isEmpty else { return nil }
         if let kept = cache[path] { return kept }
-        let image = NSImage(contentsOfFile: path)
-        cache[path] = image
+        if let n = large.firstIndex(where: { $0.path == path }) {
+            let kept = large.remove(at: n)
+            large.insert(kept, at: 0)
+            return kept.image
+        }
+        guard let image = NSImage(contentsOfFile: path) else { return nil }
+        if (image.representations.first?.pixelsWide ?? 0) > 600 { keep(path, image) } else { cache[path] = image }
         return image
+    }
+
+    /// A large cover, read and decoded away from the main thread, so that showing it does not wait on either.
+    static func prepare(_ path: String) -> NSImage? {
+        guard let source = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil),
+            let image = CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCacheImmediately: true] as CFDictionary)
+        else { return nil }
+        return NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+    }
+
+    /// A large cover kept, on the main thread: the oldest goes when there are more than a few.
+    static func keep(_ path: String, _ image: NSImage) {
+        large.removeAll { $0.path == path }
+        large.insert((path, image), at: 0)
+        if large.count > largeKept { large.removeLast(large.count - largeKept) }
     }
 }

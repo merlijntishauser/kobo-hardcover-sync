@@ -17,6 +17,9 @@ minor version may change behaviour; the notes will say so.
   in the rail's blue, Hardcover in the proof margin, the status in its
   mark's colour, and a sync's outcome as the page shows it. The count of
   books a live sync will send is in red.
+- The Mac app keeps only the last four large covers in memory, not every
+  one opened since it started, and reads each away from the window's
+  thread before showing it.
 
 ### Fixed
 
