@@ -5,15 +5,16 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.15.0 - 2026-10-27
 
 ### Added
 
 - In server mode the Mac app has your books too, as in local mode: the
   list with its marks, Details, Sync, State, a match, *Set all* and going
   live, all made on the server for you. It asks with this Mac's upload
-  token, so nothing new to set up on the Mac; the server's proxy has to
-  let `/api/app/` past its sign-in, as it does `/upload` (README).
+  token, so nothing new to set up on the Mac. The server needs 0.15.0
+  too, and its proxy has to let `/api/app/` past its sign-in, as it does
+  `/upload` (README).
 - A tip above the Mac app's list of books: one book from your own shelf,
   asked as a question. A book you stopped halfway through more than half
   a year ago, then one on your Want to read that is already on your Kobo,
@@ -25,10 +26,11 @@ minor version may change behaviour; the notes will say so.
   rows of covers drift slowly left: at the front the books you read in
   the last year, behind them the rest you read, at the back the ones you
   never opened. Pointing at a cover stops its row and lifts it, with its
-  title, how far you are and what the next sync does; a click opens the
-  cover large in a third of the window with its Details and what you can
-  do with it beside it, Space shows it large, the arrow keys walk the rows, two
-  fingers move them. A red caret marks a book the next sync changes.
+  title, how far you are and what the next sync does. A click opens the
+  cover large in a third of the window, with its Details and what you can
+  do with it beside it; a click on that cover, or Space, shows it over the
+  whole window. The arrow keys walk the rows, two fingers move them. A
+  red caret marks a book the next sync changes.
   Below the rows: the book you are reading, and the tip. With Reduce
   motion on, the rows stand still. Full screen with ⌃⌘F.
 - Your books in Spotlight on your Mac: type a title, and the app opens
@@ -43,6 +45,12 @@ minor version may change behaviour; the notes will say so.
   a notification of its own, "Finished: …", with the book's cover; on
   Linux the cover is the notification's icon. In local mode: in server
   mode the server marks books read, after the upload.
+
+### Fixed
+
+- Book titles in the Mac app are in the page's serif, Source Serif 4, as
+  meant. macOS picked the font's subset without lowercase letters, and
+  set them in the system font instead.
 
 ## 0.14.0 - 2026-10-26
 
