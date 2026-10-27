@@ -261,7 +261,7 @@ covers are the only pictures, and the tool fetches them itself.
 - Seven marks, all in the legend above the list: red caret, dashed caret, tick, *stet*, circled query, ink square with a cross, dash.
 - Two pencils with one job each: red for what a sync sends, blue for the reader's own choice or a question for them.
 - Two typefaces with one job each: Source Serif 4 for book titles, Schibsted Grotesk for everything else.
-- Square-cut: 2px to 4px corners, no pills; the one round shape is the ring around a first-run step number.
+- Square-cut: 2px to 4px corners, no pills; the round shapes are the ring around a first-run step number and, in the Mac app's *Covers*, the disc under a cover's red caret.
 - Light and dark share every role; WCAG 2.2 AA in both.
 - One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts.
 
@@ -449,8 +449,10 @@ shadow is never needed to read the page; the dark theme proves it.
 
 ## Shapes
 
-Square-cut, like paper and type, with one exception: the step numbers of
-the first run sit in circles, as a proofreader rings a number. The sheet, cards and dialogs are 2px;
+Square-cut, like paper and type, with two exceptions: the step numbers of
+the first run sit in circles, as a proofreader rings a number; and on the
+Mac app's press run the red caret sits on a small round disc of Proof
+Sheet, so the mark reads on any cover picture. The sheet, cards and dialogs are 2px;
 small inner parts (a tag, a theme-switch button, a cover's fore-edge) are
 3px; buttons, fields, selects, chips, *Details* and navigation items are
 4px. Covers are 1px at the spine and 3px at the fore-edge, the one 1px
@@ -578,7 +580,8 @@ Beside it on a wide desk (from 1100px), under it otherwise, three numbered
 steps: *Connect to Hardcover* (a green tick when done, else a link to
 Settings), *Pick your books* (the current step: its number filled blue,
 its name blue, because it is the reader's), *Go live*. Numbers sit in
-1.6rem circles with a Field Edge ring, the one round shape on the page.
+1.6rem circles with a Field Edge ring, the one round shape on the page
+(the Mac app's press run has the other, the caret's disc).
 A double rule closes it off from the toolbar on a desk; below 1024px
 (tablet and phone) it is a card of its own above the search. Going live is the last step, so going live
 removes it. While it shows, the line under *Books* is left out: it would
