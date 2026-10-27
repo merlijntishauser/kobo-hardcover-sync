@@ -263,7 +263,7 @@ covers are the only pictures, and the tool fetches them itself.
 - Two typefaces with one job each: Source Serif 4 for book titles, Schibsted Grotesk for everything else.
 - Square-cut: 2px to 4px corners, no pills; the one round shape is the ring around a first-run step number.
 - Light and dark share every role; WCAG 2.2 AA in both.
-- One authored motion: the strike draws, the new value writes in.
+- One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts.
 
 ## Colors
 
@@ -343,7 +343,12 @@ themes. `tests/test_design_tokens.py` checks the pairs from `kobo.css`.
 the few headings and plain at 13px in a dense row. Source Serif 4 sets the
 books as the books they are, with optical sizing on. Both are served by
 the tool itself from its own static files, under the SIL Open Font
-Licence.
+Licence. The Mac app sets titles from the same files in the tool's
+package: the latin subset, with latin-ext behind it as a cascade for the
+letters only it has (registered side by side, macOS chose latin-ext, which
+holds no lowercase, and set titles in the system font), at the weight on
+the `wght` axis and `opsz` at the point size; without the files, the serif
+macOS has.
 
 ### Hierarchy
 - **Display** (800, 1.45rem from 1024px, 1.25rem below, 1.05, -0.025em): the name, once, with the caret mark before it.
@@ -595,6 +600,38 @@ reading matter: the title and *Close* stay put above a double rule while
 the text scrolls, and the words and marks from the page stand in their own
 11rem column.
 
+### The tip (Mac app)
+One book from the reader's own shelf, chosen by the tool, with a question
+for them. It takes the blue circled query (*Needs you*), because it asks
+the reader something; red stays for what a sync sends. On Books it is a
+band between the toolbar and the list, padded 14pt by 8pt: the query at
+20pt, the cover 30pt wide, the title in Source Serif 4 at 14pt over the
+question in graphite, then *Open* (Details) and *Not now* (aside for a
+month) on the right, both plain buttons. On Covers the same tip lies on
+the delivery pile.
+
+### The press run (signature, Mac app)
+The Mac app's *Covers* pane: the library as a press run, the covers the
+work itself. The upper 62% is the run on Galley Stock, three rows
+drifting left, back to front: books on the Kobo never opened (72pt tall,
+by title), every other book read (108pt), books read in the last year
+(150pt); the last two newest read first. A row without books takes no
+room. The rows share the height with equal gaps (22pt at full size) and
+scale down together in a smaller window, never below 0.45 and never above
+full size. Covers stand a cover's width plus 22% apart (at least 10pt); a
+row too short for the window spreads out to fill it, each book on the run
+once and no stretch of bare ground. Covers carry the cover shadow and
+nothing else. The one mark on the run is the red caret, at the foot of a
+cover the next sync changes, on a small disc of Proof Sheet so it reads on
+any picture; every other mark waits for the caption.
+
+- **Lift:** the cover under the pointer, or reached by the arrow keys or from Spotlight, grows 1.12x from its foot and its shadow deepens (22% black, 6pt blur, 6pt down); its row stands. Click opens Details as a sheet; Return opens the lifted one; arrows move along a row and between rows, a third in from the left, and the run stands while the keyboard is in it; Escape lets go. Two fingers on the trackpad move the run by hand.
+- **Caption:** under a lifted cover, a 260pt slip of Proof Sheet, 2px, a 1px Rule, padded 10pt, lying over the run with a soft fall of shadow (18% black, 10pt blur, 6pt down): the title in Source Serif 4 at 15pt, the author in graphite, the line gauge, and the book's status line with its mark at 14pt.
+- **Double rule:** two 1pt Rule lines 1pt apart, 3pt in all, inset 20pt from the sides: where the run ends and the pile begins.
+- **Delivery pile:** the lower 38%, padded 24pt across and 22pt below the rule. The book being read (the most recently read that is started and not finished) and the tip, 36pt apart, each a cover lying as wide as the front row's (less when the pile is short) with its words 16pt beside it. The book being read: its title in Source Serif 4 at 22pt, the author in graphite, the line gauge, the facts (tabular). The tip: the circled query at 18pt with the question, the title at 16pt, the author, *Open* and *Not now*. With no books the pile is one line: plug in the Kobo.
+- **Lightbox:** Space shows the lifted cover large over the pane, up to half the width or 360pt, with the page's lightbox shadow over the same `rgba(10, 12, 14, 0.88)`, its title in Source Serif 4 at 22pt in white. A click or Space again puts it back.
+- **Tones:** the app's pencils hold the page's Galley Stock, Proof Sheet and Rule (`ground`, `sheet`, `rule`) at the same values in light and dark: the ground under the covers, the sheet behind a cover and of the caption, the rule of the caption and the double rule. No colour outside the page's.
+
 ### Motion
 One authored moment. When the list loads, and whenever a row is redrawn,
 the strike draws across the old value (0.5s) and the new value writes in
@@ -608,6 +645,20 @@ back and forth) while the count is not known yet; the *Paste a token
 instead* arrow turns in 0.2s. Under `prefers-reduced-motion` all of them
 stop: the row you came back to keeps a steady wash, and the sweeping gauge
 becomes a faint full line instead of moving.
+
+One exception, approved by the reader, for the Mac app's *Covers* pane
+alone: a second authored motion, the drift of the run and the lift. The
+rows move left at 7, 11 and 17pt a second (back, middle, front, at full
+size, scaled with the run), the front row one cover in about six seconds.
+A row eases to a stop and back on an exponential ease (0.18s time
+constant) while a cover in it is lifted, while the keyboard is in the run,
+and while the large cover or Details is open; a move by hand holds all
+three rows for 3s. The lift is 1.12x on the expo ease-out over 0.25s; the
+large cover comes and goes in 0.18s, fading and growing from 0.96. Under
+Reduce motion, and whenever the window is not visible, the run stands
+still and moves only by hand; under Reduce motion a lifted cover does not
+grow and the large cover appears without moving. Nowhere else does
+anything drift or lift.
 
 ## Do's and Don'ts
 
@@ -633,5 +684,5 @@ becomes a faint full line instead of moving.
 - **Don't** set anything but a book title in Source Serif 4.
 - **Don't** rely on a shadow to separate surfaces; the dark theme has none.
 - **Don't** set labels in capitals or track them out.
-- **Don't** add a second authored motion; the strike and the write-in are the one.
+- **Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible.
 - **Don't** load a font, a script, a style or a picture from elsewhere; the tool serves everything, the two fonts and the book covers included.

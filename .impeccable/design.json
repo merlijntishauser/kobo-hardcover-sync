@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-04T07:21:33Z",
+  "generatedAt": "2026-10-27T00:00:00Z",
   "title": "Design System: Kobo Hardcover Sync",
   "extensions": {
     "colorMeta": {
@@ -808,6 +808,26 @@
         "name": "reduced-motion",
         "value": "none",
         "purpose": "Under prefers-reduced-motion every animation and transition is off; a row you came back to keeps a steady wash, and the sync gauge whose count is unknown is a faint full line (opacity 0.35)."
+      },
+      {
+        "name": "run-drift",
+        "value": "7, 11, 17pt/s (back, middle, front), scaled with the run",
+        "purpose": "Mac app, Covers only (the approved second authored motion): the three rows of the press run drift left; the front row moves one cover in about six seconds."
+      },
+      {
+        "name": "run-stand",
+        "value": "exponential ease, 0.18s time constant; 3s hold after a move by hand",
+        "purpose": "Mac app, Covers only: a row eases to a stop while a cover in it is lifted, the keyboard is in the run, or the large cover or Details is open, and eases back after."
+      },
+      {
+        "name": "cover-lift",
+        "value": "scale 1.12 from the foot, 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Mac app, Covers only: the cover under the pointer or the keyboard lifts, its shadow deepening."
+      },
+      {
+        "name": "run-reduced-motion",
+        "value": "none",
+        "purpose": "Mac app, Covers: under Reduce motion, and whenever the window is not visible, the run stands still and moves only by hand; under Reduce motion the lift does not grow and the large cover appears without moving."
       }
     ],
     "breakpoints": [
@@ -944,6 +964,22 @@
       "description": "The desk rail in Non-repro Blue: the navigation as a list, the current page a sheet box; at its foot the theme switch and the square Help button with its drawn circled query.",
       "html": "<div class=\"ds-rail\"><nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\">Books</a><a href=\"#\">Settings</a><a href=\"#\">Admin</a></nav><div class=\"ds-toolrow\"><div class=\"ds-theme\" role=\"group\" aria-label=\"Theme\"><button type=\"button\" aria-pressed=\"false\">Light</button><button type=\"button\" aria-pressed=\"true\">Auto</button><button type=\"button\" aria-pressed=\"false\">Dark</button></div><button type=\"button\" class=\"ds-help\" aria-label=\"Help\" title=\"Help\"><svg class=\"ds-ic\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"10\" cy=\"10\" r=\"7.6\" stroke-width=\"1.7\"/><path d=\"M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.7\" stroke-width=\"1.7\"/><circle cx=\"10\" cy=\"14.1\" r=\".6\" fill=\"currentColor\"/></svg></button></div></div>",
       "css": ".ds-rail{display:grid;gap:1.6rem;width:17.25rem;padding:1.75rem 1.4rem 1rem;background:var(--rail);color:var(--rail-ink);font-family:var(--sans)} .ds-nav{display:grid;gap:2px} .ds-nav a{display:flex;align-items:center;gap:0.75rem;min-height:2.6rem;padding:0 0.75rem;border-radius:var(--r-ctl);text-decoration:none;color:var(--rail-ink);font-size:0.9375rem;font-weight:600} .ds-nav a:hover{background:color-mix(in srgb,var(--sheet) 50%,transparent)} .ds-nav a[aria-current=\"page\"]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 0 var(--rule)} .ds-nav a:focus-visible,.ds-theme button:focus-visible,.ds-help:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px} .ds-theme{justify-self:start;display:inline-flex;gap:2px;padding:2px;border:1px solid color-mix(in srgb,var(--rail-ink) 32%,transparent);border-radius:var(--r-ctl)} .ds-theme button{font-family:inherit;font-size:0.8125rem;font-weight:500;color:var(--rail-ink);background:none;border:0;min-height:2rem;padding:0.2rem 0.7rem;border-radius:3px;cursor:pointer} .ds-theme button:hover{background:color-mix(in srgb,var(--sheet) 45%,transparent)} .ds-theme button[aria-pressed=\"true\"]{background:var(--sheet);color:var(--ink);font-weight:650} .ds-toolrow{display:flex;justify-content:space-between;align-items:center;gap:0.5rem} .ds-help{display:inline-flex;align-items:center;justify-content:center;width:2.375rem;min-height:2.375rem;padding:0;cursor:pointer;background:transparent;color:var(--rail-ink);border:1px solid color-mix(in srgb,var(--rail-ink) 35%,transparent);border-radius:var(--r-ctl)} .ds-help:hover{border-color:var(--ink)} .ds-ic{width:20px;height:20px}"
+    },
+    {
+      "name": "Tip band (Mac app)",
+      "kind": "custom",
+      "refersTo": "book-title",
+      "description": "One book from the reader's own shelf with a question for them: the blue circled query, because it asks the reader; red stays for what a sync sends. Between the toolbar and the list on Books; the same tip lies on the Covers pile.",
+      "html": "<div class=\"ds-tip\"><svg class=\"ds-q\" viewBox=\"0 0 20 20\" aria-hidden=\"true\"><circle cx=\"10\" cy=\"10\" r=\"7.6\"/><path d=\"M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9C10.4 10.5 10 10.9 10 11.7\"/><circle cx=\"10\" cy=\"14.1\" r=\"0.6\" class=\"ds-dot\"/></svg><span class=\"ds-tc\" aria-hidden=\"true\"></span><div class=\"ds-tw\"><div class=\"ds-tt\">The Doodle Knit Directory</div><div class=\"ds-tq\">You stopped at 14% in September 2025. Pick it up again?</div></div><button class=\"ds-tb\">Open</button><button class=\"ds-tb\">Not now</button></div>",
+      "css": ".ds-tip{display:flex;align-items:center;gap:12px;padding:8px 14px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink)} .ds-q{width:20px;height:20px;flex:none;fill:none;stroke:var(--blue);stroke-width:1.7;stroke-linecap:round} .ds-q .ds-dot{fill:var(--blue);stroke:none} .ds-tc{width:30px;height:45px;flex:none;background:var(--sheet);border:1px solid var(--edge);box-shadow:0 1px 2px rgba(0,0,0,0.28),0 3px 8px rgba(0,0,0,0.1)} .ds-tw{flex:1;min-width:0} .ds-tt{font-family:var(--serif);font-size:14px;font-weight:600} .ds-tq{font-size:13px;color:var(--graphite)} .ds-tb{font:inherit;font-size:13px;padding:3px 10px;border:1px solid var(--edge);border-radius:4px;background:var(--sheet);color:var(--ink)} .ds-tb:hover{border-color:var(--ink)} .ds-tb:focus-visible{outline:2px solid var(--blue);outline-offset:2px}"
+    },
+    {
+      "name": "Press run (Mac app, Covers)",
+      "kind": "custom",
+      "refersTo": "book-title",
+      "description": "Three rows of covers drifting left on Galley Stock (back 72pt never opened, middle 108pt the rest read, front 150pt read in the last year); the red caret on a Proof Sheet disc at the foot of a cover the next sync changes; a lifted cover grows 1.12x with its caption slip; a 3pt double rule; the delivery pile below.",
+      "html": "<div class=\"ds-run\"><div class=\"ds-row\" style=\"--h:36px\"><i></i><i></i><i></i><i></i><i></i></div><div class=\"ds-row\" style=\"--h:54px\"><i></i><i></i><i class=\"ds-up\"></i><i></i></div><div class=\"ds-row\" style=\"--h:75px\"><i></i><i><svg class=\"ds-caret\" viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M5 14 10 6 15 14\"/></svg></i><i></i></div><div class=\"ds-slip\"><div class=\"ds-st\">Stad vol geesten</div><div class=\"ds-sa\">V.E. Schwab</div></div><div class=\"ds-dr\" aria-hidden=\"true\"></div><div class=\"ds-pile\"><i style=\"--h:75px\"></i><div><div class=\"ds-pt\">Waarom slapende vogels niet uit de boom vallen</div><div class=\"ds-sa\">Mick O'Hare</div></div></div></div>",
+      "css": ".ds-run{background:var(--ground);padding:12px 10px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink)} .ds-row{display:flex;gap:12px;margin-bottom:11px} .ds-row i,.ds-pile i{display:block;position:relative;height:var(--h);width:calc(var(--h) / 1.5);flex:none;background:var(--sheet);border:1px solid var(--edge);box-shadow:0 1px 2px rgba(0,0,0,0.28),0 3px 8px rgba(0,0,0,0.1);transition:transform 0.25s cubic-bezier(0.16,1,0.3,1)} .ds-row i:hover,.ds-row .ds-up{transform:scale(1.12);transform-origin:bottom;z-index:1;box-shadow:0 6px 12px rgba(0,0,0,0.22),0 3px 8px rgba(0,0,0,0.1)} .ds-caret{position:absolute;left:-5px;bottom:-6px;width:14px;height:14px;border-radius:50%;background:var(--sheet);fill:none;stroke:var(--red);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .ds-slip{width:180px;padding:10px;background:var(--sheet);border:1px solid var(--rule);border-radius:2px;box-shadow:0 6px 20px rgba(0,0,0,0.18);margin-bottom:11px} .ds-st{font-family:var(--serif);font-size:15px;font-weight:600} .ds-sa{font-size:12px;color:var(--graphite)} .ds-dr{height:3px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0 10px 14px} .ds-pile{display:flex;gap:16px;align-items:flex-start} .ds-pt{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.2} @media (prefers-reduced-motion: reduce){.ds-row i{transition:none} .ds-row i:hover,.ds-row .ds-up{transform:none}}"
     }
   ],
   "narrative": {
@@ -956,7 +992,7 @@
       "Two typefaces with one job each: Source Serif 4 for book titles, Schibsted Grotesk for everything else.",
       "Square-cut: 2px to 4px corners, no pills.",
       "Light and dark share every role; WCAG 2.2 AA in both.",
-      "One authored motion: the strike draws, the new value writes in."
+      "One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts."
     ],
     "rules": [
       {
@@ -1027,7 +1063,7 @@
       "**Don't** set anything but a book title in Source Serif 4.",
       "**Don't** rely on a shadow to separate surfaces; the dark theme has none.",
       "**Don't** set labels in capitals or track them out.",
-      "**Don't** add a second authored motion; the strike and the write-in are the one.",
+      "**Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible.",
       "**Don't** load a font, a script, a style or a picture from elsewhere; the tool serves everything, the two fonts and the book covers included."
     ]
   }
