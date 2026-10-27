@@ -22,6 +22,17 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>__VERSION__</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>A book, from the widget</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kobo-hardcover-sync</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>__VERSION__</string>
 	<key>LSApplicationCategoryType</key>

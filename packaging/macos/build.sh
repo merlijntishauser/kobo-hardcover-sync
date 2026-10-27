@@ -124,7 +124,8 @@ cp -R "$out/full/python/licenses" "$resources/python-licenses"
 
 # ---------- the wrapper, its agent and its icon ----------
 swiftc -O -swift-version 5 -target arm64-apple-macos13.0 -parse-as-library -o "$contents/MacOS/$NAME" \
-	"$here/KoboHardcoverSync.swift" "$here/Window.swift" "$here/Chain.swift" "$here/Books.swift" "$here/Covers.swift" "$here/Spotlight.swift" "$here/Hardcover.swift" "$here/Settings.swift" "$here/Model.swift"
+	"$here/KoboHardcoverSync.swift" "$here/Window.swift" "$here/Paper.swift" "$here/Chain.swift" "$here/Books.swift" "$here/Covers.swift" \
+	"$here/Shelf.swift" "$here/Spotlight.swift" "$here/Hardcover.swift" "$here/Settings.swift" "$here/Model.swift"
 sed "s/__VERSION__/$short/g" "$here/Info.plist" >"$contents/Info.plist"
 if [ -n "${KHS_PREVIEW:-}" ]; then
 	plutil -replace CFBundleIdentifier -string org.gargleblaster.kobo-hardcover-sync.app.preview "$contents/Info.plist"
@@ -133,6 +134,26 @@ if [ -n "${KHS_PREVIEW:-}" ]; then
 	plutil -insert KHSPreview -bool YES "$contents/Info.plist"
 fi
 plutil -lint "$contents/Info.plist" >/dev/null
+
+# The widget (ShelfWidget.swift), from macOS 14. An extension starts at
+# _NSExtensionMain, as Xcode links it: from Swift's own main it traps in
+# ExtensionFoundation before the widget can say what it is. macOS only
+# shows a widget signed with a Developer ID (sign.sh): signed ad hoc, as
+# here, it is in the app but never in the widget gallery.
+widget="$contents/PlugIns/Widget.appex/Contents"
+mkdir -p "$widget/MacOS" "$widget/Resources/fonts"
+swiftc -O -swift-version 5 -target arm64-apple-macos14.0 -parse-as-library -application-extension \
+	-Xlinker -e -Xlinker _NSExtensionMain -o "$widget/MacOS/Widget" \
+	"$here/ShelfWidget.swift" "$here/Shelf.swift" "$here/Paper.swift" "$here/Model.swift"
+sed "s/__VERSION__/$short/g" "$here/Widget-Info.plist" >"$widget/Info.plist"
+if [ -n "${KHS_PREVIEW:-}" ]; then
+	plutil -replace CFBundleIdentifier -string org.gargleblaster.kobo-hardcover-sync.app.preview.widget "$widget/Info.plist"
+	plutil -replace CFBundleDisplayName -string "$NAME Preview" "$widget/Info.plist"
+fi
+plutil -lint "$widget/Info.plist" >/dev/null
+cp "$lib/site-packages/kobo_hardcover_sync/web/static/fonts/SourceSerif4-latin.woff2" \
+	"$lib/site-packages/kobo_hardcover_sync/web/static/fonts/SourceSerif4-latin-ext.woff2" \
+	"$lib/site-packages/kobo_hardcover_sync/web/static/fonts/SourceSerif4-LICENSE.txt" "$widget/Resources/fonts/"
 cp "$here/org.gargleblaster.kobo-hardcover-sync.app.agent.plist" "$contents/Library/LaunchAgents/"
 iconset="$out/AppIcon.iconset"
 rm -rf "$iconset"

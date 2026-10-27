@@ -355,9 +355,7 @@ struct Pile: View {
     let books: BooksAnswer
     let coverWidth: CGFloat  // as wide as the front row's covers
 
-    private var reading: BooksAnswer.Book? {
-        books.books.filter { !$0.finished && $0.percent > 0 }.max { $0.lastRead < $1.lastRead }
-    }
+    private var reading: BooksAnswer.Book? { readingNow(books.books) }
 
     var body: some View {
         GeometryReader { box in

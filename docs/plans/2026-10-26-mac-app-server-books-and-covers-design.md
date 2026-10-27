@@ -138,6 +138,10 @@ Each step ships on its own:
   a widget built without an Xcode project (build.sh uses `swiftc`)
   signs and notarises, and whether a screen saver may read the app's
   covers (macOS runs third-party screen savers in a sandboxed host).
+  The widget, checked on 2026-10-27 on macOS 27: it builds with `swiftc`
+  (linked at `_NSExtensionMain`), and with a Developer ID it is in the
+  gallery and reads the app group. Signed ad hoc it is not shown at all.
+  Notarising is first tried in the release's signing job.
   Either may turn out not to be worth it; the steps before do not
   depend on them.
 - Covers: the cache holds a thumbnail (240 by 360) and a large size

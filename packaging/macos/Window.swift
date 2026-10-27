@@ -10,6 +10,9 @@ import SwiftUI
 import UserNotifications
 
 /// What the window shows. Filled on a background queue, published on the main one.
+/// One shelf for the widget at a time.
+private let shelfQueue = DispatchQueue(label: "shelf", qos: .utility)
+
 final class WindowModel: ObservableObject {
     @Published var status: StatusAnswer?
     @Published var checks: [Check]?  // nil while being checked
@@ -24,7 +27,12 @@ final class WindowModel: ObservableObject {
     @Published var previews = UNShowPreviewsSetting.always
     @Published var newer: String?
     @Published var pane: Pane? = .overview
-    @Published var books: BooksAnswer?  // local mode: the list, from `books --json`
+    @Published var books: BooksAnswer? {  // local mode: the list, from `books --json`
+        didSet {
+            guard let books else { return }
+            shelfQueue.async { keepShelf(books.books, tip: books.tip) }  // the widget's shelf (Shelf.swift)
+        }
+    }
     @Published var booksBroken: String?
     @Published var search = ""
     @Published var filter = "all"

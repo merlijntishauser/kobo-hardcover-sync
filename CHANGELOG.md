@@ -33,6 +33,11 @@ minor version may change behaviour; the notes will say so.
 - Your books in Spotlight on your Mac: type a title, and the app opens
   Covers at that book. The index is your Mac's own; removing the app
   takes the books out again.
+- A widget for the desktop and Notification Center (macOS 14 and later):
+  the book you are reading with its cover and how far you are, and in the
+  medium size the tip beside it. A click opens Covers at that book. It
+  needs the signed app from the release; a build of your own, signed ad
+  hoc, has no widget.
 - When a sync marks a book as read on Hardcover, the Mac app says so in
   a notification of its own, "Finished: …", with the book's cover; on
   Linux the cover is the notification's icon. In local mode: in server

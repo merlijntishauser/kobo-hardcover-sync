@@ -75,7 +75,12 @@ proper prompt.
 - **No entitlements** under the hardened runtime, to start with. Every
   library in the bundle is signed with the same team id, so library
   validation passes without exceptions. If something needs one, it is
-  added with its reason next to it.
+  added with its reason next to it. The one added: the widget (from
+  0.15.0) is sandboxed, as macOS asks of a widget, and it and the app
+  share an app group, `<team id>.<bundle id>`, where the app leaves the
+  book being read and the tip (`sign.sh`). From macOS 15 a group outside
+  the App Store has to begin with the team id, and an ad-hoc signature
+  has none, so a build signed ad hoc keeps no shelf.
 
 ## The bundle
 
@@ -91,6 +96,9 @@ Kobo Hardcover Sync.app/Contents/
     AppIcon.icns                         the icon up to macOS 15
     Assets.car                           the icon from macOS 26 on
     LICENSE, THIRD-PARTY-NOTICES.md, PYTHON-LICENSE.txt
+  PlugIns/Widget.appex/Contents/         the widget (Swift), from macOS 14
+    MacOS/Widget
+    Resources/fonts/                     Source Serif 4 and its licence, for the titles
 ```
 
 The Python is a build from
@@ -179,6 +187,16 @@ started in three ways:
   `NOTIFY|` line after a plug-in, `finished` in the last line of
   `sync --steps` after *Sync now*. The app attaches a copy of the cover,
   because Notification Center moves an attached file into its own store.
+  The widget (`ShelfWidget.swift`, small and medium, on the desktop and
+  in Notification Center) is the pile of Covers, smaller: small, the
+  book being read with its cover and gauge; medium, that book and the
+  tip. It asks nothing itself: whenever the window has the books, and
+  after a plug-in sync, the app leaves them in the app group's folder
+  (`Shelf.swift`: `shelf.json` and the two covers, written only when they
+  changed) and has the widget drawn again. A click opens Covers at that
+  book (`kobo-hardcover-sync://book/<id>`). Covers are drawn in full
+  colour also where the desktop tints widgets, which would otherwise
+  make them flat grey blocks. *Remove…* empties the shelf.
   In server mode Books is the same, with the
   server's books for this Mac's reader: the tool asks the server
   (`/api/app/`, with the upload token) and keeps its covers in
@@ -271,11 +289,21 @@ hand. Which of the two happens is the first thing to see on a real Mac.
   is drawn behind it is not in them): a look from an SSH session, which
   macOS does not let take a screenshot.
 - `packaging/macos/sign.sh` signs every Mach-O file in the bundle, then
-  the app. With a Developer ID it adds the hardened runtime and Apple's
-  timestamp. An ad-hoc build gets no hardened runtime: under it, a library
+  the widget with its entitlements, then the app. With a Developer ID it
+  adds the hardened runtime and Apple's timestamp. An ad-hoc build gets no hardened runtime: under it, a library
   is only loaded when it has a team id, and an ad-hoc signature has none.
   So the hardened runtime is first tried in the release's signing job,
   which starts the tool once more after signing.
+- The widget only shows with a Developer ID. Signed ad hoc, macOS leaves
+  it out of the widget gallery ("restricted or unknown extension") and
+  refuses it the app group. To look at it, sign the preview with the
+  Developer ID in a Terminal on the Mac (an SSH session cannot reach the
+  login keychain: `errSecInternalComponent`), put it in `~/Applications`
+  and open it once. macOS keeps a widget's process running through a
+  reinstall, so stop the old one (`pkill -f .../Widget.appex/Contents/MacOS/Widget`),
+  or the old build goes on drawing. The extension starts at
+  `_NSExtensionMain`, as Xcode links one (`build.sh`): from Swift's own
+  `main` it traps in ExtensionFoundation before it can say what it is.
 - `packaging/macos/package.sh` notarises and staples the app, puts it on
   a disk image with a link to Applications, its window and its icon (see
   *The pictures*), then signs, notarises and staples that.
@@ -357,3 +385,6 @@ never had the project, with the notarised build.
    the permission lists.
 9. The icon on macOS 13 to 15, from `AppIcon.icns`, and the disk's window
    there (seen on macOS 27 only).
+10. The widget from the notarised build: in the gallery, its covers, and
+    a click opening Covers (seen with a Developer ID preview on macOS 27
+    only; on macOS 14, and notarised, not yet).

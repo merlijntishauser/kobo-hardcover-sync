@@ -245,6 +245,9 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
                     posting.enter()
                     post(name, stoppedWithoutWord) { posting.leave() }
                 }
+                if case .success(let list) = answer(BooksAnswer.self, ["books", "--json"]) {
+                    keepShelf(list.books, tip: list.tip)  // the widget, as the sync left the books
+                }
                 posting.notify(queue: .main) { self.end() }
             }
             return
@@ -305,6 +308,16 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         model?.pane = .covers
         model?.spotlit = id
         return true
+    }
+
+    /// A book clicked in the widget (ShelfWidget.swift): the window, on Covers, at that book.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let url = urls.first, url.scheme == "kobo-hardcover-sync", url.host == "book",
+            let id = URLComponents(url: url, resolvingAgainstBaseURL: false)?.percentEncodedPath.dropFirst().removingPercentEncoding
+        else { return }
+        openedByHand()
+        model?.pane = .covers
+        model?.spotlit = id
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -487,6 +500,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         }
         try? SMAppService.agent(plistName: agentPlist).unregister()
         forgetBooks()  // out of Spotlight: the app no longer looks after them here
+        forgetShelf()  // and the widget shows none
         let (ok, output) = tool(purge ? ["uninstall", "--purge"] : ["uninstall"])
         let done = NSAlert()
         done.messageText = ok ? "\(name) no longer syncs on this Mac" : "Not everything was removed"

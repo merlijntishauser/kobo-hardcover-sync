@@ -6,38 +6,14 @@
 // is then. What a sync does with a book is still decided in the tool.
 
 import AppKit
-import CoreText
 import SwiftUI
 
-/// Source Serif 4 for book titles: the page's own font, in the tool's package inside the app.
-/// The page has it as two subsets under one name, and the latin-ext one holds no lowercase
-/// letters; registered side by side, macOS took that one and set the rest in the system font.
-/// So a title is the latin subset, with latin-ext behind it for the letters only it has.
-private var titleFaces: (latin: CTFontDescriptor, ext: CTFontDescriptor?)?
-
+/// The title font from the tool's package in the app (Paper.swift).
 func registerTitleFont() {
     let lib = Bundle.main.resourceURL?.appendingPathComponent("python/lib")
     let python = (try? FileManager.default.contentsOfDirectory(atPath: lib?.path ?? ""))?.first { $0.hasPrefix("python3.") }
     guard let lib, let python else { return }
-    let fonts = lib.appendingPathComponent(python).appendingPathComponent("site-packages/kobo_hardcover_sync/web/static/fonts")
-    func face(_ file: String) -> CTFontDescriptor? {
-        (CTFontManagerCreateFontDescriptorsFromURL(fonts.appendingPathComponent(file) as CFURL) as? [CTFontDescriptor])?.first
-    }
-    guard let latin = face("SourceSerif4-latin.woff2") else { return }
-    titleFaces = (latin, face("SourceSerif4-latin-ext.woff2"))
-}
-
-/// A book title: Source Serif 4 at this weight, sized optically as on the page; else the serif macOS has.
-func titleFont(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
-    guard let faces = titleFaces else { return .system(size: size, weight: weight, design: .serif) }
-    let wght = weight == .regular ? 400 : weight == .medium ? 500 : weight == .bold ? 700 : weight == .heavy ? 800 : 600
-    let axes: [Int: CGFloat] = [0x7767_6874: CGFloat(wght), 0x6F70_737A: min(max(size, 8), 60)]  // "wght", "opsz"
-    func at(_ face: CTFontDescriptor) -> CTFontDescriptor {
-        CTFontDescriptorCreateCopyWithAttributes(face, [kCTFontVariationAttribute: axes] as CFDictionary)
-    }
-    var attributes: [CFString: Any] = [kCTFontVariationAttribute: axes]
-    if let ext = faces.ext { attributes[kCTFontCascadeListAttribute] = [at(ext)] }
-    return Font(CTFontCreateWithFontDescriptor(CTFontDescriptorCreateCopyWithAttributes(faces.latin, attributes as CFDictionary), size, nil))
+    registerTitleFont(in: lib.appendingPathComponent(python).appendingPathComponent("site-packages/kobo_hardcover_sync/web/static/fonts"))
 }
 
 extension WindowModel {
@@ -410,66 +386,6 @@ struct BookCell: View {
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
-    }
-}
-
-/// The page's line gauge: a rule with a tick every tenth, the part read in ink.
-struct Gauge: View {
-    let percent: Int
-    let finished: Bool
-
-    var body: some View {
-        Canvas { context, box in
-            let w = box.width
-            var rule = Path()
-            rule.move(to: CGPoint(x: 0, y: 4.5))
-            rule.addLine(to: CGPoint(x: w, y: 4.5))
-            for n in 0...10 {
-                rule.move(to: CGPoint(x: (w - 1) * CGFloat(n) / 10 + 0.5, y: n == 10 ? 1 : 2.5))
-                rule.addLine(to: CGPoint(x: (w - 1) * CGFloat(n) / 10 + 0.5, y: 4.5))
-            }
-            context.stroke(rule, with: .color(Pencil.edge), lineWidth: 1)
-            let read = CGRect(x: 0, y: 3.5, width: w * CGFloat(finished ? 100 : percent) / 100, height: 2)
-            context.fill(Path(read), with: .color(finished ? Pencil.green : .primary))
-        }
-        .frame(maxWidth: 160)
-        .frame(height: 6)
-        .accessibilityLabel(finished ? "Finished" : "\(percent)%")
-    }
-}
-
-/// A cover from the tool's cache, or the crossed box of a book without one.
-struct Cover: View {
-    let path: String
-    let width: CGFloat
-    private static var cache: [String: NSImage] = [:]
-
-    var body: some View {
-        Group {
-            if let image = Self.image(path) {
-                Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
-            } else {
-                Canvas { context, box in
-                    var cross = Path(CGRect(origin: .zero, size: box).insetBy(dx: 0.5, dy: 0.5))
-                    cross.move(to: .zero)
-                    cross.addLine(to: CGPoint(x: box.width, y: box.height))
-                    cross.move(to: CGPoint(x: box.width, y: 0))
-                    cross.addLine(to: CGPoint(x: 0, y: box.height))
-                    context.stroke(cross, with: .color(Pencil.edge), lineWidth: 1)
-                }
-            }
-        }
-        .frame(width: width, height: width * 1.5)
-        .clipShape(RoundedRectangle(cornerRadius: 2))
-        .accessibilityHidden(true)
-    }
-
-    private static func image(_ path: String) -> NSImage? {
-        guard !path.isEmpty else { return nil }
-        if let kept = cache[path] { return kept }
-        let image = NSImage(contentsOfFile: path)
-        cache[path] = image
-        return image
     }
 }
 
