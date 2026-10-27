@@ -69,6 +69,7 @@ struct CoversPane: View {
     @State private var visible = true
     @State private var byHand = 0  // redraws a standing run after a move by hand
     @State private var runFrame = CGRect.zero  // in the window, for the trackpad
+    @State private var captionHeight: CGFloat = 96
     @State private var watcher: Any?
     @FocusState private var focused: Bool
 
@@ -141,9 +142,19 @@ struct CoversPane: View {
                     }
                 }
                 if let lifted, let item = placed[lifted.row.rawValue].first(where: { $0.book.id == lifted.id }) {
+                    // Under the cover; where the run has no room under it (the front row), above the lifted cover.
+                    let below = item.frame.maxY + 10
+                    let top = item.frame.maxY - item.frame.height * (reduceMotion ? 1 : 1.12)
                     Caption(book: item.book)
                         .frame(width: 260, alignment: .leading)
-                        .offset(x: min(max(8, item.frame.minX), size.width - 268), y: min(item.frame.maxY + 10, size.height - 96))
+                        .background(GeometryReader { g in
+                            Color.clear.onAppear { captionHeight = g.size.height }.onChange(of: g.size.height) { captionHeight = $0 }
+                        })
+                        .offset(
+                            x: min(max(8, item.frame.minX), size.width - 268),
+                            y: below + captionHeight <= size.height ? below : max(4, top - 10 - captionHeight)
+                        )
+                        .zIndex(2)  // over the lifted cover, which stands over the rest
                         .allowsHitTesting(false)
                 }
             }
