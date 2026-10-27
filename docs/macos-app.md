@@ -211,7 +211,11 @@ started in three ways:
   shows as "Syncing…" while it runs (`status --json` says so, from the
   sync's lock; the sync keeps a `sync.running` marker in the tool's folder,
   which wakes the window), and in History when it ends. With the window open the app has a
-  Dock icon and a menu bar; closing the window quits it.
+  Dock icon and a menu bar; closing the window quits it. The menu bar has
+  the full Edit menu (the text fields' keys, ⌘V among them, go through it)
+  and a *Sync* menu: *Sync Now* (⌘R), *Check Again* (⇧⌘R) and *Show the
+  Log*. VoiceOver is told when a sync starts and how it ended, the window's
+  own or one the Kobo started.
 - **Settings (⌘-,),** three tabs, each change through the tool. *Mode*:
   local or a server, which runs `setup --local` or `setup --server ...
   --check` (the server is asked first; nothing changes if it does not

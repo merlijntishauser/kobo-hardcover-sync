@@ -20,8 +20,12 @@ final class WindowModel: ObservableObject {
     @Published var syncs: [Sync] = []
     @Published var broken: String?  // the tool did not answer: nothing else can be shown
     @Published var steps: [StepLine] = []
-    @Published var outcome: StepLine.Done?
-    @Published var syncing = false  // Sync now, in this window
+    @Published var outcome: StepLine.Done? {
+        didSet { if let outcome { announce("\(outcome.title). \(outcome.message)") } }
+    }
+    @Published var syncing = false {  // Sync now, in this window
+        didSet { if syncing && !oldValue { announce("Syncing") } }
+    }
     @Published var elsewhere = ""  // a sync this window did not start, while it runs: what started it
     @Published var notifications = UNAuthorizationStatus.notDetermined
     @Published var previews = UNShowPreviewsSetting.always
@@ -67,6 +71,7 @@ final class WindowModel: ObservableObject {
             let history = answer(HistoryAnswer.self, ["history", "--json"])
             let newer = newerVersion()
             DispatchQueue.main.async {
+                let was = self.elsewhere
                 switch status {
                 case .success(let found):
                     self.status = found
@@ -79,6 +84,11 @@ final class WindowModel: ObservableObject {
                 if case .success(let found) = history {
                     self.syncs = found.syncs
                     self.foldIntoHistory()
+                }
+                if !self.syncing && was.isEmpty && !self.elsewhere.isEmpty {  // a sync this window did not start: said, as the top line shows it
+                    announce(self.elsewhere == "mount" ? "Syncing: started by plugging in the Kobo" : "Syncing: started elsewhere")
+                } else if !was.isEmpty && self.elsewhere.isEmpty, let last = self.syncs.first {
+                    announce("\(last.ok ? "Synced" : "The sync failed"). \(last.message.isEmpty ? "Nothing new." : last.message)")
                 }
                 self.newer = newer
             }
@@ -238,6 +248,13 @@ final class WindowModel: ObservableObject {
     }
 }
 
+/// Said by VoiceOver: a sync's start and outcome, which change the window without moving its focus.
+func announce(_ text: String) {
+    NSAccessibility.post(
+        element: NSApp.mainWindow ?? NSApp as Any, notification: .announcementRequested,
+        userInfo: [.announcement: text, .priority: NSAccessibilityPriorityLevel.high.rawValue])
+}
+
 /// Why the tool gave no answer, in words for the window.
 struct NoAnswer: Error {
     let said: String
@@ -346,7 +363,7 @@ struct TopLine: View {
             Button("Sync now") { model.syncNow() }
                 .buttonStyle(.borderedProminent)
                 .tint(Pencil.fill)  // red fills only what a sync sends
-                .keyboardShortcut("r", modifiers: .command)
+                .help("Sync now (⌘R, also in the Sync menu)")
                 .disabled(busy || (model.status?.mode.isEmpty ?? true))
         }
     }

@@ -558,16 +558,37 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             .separator(),
             item("Quit \(name)", #selector(NSApplication.terminate(_:)), "q"),
         ])
-        _ = menu("Edit", [
+        let redo = item("Redo", Selector(("redo:")), "z")
+        redo.keyEquivalentModifierMask = [.command, .shift]
+        _ = menu("Edit", [  // the text fields' keys go through these: without Paste, ⌘V does nothing in them
+            item("Undo", Selector(("undo:")), "z"),
+            redo,
+            .separator(),
+            item("Cut", #selector(NSText.cut(_:)), "x"),
             item("Copy", #selector(NSText.copy(_:)), "c"),
+            item("Paste", #selector(NSText.paste(_:)), "v"),
             item("Select All", #selector(NSText.selectAll(_:)), "a"),
         ])
+        let syncItems = [
+            item("Sync Now", #selector(syncFromMenu), "r"),
+            item("Check Again", #selector(checkFromMenu), "r"),
+            .separator(),
+            item("Show the Log", #selector(logFromMenu), ""),
+        ]
+        syncItems[1].keyEquivalentModifierMask = [.command, .shift]
+        syncItems.forEach { $0.target = self }
+        _ = menu("Sync", syncItems)
         NSApp.windowsMenu = menu("Window", [
             item("Close", #selector(NSWindow.performClose(_:)), "w"),
             item("Minimize", #selector(NSWindow.performMiniaturize(_:)), "m"),
         ])
         return bar
     }
+
+    // ---------- the Sync menu: the window's buttons, with their keys ----------
+    @objc func syncFromMenu() { model?.syncNow() }
+    @objc func checkFromMenu() { model?.refresh() }
+    @objc func logFromMenu() { showLog() }
 
     // ---------- the first time ----------
     /// Where the reading goes, the launch agent, `setup`. Whether it ended set up.
@@ -685,5 +706,20 @@ struct Main {
         app.setActivationPolicy(.accessory)
         app.run()
         _ = delegate
+    }
+}
+
+extension App: NSMenuItemValidation {
+    /// Sync Now and Check Again as their buttons in the window: not while a sync or a check runs, nor before setup.
+    func validateMenuItem(_ item: NSMenuItem) -> Bool {
+        switch item.action {
+        case #selector(syncFromMenu):
+            guard let model else { return false }
+            return !model.syncing && model.elsewhere.isEmpty && !(model.status?.mode.isEmpty ?? true)
+        case #selector(checkFromMenu):
+            return model?.checks != nil
+        default:
+            return true
+        }
     }
 }
