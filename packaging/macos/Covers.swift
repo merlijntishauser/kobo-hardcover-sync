@@ -69,6 +69,7 @@ struct CoversPane: View {
     @State private var byHand = 0  // redraws a standing run after a move by hand
     @State private var runFrame = CGRect.zero  // in the window, for the trackpad
     @State private var captionHeight: CGFloat = 96
+    @AppStorage("CoversShow") private var show = "all"  // which books the run holds: one of the list's filters, kept apart from Books'
     @State private var watcher: Any?
     @FocusState private var focused: Bool
 
@@ -80,6 +81,10 @@ struct CoversPane: View {
                 VStack(spacing: 0) {
                     run(books, size: CGSize(width: box.size.width, height: runHeight))
                     DoubleRule().padding(.horizontal, 20)
+                        .overlay(alignment: .trailing) {  // on the rule, which breaks for it: a mark in the margin
+                            Show(show: $show, books: books).padding(.horizontal, 8).background(Pencil.ground).padding(.trailing, 28)
+                        }
+                        .zIndex(1)
                     Pile(model: model, books: books, coverWidth: RunRow.front.height * scale(runHeight, present) / 1.5)
                         .frame(height: box.size.height - runHeight - 3)
                 }
@@ -111,10 +116,16 @@ struct CoversPane: View {
 
     // ---------- the run ----------
 
+    /// The selection the run shows; a filter the tool no longer has is all books.
+    private func selection(_ books: BooksAnswer) -> String {
+        books.words.filters.contains { $0.keys.contains { $0.first == show } } ? show : "all"
+    }
+
     private func rows(_ books: BooksAnswer) -> [[BooksAnswer.Book]] {
         let yearAgo = ISO8601DateFormatter().string(from: Date().addingTimeInterval(-365 * 86400))
+        let chosen = selection(books)
         var out: [[BooksAnswer.Book]] = [[], [], []]
-        for book in books.books { out[runRow(book, since: yearAgo).rawValue].append(book) }  // newest read first, as the tool lists them
+        for book in books.books where book.filters.contains(chosen) { out[runRow(book, since: yearAgo).rawValue].append(book) }  // newest read first, as the tool lists them
         out[RunRow.back.rawValue].sort { $0.title.localizedCompare($1.title) == .orderedAscending }
         return out
     }
@@ -140,6 +151,10 @@ struct CoversPane: View {
                     ForEach(placed[row.rawValue]) { item in
                         cover(item, row: row, k: k)
                     }
+                }
+                if present.isEmpty && !books.books.isEmpty {
+                    Text("No books in this selection.").foregroundStyle(.secondary)
+                        .frame(width: size.width, height: size.height)
                 }
                 if let lifted, let item = placed[lifted.row.rawValue].first(where: { $0.book.id == lifted.id }) {
                     // Under the cover; where the run has no room under it (the front row), above the lifted cover.
@@ -182,6 +197,10 @@ struct CoversPane: View {
         .onMoveCommand { move($0, rows: rows, k: k, width: size.width) }
         .onAppear { bringUp(rows: rows, k: k, width: size.width) }
         .onChange(of: model.spotlit) { _ in bringUp(rows: rows, k: k, width: size.width) }
+        .onChange(of: show) { _ in
+            lifted = nil
+            bringUp(rows: rows, k: k, width: size.width)  // a book from Spotlight or the widget, after showing all
+        }
         .onExitCommand {
             if model.enlarged != nil { model.enlarged = nil } else { keyed = false; lifted = nil }
         }
@@ -275,6 +294,10 @@ struct CoversPane: View {
     /// A book chosen in Spotlight: lifted on its row, a third in, as the keyboard would have it.
     private func bringUp(rows: [[BooksAnswer.Book]], k: CGFloat, width: CGFloat) {
         guard let id = model.spotlit else { return }
+        if show != "all" && !rows.joined().contains(where: { $0.id == id }) {
+            show = "all"  // not in the selection: the run shows every book, then lifts it
+            return
+        }
         model.spotlit = nil
         for row in RunRow.allCases {
             guard let index = rows[row.rawValue].firstIndex(where: { $0.id == id }) else { continue }
@@ -310,6 +333,27 @@ struct CoversPane: View {
         if let watcher { NSEvent.removeMonitor(watcher) }
         watcher = nil
         model.enlarged = nil  // it belongs to Covers
+    }
+}
+
+/// Which books the run holds: the list's own filters, with their counts.
+struct Show: View {
+    @Binding var show: String
+    let books: BooksAnswer
+
+    var body: some View {
+        Picker("Show", selection: $show) {
+            ForEach(books.words.filters, id: \.group) { group in
+                Section(group.group) {
+                    ForEach(group.keys, id: \.self) { key in
+                        let n = books.books.filter { $0.filters.contains(key.first ?? "") }.count
+                        Text("\(key.last ?? "") (\(n))").tag(key.first ?? "")
+                    }
+                }
+            }
+        }
+        .fixedSize()
+        .controlSize(.small)
     }
 }
 

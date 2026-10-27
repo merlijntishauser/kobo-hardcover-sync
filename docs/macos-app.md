@@ -179,7 +179,10 @@ started in three ways:
   it large; arrows, Return and Escape for the keyboard; two fingers move
   the run. The drift pauses when the app is hidden, and stands still
   under Reduce motion. A row without books takes no room, and a short
-  row is not shown twice across the window.
+  row is not shown twice across the window. *Show*, on the double rule,
+  narrows the run to one of the list's filters (Syncing is the books the
+  collection on the Kobo holds); Covers and Books each remember their
+  own choice.
   Each book is in Spotlight (`Spotlight.swift`: title, author, cover,
   indexed again only when the list changed, not by the preview); a
   result opens Covers with that book lifted. *Remove…* takes them out.

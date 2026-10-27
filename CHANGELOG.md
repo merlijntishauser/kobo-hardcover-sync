@@ -7,6 +7,13 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- *Show* on Covers in the Mac app: the rows hold only the books of one
+  of the list's filters, such as the ones that sync (the books in your
+  Kobo collection), the ones you are reading or the ones you have not
+  started. Covers and Books each remember what you chose to show.
+
 ## 0.15.0 - 2026-10-27
 
 ### Added

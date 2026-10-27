@@ -272,6 +272,12 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             steps.append { self.model?.pane = pane }
             steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-\(pane.rawValue.lowercased()).png")) } }
         }
+        steps.append {  // Covers showing one selection: the books that sync
+            self.model?.pane = .covers
+            UserDefaults.standard.set("on", forKey: "CoversShow")
+        }
+        steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-covers-synced.png")) } }
+        steps.append { UserDefaults.standard.removeObject(forKey: "CoversShow") }
         steps.append {  // a book's Details
             self.model?.pane = .books
             self.model?.chosenBook = self.model?.shownBooks.first { !$0.details.hardcover.isEmpty }?.id ?? self.model?.shownBooks.first?.id

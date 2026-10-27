@@ -35,7 +35,9 @@ final class WindowModel: ObservableObject {
     }
     @Published var booksBroken: String?
     @Published var search = ""
-    @Published var filter = "all"
+    @Published var filter = UserDefaults.standard.string(forKey: "BooksShow") ?? "all" {  // Show: remembered, apart from Covers'
+        didSet { UserDefaults.standard.set(filter, forKey: "BooksShow") }
+    }
     @Published var sort = "last_read"
     @Published var chosenBook: String?  // the book whose Details are open
     @Published var spotlit: String?  // a book chosen in Spotlight: Covers brings it up
