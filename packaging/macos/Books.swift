@@ -116,7 +116,7 @@ struct BooksPane: View {
                     Divider()
                     if books.books.isEmpty {
                         Spacer()
-                        Text("No books yet: nothing was read from a Kobo so far. Plug it in.").foregroundStyle(.secondary)
+                        Text("No books yet: nothing was read from a Kobo so far. Plug it in.").foregroundStyle(Pencil.graphite)
                         Spacer()
                     } else {
                         BooksTable(model: model)
@@ -164,7 +164,7 @@ struct TipBand: View {
             Cover(path: book.cover, width: 30)
             VStack(alignment: .leading, spacing: 2) {
                 Text(book.title).font(titleFont(14)).lineLimit(1)
-                Text(tip.text).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(tip.text).font(.callout).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
             Button("Open") { model.chosenBook = book.id }
@@ -267,7 +267,7 @@ struct Legend: View {
             }
         }
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(Pencil.graphite)
         .accessibilityElement(children: .combine)
     }
 }
@@ -326,7 +326,9 @@ struct BooksTable: View {
             TableColumn("State") { book in
                 VStack(alignment: .leading, spacing: 1) {
                     WordPicker(label: "State", options: words?.states ?? [], selection: model.stateBinding(book))
-                    if !book.stateDate.isEmpty { Text(book.stateDate).font(.caption).foregroundStyle(.secondary).padding(.leading, 4) }
+                    if !book.stateDate.isEmpty {
+                        OnSelection { selected in Text(book.stateDate).font(.caption).foregroundStyle(quiet(selected)).padding(.leading, 4) }
+                    }
                 }
             }
             .width(min: 96, ideal: 110, max: 160)
@@ -365,19 +367,21 @@ struct BookCell: View {
     let book: BooksAnswer.Book
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Cover(path: book.cover, width: 32)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(book.title).font(titleFont(14)).lineLimit(2)
-                    if book.new {
-                        Text("New").font(.caption2.weight(.semibold)).foregroundStyle(Pencil.blue)
-                            .padding(.horizontal, 4).overlay(RoundedRectangle(cornerRadius: 3).stroke(Pencil.blue, lineWidth: 0.75))
+        OnSelection { selected in
+            HStack(alignment: .top, spacing: 10) {
+                Cover(path: book.cover, width: 32)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(book.title).font(titleFont(14)).lineLimit(2)
+                        if book.new {
+                            Text("New").font(.caption2.weight(.semibold)).foregroundStyle(pencil(Pencil.blue, selected))
+                                .padding(.horizontal, 4).overlay(RoundedRectangle(cornerRadius: 3).stroke(pencil(Pencil.blue, selected), lineWidth: 0.75))
+                        }
                     }
+                    Text(book.author).font(.callout).foregroundStyle(quiet(selected)).lineLimit(1)
+                    Gauge(percent: book.percent, finished: book.finished)
+                    Text(book.facts.joined(separator: " · ")).font(.caption.monospacedDigit()).foregroundStyle(quiet(selected)).lineLimit(1)
                 }
-                Text(book.author).font(.callout).foregroundStyle(.secondary).lineLimit(1)
-                Gauge(percent: book.percent, finished: book.finished)
-                Text(book.facts.joined(separator: " · ")).font(.caption.monospacedDigit()).foregroundStyle(.secondary).lineLimit(1)
             }
         }
         .padding(.vertical, 4)
@@ -391,19 +395,21 @@ struct StatusCell: View {
     let book: BooksAnswer.Book
 
     var body: some View {
-        HStack(alignment: .top, spacing: 6) {
-            Mark(state: book.status.kind, size: 16).padding(.top, 1)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(headline).font(.callout.weight(book.status.kind == "next" ? .semibold : .regular))
-                    .foregroundStyle(book.status.kind == "next" ? Pencil.red : book.status.kind == "none" ? .secondary : .primary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if book.status.kind == "next" && book.status.text.contains(":") { Correction(book: book) }  // as the page: a change it can say
-                if !book.edition.isEmpty {
-                    HStack(spacing: 4) {
-                        if book.stet { Mark(state: "stet", size: 14) }
-                        Text(book.edition).lineLimit(1)
+        OnSelection { selected in
+            HStack(alignment: .top, spacing: 6) {
+                Mark(state: book.status.kind, size: 16).padding(.top, 1)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(headline).font(.callout.weight(book.status.kind == "next" ? .semibold : .regular))
+                        .foregroundStyle(book.status.kind == "next" ? pencil(Pencil.red, selected) : book.status.kind == "none" ? quiet(selected) : AnyShapeStyle(.primary))
+                        .fixedSize(horizontal: false, vertical: true)
+                    if book.status.kind == "next" && book.status.text.contains(":") { Correction(book: book, selected: selected) }  // as the page: a change it can say
+                    if !book.edition.isEmpty {
+                        HStack(spacing: 4) {
+                            if book.stet { Mark(state: "stet", size: 14) }
+                            Text(book.edition).lineLimit(1)
+                        }
+                        .font(.caption).foregroundStyle(quiet(selected))
                     }
-                    .font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
@@ -420,15 +426,16 @@ struct StatusCell: View {
 
 struct Correction: View {
     let book: BooksAnswer.Book
+    var selected = false
 
     var body: some View {
         let rest = book.status.text.split(separator: ":", maxSplits: 1).dropFirst().first.map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
         let (kept, was, now) = book.correction.count == 3 ? (book.correction[0], book.correction[1], book.correction[2]) : ("", "", rest)
         HStack(spacing: 4) {
             if !kept.isEmpty { Text(kept) }
-            if !was.isEmpty { Text(was).strikethrough(color: Pencil.red).foregroundStyle(.secondary) }
+            if !was.isEmpty { Text(was).strikethrough(color: selected ? onSelection : Pencil.red).foregroundStyle(quiet(selected)) }
             Mark(state: "next", size: 10)
-            Text(now).foregroundStyle(Pencil.red)
+            Text(now).foregroundStyle(pencil(Pencil.red, selected))
         }
         .font(.callout)
         .lineLimit(1)
@@ -457,7 +464,7 @@ struct DetailsPane: View {
                     if !spread { Cover(path: book.cover, width: 56) }
                     VStack(alignment: .leading, spacing: 3) {
                         Text(book.title).font(titleFont(spread ? 28 : 18)).fixedSize(horizontal: false, vertical: true)
-                        Text(book.author).font(spread ? .title3 : .body).foregroundStyle(.secondary)
+                        Text(book.author).font(spread ? .title3 : .body).foregroundStyle(Pencil.graphite)
                     }
                     Spacer(minLength: 0)
                     if model.changing.contains(book.id) { ProgressView().controlSize(.small) }
@@ -473,16 +480,16 @@ struct DetailsPane: View {
                 StatusCell(book: book)
                 Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 6) {
                     GridRow {
-                        Text("Sync").foregroundStyle(.secondary)
+                        Text("Sync").foregroundStyle(Pencil.graphite)
                         WordPicker(label: "Sync", options: words.syncs, selection: model.binding(book.id, \.sync) { ["--sync", $0] })
                     }
                     GridRow {
-                        Text("State").foregroundStyle(.secondary)
+                        Text("State").foregroundStyle(Pencil.graphite)
                         WordPicker(label: "State", options: words.states, selection: model.stateBinding(book))
                     }
                     if ["finished", "rereading"].contains(book.state) {
                         GridRow {
-                            Text("Since").foregroundStyle(.secondary)
+                            Text("Since").foregroundStyle(Pencil.graphite)
                             if let date = day(book.stateDate) {
                                 DatePicker("Since", selection: Binding(get: { date }, set: { since($0) }), displayedComponents: .date)
                                     .labelsHidden().controlSize(.small).fixedSize()
@@ -525,13 +532,13 @@ struct DetailsPane: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Which book is it?").font(.headline)
             if book.details.candidates.isEmpty {
-                Text("Hardcover found nothing for it. Look for it by another title.").font(.callout).foregroundStyle(.secondary)
+                Text("Hardcover found nothing for it. Look for it by another title.").font(.callout).foregroundStyle(Pencil.graphite)
             }
             ForEach(book.details.candidates, id: \.id) { c in
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(c.title).font(titleFont(13, .regular))
-                        if !c.author.isEmpty { Text(c.author).font(.caption).foregroundStyle(.secondary) }
+                        if !c.author.isEmpty { Text(c.author).font(.caption).foregroundStyle(Pencil.graphite) }
                     }
                     Spacer(minLength: 6)
                     Button("Use") { model.change(book.id, ["--pick", String(c.id)]) }.controlSize(.small)
@@ -571,7 +578,7 @@ struct DetailsPane: View {
                 Text(title).font(.headline)
                 ForEach(pairs, id: \.self) { pair in
                     HStack(alignment: .firstTextBaseline) {
-                        Text(pair.first ?? "").foregroundStyle(.secondary).frame(width: 96, alignment: .leading)
+                        Text(pair.first ?? "").foregroundStyle(Pencil.graphite).frame(width: 96, alignment: .leading)
                         Text(pair.last ?? "").fixedSize(horizontal: false, vertical: true)
                     }
                     .font(.callout)

@@ -172,7 +172,7 @@ struct CoversPane: View {
                     .zIndex(lifted?.row == row ? 1 : 0)  // the lifted cover over the rest
                 }
                 if present.isEmpty && !books.books.isEmpty {
-                    Text("No books in this selection.").foregroundStyle(.secondary)
+                    Text("No books in this selection.").foregroundStyle(Pencil.graphite)
                         .frame(width: size.width, height: size.height)
                 }
                 if let lifted, let item = placed[lifted.row.rawValue].first(where: { $0.book.id == lifted.id }) {
@@ -398,7 +398,7 @@ struct Caption: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(book.title).font(titleFont(15)).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-            Text(book.author).font(.callout).foregroundStyle(.secondary).lineLimit(1)
+            Text(book.author).font(.callout).foregroundStyle(Pencil.graphite).lineLimit(1)
             Gauge(percent: book.percent, finished: book.finished).padding(.vertical, 2)
             HStack(alignment: .top, spacing: 5) {
                 Mark(state: book.status.kind, size: 14).padding(.top, 1)
@@ -437,16 +437,16 @@ struct Pile: View {
             let coverWidth = min(coverWidth, max(48, (box.size.height - 48) / 1.5))
             HStack(alignment: .top, spacing: 36) {
                 if books.books.isEmpty {
-                    Text("No books yet: nothing was read from a Kobo so far. Plug it in.").foregroundStyle(.secondary)
+                    Text("No books yet: nothing was read from a Kobo so far. Plug it in.").foregroundStyle(Pencil.graphite)
                 } else {
                     if let book = reading {
                         HStack(alignment: .top, spacing: 16) {
                             lying(book, width: coverWidth)
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(book.title).font(titleFont(22)).lineLimit(3).fixedSize(horizontal: false, vertical: true)
-                                Text(book.author).foregroundStyle(.secondary).lineLimit(1)
+                                Text(book.author).foregroundStyle(Pencil.graphite).lineLimit(1)
                                 Gauge(percent: book.percent, finished: book.finished).padding(.vertical, 2)
-                                Text(book.facts.joined(separator: " · ")).font(.callout.monospacedDigit()).foregroundStyle(.secondary).lineLimit(1)
+                                Text(book.facts.joined(separator: " · ")).font(.callout.monospacedDigit()).foregroundStyle(Pencil.graphite).lineLimit(1)
                             }
                             .frame(maxWidth: 360, alignment: .leading)
                         }
@@ -460,7 +460,7 @@ struct Pile: View {
                                     Text(tip.text).fixedSize(horizontal: false, vertical: true)
                                 }
                                 Text(book.title).font(titleFont(16)).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                                Text(book.author).font(.callout).foregroundStyle(.secondary).lineLimit(1)
+                                Text(book.author).font(.callout).foregroundStyle(Pencil.graphite).lineLimit(1)
                                 HStack {
                                     Button("Open") { model.chosenBook = book.id }
                                     Button("Not now") { model.change(book.id, ["--not-now"]) }.disabled(model.changing.contains(book.id))
@@ -480,12 +480,16 @@ struct Pile: View {
         }
     }
 
+    /// A cover on the pile, which opens its book: also by keyboard and VoiceOver.
     private func lying(_ book: BooksAnswer.Book, width: CGFloat) -> some View {
-        Cover(path: book.cover, width: width)
-            .background(Pencil.sheet)
-            .shadow(color: .black.opacity(0.28), radius: 1, y: 1)
-            .shadow(color: .black.opacity(0.1), radius: 4, y: 3)
-            .onTapGesture { model.chosenBook = book.id }
+        Button { model.chosenBook = book.id } label: {
+            Cover(path: book.cover, width: width)
+                .background(Pencil.sheet)
+                .shadow(color: .black.opacity(0.28), radius: 1, y: 1)
+                .shadow(color: .black.opacity(0.1), radius: 4, y: 3)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Open \(book.title)")
     }
 }
 

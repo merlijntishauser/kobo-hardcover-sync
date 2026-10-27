@@ -48,16 +48,20 @@ struct Mark: View {
     var dash = Pencil.faint  // the dash and the dashed caret; on the rail, Rail Graphite
 
     var body: some View {
-        if state == "stet" {  // the word itself: kept as Hardcover has it
-            Text("stet").font(.system(size: size * 0.7, weight: .heavy)).italic().foregroundStyle(Pencil.blue)
-                .frame(minWidth: size, minHeight: size).accessibilityLabel("Kept as on Hardcover")
-        } else {
-            drawn
+        OnSelection { selected in
+            if state == "stet" {  // the word itself: kept as Hardcover has it
+                Text("stet").font(.system(size: size * 0.7, weight: .heavy)).italic().foregroundStyle(selected ? onSelection : Pencil.blue)
+                    .frame(minWidth: size, minHeight: size).accessibilityLabel("Kept as on Hardcover")
+            } else {
+                drawn(selected)
+            }
         }
     }
 
-    private var drawn: some View {
+    /// On a selected row every stroke is the selection's white, and the ink square's cross its blue.
+    private func drawn(_ selected: Bool) -> some View {
         Canvas { context, box in
+            func pencil(_ color: Color) -> Color { selected ? onSelection : color }
             let s = box.width / 20
             func at(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: x * s, y: y * s) }
             func stroke(_ path: Path, _ color: Color, _ width: CGFloat = 1.9, dash: [CGFloat] = []) {
@@ -76,32 +80,32 @@ struct Mark: View {
                     p.move(to: at(4, 10.5))
                     p.addLine(to: at(8, 15))
                     p.addLine(to: at(16.5, 5))
-                }, Pencil.green)
+                }, pencil(Pencil.green))
             case "next":
-                stroke(caret, Pencil.red)
+                stroke(caret, pencil(Pencil.red))
             case "wait":
-                stroke(caret, dash, dash: [2.2, 2.6])
+                stroke(caret, pencil(dash), dash: [2.2, 2.6])
             case "warn":
-                stroke(Path(ellipseIn: CGRect(x: 2.4 * s, y: 2.4 * s, width: 15.2 * s, height: 15.2 * s)), Pencil.blue, 1.7)
+                stroke(Path(ellipseIn: CGRect(x: 2.4 * s, y: 2.4 * s, width: 15.2 * s, height: 15.2 * s)), pencil(Pencil.blue), 1.7)
                 stroke(Path { p in  // the hook of the query: the arc of marks.py, then its curve down
                     p.move(to: at(7.9, 8.1))
                     p.addArc(center: at(10.1, 8.1), radius: 2.2 * s, startAngle: .degrees(180), endAngle: .degrees(60), clockwise: false)
                     p.addCurve(to: at(10, 11.7), control1: at(10.4, 10.5), control2: at(10, 10.9))
-                }, Pencil.blue, 1.7)
-                context.fill(Path(ellipseIn: CGRect(x: 9.4 * s, y: 13.5 * s, width: 1.2 * s, height: 1.2 * s)), with: .color(Pencil.blue))
+                }, pencil(Pencil.blue), 1.7)
+                context.fill(Path(ellipseIn: CGRect(x: 9.4 * s, y: 13.5 * s, width: 1.2 * s, height: 1.2 * s)), with: .color(pencil(Pencil.blue)))
             case "err":
-                context.fill(Path(roundedRect: CGRect(x: 2.5 * s, y: 2.5 * s, width: 15 * s, height: 15 * s), cornerRadius: 1.5 * s), with: .color(Pencil.flag))
+                context.fill(Path(roundedRect: CGRect(x: 2.5 * s, y: 2.5 * s, width: 15 * s, height: 15 * s), cornerRadius: 1.5 * s), with: .color(pencil(Pencil.flag)))
                 stroke(Path { p in
                     p.move(to: at(7, 7))
                     p.addLine(to: at(13, 13))
                     p.move(to: at(13, 7))
                     p.addLine(to: at(7, 13))
-                }, Pencil.onFlag, 1.8)
+                }, selected ? Color(nsColor: .selectedContentBackgroundColor) : Pencil.onFlag, 1.8)
             default:
                 stroke(Path { p in
                     p.move(to: at(5, 10))
                     p.addLine(to: at(15, 10))
-                }, dash)
+                }, pencil(dash))
             }
         }
         .frame(width: size, height: size)
@@ -165,6 +169,14 @@ struct Gauge: View {
     let finished: Bool
 
     var body: some View {
+        OnSelection { selected in gauge(selected) }
+            .frame(maxWidth: 160)
+            .frame(height: 6)
+            .accessibilityElement()
+            .accessibilityLabel(finished ? "Finished" : "\(percent)%")
+    }
+
+    private func gauge(_ selected: Bool) -> some View {
         Canvas { context, box in
             let w = box.width
             var rule = Path()
@@ -174,15 +186,40 @@ struct Gauge: View {
                 rule.move(to: CGPoint(x: (w - 1) * CGFloat(n) / 10 + 0.5, y: n == 10 ? 1 : 2.5))
                 rule.addLine(to: CGPoint(x: (w - 1) * CGFloat(n) / 10 + 0.5, y: 4.5))
             }
-            context.stroke(rule, with: .color(Pencil.edge), lineWidth: 1)
+            context.stroke(rule, with: .color(selected ? onSelection.opacity(0.6) : Pencil.edge), lineWidth: 1)
             let read = CGRect(x: 0, y: 3.5, width: w * CGFloat(finished ? 100 : percent) / 100, height: 2)
-            context.fill(Path(read), with: .color(finished ? Pencil.green : .primary))
+            context.fill(Path(read), with: .color(selected ? onSelection : finished ? Pencil.green : Pencil.ink))
         }
-        .frame(maxWidth: 160)
-        .frame(height: 6)
-        .accessibilityLabel(finished ? "Finished" : "\(percent)%")
     }
 }
+
+// ---------- on a selected row ----------
+/// The words and marks on a selected row of a list: white on the selection's blue.
+let onSelection = Color(nsColor: .alternateSelectedControlTextColor)
+
+/// Whether this is drawn on a selected row (the key window's, in its blue), where
+/// the pencils' colours would sink: macOS 14 and later say; before, never.
+struct OnSelection<Content: View>: View {
+    @ViewBuilder let content: (Bool) -> Content
+
+    var body: some View {
+        if #available(macOS 14, *) { Prominence(content: content) } else { content(false) }
+    }
+}
+
+@available(macOS 14, *)
+private struct Prominence<Content: View>: View {
+    let content: (Bool) -> Content
+    @Environment(\.backgroundProminence) private var prominence
+
+    var body: some View { content(prominence == .increased) }
+}
+
+/// Graphite for what was found, facts and labels; on a selected row the selection's quieter white.
+func quiet(_ selected: Bool) -> AnyShapeStyle { selected ? AnyShapeStyle(.secondary) : AnyShapeStyle(Pencil.graphite) }
+
+/// A pencil's colour; on a selected row the selection's white.
+func pencil(_ color: Color, _ selected: Bool) -> AnyShapeStyle { selected ? AnyShapeStyle(onSelection) : AnyShapeStyle(color) }
 
 /// A cover from the tool's cache, or the crossed box of a book without one.
 struct Cover: View {

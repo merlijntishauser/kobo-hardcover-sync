@@ -151,7 +151,7 @@ struct ModeTab: View {
                     .disabled(choice != "server")
             } footer: {
                 HStack(alignment: .top) {
-                    Text(explained).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Text(explained).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                     Spacer()
                     Button("Switch") { switchMode() }.disabled(!isChange || model.working)
                 }
@@ -226,7 +226,7 @@ struct TokenSection: View {
             Text("Upload token")
         } footer: {
             Text("The server knows this Mac by this hash, under Settings, Devices. The token itself stays in this Mac's Keychain.")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Pencil.graphite)
         }
     }
 
@@ -311,7 +311,7 @@ struct HardcoverSection: View {
         } footer: {
             HStack(alignment: .top) {
                 Text("The collection on the Kobo is named on the page, under Settings.")
-                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                 Spacer()
                 Button("Open the page") { _ = tool(["open"]) }
             }
@@ -347,7 +347,7 @@ struct WebhookSection: View {
             Text("Webhook")
         } footer: {
             Text("After every sync that reads something new from the Kobo, your reading is sent to this address, as JSON. A test goes first; nothing is saved if it is not taken.")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Pencil.graphite)
         }
         .onAppear { address = saved }
         .onChange(of: saved) { address = $0 }
@@ -390,7 +390,7 @@ struct ExportSection: View {
             Text("Export")
         } footer: {
             Text("Your reading as JSON, for a database or a dashboard of your own. Only you can read the file.")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Pencil.graphite)
         }
     }
 
@@ -426,7 +426,7 @@ struct AppTab: View {
                            about: "At most once a day, after a sync, the app asks GitHub for the latest release. It only says so; it never updates itself.")
                 }
                 HStack {
-                    Text(updateSaid).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Text(updateSaid).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                     Spacer()
                     if case .success(let found) = model.update, found.newer, let link = URL(string: releases + found.latest) {
                         Button("Get it") { NSWorkspace.shared.open(link) }
@@ -436,7 +436,7 @@ struct AppTab: View {
             }
             Section {
                 LabeledContent("Notifications") {
-                    Text(notificationsSaid).foregroundStyle(.secondary)
+                    Text(notificationsSaid).foregroundStyle(Pencil.graphite)
                 }
                 HStack {
                     Spacer()
@@ -444,7 +444,7 @@ struct AppTab: View {
                 }
             } footer: {
                 Text("They say what a sync did when the Kobo started it, with the window closed. With Show previews at Never, macOS hides what they say.")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Pencil.graphite)
             }
             Section {
                 HStack(alignment: .top) {

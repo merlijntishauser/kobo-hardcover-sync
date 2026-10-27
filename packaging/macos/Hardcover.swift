@@ -124,7 +124,7 @@ struct ConnectSheet: View {
                     Text(done.message)
                 }
                 Text("Your books stay in a dry run until you go live: each sync says what it would send.")
-                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                 HStack {
                     Spacer()
                     Button("Done") { model.cancelSignIn() }.keyboardShortcut(.defaultAction)
@@ -162,7 +162,7 @@ struct ConnectSheet: View {
                 }
                 if !signIn.code.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Check that Hardcover shows this code:").foregroundStyle(.secondary)
+                        Text("Check that Hardcover shows this code:").foregroundStyle(Pencil.graphite)
                         Text(signIn.code).font(.system(size: 26, weight: .semibold, design: .monospaced)).textSelection(.enabled)
                     }
                 }
@@ -193,15 +193,15 @@ struct FirstRun: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(first.title).font(.title3.weight(.semibold))  // not a book title: the system font
-            Text(first.text).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Text(first.text).font(.callout).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text("\(first.on)").font(.title3.weight(.semibold).monospacedDigit())
-                Text(first.tally).font(.callout).foregroundStyle(.secondary)
+                Text(first.tally).font(.callout).foregroundStyle(Pencil.graphite)
             }
             HStack(alignment: .top, spacing: 18) {
                 step(1, first.steps.first ?? "", done: first.connected) {
                     if first.connected {
-                        Text("Done.").font(.callout).foregroundStyle(.secondary)
+                        Text("Done.").font(.callout).foregroundStyle(Pencil.graphite)
                     } else if let status = model.status, status.mode == "server" {  // the connection is the server's, made on its page
                         Button("Connect on the page…") { openServerSettings(status.server) }.controlSize(.small)
                     } else {
@@ -209,7 +209,7 @@ struct FirstRun: View {
                     }
                 }
                 step(2, first.steps.dropFirst().first ?? "", done: false) {
-                    Text("You are here: switch on the books that are yours.").font(.callout).foregroundStyle(.secondary)
+                    Text("You are here: switch on the books that are yours.").font(.callout).foregroundStyle(Pencil.graphite)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 step(3, first.steps.last ?? "", done: false) {
@@ -222,7 +222,8 @@ struct FirstRun: View {
             }
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.04)))
+        .background(Pencil.sheet, in: RoundedRectangle(cornerRadius: 4))  // a proof sheet, as on the overview
+        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Pencil.rule, lineWidth: 1))
         .padding(.horizontal, 14)
         .padding(.bottom, 10)
         .confirmationDialog("Go live?", isPresented: $asking) {

@@ -24,6 +24,10 @@ minor version may change behaviour; the notes will say so.
   the Edit menu had no Paste (nor Cut, Undo and Redo). A new *Sync* menu
   holds *Sync Now* (⌘R), *Check Again* (⇧⌘R) and *Show the Log*.
 - VoiceOver says when a sync starts and how it ended, in the Mac app.
+- The Mac app's grey text (authors, facts, labels) is dark enough to read
+  in light mode, in every pane, Settings and the widget. A book selected
+  in Books keeps its status, marks and gauge readable on the selection's
+  blue, and the covers on the Covers pile open by keyboard too.
 
 ## 0.16.0 - 2026-10-27
 

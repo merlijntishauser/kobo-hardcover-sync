@@ -55,7 +55,7 @@ struct ShelfView: View {
                 }
             } else {
                 Text(entry.shelf?.empty == true ? "No books yet. Plug in your Kobo." : "Open Kobo Hardcover Sync to see your books here.")
-                    .font(.callout).foregroundStyle(.secondary)
+                    .font(.callout).foregroundStyle(Pencil.graphite)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
@@ -71,12 +71,12 @@ struct ShelfView: View {
                 if let tip {
                     HStack(spacing: 4) {
                         Mark(state: "warn", size: 14)
-                        Text(tip).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        Text(tip).font(.caption).foregroundStyle(Pencil.graphite).lineLimit(1)
                     }
                 } else {
                     HStack(spacing: 6) {
                         Gauge(percent: book.percent, finished: book.finished)
-                        Text(book.finished ? "Read" : "\(book.percent)%").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                        Text(book.finished ? "Read" : "\(book.percent)%").font(.caption.monospacedDigit()).foregroundStyle(Pencil.graphite)
                     }
                 }
             }
@@ -89,9 +89,9 @@ struct ShelfView: View {
             lying(book, width: 60)
             VStack(alignment: .leading, spacing: 4) {
                 Text(book.title).font(titleFont(15)).lineLimit(3)
-                Text(book.author).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                Text(book.author).font(.caption).foregroundStyle(Pencil.graphite).lineLimit(1)
                 Gauge(percent: book.percent, finished: book.finished).padding(.vertical, 2)
-                Text(book.facts.first ?? "").font(.caption.monospacedDigit()).foregroundStyle(.secondary).lineLimit(1)
+                Text(book.facts.first ?? "").font(.caption.monospacedDigit()).foregroundStyle(Pencil.graphite).lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -106,7 +106,7 @@ struct ShelfView: View {
                     Text(tip.text).font(.caption).lineLimit(3)
                 }
                 Text(tip.book.title).font(titleFont(13)).lineLimit(2)
-                Text(tip.book.author).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                Text(tip.book.author).font(.caption).foregroundStyle(Pencil.graphite).lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

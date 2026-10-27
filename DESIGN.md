@@ -628,7 +628,10 @@ Stock, with each part on a Proof Sheet inside a 1pt Rule, 4pt corners,
   Rule, each with its mark, what it did in ink and when in Graphite. So are
   the panes' other states (not set up, the tool not answering): no pane of
   the window is a grey form; only Settings, a window of its own, is.
-- What was found, in every pane's rows, is Graphite.
+- What was found, facts and labels are Graphite in every pane, in Settings
+  and in the widget, never the system's grey, which is 3.9:1 on the light
+  stock. On a selected row of the Books list, whose blue would sink the
+  pencils, the words, marks and gauge take the selection's white.
 
 ### The tip (Mac app)
 One book from the reader's own shelf, chosen by the tool, with a question
