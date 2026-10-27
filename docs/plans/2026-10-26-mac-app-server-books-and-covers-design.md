@@ -130,7 +130,19 @@ Each step ships on its own:
 3. **Covers**: the press run in the window and full screen.
 4. **Spotlight and the notification.**
 5. **The widget**: the extension, the app group, the build and signing.
-6. **The screen saver.**
+6. **The screen saver**: put off to a later release (2026-10-27), see
+   *Later*.
+
+## Later
+
+- **The screen saver** (step 6), put off on 2026-10-27 after steps 1 to
+  5 shipped: the run without the pile and without chrome, slower,
+  installed from Settings (*Use as screen saver*). Still to check first:
+  whether a `.saver` bundle built with `swiftc` loads in macOS's
+  sandboxed screen-saver host (`legacyScreenSaver`), and how it reads the
+  covers there. The widget's way is the likely one: the app leaves them
+  in the app group's folder (`Shelf.swift`), which needs the Developer ID
+  signature, as the widget does.
 
 ## Open
 
