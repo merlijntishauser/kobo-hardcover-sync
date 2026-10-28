@@ -71,7 +71,7 @@ struct BooksAnswer: Codable {
         let title: String
         let author: String
         let cover: String  // the cached thumbnail, "" while there is none
-        let new: Bool  // not read before this tool first saw the Kobo
+        let new: Bool  // first opened after this tool first saw the Kobo: the Auto tag
         let percent: Int
         let finished: Bool
         let opened: Bool  // ever opened on the Kobo (not its last read date: the Kobo sets that on unopened books too)

@@ -275,7 +275,7 @@ def list_size(me) -> int:
 # ---------- row pieces (also returned by /mode and /state for in-place redraw) ----------
 def book_cell(r) -> str:
     pct, done, meta = booklist.progress(r)
-    tag = "" if r["history"] else f'<span class="tag">{T["new_tag"]}</span>'
+    tag = "" if r["history"] else f'<span class="tag" title="{e(T["new_tip"])}">{T["new_tag"]}</span>'
     spans = [f"<span>{e(m)}</span>" for m in meta]
     if r["seconds_read"]:  # the time read comes last, with what it counts
         spans[-1] = f'<span title="{T["account_time_help"]}">{e(meta[-1])}</span>'
@@ -512,7 +512,12 @@ def details_fragment(r, status: tuple[str, str], back: str) -> str:
         return f"<dl>{rows}</dl>" if rows else ""
 
     kobo = [
-        (T["col_mode"], e(T[r["mode"]]) + ("" if r["history"] else f' <span class="tag">{T["new_tag"]}</span>')),
+        # The tag says Auto; next to a mode that already says Auto it would say it twice.
+        (
+            T["col_mode"],
+            e(T[r["mode"]])
+            + ("" if r["history"] or r["mode"] == "auto" else f' <span class="tag" title="{e(T["new_tip"])}">{T["new_tag"]}</span>'),
+        ),
         (T["col_state"], e(T[STATE_LABEL[r["state"] or "kobo"]]) + (f", {e(r['state_date'])}" if r["state_date"] else "")),
         (
             T["d_kobo_status"],

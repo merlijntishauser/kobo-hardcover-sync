@@ -390,8 +390,9 @@ struct BookCell: View {
                     HStack(spacing: 6) {
                         Text(book.title).font(titleFont(14)).lineLimit(2)
                         if book.new {
-                            Text("New").font(.caption2.weight(.semibold)).foregroundStyle(pencil(Pencil.blue, selected))
+                            Text("Auto").font(.caption2.weight(.semibold)).foregroundStyle(pencil(Pencil.blue, selected))
                                 .padding(.horizontal, 4).overlay(RoundedRectangle(cornerRadius: 3).stroke(pencil(Pencil.blue, selected), lineWidth: 0.75))
+                                .help("First opened on this Kobo after this tool started: syncs by itself unless switched off.")
                         }
                     }
                     Text(book.author).font(.callout).foregroundStyle(quiet(selected)).lineLimit(1)

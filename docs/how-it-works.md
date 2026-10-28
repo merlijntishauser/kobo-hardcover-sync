@@ -77,7 +77,7 @@ So:
 - **History**, every book with reading time at the first import, is chosen
   by hand, once. It starts *Off*.
 - **New books**, whose first event on this Kobo comes after that import,
-  sync by themselves and are marked as new, so they can be switched off.
+  sync by themselves and carry the *Auto* tag, so they can be switched off.
   What someone else reads on another Kobo never creates events here.
 - **Reading minutes** count only for books opened on this Kobo.
 

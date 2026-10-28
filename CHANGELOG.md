@@ -7,6 +7,12 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Changed
+
+- The tag on a book first opened after the tool started says *Auto*, the
+  word the Sync column and the guide already use for it, instead of *New*,
+  and explains itself when pointed at. Same on the page's filter.
+
 ### Fixed
 
 - A book's cover reaches the server even when the book is no longer

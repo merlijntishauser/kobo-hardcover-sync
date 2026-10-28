@@ -55,7 +55,7 @@ let helpTopics: [HelpTopic] = [
         .say("Every book the Kobo has seen opened, with what goes to Hardcover. Search finds a title or author; Show picks one filter at a time; Sort puts them in order."),
         .term("Sync: On", "This book goes to Hardcover."),
         .term("Sync: Off", "It does not. Books that were on the Kobo before \(name) started begin as Off, so you can pick yours."),
-        .term("Sync: Auto", "A book you open on this Kobo from now on syncs by itself; switch it Off if it is not yours."),
+        .term("Sync: Auto", "A book you open on this Kobo from now on syncs by itself; the Auto tag by its title marks one. Switch it Off if it is not yours."),
         .term("State: Follow Kobo", "Hardcover gets what the Kobo says: reading with progress, or finished."),
         .term("State: Finished", "Counts as read on that date, even if the Kobo shows a few percent because you opened it again."),
         .term("State: Re-reading", "A new read-through of a book you finished before."),
