@@ -266,6 +266,7 @@ def test_the_check_card_on_the_server(tmp_path, monkeypatch):
     # Robin has books and a computer that uploaded.
     r = c.post("/settings/check", headers=ROBIN)
     assert "<b>Books</b> 0 of 2 books are switched on." in r.text and "<b>Computer</b> kobo-robin: last upload" in r.text
+    assert "Choose your books in Getting started, above your books." in r.text  # where that is done on the page
     # A token Hardcover no longer accepts is a problem, said in Hardcover's words.
     monkeypatch.setattr(
         Hardcover, "whoami", lambda self: (_ for _ in ()).throw(hardcover.HardcoverError("Hardcover does not accept your token", "token"))

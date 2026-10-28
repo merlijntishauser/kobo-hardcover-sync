@@ -141,6 +141,9 @@ def test_the_command_ends_well_when_nothing_stops_syncing(home, capsys, monkeypa
     out = said(capsys)
     assert "note Sending Dry run: the page shows what would be sent, and nothing goes to Hardcover." in out
     assert "To do: Go live under Settings when the plan looks right." in out and TOKEN not in out
+    # In the app, and on the page, what to do points at Getting started, where Go live is.
+    mac.in_app = True
+    assert found(doctor.computer_checks(mac, client=hc), "Sending").todo == "Choose Go live under Getting started."
 
 
 def test_set_up_and_nothing_else_yet(home):
@@ -163,7 +166,7 @@ def test_in_the_app_what_to_do_names_its_buttons_not_commands(home):
     config.save(config.Config())
     checks = doctor.computer_checks(mac)
     assert found(checks, "Trigger").todo == "Until then, choose Sync now with the Kobo plugged in."
-    assert found(checks, "Hardcover").todo == "Choose Connect to Hardcover, under Overview or Books."
+    assert found(checks, "Hardcover").todo == "Choose Connect to Hardcover, under Getting started."
     assert found(checks, "Kobo").todo == "Plug it in, tap Connect on the Kobo, and choose Check again."
     assert not [c for c in checks if "`kobo-hardcover-sync" in c.found + c.todo]
 
@@ -218,9 +221,9 @@ def test_a_kobo_whose_software_was_not_tested(home):
     assert allowed.state == "note" and "allow_untested_kobo lets the collection be written anyway" in allowed.found
     mac.in_app = True
     c = found(doctor.computer_checks(mac, LOCAL, client=hc), "Kobo software")
-    assert c.todo == 'To try it anyway, turn on "Allow an untested Kobo software version" in Settings, Sync.'
+    assert c.todo == 'To try it anyway, turn on "Allow an untested Kobo software version" in Settings, Advanced.'
     allowed = found(doctor.computer_checks(mac, config.Config(set_up=True, allow_untested_kobo=True), client=hc), "Kobo software")
-    assert allowed.found == "Database version 223 has not been tested; Settings, Sync, lets the collection be written anyway."
+    assert allowed.found == "Database version 223 has not been tested; Settings, Advanced, lets the collection be written anyway."
     mac.in_app = False
     # A database that lacks what the write needs: no setting lets that through.
     db = sqlite3.connect(home / "Volumes" / "KOBOeReader" / ".kobo" / "KoboReader.sqlite")

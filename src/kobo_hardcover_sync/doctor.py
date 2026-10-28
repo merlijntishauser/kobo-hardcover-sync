@@ -82,7 +82,30 @@ def hardcover_check(token: str, add_one: str, client=None, run_out: bool = False
 
 
 # ---------- the reader's books and runs (this tool's own database) ----------
-def reader_checks(con, reader: str, has_token: bool) -> list[Check]:
+# What to do about the reader's books, for where it is read: a terminal (cli),
+# the Mac app's window (app), or the page (page). The app and the page both
+# have Getting started above the books; a terminal has the page.
+SAID = {
+    "books": {
+        "cli": "Switch on the books that should sync, on the page.",
+        "app": "Choose your books under Getting started.",
+        "page": "Choose your books in Getting started, above your books.",
+    },
+    "live": {
+        "cli": "Go live under Settings when the plan looks right.",
+        "app": "Choose Go live under Getting started.",
+        "page": "Go live in Getting started, above your books.",
+    },
+    "match": {
+        "cli": "Choose the right book in Details on the page.",
+        "app": "Choose the right book in its Details, under Books.",
+        "page": "Choose the right book in its Details.",
+    },
+}
+
+
+def reader_checks(con, reader: str, has_token: bool, where: str = "page") -> list[Check]:
+    """where: "cli", "app" or "page", for the words of what to do (SAID)."""
     row = con.execute("select hardcover_live from reader where name=?", (reader,)).fetchone()
     # One row per book (mode and history are the same on each Kobo it is on); read-only: no view here.
     books = con.execute("select * from book where reader=? group by content_id", (reader,)).fetchall()
@@ -96,7 +119,7 @@ def reader_checks(con, reader: str, has_token: bool) -> list[Check]:
                 "Books",
                 OK if on else NOTE,
                 f"{len(on)} of {len(books)} books are switched on.",
-                "" if on else "Switch on the books that should sync, on the page.",
+                "" if on else SAID["books"][where],
             )
         )
     if row is not None and row["hardcover_live"]:
@@ -107,7 +130,7 @@ def reader_checks(con, reader: str, has_token: bool) -> list[Check]:
                 "Sending",
                 NOTE,
                 "Dry run: the page shows what would be sent, and nothing goes to Hardcover.",
-                "Go live under Settings when the plan looks right." if has_token else "",
+                SAID["live"][where] if has_token else "",
             )
         )
     waiting = sum(1 for b in on if not b["hc_book_id"] and b["hc_how"] in ("uncertain", "none"))
@@ -117,7 +140,7 @@ def reader_checks(con, reader: str, has_token: bool) -> list[Check]:
                 "Matches",
                 WARN,
                 f"{_books(waiting)} switched on {_verb(waiting, 'has', 'have')} no Hardcover match yet and cannot sync.",
-                "Choose the right book in Details on the page.",
+                SAID["match"][where],
             )
         )
     failed = sum(1 for b in on if b["hc_error"])
@@ -170,7 +193,8 @@ def server_checks(
                 "Computers",
                 WARN,
                 "No computer uploads your Kobo yet.",
-                "Run `kobo-hardcover-sync setup --server <this address>` on the computer you plug the Kobo into, and add its hash under Devices.",
+                "Run `kobo-hardcover-sync setup --server <this address>` on the computer you plug the Kobo into, "
+                "and add its hash under Advanced, Devices.",
             )
         )
     for d in devices:
@@ -253,7 +277,7 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
             what = "The connection to Hardcover" if oauth.unpack(kept) else "A Hardcover token"
             out.append(Check("Token", OK, f"{what} is kept in {computer.secret_place(HARDCOVER)}."))
         add_one = _said(
-            computer, "`kobo-hardcover-sync token`, or Settings on the page.", "Choose Connect to Hardcover, under Overview or Books."
+            computer, "`kobo-hardcover-sync token`, or Settings on the page.", "Choose Connect to Hardcover, under Getting started."
         )
         out.append(hardcover_check(token, add_one, client, run_out=bool(kept) and not token))
         has_token = bool(kept) or client is not None
@@ -267,7 +291,7 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
                 with contextlib.closing(_read_only(own)) as con:
                     row = con.execute("select kobo_collection from reader where name=?", (LOCAL_READER,)).fetchone()
                     wanted = ((row["kobo_collection"] if row else "") or "").strip()
-                    out += reader_checks(con, LOCAL_READER, has_token)
+                    out += reader_checks(con, LOCAL_READER, has_token, _said(computer, "cli", "app"))
             except (sqlite3.Error, IndexError) as ex:  # IndexError: a column a newer version added
                 out.append(
                     Check(
@@ -367,7 +391,7 @@ def _gate(con, allowed: bool, computer) -> Check:
         except collection.UnsupportedKobo:
             return Check(what, WARN, str(ex))  # it lacks something the write needs: no setting lets that through
         if allowed:
-            lets = _said(computer, "allow_untested_kobo lets", "Settings, Sync, lets")
+            lets = _said(computer, "allow_untested_kobo lets", "Settings, Advanced, lets")
             return Check(what, NOTE, f"Database version {ex.version} has not been tested; {lets} the collection be written anyway.")
         return Check(
             what,
@@ -375,7 +399,9 @@ def _gate(con, allowed: bool, computer) -> Check:
             f"This Kobo's software has not been tested with kobo-hardcover-sync yet (its database is version {ex.version}). "
             "The collection is not written to it; syncing to Hardcover is not affected.",
             _said(
-                computer, collection.UNTESTED_HOW, 'To try it anyway, turn on "Allow an untested Kobo software version" in Settings, Sync.'
+                computer,
+                collection.UNTESTED_HOW,
+                'To try it anyway, turn on "Allow an untested Kobo software version" in Settings, Advanced.',
             ),
         )
     return Check(
