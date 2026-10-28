@@ -9,7 +9,11 @@ repository, with Actions as its source (`configure-pages` with `enablement`).
 
 ## What is on it
 
-- **The first viewport** is a Kobo at reading scale, its e-ink screen on the
+- **The first viewport** lies on the app icon's own field, blue to navy
+  (`packaging/macos/art.py`, `TILE_TOP` to `TILE_BOTTOM`, the ground the disk
+  image's window has), the same in both lights, with the rail's night words
+  on it and the night pencil for the stroke; the head sits in it too, and
+  the stock begins below. It is a Kobo at reading scale, its e-ink screen on the
   last page of *Middlemarch* with the reading line as the Kobo keeps it, and,
   beside it, the page's own proof margin with four sample books and their
   marks. One red stroke runs from the end of the gauge into the first mark:

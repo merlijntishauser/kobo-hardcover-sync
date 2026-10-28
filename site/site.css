@@ -23,6 +23,9 @@
   --sans: "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --r-sheet: 2px; --r-ctl: 4px;
+  /* The icon's own field (packaging/macos/art.py TILE_TOP, TILE_BOTTOM), the ground of the first viewport in both lights,
+     with the rail's night words on it and the night pencil for the stroke. */
+  --field-top: #2a5c84; --field-bottom: #10212f; --on-field: #e3f1f7; --on-field-quiet: #c9dde8; --on-field-link: #86c5ea; --stroke: #ff8077;
   --gutter: max(16px, env(safe-area-inset-left, 0px));
   --gutter-r: max(16px, env(safe-area-inset-right, 0px));
 }
@@ -73,25 +76,33 @@ h2 { font-size: clamp(1.45rem, 1.1rem + 1.4vw, 2.1rem); font-weight: 800; letter
 h3 { font-size: 1.0625rem; font-weight: 700; }
 p { margin: 0; }
 .lede { color: var(--graphite); font-size: 1.0625rem; max-width: 62ch; text-wrap: pretty; }
-.hero .lede { font-size: 1rem; }
+.hero h1 { color: var(--on-field); }
+.hero .lede { font-size: 1rem; color: var(--on-field-quiet); }
+.hero .lede a { color: var(--on-field-link); }
+.hero .caption { color: var(--on-field-quiet); }
 .muted { color: var(--graphite); font-size: 0.9375rem; max-width: 70ch; }
 code { font: 0.875rem var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-ctl); padding: 0.2rem 0.5rem; overflow-wrap: anywhere; }
 .skip { position: absolute; left: var(--gutter); top: -3rem; background: var(--sheet); color: var(--ink); padding: 0.5rem 0.8rem; border: 1px solid var(--edge); border-radius: var(--r-ctl); z-index: 10; }
 .skip:focus { top: 0.5rem; }
+
+/* The field: the icon's blue-to-navy, holding the head and the first viewport. */
+.field { background: linear-gradient(180deg, var(--field-top), var(--field-bottom)); color: var(--on-field); padding-bottom: clamp(2.5rem, 5vw, 4rem); }
+.field ::selection { background: rgba(255, 128, 119, 0.35); color: #fff; }
+.field :focus-visible { outline-color: var(--on-field); }
 
 /* The head: the name with its caret, and the page's places. */
 .top {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1.5rem;
   padding-inline: var(--gutter) var(--gutter-r); padding-block: 0.75rem; max-width: 92rem; margin: 0 auto;
 }
-.name { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--ink); text-decoration: none; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
-.name svg { width: 1rem; height: 1rem; color: var(--red); }
+.name { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--on-field); text-decoration: none; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
+.name svg { width: 1rem; height: 1rem; color: var(--stroke); }
 .top nav { display: flex; flex-wrap: wrap; gap: 0.2rem 1.2rem; font-size: 0.9375rem; }
-.top nav a { color: var(--graphite); text-decoration: none; padding: 0.4rem 0; }
-.top nav a:hover { color: var(--ink); text-decoration: underline; }
+.top nav a { color: var(--on-field-quiet); text-decoration: none; padding: 0.4rem 0; }
+.top nav a:hover { color: var(--on-field); text-decoration: underline; }
 @media (max-width: 719.98px) { .top nav .inpage { display: none; } }
 
-main { display: grid; gap: clamp(4rem, 8vw, 7.5rem); padding-block: 0.5rem 5rem; }
+main { display: grid; gap: clamp(4rem, 8vw, 7.5rem); padding-block: clamp(3.5rem, 6vw, 5.5rem) 5rem; }
 
 /* ---------- the first viewport: the Kobo, the stroke, the margin ---------- */
 .hero {
@@ -99,7 +110,7 @@ main { display: grid; gap: clamp(4rem, 8vw, 7.5rem); padding-block: 0.5rem 5rem;
   width: 100%; max-width: 92rem; margin: 0 auto; padding-inline: var(--gutter) var(--gutter-r);
 }
 @media (min-width: 1024px) {
-  .hero { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 3.5rem; padding-top: 0.25rem; }
+  .hero { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 3.5rem; padding-top: 0.5rem; }
   .hero { --kobo-w: 18rem; }
 }
 .device-col { display: grid; gap: 1rem; min-width: 0; }
@@ -109,7 +120,7 @@ main { display: grid; gap: clamp(4rem, 8vw, 7.5rem); padding-block: 0.5rem 5rem;
 .kobo {
   margin: 0; width: min(100%, var(--kobo-w, 13rem)); aspect-ratio: 624 / 920; padding: 11.5% 9%;
   border-radius: 11% / 7.6%; background: linear-gradient(var(--device-top), var(--device-bottom));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 36px -18px rgba(6, 17, 26, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1);
 }
 .eink {
   height: 100%; border-radius: 3px; padding: 0.8rem 0.9rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; overflow: hidden;
@@ -145,14 +156,24 @@ main { display: grid; gap: clamp(4rem, 8vw, 7.5rem); padding-block: 0.5rem 5rem;
 .ver { color: var(--graphite); font-size: 0.875rem; }
 .ways { color: var(--graphite); font-size: 0.875rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; }
 .ways code { font-size: 0.8125rem; }
+.hero .primary { min-height: 3.25rem; font-size: 1.125rem; padding: 0.7rem 1.6rem; background: #c0212b; border-color: #c0212b; color: #fff; }  /* the field is the same in both lights, so is the pencil on it */
+.hero .ver { color: var(--on-field); font-size: 0.9375rem; }
+.hero .ways { color: var(--on-field-quiet); }
+.hero .ways code { color: var(--on-field); background: rgba(251, 251, 248, 0.08); border-color: rgba(251, 251, 248, 0.28); }
 
 /* The proof: the sheet with its margin, as the Books page has it. */
-.proof { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); box-shadow: var(--lift); overflow: hidden; }
+.proof { background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: var(--r-sheet); overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1); }
 .proofhead, .proof .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 42%); }
 .proofhead { font-size: 0.78rem; font-weight: 650; color: var(--graphite); border-bottom: 1px solid var(--rule); }
 .proofhead > span { padding: 0.75rem 1rem; }
 .proofhead .hc, .proof .row .hc { background: var(--margin); border-left: 3px double var(--rule); }
 .proof .row { border-bottom: 1px solid var(--rule-soft); }
+@media (max-width: 719.98px) {  /* a phone: each book a card, its margin a strip under the double rule, as the page lays it out */
+  .proofhead { display: none; }
+  .proof .row { grid-template-columns: minmax(0, 1fr); }
+  .proof .row .hc { border-left: 0; border-top: 3px double var(--rule); }
+}
 .proof .row:last-child { border-bottom: 0; }
 .proof .book { display: flex; gap: 0.9rem; padding: 1rem; min-width: 0; }
 .proof .book > div { min-width: 0; }
@@ -186,7 +207,7 @@ main { display: grid; gap: clamp(4rem, 8vw, 7.5rem); padding-block: 0.5rem 5rem;
 
 /* The stroke: one continuous red line from the gauge into the first mark, drawn once. */
 .stroke { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; display: none; }
-.stroke path { fill: none; stroke: var(--red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.stroke path { fill: none; stroke: var(--stroke); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 @media (min-width: 1024px) { .stroke { display: block; } }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 .stroke.on path { stroke-dasharray: var(--len, 1000); stroke-dashoffset: var(--len, 1000); animation: draw 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; }

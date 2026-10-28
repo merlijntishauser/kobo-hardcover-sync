@@ -29,7 +29,12 @@ where the mark says what Hardcover will be told. The mechanism is shown before a
 word of claim. It refuses the headline-over-a-screenshot opener and the split
 hero with copy on one side.
 
-OWN-WORLD: Galley stock ground, Proof Sheet and Margin Tint surfaces, Proof Ink
+OWN-WORLD: The first viewport and the head on the icon's own field, blue to
+navy (art.py TILE_TOP #2a5c84 to TILE_BOTTOM #10212f), the same in both
+lights, with the rail's night words (#e3f1f7, quiet #c9dde8, links #86c5ea)
+and the night pencil (#ff8077) for the stroke; the download the day pencil
+(#c0212b, white words) on it in both lights. Below the field, galley stock
+ground, Proof Sheet and Margin Tint surfaces, Proof Ink
 and Graphite words, the two pencils (red: what a sync sends and the one filled
 button; blue: the reader's choice or a question), Tick Green for up to date.
 Schibsted Grotesk 800 for headings, 400/600 for everything else; Source Serif 4
@@ -47,7 +52,7 @@ page shows before it sends. Downloads the Mac app. Scrolls to the two printed
 lights of the page, the Mac app's window, the four steps from plug-in to shelf,
 what it does not do, the other tools, the independent sentence.
 
-FIRST VIEWPORT: Two fifths left: the Kobo at 18rem (288px) wide on a desk, its
+FIRST VIEWPORT: On the field. Two fifths left: the Kobo at 18rem (288px) wide on a desk, its
 screen the last page of Middlemarch (running head, the Finale's opening lines,
 the line gauge full, "100%, finished 21 Sep"); under the device the headline in
 two short lines at 2.1rem ("Your Kobo knows what you read. Now Hardcover does

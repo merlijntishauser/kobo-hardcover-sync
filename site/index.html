@@ -6,8 +6,7 @@
 <title>Kobo Hardcover Sync</title>
 <meta name="description" content="Keeps your Hardcover shelf in step with what you read on a Kobo e-reader: which books, how far, finished when. Works with the Kobo as it comes, Kobo-store books included, on your own computer.">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#c3e2ef">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#123040">
+<meta name="theme-color" content="#2a5c84">
 <meta property="og:title" content="Kobo Hardcover Sync">
 <meta property="og:description" content="Your Kobo knows what you read. Now Hardcover does too. Plug in the Kobo; the page shows what the next sync changes before it is sent.">
 <meta property="og:type" content="website">
@@ -22,6 +21,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
 <body>
 <a class="skip" href="#download">Skip to the download</a>
 
+<div class="field">
 <header class="top">
   <a class="name" href="./" aria-label="Kobo Hardcover Sync, the start of this page">
     <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg>
@@ -36,8 +36,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
   </nav>
 </header>
 
-<main>
-  <!-- The first viewport: the Kobo, the stroke, the margin. -->
+  <!-- The first viewport, on the icon's own field: the Kobo, the stroke, the margin. -->
   <section class="hero" aria-labelledby="claim">
     <div class="device-col">
       <figure class="kobo" aria-label="A Kobo e-reader on the last page of Middlemarch by George Eliot, read to the end on 21 September">
@@ -54,7 +53,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
       <p class="lede">Plug in the Kobo and your shelf on <a href="https://hardcover.app">Hardcover</a> follows: which books, how far, finished when. Nothing goes on the Kobo, Kobo-store books included, and nothing leaves your computer but what you see written in the margin.</p>
       <div class="get" id="download">
         <a class="primary" id="dmg" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a>
-        <p class="ver" id="ver">The latest release, on GitHub. Signed and notarised; macOS 13 or later.</p>
+        <p class="ver" id="ver">The latest release's disk image, on GitHub. Signed and notarised; macOS 13 or later.</p>
         <p class="ways">Or in a terminal, on a Mac or Linux:
           <code>brew install merlijntishauser/tap/kobo-hardcover-sync</code>
           <code>uv tool install kobo-hardcover-sync</code>
@@ -115,6 +114,9 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
     </div>
     <svg class="stroke" id="stroke" aria-hidden="true" viewBox="0 0 1440 824" preserveAspectRatio="none"><path id="strokepath" d="M241 333 C 708 333, 623 89, 1091 89" /></svg>
   </section>
+</div>
+
+<main>
 
   <!-- The page, printed twice. -->
   <section class="block" id="page" aria-labelledby="page-h">
