@@ -264,7 +264,7 @@ T = {
         "Nothing goes to Hardcover until you connect to it yourself and switch from dry run to live.",
     ],
     "signup_btn": "Start using Kobo Hardcover Sync",
-    "hc_no_token": "Not connected to Hardcover yet: connect in Settings",
+    "hc_no_token": "Not connected to Hardcover yet: connect in Getting started",
     # settings
     "settings_title": "Settings",
     "s_profile": "You",
