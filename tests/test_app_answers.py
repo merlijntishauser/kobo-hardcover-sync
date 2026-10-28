@@ -375,6 +375,15 @@ def test_open_at_a_book_lands_on_its_row(home, monkeypatch):
     ]
 
 
+def test_open_at_a_book_in_server_mode_lands_on_its_row_on_the_server(home):
+    computer = FakeComputer(home / "Volumes")
+    config.save(config.Config(server="https://kobo.example.org/"))
+    cli.main(["open", "--book", "file:///mnt/onboard/a b.epub"], computer=computer)
+    assert computer.opened == [
+        "https://kobo.example.org/?at=file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub#b-file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub"
+    ]
+
+
 def test_doctor_answers_with_its_checks_and_says_when_something_stops_a_sync(mac, home, capsys):
     found = answer(capsys, "doctor", "--json", computer=mac, exits=None)
     same_shape(found, sample("doctor.json"))

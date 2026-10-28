@@ -564,7 +564,8 @@ extension View {
 }
 
 /// The cover over the whole window, as large as it fits (Space on the run, or a
-/// click on the cover in the spread); a click, Space or Escape puts it back.
+/// click on the cover in the spread); a click, Space or Escape puts it back,
+/// F or the corner's button takes it to the whole screen.
 struct Lightbox: View {
     @ObservedObject var model: WindowModel
     let book: BooksAnswer.Book
@@ -581,12 +582,25 @@ struct Lightbox: View {
                 }
             }
         }
+        .overlay(alignment: .topTrailing) {
+            Button(action: fullScreen) {
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.85))
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .padding(14)
+            .help("Full screen (F)")
+        }
         .contentShape(Rectangle())
         .onTapGesture(perform: close)
         .background {
             Group {
                 Button("", action: close).keyboardShortcut(" ", modifiers: [])
                 Button("", action: close).keyboardShortcut(.cancelAction)
+                Button("", action: fullScreen).keyboardShortcut("f", modifiers: [])
             }
             .opacity(0)
             .accessibilityHidden(true)
@@ -599,8 +613,83 @@ struct Lightbox: View {
         .accessibilityLabel("The cover of \(book.title)")
         .accessibilityAddTraits(.isModal)
         .accessibilityAction(named: "Close", close)
+        .accessibilityAction(named: "Full Screen", fullScreen)
         .transition(.opacity.combined(with: .scale(scale: 0.96)))
     }
 
     private func close() { model.enlarged = nil }
+
+    /// The large one when it is here, else the one there is: the screen does not wait for it.
+    private func fullScreen() {
+        CoverScreen.show(large?.id == book.id ? large?.path ?? book.cover : book.cover, title: book.title, from: NSApp.keyWindow)
+    }
+}
+
+/// The cover alone over the whole screen, on black, above the menu bar and
+/// the Dock: a click or a key puts it back, and so does leaving the app.
+final class CoverScreen: NSWindow {
+    private static var shown: CoverScreen?
+    private weak var back: NSWindow?
+
+    static func show(_ path: String, title: String, from window: NSWindow?) {
+        guard shown == nil, let screen = window?.screen ?? NSScreen.main else { return }
+        let w = CoverScreen(contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
+        w.back = window
+        w.backgroundColor = .black
+        w.isReleasedWhenClosed = false
+        w.level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 1)  // over the menu bar, as full screen is
+        w.collectionBehavior = [.fullScreenAuxiliary]  // over the window when that is in full screen itself
+        w.contentView = NSHostingView(rootView: CoverOnBlack(path: path, title: title))
+        w.setFrame(screen.frame, display: false)
+        shown = w
+        let still = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        w.alphaValue = still ? 1 : 0
+        w.makeKeyAndOrderFront(nil)
+        if !still { w.animator().alphaValue = 1 }
+        NSCursor.setHiddenUntilMouseMoves(true)
+    }
+
+    override var canBecomeKey: Bool { true }
+
+    /// A click or a key puts it back, before the view under it sees either; ⌘ keys other than ⌘W go to the menus (⌘Q still quits).
+    override func sendEvent(_ event: NSEvent) {
+        switch event.type {
+        case .leftMouseDown, .rightMouseDown:
+            close()
+        case .keyDown where !event.modifierFlags.contains(.command) || event.charactersIgnoringModifiers == "w":
+            close()
+        default:
+            super.sendEvent(event)
+        }
+    }
+
+    override func resignKey() {
+        super.resignKey()
+        if Self.shown === self { close() }  // ⌘-Tab away: the screen is theirs again
+    }
+
+    override func close() {
+        guard Self.shown === self else { return super.close() }
+        Self.shown = nil
+        super.close()
+        if NSApp.isActive { back?.makeKeyAndOrderFront(nil) }
+    }
+}
+
+private struct CoverOnBlack: View {
+    let path: String
+    let title: String
+
+    var body: some View {
+        GeometryReader { box in
+            Cover(path: path, width: min(box.size.width, box.size.height / 1.5))
+                .frame(width: box.size.width, height: box.size.height)
+        }
+        .background(Color.black)
+        .ignoresSafeArea()
+        .accessibilityElement()
+        .accessibilityLabel("The cover of \(title), over the whole screen")
+        .accessibilityHint("Press any key to put it back")
+        .accessibilityAddTraits(.isModal)
+    }
 }

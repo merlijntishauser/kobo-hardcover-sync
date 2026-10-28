@@ -336,7 +336,7 @@ struct BooksTable: View {
                 .width(min: 140, ideal: 190)
         }
         .contextMenu(forSelectionType: String.self) { ids in
-            if let id = ids.first { Button("Open on the Page") { openAt(id) } }
+            if let id = ids.first { Button(model.openBookTitle) { openAt(id) } }
         }
     }
 }
@@ -355,6 +355,14 @@ struct WordPicker: View {
         .pickerStyle(.menu)
         .controlSize(.small)
         .fixedSize()
+    }
+}
+
+extension WindowModel {
+    /// Where a book opens outside the app: the server's page, by its name, else the page this Mac serves.
+    var openBookTitle: String {
+        if status?.mode == "server", let host = URL(string: status?.server ?? "")?.host { return "Open on \(host)" }
+        return "Open in Browser"
     }
 }
 
@@ -515,7 +523,8 @@ struct DetailsPane: View {
                     if let link = URL(string: book.details.link), !book.details.link.isEmpty {
                         Button("Open on Hardcover") { NSWorkspace.shared.open(link) }
                     }
-                    Button("Open on the Page") { openAt(book.id) }
+                    Button(model.openBookTitle) { openAt(book.id) }
+                        .help("This book on the page with your books, in your browser")
                 }
                 if book.details.onShelf {
                     Button("Remove from Hardcover…", role: .destructive) { removing = true }

@@ -7,6 +7,12 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- A full-screen cover in the Mac app: on a cover shown large, the button
+  in its corner (or F) puts it alone on black over the whole screen; a
+  click or any key puts it back.
+
 ### Changed
 
 - Covers in the Mac app takes about a third less of the processor while
@@ -42,6 +48,10 @@ minor version may change behaviour; the notes will say so.
   time the keyboard comes into its rows.
 - *Open the page* in the Mac app no longer holds up the window while the
   tool starts.
+- A book's *Open on the Page* in the Mac app opened the server's front
+  page in server mode, not the book; `open --book` now lands on the book
+  there too. The button says where it goes: *Open in Browser*, or *Open
+  on* and the server's name.
 - With Increase Contrast on (Accessibility, Display), the Mac app's grey
   text, colours and rules are stronger: the words 7:1 on the paper.
 

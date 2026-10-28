@@ -941,8 +941,10 @@ def _open(a, computer) -> None:
     cfg = config.load()
     if not cfg.mode:
         sys.exit("kobo-hardcover-sync: not set up yet: run setup first.")
-    if a.book and not cfg.server:  # the page lands on the book: its place in the list, then its row
-        return computer.open_page(f"{page.link()}&at={quote(a.book, safe='')}#b-{quote(a.book, safe='')}")
+    if a.book:  # the page lands on the book: its place in the list, then its row; the server's page has the same rows
+        at = quote(a.book, safe="")
+        start = cfg.server.rstrip("/") + "/?" if cfg.server else page.link() + "&"
+        return computer.open_page(f"{start}at={at}#b-{at}")
     computer.open_page(cfg.server or page.link())
 
 
