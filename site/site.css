@@ -96,7 +96,7 @@ code { font: 0.875rem var(--mono); color: var(--ink); background: var(--sheet); 
   padding-inline: var(--gutter) var(--gutter-r); padding-block: 0.75rem; max-width: 92rem; margin: 0 auto;
 }
 .name { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--on-field); text-decoration: none; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
-.name svg { width: 1rem; height: 1rem; color: var(--stroke); }
+.name svg { width: 1rem; height: 1rem; color: var(--on-field); }  /* at the very top of the field the night red is under 3:1; the caret takes the ink there */
 .top nav { display: flex; flex-wrap: wrap; gap: 0.2rem 1.2rem; font-size: 0.9375rem; }
 .top nav a { color: var(--on-field-quiet); text-decoration: none; padding: 0.4rem 0; }
 .top nav a:hover { color: var(--on-field); text-decoration: underline; }

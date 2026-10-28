@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-28T23:18:41Z",
+  "generatedAt": "2026-10-28T23:41:14Z",
   "title": "Design System: Kobo Hardcover Sync",
   "extensions": {
     "colorMeta": {
@@ -772,6 +772,102 @@
           "#e9eff8"
         ]
       },
+      "field-top": {
+        "role": "neutral",
+        "displayName": "Field (top)",
+        "canonical": "#2a5c84",
+        "oklch": "oklch(45.9% 0.085 245)",
+        "tonalRamp": [
+          "#00092c",
+          "#00274b",
+          "#10456c",
+          "#34668e",
+          "#5588b2",
+          "#77abd7",
+          "#9bcffd",
+          "#bff5ff"
+        ]
+      },
+      "field-bottom": {
+        "role": "neutral",
+        "displayName": "Field (bottom)",
+        "canonical": "#10212f",
+        "oklch": "oklch(24.0% 0.035 245)",
+        "tonalRamp": [
+          "#010c19",
+          "#162735",
+          "#324454",
+          "#516474",
+          "#718597",
+          "#93a8ba",
+          "#b7ccdf",
+          "#dcf2ff"
+        ]
+      },
+      "on-field": {
+        "role": "neutral",
+        "displayName": "On Field",
+        "canonical": "#e3f1f7",
+        "oklch": "oklch(94.9% 0.017 225)",
+        "tonalRamp": [
+          "#040d11",
+          "#1b262a",
+          "#364247",
+          "#546065",
+          "#738085",
+          "#94a1a6",
+          "#b9c7cc",
+          "#e3f1f7"
+        ]
+      },
+      "on-field-quiet": {
+        "role": "neutral",
+        "displayName": "On Field Quiet",
+        "canonical": "#c9dde8",
+        "oklch": "oklch(88.6% 0.026 232)",
+        "tonalRamp": [
+          "#010d14",
+          "#182730",
+          "#34454e",
+          "#53646e",
+          "#738690",
+          "#95a8b3",
+          "#b9cdd7",
+          "#def2fd"
+        ]
+      },
+      "on-field-link": {
+        "role": "secondary",
+        "displayName": "On Field Link",
+        "canonical": "#86c5ea",
+        "oklch": "oklch(79.4% 0.083 235)",
+        "tonalRamp": [
+          "#000d1c",
+          "#002840",
+          "#004665",
+          "#256586",
+          "#4785a8",
+          "#69a7cb",
+          "#8ecdf3",
+          "#d0f5ff"
+        ]
+      },
+      "stroke": {
+        "role": "primary",
+        "displayName": "Stroke",
+        "canonical": "#ff8077",
+        "oklch": "oklch(74.3% 0.156 26)",
+        "tonalRamp": [
+          "#220000",
+          "#4e0002",
+          "#7e0009",
+          "#a42c2b",
+          "#c9504a",
+          "#f0726a",
+          "#ffa79e",
+          "#ffe6e2"
+        ]
+      },
       "device-top-dark": {
         "role": "neutral",
         "displayName": "Device (top) (dark)",
@@ -956,7 +1052,7 @@
       {
         "name": "cover",
         "value": "0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1)",
-        "purpose": "A book cover lying on the sheet."
+        "purpose": "A book cover lying on the sheet; on the site, the proof lying on the field, in both lights."
       },
       {
         "name": "dialog",
@@ -975,8 +1071,8 @@
       },
       {
         "name": "device",
-        "value": "inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 36px -18px rgba(6, 17, 26, 0.55)",
-        "purpose": "Site only: the drawn Kobo lying on the stock, in both themes, because it is an object and not a surface."
+        "value": "inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1)",
+        "purpose": "Site only: the drawn Kobo lying on the field, in both themes, because it is an object and not a surface: the cover shadow with a shell edge of white at 16%. The site's sheets below the field take the lift."
       }
     ],
     "motion": [
@@ -1218,12 +1314,20 @@
       "css": ".ds-run{background:var(--ground);padding:12px 10px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink)} .ds-row{display:flex;gap:12px;margin-bottom:11px} .ds-row i,.ds-pile i{display:block;position:relative;height:var(--h);width:calc(var(--h) / 1.5);flex:none;background:var(--sheet);border:1px solid var(--edge);box-shadow:0 1px 2px rgba(0,0,0,0.28),0 3px 8px rgba(0,0,0,0.1);transition:transform 0.25s cubic-bezier(0.16,1,0.3,1)} .ds-row i:hover,.ds-row .ds-up{transform:scale(1.12);transform-origin:bottom;z-index:1;box-shadow:0 6px 12px rgba(0,0,0,0.22),0 3px 8px rgba(0,0,0,0.1)} .ds-caret{position:absolute;left:-5px;bottom:-6px;width:14px;height:14px;border-radius:50%;background:var(--sheet);fill:none;stroke:var(--red);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .ds-slip{width:180px;padding:10px;background:var(--sheet);border:1px solid var(--rule);border-radius:2px;box-shadow:0 6px 20px rgba(0,0,0,0.18);margin-bottom:11px} .ds-st{font-family:var(--serif);font-size:15px;font-weight:600} .ds-sa{font-size:12px;color:var(--graphite)} .ds-dr{height:3px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0 10px 14px} .ds-pile{display:flex;gap:16px;align-items:flex-start} .ds-pt{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.2} @media (prefers-reduced-motion: reduce){.ds-row i{transition:none} .ds-row i:hover,.ds-row .ds-up{transform:none}}"
     },
     {
+      "name": "The field (site)",
+      "kind": "custom",
+      "refersTo": "button-primary-field",
+      "description": "The site's head and first viewport on the app icon's own gradient, the same in both lights: the name with its caret in Stroke, the nav in On Field Quiet, the headline in On Field, the lede with a link in On Field Link, the day pencil's download button, and the install commands as sheet-at-8% chips.",
+      "html": "<div class=\"ds-field\"><header class=\"ds-top\"><a class=\"ds-name\" href=\"#\"><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg>Kobo Hardcover Sync</a><nav class=\"ds-fnav\"><a href=\"#\">What it does</a><a href=\"#\">The Mac app</a><a href=\"#\">GitHub</a></nav></header><h1 class=\"ds-h1\">Your Kobo, read into your Hardcover shelf.</h1><p class=\"ds-flede\">Reads what the Kobo knows and marks what it would tell <a href=\"#\">Hardcover</a> before anything is sent.</p><div class=\"ds-get\"><a class=\"ds-fprimary\" href=\"#\">Download for Mac</a><p class=\"ds-ver\">The latest release's disk image, on GitHub.</p><p class=\"ds-ways\">Or in a terminal: <code class=\"ds-fcode\">brew install merlijntishauser/tap/kobo-hardcover-sync</code></p></div></div>",
+      "css": ".ds-field{display:grid;gap:1.5rem;padding:0.75rem 1rem 2.5rem;background:linear-gradient(180deg,var(--field-top,#2a5c84),var(--field-bottom,#10212f));color:var(--on-field,#e3f1f7);font-family:var(--sans)} .ds-field ::selection{background:rgba(255,128,119,0.35);color:#fff} .ds-field :focus-visible{outline:2px solid var(--on-field,#e3f1f7);outline-offset:2px;border-radius:2px} .ds-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0.5rem 1.5rem} .ds-name{display:inline-flex;align-items:center;gap:0.45rem;color:var(--on-field,#e3f1f7);text-decoration:none;font-weight:800;font-size:1.1rem;letter-spacing:-0.02em} .ds-name svg{width:1rem;height:1rem;color:var(--stroke,#ff8077)} .ds-fnav{display:flex;flex-wrap:wrap;gap:0.2rem 1.2rem;font-size:0.9375rem} .ds-fnav a{color:var(--on-field-quiet,#c9dde8);text-decoration:none;padding:0.4rem 0} .ds-fnav a:hover{color:var(--on-field,#e3f1f7);text-decoration:underline} .ds-h1{margin:0;font-size:clamp(1.75rem,1.25rem + 1vw,2.1rem);font-weight:800;letter-spacing:-0.035em;line-height:1.05;color:var(--on-field,#e3f1f7);text-wrap:balance} .ds-flede{margin:0;font-size:1rem;line-height:1.5;max-width:62ch;color:var(--on-field-quiet,#c9dde8)} .ds-flede a{color:var(--on-field-link,#86c5ea);text-underline-offset:3px;text-decoration-thickness:1px} .ds-flede a:hover{text-decoration-thickness:2px} .ds-get{display:grid;gap:0.6rem} .ds-fprimary{display:inline-flex;align-items:center;justify-content:center;width:fit-content;min-height:3.25rem;padding:0.7rem 1.6rem;font-weight:600;font-size:1.125rem;color:#fff;background:#c0212b;border:1px solid #c0212b;border-radius:var(--r-ctl,4px);text-decoration:none} .ds-fprimary:hover{filter:brightness(1.07)} .ds-ver{margin:0;font-size:0.9375rem;color:var(--on-field,#e3f1f7)} .ds-ways{margin:0;font-size:0.875rem;color:var(--on-field-quiet,#c9dde8);display:flex;flex-wrap:wrap;align-items:center;gap:0.4rem 0.6rem} .ds-fcode{font:0.8125rem var(--mono,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);color:var(--on-field,#e3f1f7);background:rgba(251,251,248,0.08);border:1px solid rgba(251,251,248,0.28);border-radius:var(--r-ctl,4px);padding:0.2rem 0.5rem;overflow-wrap:anywhere}"
+    },
+    {
       "name": "The drawn Kobo (site)",
       "kind": "custom",
       "refersTo": "eink",
-      "description": "The icon's device as a surface holding real components: the running head and facts in E-ink Grey at 11px, a passage in Source Serif 4, and the page's own line gauge with its ticks in E-ink Grey and the read part in E-ink Ink.",
+      "description": "The icon's device as a surface holding real components, lying on the field with the cover shadow and a 16% white shell edge: the running head and facts in E-ink Grey at 11px, a passage in Source Serif 4, and the page's own line gauge with its ticks in E-ink Grey and the read part in E-ink Ink.",
       "html": "<figure class=\"ds-kobo\" aria-label=\"A Kobo e-reader on the last page of Middlemarch\"><div class=\"ds-eink\"><p class=\"ds-running\">Middlemarch <span>Finale</span></p><p class=\"ds-passage\">Every limit is a beginning as well as an ending. Who can quit young lives after being long in company with them, and not desire to know what befell them in their after-years?</p><div class=\"ds-einkfoot\"><div class=\"ds-bar\" role=\"img\" aria-label=\"Read 100 percent\"><span style=\"width:100%\"></span></div><p class=\"ds-meta\"><span>100%</span><span>finished 21 Sep</span></p></div></div></figure>",
-      "css": ".ds-kobo{margin:0;width:13rem;aspect-ratio:624/920;padding:11.5% 9%;border-radius:11%/7.6%;background:linear-gradient(var(--device-top,#4a515b),var(--device-bottom,#2b3038));box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08),0 1px 2px rgba(0,0,0,0.3),0 18px 36px -18px rgba(6,17,26,0.55);font-family:var(--sans)} .ds-eink{height:100%;border-radius:3px;padding:0.8rem 0.9rem 0.75rem;display:flex;flex-direction:column;gap:0.5rem;overflow:hidden;background:linear-gradient(var(--eink-top,#f0ede3),var(--eink-bottom,#e3dfd2));color:var(--eink-ink,#2a2d31)} .ds-eink p{margin:0} .ds-running{display:flex;justify-content:space-between;gap:0.5rem;color:var(--eink-grey,#575c64);font-size:0.6875rem;font-weight:600;letter-spacing:0.02em;white-space:nowrap;overflow:hidden} .ds-passage{font-family:var(--serif);font-size:0.8125rem;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:7} .ds-passage::first-letter{font-size:1.6em;font-weight:600;line-height:1} .ds-einkfoot{margin-top:auto;display:grid;gap:0.35rem} .ds-bar{position:relative;height:9px;max-width:16rem;background:repeating-linear-gradient(to right,var(--eink-grey,#575c64) 0 1px,transparent 1px 10%) left bottom/100% 4px no-repeat,linear-gradient(var(--eink-grey,#575c64),var(--eink-grey,#575c64)) left bottom/100% 1px no-repeat} .ds-bar::after{content:\"\";position:absolute;right:0;bottom:0;width:1px;height:4px;background:var(--eink-grey,#575c64)} .ds-bar span{position:absolute;left:0;bottom:1px;height:4px;background:var(--eink-ink,#2a2d31)} .ds-meta{display:flex;gap:0.1rem 0.5rem;flex-wrap:wrap;color:var(--eink-grey,#575c64);font-size:0.6875rem;font-variant-numeric:tabular-nums}"
+      "css": ".ds-kobo{margin:0;width:13rem;aspect-ratio:624/920;padding:11.5% 9%;border-radius:11%/7.6%;background:linear-gradient(var(--device-top,#4a515b),var(--device-bottom,#2b3038));box-shadow:inset 0 0 0 1px rgba(255,255,255,0.16),0 1px 2px rgba(0,0,0,0.28),0 3px 8px rgba(0,0,0,0.1);font-family:var(--sans)} .ds-eink{height:100%;border-radius:3px;padding:0.8rem 0.9rem 0.75rem;display:flex;flex-direction:column;gap:0.5rem;overflow:hidden;background:linear-gradient(var(--eink-top,#f0ede3),var(--eink-bottom,#e3dfd2));color:var(--eink-ink,#2a2d31)} .ds-eink p{margin:0} .ds-running{display:flex;justify-content:space-between;gap:0.5rem;color:var(--eink-grey,#575c64);font-size:0.6875rem;font-weight:600;letter-spacing:0.02em;white-space:nowrap;overflow:hidden} .ds-passage{font-family:var(--serif);font-size:0.8125rem;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:7} .ds-passage::first-letter{font-size:1.6em;font-weight:600;line-height:1} .ds-einkfoot{margin-top:auto;display:grid;gap:0.35rem} .ds-bar{position:relative;height:9px;max-width:16rem;background:repeating-linear-gradient(to right,var(--eink-grey,#575c64) 0 1px,transparent 1px 10%) left bottom/100% 4px no-repeat,linear-gradient(var(--eink-grey,#575c64),var(--eink-grey,#575c64)) left bottom/100% 1px no-repeat} .ds-bar::after{content:\"\";position:absolute;right:0;bottom:0;width:1px;height:4px;background:var(--eink-grey,#575c64)} .ds-bar span{position:absolute;left:0;bottom:1px;height:4px;background:var(--eink-ink,#2a2d31)} .ds-meta{display:flex;gap:0.1rem 0.5rem;flex-wrap:wrap;color:var(--eink-grey,#575c64);font-size:0.6875rem;font-variant-numeric:tabular-nums}"
     }
   ],
   "narrative": {
@@ -1251,7 +1355,7 @@
       },
       {
         "name": "The Two Lights Rule",
-        "body": "Every colour has a light and a dark value with the same role. A colour that exists in one theme only is a mistake. In dark the red and blue are lighter and fills carry dark words (`on-fill-dark`).",
+        "body": "Every colour has a light and a dark value with the same role. A colour that exists in one theme only is a mistake. In dark the red and blue are lighter and fills carry dark words (`on-fill-dark`). The site's field is one ground in both lights, so it has one set of values, the words on it are the rail's night set, and the download button on it is the day pencil (`red` with `on-fill`) in both.",
         "section": "colors"
       },
       {

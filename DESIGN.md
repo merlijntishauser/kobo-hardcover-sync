@@ -29,6 +29,12 @@ colors:
   eink-bottom: "#e3dfd2"
   eink-ink: "#2a2d31"
   eink-grey: "#575c64"
+  field-top: "#2a5c84"
+  field-bottom: "#10212f"
+  on-field: "#e3f1f7"
+  on-field-quiet: "#c9dde8"
+  on-field-link: "#86c5ea"
+  stroke: "#ff8077"
   ground-dark: "#0f1114"
   sheet-dark: "#171a1e"
   margin-dark: "#1b1f24"
@@ -275,6 +281,18 @@ components:
     rounded: "{rounded.ctl}"
     padding: "0.5rem 1.2rem"
     height: "2.75rem"
+  button-primary-field:
+    backgroundColor: "{colors.red}"
+    textColor: "{colors.on-fill}"
+    rounded: "{rounded.ctl}"
+    padding: "0.7rem 1.6rem"
+    height: "3.25rem"
+  code-on-field:
+    backgroundColor: "rgba(251, 251, 248, 0.08)"
+    textColor: "{colors.on-field}"
+    typography: "{typography.code}"
+    rounded: "{rounded.ctl}"
+    padding: "0.2rem 0.5rem"
   eink:
     backgroundColor: "{colors.eink-top}"
     textColor: "{colors.eink-ink}"
@@ -361,6 +379,7 @@ browser's `theme-color` is the rail colour in each theme.
 - **Rule** (`rule`) and **Soft Rule** (`rule-soft`): the sheet's border and the double rules; lines between rows and sections.
 - **Non-repro Blue** (`rail`, with `rail-ink` and `rail-graphite`): the rail on a desk, the band and the bottom navigation below 1024px. In the rail the dash of "books syncing" is Rail Graphite and the ticks are Tick Green.
 - **Device** (`device-top`, `device-bottom`) and **E-ink** (`eink-top`, `eink-bottom`, with `eink-ink` and `eink-grey`): the site's drawn Kobo, and nothing else. The shell and the screen are the Mac app icon's own (`packaging/macos/art.py`: `BODY_TOP`/`BODY_BOTTOM`, `EINK_TOP`/`EINK_BOTTOM`), a Clara's warm grey paper, not Margin Tint. The words on the screen are E-ink Ink; its running head, facts and the gauge's ticks are E-ink Grey, darker than the icon's line grey (`TEXT`) so that they hold 4.5:1 on the paper (5.05:1 at the foot of the screen, 5.12:1 in dark). In dark the shell and the paper are dimmed, as a screen in a dark room; the paper stays paper.
+- **Field** (`field-top`, `field-bottom`, with `on-field`, `on-field-quiet`, `on-field-link` and `stroke`): the site's head and first viewport, and nothing else. The ground of the app icon and of the disk image's window (`packaging/macos/art.py`: `TILE_TOP`, `TILE_BOTTOM`), a vertical gradient, the same in both lights; below it the stock begins. The words on it are the rail's night set: On Field is Rail Ink dark, for the headline, the name and the version line; On Field Quiet, for the lede, the nav links, the caption and the install commands' label, is lighter than Rail Graphite dark, which measured 3.95:1 at the top of the field, where On Field Quiet holds 5.06:1 (11.7:1 at its foot); On Field Link is Blue Pencil dark, for links (3.78:1 at the very top of the field, 8.7:1 at its foot); Stroke is Red Pencil dark, for the stroke; the name's caret at the top of the field is On Field, because the night red measures 2.9:1 there, under the Legible Rule's 3:1 for a mark. The code chips on the field are Proof Sheet at 8% with a 28% sheet edge, their words On Field; selection on the field is the stroke's red at 35% under white words, and the focus ring is On Field.
 
 ### Named Rules
 **The Two Pencils Rule.** Red fills only *Sync now* and *Go live*, and
@@ -380,7 +399,9 @@ both.
 **The Two Lights Rule.** Every colour has a light and a dark value with
 the same role. A colour that exists in one theme only is a mistake. In
 dark the red and blue are lighter and fills carry dark words
-(`on-fill-dark`).
+(`on-fill-dark`). The site's field is one ground in both lights, so it
+has one set of values, the words on it are the rail's night set, and the
+download button on it is the day pencil (`red` with `on-fill`) in both.
 
 **The Legible Rule.** Words stand at 4.5:1 or more on whatever they are
 on, the edge of a field and every mark at 3:1 (WCAG 2.2 AA), in both
@@ -428,8 +449,9 @@ heading from 1.45rem to 2.1rem at 800 (`site-section`), a step's heading
 drawn Kobo's running head (600, 0.02em) and facts (tabular) are
 0.6875rem, 11px (`eink-small`); its passage is Source Serif 4 at
 0.8125rem, the book's own page shown on the book's own screen. Captions,
-the version line, the foot and code are 0.875rem; the proof, the table
-and the steps keep the page's sizes.
+the version line, the foot and code are 0.875rem; on the field the version
+line is 0.9375rem and the download button 600 at 1.125rem. The proof, the
+table and the steps keep the page's sizes.
 
 ### Named Rules
 **The Book Face Rule.** Source Serif 4 is for book titles and nothing
@@ -498,9 +520,14 @@ at any width, everything you operate is 2.75rem, chips and the theme
 switch included.
 
 **The site** keeps the page's 92rem cap, with a gutter of 16px or the
-safe area. The first viewport is one column; from 1024px it is two, the
+safe area. The head and the first viewport lie on the field, the icon's
+gradient, `clamp(3.5rem, 6vw, 5.5rem)` between the head and the hero and
+`clamp(2.5rem, 5vw, 4rem)` under the hero; below it the stock begins. The
+first viewport is one column; from 1024px it is two, the
 Kobo's column to the proof's as 2 to 3, 3.5rem apart, the Kobo 18rem wide
-(13rem below). The blocks under it are sheets on the stock with deep gaps
+(13rem below). Below 720px the proof's rows stack as the page's book
+cards do: the book, then the margin strip under the 3px double rule, the
+head row hidden. The blocks under it are sheets on the stock with deep gaps
 between (`clamp(4rem, 8vw, 7.5rem)`): the two pulls and *What it does*
 go to two columns from 900px, the Mac app's icon stands beside its words
 from 720px. The four steps are one row that never wraps: cards of at
@@ -514,14 +541,15 @@ Flat paper. The sheet and cards lie on the page with a 1px rule and, in
 light only, a faint fall of shadow; in dark there is none and nothing is
 lost. Below 1024px the list's sheet dissolves and the book cards have no
 shadow. Real depth is kept for things physically on top: a cover, a
-dialog.
+dialog, and on the site's field the drawn Kobo and the proof, objects
+lying on a ground, in both lights.
 
 ### Shadow Vocabulary
 - **Lift, light only** (`box-shadow: 0 1px 0 #cdd1cb, 0 18px 40px -28px rgba(23, 25, 28, 0.38)`): under the sheet and cards. `none` in dark.
-- **Cover** (`box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1)`): a book cover lying on the sheet.
+- **Cover** (`box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1)`): a book cover lying on the sheet; on the site, the proof lying on the field, in both lights.
 - **Dialog** (`box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35)`): Help and Details, over `rgba(10, 12, 14, 0.6)`. The cover lightbox uses `0 24px 64px rgba(0, 0, 0, 0.55)` over `rgba(10, 12, 14, 0.88)`.
 - **Current page** (`box-shadow: 0 1px 0 var(--rule)`): the current item in the desk navigation.
-- **Device, site only** (`box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 36px -18px rgba(6, 17, 26, 0.55)`): the drawn Kobo lying on the stock, in both themes, because it is an object and not a surface. The site's sheets take the lift.
+- **Device, site only** (`box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1)`): the drawn Kobo lying on the field, in both themes, because it is an object and not a surface: the cover shadow with a shell edge of white at 16%. The site's sheets below the field take the lift.
 
 ### Named Rules
 **The Flat Paper Rule.** Surfaces are told apart by tone and a rule. A
@@ -778,10 +806,11 @@ One static page, `site/`, in the page's world: the same tokens, the same
 fonts from its own files, light and dark by the same switch, in the foot.
 What it adds:
 
-- **The drawn Kobo:** the icon's device, 18rem wide on a desk, at the Kobo's own proportion (624 by 920): the shell a gradient of Device with the device shadow, the screen a gradient of E-ink at 3px inside it. The screen is a surface that holds real components, not a picture: the running head and the facts in E-ink Grey at 0.6875rem, a passage of the book in Source Serif 4, and the page's own line gauge (its ticks E-ink Grey, the read part E-ink Ink) with its facts under it. What is drawn on the screen is drawn as the page draws it.
-- **The proof:** the Books page's sheet with its margin (1px Rule, 2px, the lift; Margin Tint behind the 3px double rule, 42% of the width), four made-up books with their marks, the strike and the write-in on the first. The caption says the shelf is made up.
-- **The one red fill:** *Download for Mac* (`button-primary-site`), 2.75rem tall, 0.5rem 1.2rem, 600 at 1rem, as *Sync now* is; brew and uv beside it as code on the sheet. The Two Pencils Rule holds: the first step's number is blue, the first row of the other tools' table is Blue Wash, and nothing else takes a pencil but the marks and links.
-- **The stroke:** one continuous red line, 2px, round-capped, from the end of the Kobo's gauge into the first mark of the margin, ending 10px short of the caret so that the mark is the arrowhead. Only from 1024px, where the two stand side by side. Without JavaScript it is a default path over the hero, stretched with it; with it, measured from the gauge and the mark once the fonts have loaded and on resize, and drawn once by `stroke-dashoffset`. Under reduced motion it stands drawn.
+- **The field:** the head and the first viewport on the icon's own gradient (Field), the same in both lights; the headline, the name and the version line in On Field, the lede, the nav links, the caption and the install commands' label in On Field Quiet, links in On Field Link, the name's caret in On Field. Below it the stock begins and the rest of the page is the page's.
+- **The drawn Kobo:** the icon's device, 18rem wide on a desk, at the Kobo's own proportion (624 by 920): the shell a gradient of Device with the cover shadow and a shell edge of white at 16%, lying on the field, the screen a gradient of E-ink at 3px inside it. The screen is a surface that holds real components, not a picture: the running head and the facts in E-ink Grey at 0.6875rem, a passage of the book in Source Serif 4, and the page's own line gauge (its ticks E-ink Grey, the read part E-ink Ink) with its facts under it. What is drawn on the screen is drawn as the page draws it.
+- **The proof:** the Books page's sheet with its margin (1px Rule, 2px, the cover shadow in both lights, an object lying on the field; Margin Tint behind the 3px double rule, 42% of the width), four made-up books with their marks, the strike and the write-in on the first. Below 720px each row is a book card, its margin a strip under the double rule, the head row hidden. The caption says the shelf is made up.
+- **The one red fill:** *Download for Mac* (`button-primary-site`), 2.75rem tall, 0.5rem 1.2rem, 600 at 1rem, as *Sync now* is; brew and uv beside it as code on the sheet. On the field it is `button-primary-field`, 3.25rem tall, 0.7rem 1.6rem, 600 at 1.125rem, and the day pencil (`red` with `on-fill`) in both lights, because the field is one ground in both; brew and uv beside it are `code-on-field`, Proof Sheet at 8% with a 28% sheet edge. The Two Pencils Rule holds: the first step's number is blue, the first row of the other tools' table is Blue Wash, and nothing else takes a pencil but the marks and links.
+- **The stroke:** one continuous line in Stroke (Red Pencil dark, on the field), 2px, round-capped, from the end of the Kobo's gauge into the first mark of the margin, ending 10px short of the caret so that the mark is the arrowhead. Only from 1024px, where the two stand side by side. Without JavaScript it is a default path over the hero, stretched with it; with it, measured from the gauge and the mark once the fonts have loaded and on resize, and drawn once by `stroke-dashoffset`. Under reduced motion it stands drawn.
 - **The steps:** the four steps as sheet cards in a strip, each with its number in a 1.7rem Field Edge ring, the first filled blue, a heading at 1.0625rem and one graphite paragraph.
 
 ### Motion
