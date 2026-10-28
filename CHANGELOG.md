@@ -30,7 +30,16 @@ minor version may change behaviour; the notes will say so.
 - The Mac app's grey text (authors, facts, labels) is dark enough to read
   in light mode, in every pane, Settings and the widget. A book selected
   in Books keeps its status, marks and gauge readable on the selection's
-  blue, and the covers on the Covers pile open by keyboard too.
+  blue, and the covers on the Covers pile open by keyboard too. Its red
+  "Next sync" stays readable on the grey a selected row takes when the
+  window is in the back.
+- The Mac app's menu bar has a *View* menu (the four panes on ⌘1 to ⌘4,
+  the sidebar on ⌃⌘S, full screen on ⌃⌘F), *Zoom* and *Bring All to
+  Front* in *Window*, and a *Help* menu with the guide and the search of
+  the menus.
+- VoiceOver can move by heading through a book's Details, and Covers
+  shows its keys while the keyboard is in its rows, before an arrow lifts
+  a cover.
 
 ## 0.16.0 - 2026-10-27
 

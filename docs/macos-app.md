@@ -214,7 +214,8 @@ started in three ways:
   Dock icon and a menu bar; closing the window quits it. The menu bar has
   the full Edit menu (the text fields' keys, ⌘V among them, go through it)
   and a *Sync* menu: *Sync Now* (⌘R), *Check Again* (⇧⌘R) and *Show the
-  Log*. VoiceOver is told when a sync starts and how it ended, the window's
+  Log*; *View* has the four panes (⌘1 to ⌘4), the sidebar (⌃⌘S) and full
+  screen (⌃⌘F), and *Help* opens this guide. VoiceOver is told when a sync starts and how it ended, the window's
   own or one the Kobo started.
 - **Settings (⌘-,),** three tabs, each change through the tool. *Mode*:
   local or a server, which runs `setup --local` or `setup --server ...

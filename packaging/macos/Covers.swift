@@ -236,8 +236,20 @@ struct CoversPane: View {
             .accessibilityHidden(true)
             .disabled(model.chosenBook != nil || model.enlarged != nil)  // the book is open: its own fields and keys
         }
+        .overlay(alignment: .bottomTrailing) {  // the keyboard is in the run, before an arrow lifts a cover
+            if focused && lifted == nil && model.chosenBook == nil && model.enlarged == nil {
+                Text("← → ↑ ↓ pick a cover · Return opens it · Space shows it large")
+                    .font(.caption).foregroundStyle(Pencil.graphite)
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .background(RoundedRectangle(cornerRadius: 3).fill(Pencil.sheet))
+                    .overlay(RoundedRectangle(cornerRadius: 3).strokeBorder(Pencil.rule))
+                    .padding(10)
+                    .accessibilityHidden(true)
+            }
+        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Covers: read in the last year, then the rest read, then never opened")
+        .accessibilityHint("Arrow keys pick a cover, Return opens it, Space shows it large")
     }
 
     /// The covers of a row that show now, at their places on its strip: the loop repeated along it.

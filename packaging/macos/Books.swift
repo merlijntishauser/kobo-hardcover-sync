@@ -332,7 +332,7 @@ struct BooksTable: View {
                 }
             }
             .width(min: 96, ideal: 110, max: 160)
-            TableColumn("Hardcover status") { book in StatusCell(book: book) }
+            TableColumn("Hardcover status") { book in StatusCell(book: book, chosen: model.chosenBook == book.id) }
                 .width(min: 140, ideal: 190)
         }
         .contextMenu(forSelectionType: String.self) { ids in
@@ -393,6 +393,7 @@ struct BookCell: View {
 /// struck in red and the new one after a caret; then the edition.
 struct StatusCell: View {
     let book: BooksAnswer.Book
+    var chosen = false  // its row is the selection: grey, not blue, while the window or the table is in the back
 
     var body: some View {
         OnSelection { selected in
@@ -400,9 +401,9 @@ struct StatusCell: View {
                 Mark(state: book.status.kind, size: 16).padding(.top, 1)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(headline).font(.callout.weight(book.status.kind == "next" ? .semibold : .regular))
-                        .foregroundStyle(book.status.kind == "next" ? pencil(Pencil.red, selected) : book.status.kind == "none" ? quiet(selected) : AnyShapeStyle(.primary))
+                        .foregroundStyle(book.status.kind == "next" ? sends(selected, chosen: chosen) : book.status.kind == "none" ? quiet(selected) : AnyShapeStyle(.primary))
                         .fixedSize(horizontal: false, vertical: true)
-                    if book.status.kind == "next" && book.status.text.contains(":") { Correction(book: book, selected: selected) }  // as the page: a change it can say
+                    if book.status.kind == "next" && book.status.text.contains(":") { Correction(book: book, selected: selected, chosen: chosen) }  // as the page: a change it can say
                     if !book.edition.isEmpty {
                         HStack(spacing: 4) {
                             if book.stet { Mark(state: "stet", size: 14) }
@@ -427,15 +428,16 @@ struct StatusCell: View {
 struct Correction: View {
     let book: BooksAnswer.Book
     var selected = false
+    var chosen = false
 
     var body: some View {
         let rest = book.status.text.split(separator: ":", maxSplits: 1).dropFirst().first.map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
         let (kept, was, now) = book.correction.count == 3 ? (book.correction[0], book.correction[1], book.correction[2]) : ("", "", rest)
         HStack(spacing: 4) {
             if !kept.isEmpty { Text(kept) }
-            if !was.isEmpty { Text(was).strikethrough(color: selected ? onSelection : Pencil.red).foregroundStyle(quiet(selected)) }
+            if !was.isEmpty { Text(was).strikethrough(color: selected ? onSelection : chosen ? Pencil.redHeld : Pencil.red).foregroundStyle(quiet(selected)) }
             Mark(state: "next", size: 10)
-            Text(now).foregroundStyle(pencil(Pencil.red, selected))
+            Text(now).foregroundStyle(sends(selected, chosen: chosen))
         }
         .font(.callout)
         .lineLimit(1)
@@ -464,6 +466,7 @@ struct DetailsPane: View {
                     if !spread { Cover(path: book.cover, width: 56) }
                     VStack(alignment: .leading, spacing: 3) {
                         Text(book.title).font(titleFont(spread ? 28 : 18)).fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
                         Text(book.author).font(spread ? .title3 : .body).foregroundStyle(Pencil.graphite)
                     }
                     Spacer(minLength: 0)
@@ -530,7 +533,7 @@ struct DetailsPane: View {
 
     private var match: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Which book is it?").font(.headline)
+            Text("Which book is it?").font(.headline).accessibilityAddTraits(.isHeader)
             if book.details.candidates.isEmpty {
                 Text("Hardcover found nothing for it. Look for it by another title.").font(.callout).foregroundStyle(Pencil.graphite)
             }
@@ -575,7 +578,7 @@ struct DetailsPane: View {
     @ViewBuilder private func pairs(_ title: String, _ pairs: [[String]]) -> some View {
         if !pairs.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.headline)
+                Text(title).font(.headline).accessibilityAddTraits(.isHeader)
                 ForEach(pairs, id: \.self) { pair in
                     HStack(alignment: .firstTextBaseline) {
                         Text(pair.first ?? "").foregroundStyle(Pencil.graphite).frame(width: 96, alignment: .leading)

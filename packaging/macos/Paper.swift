@@ -18,6 +18,7 @@ func tone(_ light: Int, _ dark: Int) -> Color {
 
 enum Pencil {
     static let red = tone(0xc0212b, 0xff8077)  // what a sync sends
+    static let redHeld = tone(0xb41e28, 0xff9c94)  // on a row chosen in a window in the back: 4.5:1 on its grey
     static let fill = tone(0xc0212b, 0xc0212b)  // Sync now: white words need the darker red in dark mode too
     static let blue = tone(0x1c5e8b, 0x86c5ea)  // the reader's choice, or a question for them
     static let green = tone(0x2c6a39, 0x86cf95)
@@ -221,6 +222,11 @@ func quiet(_ selected: Bool) -> AnyShapeStyle { selected ? AnyShapeStyle(.second
 
 /// A pencil's colour; on a selected row the selection's white.
 func pencil(_ color: Color, _ selected: Bool) -> AnyShapeStyle { selected ? AnyShapeStyle(onSelection) : AnyShapeStyle(color) }
+
+/// What a sync sends, on a row: the selection's white, else on a chosen row the red that holds on its grey.
+func sends(_ selected: Bool, chosen: Bool) -> AnyShapeStyle {
+    selected ? AnyShapeStyle(onSelection) : AnyShapeStyle(chosen ? Pencil.redHeld : Pencil.red)
+}
 
 /// A cover from the tool's cache, or the crossed box of a book without one.
 /// The small ones (240 points wide, the run's) are all kept, as the run shows

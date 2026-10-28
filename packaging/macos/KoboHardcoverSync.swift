@@ -22,6 +22,7 @@ import UserNotifications
 let name = "Kobo Hardcover Sync"
 let agentPlist = "org.gargleblaster.kobo-hardcover-sync.app.agent.plist"
 let releases = "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v"
+let help = "https://github.com/merlijntishauser/kobo-hardcover-sync/blob/main/docs/macos-app.md"
 let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=" + (Bundle.main.bundleIdentifier ?? "")
 let privacySettings = "x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders"
 let stoppedWithoutWord = "The sync stopped before it could say why. Its log is agent.log, in Library/Application Support/kobo-hardcover-sync."
@@ -578,10 +579,27 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         syncItems[1].keyEquivalentModifierMask = [.command, .shift]
         syncItems.forEach { $0.target = self }
         _ = menu("Sync", syncItems)
+        let sidebar = item("Show Sidebar", #selector(NSSplitViewController.toggleSidebar(_:)), "s")
+        sidebar.keyEquivalentModifierMask = [.command, .control]
+        let fullScreen = item("Enter Full Screen", #selector(NSWindow.toggleFullScreen(_:)), "f")
+        fullScreen.keyEquivalentModifierMask = [.command, .control]
+        let panes = Pane.allCases.enumerated().map { n, pane in
+            let it = item(pane.rawValue, #selector(paneFromMenu(_:)), "\(n + 1)")
+            it.tag = n
+            it.target = self
+            return it
+        }
+        _ = menu("View", panes + [.separator(), sidebar, fullScreen])
         NSApp.windowsMenu = menu("Window", [
             item("Close", #selector(NSWindow.performClose(_:)), "w"),
             item("Minimize", #selector(NSWindow.performMiniaturize(_:)), "m"),
+            item("Zoom", #selector(NSWindow.performZoom(_:)), ""),
+            .separator(),
+            item("Bring All to Front", #selector(NSApplication.arrangeInFront(_:)), ""),
         ])
+        let helpItem = item("\(name) Help", #selector(helpFromMenu), "?")
+        helpItem.target = self
+        NSApp.helpMenu = menu("Help", [helpItem])  // macOS puts its search of the menus above it
         return bar
     }
 
@@ -589,6 +607,15 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     @objc func syncFromMenu() { model?.syncNow() }
     @objc func checkFromMenu() { model?.refresh() }
     @objc func logFromMenu() { showLog() }
+
+    // ---------- the View and Help menus ----------
+    /// ⌘1 to ⌘4: the sidebar's panes, in its order.
+    @objc func paneFromMenu(_ sender: NSMenuItem) {
+        showWindow()
+        model?.pane = Pane.allCases[sender.tag]
+    }
+
+    @objc func helpFromMenu() { NSWorkspace.shared.open(URL(string: help)!) }
 
     // ---------- the first time ----------
     /// Where the reading goes, the launch agent, `setup`. Whether it ended set up.
@@ -718,6 +745,9 @@ extension App: NSMenuItemValidation {
             return !model.syncing && model.elsewhere.isEmpty && !(model.status?.mode.isEmpty ?? true)
         case #selector(checkFromMenu):
             return model?.checks != nil
+        case #selector(paneFromMenu(_:)):
+            item.state = model?.pane == Pane.allCases[item.tag] ? .on : .off
+            return model != nil
         default:
             return true
         }

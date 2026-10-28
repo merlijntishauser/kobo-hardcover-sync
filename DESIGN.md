@@ -631,7 +631,9 @@ Stock, with each part on a Proof Sheet inside a 1pt Rule, 4pt corners,
 - What was found, facts and labels are Graphite in every pane, in Settings
   and in the widget, never the system's grey, which is 3.9:1 on the light
   stock. On a selected row of the Books list, whose blue would sink the
-  pencils, the words, marks and gauge take the selection's white.
+  pencils, the words, marks and gauge take the selection's white. On the
+  grey of a row chosen in a window in the back, what a sync sends is in
+  Held Red (#b41e28, dark #ff9c94), 4.5:1 on that grey where Red is 3.9.
 
 ### The tip (Mac app)
 One book from the reader's own shelf, chosen by the tool, with a question
