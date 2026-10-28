@@ -131,7 +131,16 @@ started in three ways:
   `docs/plans/2026-10-24-mac-app-window-design.md`. One line says whether
   it is ready for the Kobo, with the mode and the last sync, beside
   *Open the page* and *Sync now*. Beside it a sidebar: *Overview*,
-  *Books* and *History*. Overview is the chain a sync takes: Kobo, This
+  *Books* and *History*. The window's toolbar is AppKit's own, not the
+  one SwiftUI gives a `NavigationSplitView`: the sidebar button at the
+  content's leading edge (`isNavigational`) and a tracking separator at
+  the sidebar's edge, added once the split view exists. SwiftUI's button
+  sits in the sidebar's section of the toolbar, which passes through a
+  width it does not fit while the sidebar animates, and on macOS 26 the
+  toolbar then shows its overflow chevron at the top right for a frame.
+  A plain AppKit split view with the standard items does the same
+  (measured: twelve sightings in six toggles), so the fix is the
+  placement, not the framework. The guide's window has the same. Overview is the chain a sync takes: Kobo, This
   Mac, the server in server mode, Hardcover. Each link has the page's
   mark for how it is, from `doctor --json` and whether notifications are
   on. In local mode the arrows carry the counts of `status --json`: the
@@ -344,9 +353,15 @@ check above never does.
   not connect, disconnect or take a book off the shelf. Opened with
   `open --env KHS_SNAPSHOT=<folder>`, it saves a picture of each pane of
   its window, of a book's Details, of a sample sync on the chain, and of each Settings tab
-  there, and quits (the sidebar comes out empty in these pictures: what
-  is drawn behind it is not in them): a look from an SSH session, which
-  macOS does not let take a screenshot.
+  there, then films the sidebar closing and opening three times
+  (`sidebar-<way>-<n>.txt`: every view near the window's top-right
+  corner, sampled 120 times a second, written when it changes, with the
+  toolbar's items first; the first six frames as pictures), and quits
+  (the sidebar comes out empty in these pictures: what is drawn behind
+  it is not in them): a look from an SSH session, which macOS does not
+  let take a screenshot. `grep -c NSToolbarClippedItemsIndicator
+  sidebar-*.txt` is the check that the toolbar's overflow chevron stays
+  away.
 - `packaging/macos/sign.sh` signs every Mach-O file in the bundle, then
   the widget with its entitlements, then the app. With a Developer ID it
   adds the hardened runtime and Apple's timestamp. An ad-hoc build gets no hardened runtime: under it, a library

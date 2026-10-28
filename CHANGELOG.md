@@ -7,6 +7,13 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Fixed
+
+- Mac app: hiding or showing the sidebar no longer flashes a button at the
+  top right of the window (the toolbar's overflow chevron, for one frame,
+  on macOS 26). The sidebar button now sits at the leading edge of the
+  content's title bar, in the app's window and the guide's.
+
 ## 0.18.0 - 2026-10-28
 
 ### Added

@@ -307,6 +307,7 @@ struct MainView: View {
                 }
             }
             .navigationSplitViewColumnWidth(min: 150, ideal: 170, max: 220)
+            .withoutSidebarToggle()  // the window's toolbar has AppKit's (KoboHardcoverSync.swift)
         } detail: {
             VStack(spacing: 0) {
                 TopLine(model: model).padding(.horizontal, 20).padding(.vertical, 12)
@@ -571,6 +572,11 @@ struct SoftRule: View {
 extension View {
     /// A row on a proof sheet, set in from its edge.
     func onSheet() -> some View { padding(.horizontal, 14).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading) }
+
+    /// A sidebar without SwiftUI's own toggle button in the toolbar (macOS 14 on; 13 keeps it).
+    @ViewBuilder func withoutSidebarToggle() -> some View {
+        if #available(macOS 14, *) { toolbar(removing: .sidebarToggle) } else { self }
+    }
 }
 
 /// The server's page, at Settings: in server mode the Hardcover connection is made there.

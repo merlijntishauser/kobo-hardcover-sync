@@ -208,7 +208,52 @@ func post(_ title: String, _ body: String, picture: String = "", then: @escaping
     }
 }
 
+/// The window's toolbar: AppKit's own sidebar button. SwiftUI's showed the
+/// toolbar's overflow chevron for a frame at the top right each time the
+/// sidebar was toggled (its button sits in the sidebar's section, which passes
+/// through a width it does not fit while the sidebar animates).
+final class SidebarToolbar: NSObject, NSToolbarDelegate {
+    static let toggle = NSToolbarItem.Identifier("sidebar")
+    static let separator = NSToolbarItem.Identifier("sidebar-edge")
+    weak var splitView: NSSplitView?  // the sidebar's split view, once the window has laid it out
+
+    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] { [Self.toggle] }
+    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] { [Self.separator, Self.toggle] }
+
+    func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier id: NSToolbarItem.Identifier, willBeInsertedIntoToolbar: Bool) -> NSToolbarItem? {
+        if id == Self.separator, let splitView {
+            return NSTrackingSeparatorToolbarItem(identifier: id, splitView: splitView, dividerIndex: 0)
+        }
+        guard id == Self.toggle else { return nil }
+        let item = NSToolbarItem(itemIdentifier: id)
+        item.image = NSImage(systemSymbolName: "sidebar.leading", accessibilityDescription: "Sidebar")
+        item.label = "Sidebar"
+        item.toolTip = "Show or hide the sidebar (⌃⌘S)"
+        item.isBordered = true
+        item.isNavigational = true  // at the content's leading edge, after the sidebar's
+        item.action = #selector(NSSplitViewController.toggleSidebar(_:))
+        return item
+    }
+
+    /// The separator that splits the title bar at the sidebar's edge, once the
+    /// split view exists: SwiftUI's own goes with its toggle button.
+    func addSeparator(to window: NSWindow) {
+        guard let toolbar = window.toolbar, !toolbar.items.contains(where: { $0.itemIdentifier == Self.separator }),
+            let split = splitViews(in: window.contentView).first
+        else { return }
+        splitView = split
+        toolbar.insertItem(withItemIdentifier: Self.separator, at: 0)
+    }
+
+    private func splitViews(in view: NSView?) -> [NSSplitView] {
+        guard let view else { return [] }
+        return (view as? NSSplitView).map { [$0] } ?? view.subviews.flatMap { splitViews(in: $0) }
+    }
+}
+
 final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotificationCenterDelegate {
+    let sidebarToolbar = SidebarToolbar()  // a toolbar's delegate is weak; one per window, each keeps its split view
+    let helpToolbar = SidebarToolbar()
     var busy = false  // setup's dialogs are open
     var running = 0  // things still to finish before quitting: a sync, the window
     var window: NSWindow?
@@ -312,10 +357,62 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             steps.append { (self.settings?.contentViewController as? NSTabViewController)?.selectedTabViewItemIndex = n }
             steps.append { self.settings.map { picture($0, folder.appendingPathComponent("settings-\(n + 1).png")) } }
         }
+        steps.append { self.helpFromMenu() }  // the guide's window
+        steps.append { self.help.map { picture($0, folder.appendingPathComponent("help.png")) } }
+        steps.append { self.help?.close() }
+        steps.append { self.model?.pane = .overview }
+        for cycle in 1...3 {  // the sidebar closing and opening, frame by frame: a button that shows for a blink is caught
+            for way in ["close", "open"] {
+                steps.append { self.film(folder, "\(way)-\(cycle)") }
+                steps.append {}
+                steps.append {}
+            }
+        }
         steps.append { NSApp.terminate(nil) }
         for (n, step) in steps.enumerated() {  // the tool answers first, then a step a second
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(6 + n), execute: step)
         }
+    }
+
+    /// Toggles the sidebar and, 120 times a second for just over a second,
+    /// notes the toolbar's items and every view near the window's top-right
+    /// corner when they change (sidebar-<name>.txt); the first six frames as
+    /// pictures. The toolbar's overflow chevron showed there for one frame.
+    func film(_ folder: URL, _ name: String) {
+        guard let window, let root = window.contentView?.superview else { return }
+        var log = ""
+        var frame = 0
+        var last = ""
+        let width = root.bounds.width, height = root.bounds.height
+        func near(_ view: NSView, _ found: inout [String]) {  // every visible view that reaches into the top-right corner
+            let at = view.convert(view.bounds, to: nil)
+            if !view.isHidden, view.alphaValue > 0, at.maxX > width - 300, at.maxY > height - 110, at.width < 700 {
+                let shown = view.layer?.presentation()
+                found.append(
+                    "\(type(of: view)) x\(Int(at.minX))-\(Int(at.maxX)) y\(Int(height - at.maxY)) \(Int(at.width))x\(Int(at.height))"
+                        + (shown.map { " layer x\(Int($0.frame.minX)) o\(String(format: "%.2f", $0.opacity))" } ?? ""))
+            }
+            for sub in view.subviews { near(sub, &found) }
+        }
+        func shoot() {
+            if frame < 6 { picture(window, folder.appendingPathComponent(String(format: "sidebar-%@-%02d.png", name, frame))) }
+            var found = [(window.toolbar?.items ?? []).map { $0.itemIdentifier.rawValue }.joined(separator: " ")]
+            near(root, &found)
+            let now = found.joined(separator: "\n  ")
+            if now != last { log += "\(frame)\n  \(now)\n" }
+            last = now
+            frame += 1
+        }
+        shoot()
+        NSApp.sendAction(#selector(NSSplitViewController.toggleSidebar(_:)), to: nil, from: nil)
+        let timer = Timer(timeInterval: 1.0 / 120, repeats: true) { timer in
+            shoot()
+            if frame > 150 {
+                timer.invalidate()
+                try? log.write(to: folder.appendingPathComponent("sidebar-\(name).txt"), atomically: true, encoding: .utf8)
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
     }
 
     // Opened again while it runs: a sync the Kobo started, or the window.
@@ -405,7 +502,10 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             contentRect: NSRect(x: 0, y: 0, width: 1040, height: 680),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
         window.title = isPreview ? "\(name) (preview)" : name
-        window.toolbar = NSToolbar()  // the sidebar reaches up under the title, as in a Mac app
+        let toolbar = NSToolbar(identifier: "window")  // the sidebar reaches up under the title, as in a Mac app
+        toolbar.delegate = sidebarToolbar
+        toolbar.displayMode = .iconOnly
+        window.toolbar = toolbar
         window.toolbarStyle = .unified
         window.contentView = NSHostingView(rootView: MainView(model: model))
         window.isReleasedWhenClosed = false
@@ -419,6 +519,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         NSApp.mainMenu = mainMenu()
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+        DispatchQueue.main.async { self.sidebarToolbar.addSeparator(to: window) }  // after the first layout made the split view
         model.refresh()
         model.watch()
     }
@@ -636,7 +737,10 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             contentRect: NSRect(x: 0, y: 0, width: 760, height: 560),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
         help.title = "\(name) Help"
-        help.toolbar = NSToolbar()
+        let toolbar = NSToolbar(identifier: "help")
+        toolbar.delegate = helpToolbar
+        toolbar.displayMode = .iconOnly
+        help.toolbar = toolbar
         help.toolbarStyle = .unified
         help.contentView = NSHostingView(rootView: HelpView(place: guide))
         help.isReleasedWhenClosed = false
@@ -646,6 +750,12 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         self.help = help
         begin()  // as Settings: the app stays while it is open
         help.makeKeyAndOrderFront(nil)
+        DispatchQueue.main.async {
+            // The guide's search field makes SwiftUI manage this window's toolbar: it drops
+            // ours as the window shows. Put back once SwiftUI is done, it stays.
+            if help.toolbar == nil { help.toolbar = toolbar }
+            self.helpToolbar.addSeparator(to: help)
+        }
     }
 
     /// The guide at a topic, searching for what was typed in the Help menu.
