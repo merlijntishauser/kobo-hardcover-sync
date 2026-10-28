@@ -135,7 +135,7 @@ struct BooksPane: View {
                 if model.status?.mode == "server" {  // an older server, or a proxy that does not let the app through: the page still has them
                     HStack {
                         Spacer()
-                        Button("Open the page") { _ = tool(["open"]) }
+                        Button("Open the page") { openThePage() }
                     }
                 }
             }
@@ -361,6 +361,11 @@ struct WordPicker: View {
 /// The page, at this book: for what the app does not change.
 func openAt(_ id: String) {
     DispatchQueue.global(qos: .userInitiated).async { _ = tool(["open", "--book", id]) }
+}
+
+/// The page, at its start; off the window's thread, as the tool takes a moment to start.
+func openThePage() {
+    DispatchQueue.global(qos: .userInitiated).async { _ = tool(["open"]) }
 }
 
 struct BookCell: View {

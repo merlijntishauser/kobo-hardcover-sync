@@ -79,6 +79,7 @@ struct CoversPane: View {
     @AppStorage("CoversShow") private var show = "all"  // which books the run holds: one of the list's filters, kept apart from Books'
     @State private var watcher: Any?
     @FocusState private var focused: Bool
+    @State private var hinting = false  // the keys, for a few seconds each time the run gets the focus
     @State private var settled = false  // the whole run stands and has eased to a stop: no frames until it moves
 
     var body: some View {
@@ -236,16 +237,24 @@ struct CoversPane: View {
             .accessibilityHidden(true)
             .disabled(model.chosenBook != nil || model.enlarged != nil)  // the book is open: its own fields and keys
         }
-        .overlay(alignment: .bottomTrailing) {  // the keyboard is in the run, before an arrow lifts a cover
-            if focused && lifted == nil && model.chosenBook == nil && model.enlarged == nil {
+        .overlay(alignment: .bottomTrailing) {  // the keyboard has come into the run: its keys, until an arrow lifts a cover
+            if focused && hinting && !keyed && model.chosenBook == nil && model.enlarged == nil {
                 Text("← → ↑ ↓ pick a cover · Return opens it · Space shows it large")
                     .font(.caption).foregroundStyle(Pencil.graphite)
                     .padding(.horizontal, 8).padding(.vertical, 4)
                     .background(RoundedRectangle(cornerRadius: 3).fill(Pencil.sheet))
                     .overlay(RoundedRectangle(cornerRadius: 3).strokeBorder(Pencil.rule))
                     .padding(10)
+                    .transition(.opacity)
                     .accessibilityHidden(true)
             }
+        }
+        .animation(.easeOut(duration: 0.2), value: hinting)
+        .task(id: focused) {  // not tied to the pointer: hovering a cover does not make it blink
+            hinting = focused
+            guard focused else { return }
+            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            hinting = false
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Covers: read in the last year, then the rest read, then never opened")
@@ -378,6 +387,7 @@ struct RunCover: View, Equatable {
         .accessibilityElement()
         .accessibilityLabel("\(book.title), \(book.author). \(book.status.text)")
         .accessibilityAddTraits(.isButton)
+        .accessibilityAction { open() }  // the tap is the pointer's; VoiceOver's press needs its own
         .accessibilityAction { open() }
     }
 }

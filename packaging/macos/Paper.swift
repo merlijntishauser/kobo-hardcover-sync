@@ -7,36 +7,44 @@ import ImageIO
 import SwiftUI
 
 // ---------- the page's colours, light and dark ----------
-func tone(_ light: Int, _ dark: Int) -> Color {
+/// A colour of the page; `more` is the stronger pair Increase Contrast takes (light, dark).
+func tone(_ light: Int, _ dark: Int, more: (Int, Int)? = nil) -> Color {
     Color(
         NSColor(name: nil) { look in
-            let hex = look.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
+            let hex: Int
+            switch look.bestMatch(from: [.aqua, .darkAqua, .accessibilityHighContrastAqua, .accessibilityHighContrastDarkAqua]) {
+            case .darkAqua?: hex = dark
+            case .accessibilityHighContrastDarkAqua?: hex = more?.1 ?? dark
+            case .accessibilityHighContrastAqua?: hex = more?.0 ?? light
+            default: hex = light
+            }
             return NSColor(
                 srgbRed: CGFloat(hex >> 16 & 0xff) / 255, green: CGFloat(hex >> 8 & 0xff) / 255, blue: CGFloat(hex & 0xff) / 255, alpha: 1)
         })
 }
 
 enum Pencil {
-    static let red = tone(0xc0212b, 0xff8077)  // what a sync sends
-    static let redHeld = tone(0xb41e28, 0xff9c94)  // on a row chosen in a window in the back: 4.5:1 on its grey
+    // With Increase Contrast, the words reach 7:1 on the stock and the rules 3:1.
+    static let red = tone(0xc0212b, 0xff8077, more: (0xa51c25, 0xffa49d))  // what a sync sends
+    static let redHeld = tone(0xb41e28, 0xff9c94, more: (0x9e1a23, 0xffb4ae))  // on a row chosen in a window in the back: 4.5:1 on its grey
     static let fill = tone(0xc0212b, 0xc0212b)  // Sync now: white words need the darker red in dark mode too
-    static let blue = tone(0x1c5e8b, 0x86c5ea)  // the reader's choice, or a question for them
-    static let green = tone(0x2c6a39, 0x86cf95)
+    static let blue = tone(0x1c5e8b, 0x86c5ea, more: (0x164b70, 0xaad8f2))  // the reader's choice, or a question for them
+    static let green = tone(0x2c6a39, 0x86cf95, more: (0x22552d, 0xa8e0b3))
     static let greenWash = tone(0xe1f0e2, 0x18301e)  // behind a message that something worked
     static let flag = tone(0x17191c, 0xe7e9e4)
     static let onFlag = tone(0xfbfbf8, 0x171a1e)
     static let ink = tone(0x17191c, 0xe7e9e4)
-    static let graphite = tone(0x4a4f57, 0xaeb4bb)  // what was found, facts, labels
-    static let faint = tone(0x5f656e, 0x959ca4)
-    static let edge = tone(0x80868e, 0x6e757e)
+    static let graphite = tone(0x4a4f57, 0xaeb4bb, more: (0x33373d, 0xcdd2d7))  // what was found, facts, labels
+    static let faint = tone(0x5f656e, 0x959ca4, more: (0x4a4f57, 0xb4bac1))
+    static let edge = tone(0x80868e, 0x6e757e, more: (0x5f656e, 0x959ca4))
     static let ground = tone(0xedefea, 0x0f1114)  // galley stock: under the covers, under the overview's sheets
     static let sheet = tone(0xfbfbf8, 0x171a1e)  // proof sheet: a slip, a cover's ground
     static let margin = tone(0xf4f5f1, 0x1b1f24)  // the proof margin: Hardcover's side
-    static let rule = tone(0xcdd1cb, 0x30353c)
-    static let ruleSoft = tone(0xe3e6e0, 0x24282e)  // between rows
+    static let rule = tone(0xcdd1cb, 0x30353c, more: (0x828882, 0x636a73))
+    static let ruleSoft = tone(0xe3e6e0, 0x24282e, more: (0xc2c7c0, 0x41474f))  // between rows
     static let rail = tone(0xc3e2ef, 0x123040)  // non-repro blue: your Kobo
     static let railInk = tone(0x14222b, 0xe3f1f7)
-    static let railGraphite = tone(0x2f4653, 0xa9c6d4)
+    static let railGraphite = tone(0x2f4653, 0xa9c6d4, more: (0x22343e, 0xc8dde7))
 }
 
 // ---------- the marks ----------

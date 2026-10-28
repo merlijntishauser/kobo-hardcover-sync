@@ -192,7 +192,7 @@ struct ModeTab: View {
         guard model.allowed(local ? "run setup --local" : "ask \(wanted) whether it answers, then run setup --server") else { return }
         let args = local ? ["setup", "--local"] : ["setup", "--server", wanted, "--check"]
         model.change(args, done: local ? "Now on this computer" : "Now with the server", buttons: local ? ["Open the page", "Later"] : ["OK"]) {
-            if local && $0 == 0 { _ = tool(["open"]) }
+            if local && $0 == 0 { openThePage() }
         }
     }
 }
@@ -313,7 +313,7 @@ struct HardcoverSection: View {
                 Text("The collection on the Kobo is named on the page, under Settings.")
                     .foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                 Spacer()
-                Button("Open the page") { _ = tool(["open"]) }
+                Button("Open the page") { openThePage() }
             }
         }
     }

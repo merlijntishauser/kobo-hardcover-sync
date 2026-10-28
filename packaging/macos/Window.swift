@@ -360,7 +360,7 @@ struct TopLine: View {
                 Text(subtitle).foregroundStyle(Pencil.graphite).textSelection(.enabled)
             }
             Spacer(minLength: 12)
-            Button("Open the page") { _ = tool(["open"]) }
+            Button("Open the page") { openThePage() }
                 .disabled(model.status?.mode.isEmpty ?? true)
             Button("Sync now") { model.syncNow() }
                 .buttonStyle(.borderedProminent)
@@ -474,7 +474,7 @@ struct OverviewSections: View {
             case "Database" where check.found.contains("does not let"):
                 Button("Open Privacy") { if let url = URL(string: privacySettings) { NSWorkspace.shared.open(url) } }
             case _ where check.todo.contains("on the page"):  // connecting to Hardcover, a match, the collection's name
-                Button("Open the page") { _ = tool(["open"]) }
+                Button("Open the page") { openThePage() }
             default:
                 EmptyView()
             }

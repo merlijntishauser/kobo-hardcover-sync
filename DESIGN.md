@@ -634,6 +634,10 @@ Stock, with each part on a Proof Sheet inside a 1pt Rule, 4pt corners,
   pencils, the words, marks and gauge take the selection's white. On the
   grey of a row chosen in a window in the back, what a sync sends is in
   Held Red (#b41e28, dark #ff9c94), 4.5:1 on that grey where Red is 3.9.
+- With Increase Contrast on, the Mac app takes a stronger pencil for each
+  colour that sits on the stock (`tone(..., more:)` in Paper.swift): the
+  words reach 7:1 (Graphite #33373d, dark #cdd2d7), the rules 3:1.
+  Ink, the stock and the sheet stay; the web page keeps its one set.
 
 ### The tip (Mac app)
 One book from the reader's own shelf, chosen by the tool, with a question

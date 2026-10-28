@@ -663,7 +663,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         if local { done.addButton(withTitle: "Later") }
         let openPage = done.runModal() == .alertFirstButtonReturn && local
         if askNext { askForNotifications() }
-        if openPage { _ = tool(["open"]) }
+        if openPage { openThePage() }
         return ok
     }
 

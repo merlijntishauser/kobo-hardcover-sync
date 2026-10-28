@@ -37,9 +37,13 @@ minor version may change behaviour; the notes will say so.
   the sidebar on ⌃⌘S, full screen on ⌃⌘F), *Zoom* and *Bring All to
   Front* in *Window*, and a *Help* menu with the guide and the search of
   the menus.
-- VoiceOver can move by heading through a book's Details, and Covers
-  shows its keys while the keyboard is in its rows, before an arrow lifts
-  a cover.
+- VoiceOver can move by heading through a book's Details, and open a
+  cover on the Covers rows. Covers shows its keys for a few seconds each
+  time the keyboard comes into its rows.
+- *Open the page* in the Mac app no longer holds up the window while the
+  tool starts.
+- With Increase Contrast on (Accessibility, Display), the Mac app's grey
+  text, colours and rules are stronger: the words 7:1 on the paper.
 
 ## 0.16.0 - 2026-10-27
 
