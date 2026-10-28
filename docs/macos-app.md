@@ -154,16 +154,25 @@ started in three ways:
   sets Sync for every book the search and filter show, after asking, and
   only while the list still holds as many (`books --sync ... --expect
   N`). Each change starts the tool once, about 0.06 s on an M-series Mac,
-  and the answer redraws the book. Until you go live, the page's first
-  run sits above the list ("Pick the books that are yours", from
-  `books --json`): *Connect…*, then picking your books, then a red *Go
-  live* that asks first (`settings --set live=true`). *Connect…* (also on
-  Overview's Hardcover link and in Settings, Sync) signs in as the page
-  does: `token --json` opens Hardcover in the browser and says each step
-  as a line of JSON, the sheet follows it, and *Paste a token instead…*
-  gives a token on standard input (`token --paste --json`). Settings,
-  Sync, has the connection with *Disconnect…* and *Send to Hardcover*,
-  the switch between live and a dry run. *Open in Browser* (in server
+  and the answer redraws the book. Until you go live, Getting started
+  (`start` in `books --json`, from `start.py`, the same steps as above the
+  page's books) is a sheet at the top of the Overview, above the chain,
+  and a band above the list in Books: *Connect to Hardcover*, *Plug in
+  your Kobo*, *Choose your books*, *Go live*, each done, now (the first
+  not done, in blue) or later, with the one button that does it:
+  *Connect…*, *Open the page* (the server's Settings, in server mode),
+  *Show the books* (Overview only) and a red *Go live* that asks first
+  (`settings --set live=true`), off until connected. A book answer
+  (`book ID --json`) carries the steps as they are after the change.
+  Once live, `needs_you` counts the books switched on without a match or
+  not sent at the last sync; Books shows it as a band with the blue
+  circled query and *Show Them* (the filter Needs a match). *Connect…*
+  (also on Overview's Hardcover link and in Settings, General) signs in
+  as the page does: `token --json` opens Hardcover in the browser and
+  says each step as a line of JSON, the sheet follows it, and *Paste a
+  token instead…* gives a token on standard input (`token --paste
+  --json`). Settings, General, has the connection with *Disconnect…* and
+  *Send to Hardcover*, the switch between live and a dry run. *Open in Browser* (in server
   mode *Open on* and the server's name) opens the page at the book with its details
   (`open --book`), on the server in server mode. Above the list sits the tip (`tip` in
   `books --json`, from `tip.py`): one book from your own shelf, with the
@@ -205,8 +214,9 @@ started in three ways:
   In server mode Books is the same, with the
   server's books for this Mac's reader: the tool asks the server
   (`/api/app/`, with the upload token) and keeps its covers in
-  `server-covers` in its folder; *Connect on the page…* opens the
-  server's Settings, where that reader's Hardcover connection is made.
+  `server-covers` in its folder; Getting started's *Open the page* opens
+  the server's Settings, where that reader's Hardcover connection is
+  made. A server older than 0.18.0 sends no steps: then there are none.
   A server older than 0.15.0, or a proxy that does not let `/api/app/`
   past its sign-in, is said so, with *Open the page*. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
   shows as "Syncing…" while it runs (`status --json` says so, from the
@@ -222,19 +232,23 @@ started in three ways:
   updates, searchable. It is written for the reader; this document is how
   the app is built. VoiceOver is told when a sync starts and how it ended, the window's
   own or one the Kobo started.
-- **Settings (⌘-,),** three tabs, each change through the tool. *Mode*:
-  local or a server, which runs `setup --local` or `setup --server ...
-  --check` (the server is asked first; nothing changes if it does not
+- **Settings (⌘-,),** two tabs, each change through the tool. *General*,
+  the few most readers touch: in local mode the Hardcover connection and
+  *Send to Hardcover* (in server mode a line that these are on the
+  server's page, with *Open*), *Eject the Kobo after a sync*
+  (`settings --set`), notifications, and the version with looking for a
+  newer one (and *Check now*, `update --json`, which is also *Check for
+  Updates…* in the app menu). *Advanced*, the rest: where your reading
+  goes, local or a server, which runs `setup --local` or `setup --server
+  ... --check` (the server is asked first; nothing changes if it does not
   answer), and in server mode the upload token's hash with *New upload
-  token…* (`setup --new-token`). *Sync*: the settings that are true or
-  false (`settings --set`); in local mode the Hardcover connection (it
-  is changed on the page), the webhook (`webhook`, its token given on
-  standard input, never as an argument) and *Export my reading…* (`export
-  --output`, with a save dialog). *App*: the version, looking for a newer
-  one (and *Check now*, `update --json`, which is also *Check for
-  Updates…* in the app menu), notifications, and *Remove…*: the app unregisters its launch agent
-  and runs `uninstall`, or `uninstall --purge` to delete the folder and
-  the tokens as well, then says to drag the app to the Bin, and quits.
+  token…* (`setup --new-token`); *A detailed log* and *Allow an untested
+  Kobo software version*; in local mode the webhook (`webhook`, its token
+  given on standard input, never as an argument) and *Export my reading…*
+  (`export --output`, with a save dialog); and *Remove…*: the app
+  unregisters its launch agent and runs `uninstall`, or `uninstall
+  --purge` to delete the folder and the tokens as well, then says to drag
+  the app to the Bin, and quits.
 - **The notification of a sync the Kobo started** is shown as soon as
   the tool prints it: the wrapper reads the tool's output line by line,
   so the notification does not wait for what the tool does after it (the
@@ -274,7 +288,7 @@ hand. Which of the two happens is the first thing to see on a real Mac.
   answer.
 - The result is kept in `update.json` in the state folder; the page and
   the wrapper both read it from there.
-- Switched off on the page (Settings, This computer) or with
+- Switched off in the app (Settings, General), on the page (Settings, Advanced, This computer) or with
   `check_for_updates = false` in `config.toml`.
 
 ## Updating

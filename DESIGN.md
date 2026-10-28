@@ -261,7 +261,7 @@ covers are the only pictures, and the tool fetches them itself.
 - Seven marks, all in the legend above the list: red caret, dashed caret, tick, *stet*, circled query, ink square with a cross, dash.
 - Two pencils with one job each: red for what a sync sends, blue for the reader's own choice or a question for them.
 - Two typefaces with one job each: Source Serif 4 for book titles, Schibsted Grotesk for everything else.
-- Square-cut: 2px to 4px corners, no pills; the round shapes are the ring around a first-run step number and, in the Mac app's *Covers*, the disc under a cover's red caret.
+- Square-cut: 2px to 4px corners, no pills; the round shapes are the ring around a Getting started step number and, in the Mac app's *Covers*, the disc under a cover's red caret.
 - Light and dark share every role; WCAG 2.2 AA in both.
 - One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts.
 
@@ -370,7 +370,7 @@ headings, buttons and every fact are Schibsted Grotesk.
 
 **The Figures Rule.** Tabular figures go only where numbers stand in
 columns or are compared: the facts under a gauge (`.meta`), the counts on
-chips, the count on the Filter button, the end of the list's count, the first run's tally and step
+chips, the count on the Filter button, the end of the list's count, Getting started's tally and step
 numbers, and code. Never on the root or on
 running text: in Schibsted Grotesk `tabular-nums` widens full stops and
 commas too. `tests/test_design_tokens.py` holds this.
@@ -450,7 +450,7 @@ shadow is never needed to read the page; the dark theme proves it.
 ## Shapes
 
 Square-cut, like paper and type, with two exceptions: the step numbers of
-the first run sit in circles, as a proofreader rings a number; and on the
+Getting started sit in circles, as a proofreader rings a number; and on the
 Mac app's press run the red caret sits on a small round disc of Proof
 Sheet, so the mark reads on any cover picture. The sheet, cards and dialogs are 2px;
 small inner parts (a tag, a theme-switch button, a cover's fore-edge) are
@@ -570,22 +570,41 @@ is a link to the same view with more of it, landing on the first new book.
 shown or not yet ("Set all 162 in this list to"; "Set the 1 book in this
 list to").
 
-### The first run
-While the reader is in dry run and has books, the top of the Books sheet
-says what to do with a Kobo full of books read before: a heading (*Pick the
-books that are yours*, 1.25rem at 800), one paragraph held to 62ch, and the
-count of books switched on so far (1.75rem at 800, ink, tabular, kept
-current as rows change) with "Nothing is sent while this is a dry run".
-Beside it on a wide desk (from 1100px), under it otherwise, three numbered
-steps: *Connect to Hardcover* (a green tick when done, else a link to
-Settings), *Pick your books* (the current step: its number filled blue,
-its name blue, because it is the reader's), *Go live*. Numbers sit in
-1.6rem circles with a Field Edge ring, the one round shape on the page
-(the Mac app's press run has the other, the caret's disc).
-A double rule closes it off from the toolbar on a desk; below 1024px
-(tablet and phone) it is a card of its own above the search. Going live is the last step, so going live
-removes it. While it shows, the line under *Books* is left out: it would
-say the same.
+### Getting started
+Until the reader goes live, the top of the Books sheet holds the four steps
+from a new reader to a live shelf (`start.py`, the same steps the Mac app
+shows): a heading (*Getting started*, 1.25rem at 800) with one line beside
+it, then *Connect to Hardcover*, *Plug in your Kobo*, *Choose your books*,
+*Go live*. A step that is done has a green tick and its name in graphite;
+the step to do now has its number filled blue and its name blue, because
+it is the reader's; a later step has its number in a 1.6rem circle with a
+Field Edge ring, the one round shape on the page (the Mac app's press run
+has the other, the caret's disc). Each has one line of graphite text and at
+most one control, right there: the sign-in with its code, the form for the
+first computer (a server), the red *Go live* with its question (off until
+connected). *Choose your books* carries the count switched on so far (ink,
+tabular, kept current as rows change). From 1024px the steps stand side by
+side under the heading, parted by Soft Rule, a step with a form or a
+sign-in taking twice the room, so that the list keeps the window; below,
+one under the other. A double rule closes it off from the toolbar on a
+desk; below 1024px it is a card of its own above the search. With no books
+yet it is the whole sheet. Going live removes it. While it shows, the line
+under *Books* is left out: it would say the same.
+
+### Needs you
+Once live, when books switched on wait for the reader (no Hardcover match,
+or not sent at the last sync), one status line at the top of the sheet
+says how many and why, with the blue circled query (a question for the
+reader), and a link to the filter *Needs a match*. Below 1024px a card of
+its own.
+
+### Settings: Advanced
+Settings keeps *You* and *Hardcover* on top; the other cards stand under a
+heading, *Advanced*, with one graphite line naming them, and *Check* after.
+Without JavaScript they are open. With it the heading is a full-width
+bordered button (2.75rem, a chevron at the right that turns, as *Filter*'s)
+that folds them, and they open by themselves when the address points at one
+of their cards.
 
 ### Sign-in steps
 A numbered list held to 64ch. The code is the sign-in code style on
@@ -709,7 +728,7 @@ anything drift or lift.
 - **Do** keep blue for the reader's own choice or a question for them.
 - **Do** add any new mark to the legend and to Help's *Hardcover status*, drawn and coloured the same, before it appears in a row.
 - **Do** set book titles in Source Serif 4 at 600 and everything else in Schibsted Grotesk.
-- **Do** put `tabular-nums` only on numbers that stand in columns or are compared: the facts, chip counts, the Filter count, the end of the list's count, the first run's tally and step numbers, code.
+- **Do** put `tabular-nums` only on numbers that stand in columns or are compared: the facts, chip counts, the Filter count, the end of the list's count, Getting started's tally and step numbers, code.
 - **Do** use 2px for sheets, cards and dialogs, 4px for what you operate, and the 3px double rule where the margin begins.
 - **Do** make every control 2.75rem below 1024px and under a finger.
 - **Do** give every new colour a light and a dark value with the same role, and check it: 4.5:1 for words, 3:1 for field edges and marks.

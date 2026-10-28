@@ -7,6 +7,38 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- *Getting started*, the same on the page and in the Mac app: four steps
+  from a new reader to a live shelf (connect to Hardcover, plug in your
+  Kobo, choose your books, go live), each marked done or to do, with the
+  one button that does it right there. On the page it stands above your
+  books, and connecting to Hardcover, adding your first computer on a
+  server and going live all happen in it, without a trip to Settings. In
+  the app it opens the Overview, above the chain, and the same steps sit
+  above the list in Books. It goes away once you are live.
+- *Needs you*, once you are live: one line above your books, on the page
+  and in the app, counts the books switched on that wait for you, with no
+  Hardcover match yet or not sent at the last sync, and leads to the ones
+  that need a match.
+
+### Changed
+
+- Settings on the page has your name and your Hardcover connection on
+  top, and the rest under *Advanced*: folded until you open it, and open
+  by itself when a link leads to one of its parts. Nothing was removed.
+- Settings in the Mac app has two tabs instead of three: *General*
+  (Hardcover, ejecting the Kobo, notifications, updates) and *Advanced*
+  (where your reading goes, the upload token, the log, an untested Kobo,
+  the webhook, export, removing the app).
+- Setting up the Mac app ends with *Continue*, which opens its window and
+  Getting started there, instead of opening the page in the browser. *With
+  a server* now says it is only for a household that runs one.
+- Signing up on a server lands on Getting started instead of Settings.
+- The check's advice in the app and on the page points to Getting started
+  for choosing your books and going live, and to Settings, Advanced for an
+  untested Kobo; in a terminal it says what it said.
+
 ## 0.17.0 - 2026-10-28
 
 ### Added

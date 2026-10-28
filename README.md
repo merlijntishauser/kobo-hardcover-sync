@@ -147,13 +147,23 @@ kobo-hardcover-sync open
 3. **Plug in the Kobo** and tap *Connect* on it. The first sync reads your
    books.
 
-4. **`open`** shows them in your browser. Everything you read before today
-   is listed and switched *Off*: choose the books that are yours and switch
-   them *On*. Books you open on the Kobo from now on switch on by
-   themselves.
+4. **`open`** shows them in your browser, under **Getting started**: four
+   steps above your books (connect to Hardcover, plug in your Kobo, choose
+   your books, go live), each done, the one to do now in blue with its
+   button right there. Everything you read before today is listed and
+   switched *Off*: choose the books that are yours and switch them *On*.
+   Books you open on the Kobo from now on switch on by themselves.
 
 5. Look at what it would send. Fix the books that say *Needs a Hardcover
-   match*. Then, under Settings, go **live**.
+   match*. Then choose **Go live**, the last step of Getting started. Once
+   you are live, the steps go away; when books need you after that, one
+   line above the list says how many and why.
+
+On a Mac the app does the same without a terminal: it asks where your
+reading goes, and its window starts with the same four steps. Settings,
+on the page and in the app, keeps the Hardcover connection on top; the
+rest (the list's length, the collection, devices, stats, export, and in
+the app the mode, the log and the webhook) is under *Advanced*.
 
 ![Choosing the Hardcover book for a title it was not sure about](docs/img/match.png)
 
@@ -292,7 +302,8 @@ kobo-hardcover-sync setup --server https://kobo.example.org
 ```
 
 `setup` makes an upload token, keeps it in the secret store and prints its
-SHA-256. Paste that hash on the page under Settings, Devices. The hash
+SHA-256. Paste that hash on the page, in Getting started above your books
+(or later under Settings, Advanced, Devices). The hash
 alone cannot upload anything. With `--check` it asks the server first,
 and changes nothing when the server does not answer.
 
@@ -337,7 +348,7 @@ a request for the number of the newest release, so that the app can say
 when there is a newer one. Nothing about you or your books goes with it.
 It only says so: a new version is downloaded, from its release on
 GitHub, when you choose *Install and Restart*. Switch the check off on
-the page under Settings, This computer. Homebrew and PyPI installations
+the page under Settings, Advanced, This computer. Homebrew and PyPI installations
 do not ask.
 
 **Where you ask for it**: `export` writes your reading, titles included,

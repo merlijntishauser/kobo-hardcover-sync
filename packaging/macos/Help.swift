@@ -40,12 +40,13 @@ let helpTopics: [HelpTopic] = [
     HelpTopic(id: "How it works", symbol: "book.closed", lines: [
         .say("\(name) reads your reading from your Kobo and keeps Hardcover in step with it: which books you are reading, how far you are, and what you finished when."),
         .say("Plug in the Kobo and it syncs by itself, whether this window is open or not. A notification says what it did."),
-        .term("Dry run", "Until you go live, nothing is sent: Books shows what would be. Go live in Settings, Sync, when that looks right. With a server, you go live on the server's page."),
+        .term("Getting started", "Until you go live, the overview starts with four steps: connect to Hardcover, plug in your Kobo, choose your books, go live. The step to do now is blue, with its button beside it. Books shows the same steps above the list."),
+        .term("Dry run", "Until you go live, nothing is sent: Books shows what would be. Go live under Getting started when that looks right. With a server, you go live on the server's page."),
         .term("Matches", "A book it cannot place on Hardcover by ISBN, or by title and author together, waits for you to choose. It never guesses."),
         .term("Your Kobo", "Nothing on it is changed, except a collection of the books that sync, and only if you give that collection a name."),
     ]),
     HelpTopic(id: Pane.overview.rawValue, symbol: Pane.overview.symbol, lines: [
-        .say("The overview draws the way a sync goes: from your Kobo, through this Mac and your server if you use one, to Hardcover. Each link has its mark, and the arrows carry the books."),
+        .say("Until you go live, Getting started comes first: the four steps, each with its button. Under it, the overview draws the way a sync goes: from your Kobo, through this Mac and your server if you use one, to Hardcover. Each link has its mark, and the arrows carry the books."),
         .say("Click a link for its checks: what each found, and what to do about it. The first link that needs you opens by itself."),
         .term("Sync Now", "Runs a sync now, without waiting for the Kobo to be plugged in (⌘R)."),
         .term("Check Again", "Runs the checks again, after you fixed something (⇧⌘R)."),
@@ -60,6 +61,7 @@ let helpTopics: [HelpTopic] = [
         .term("State: Re-reading", "A new read-through of a book you finished before."),
         .term("Want to read, Did not finish", "Hardcover keeps that status, and nothing is sent until you set Follow Kobo again. A status you set on Hardcover shows up here as the matching State."),
         .term("Details", "Select a book for what the Kobo and Hardcover each have, its dates and edition, and its match. A book without one lists the books it could be, and lets you look for others."),
+        .term("Needs you", "Once you are live, a line above the list counts the books that wait for you: without a Hardcover match, or not sent at the last sync. Show Them shows the ones that need a match."),
         .term("The tip", "Above the list, one book of yours with a question about it."),
     ]),
     HelpTopic(id: "The marks", symbol: "checkmark.circle", lines: [
@@ -103,14 +105,19 @@ let helpTopics: [HelpTopic] = [
         .term("Nothing new", "The Kobo is as it was at the last sync. Read a page, and plug it in again."),
         .term("Needs a Hardcover match", "Open the book's Details and choose the right book, or look for it there."),
         .term("Hardcover could not be reached", "Nothing is lost: the next sync carries on."),
-        .term("Hardcover no longer accepts the connection", "It was ended on Hardcover, or went unused for six months. Connect again in Settings, Sync."),
+        .term("Hardcover no longer accepts the connection", "It was ended on Hardcover, or went unused for six months. Connect again in Settings, General."),
         .term("Something it did not expect", "A bug. Show the Log has the details; please report it, with what the overview's checks say."),
         .say("The log holds counts and messages, never book titles or tokens."),
     ]),
     HelpTopic(id: "Updates", symbol: "arrow.down.circle", lines: [
         .say("At most once a day, after a sync, the app asks GitHub for the latest version. When one is out, the overview says so; Check for Updates… in the app menu asks at once."),
         .term("Install and Restart", "Downloads the new version, installs it only when it is signed and notarised as this one is, puts it in this one's place and starts it."),
-        .term("Look for a newer version", "In Settings, App: off, and the app never asks."),
+        .term("Look for a newer version", "In Settings, General: off, and the app never asks."),
+    ]),
+    HelpTopic(id: "Settings", symbol: "gearshape", lines: [
+        .say("Settings (⌘,) has two tabs. General holds what most people change; Advanced holds the rest, and nothing there is needed to get started."),
+        .term("General", "The Hardcover connection and Send to Hardcover (with a server, these are on its page), ejecting the Kobo after a sync, notifications, and the app's version and updates."),
+        .term("Advanced", "Where your reading goes (this Mac or a server) and the upload token, a detailed log, an untested Kobo software version, the webhook, export, and removing the app."),
     ]),
 ]
 

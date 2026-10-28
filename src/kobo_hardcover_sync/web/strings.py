@@ -423,6 +423,14 @@ T = {
             ],
         ),
         (
+            "Getting started",
+            [
+                "Until you go live, four steps stand above your books: connect to Hardcover, plug in your Kobo, choose your books, go live. The step to do now is blue, and its button is right there.",
+                "Nothing is sent to Hardcover before the last step. Until then the red marks show what Hardcover would be told.",
+                "Once you are live, the steps go away. When books need you after that, one line above the list says how many and why: no Hardcover match yet, or not sent at the last sync.",
+            ],
+        ),
+        (
             "What happens when",
             [
                 (
@@ -486,7 +494,7 @@ T = {
         (
             "Settings",
             [
-                "Your Hardcover token, live or dry run, the collection name on your Kobo and the devices that may upload for you are under Settings. You see and change only your own.",
+                "Settings has your name and your Hardcover connection, with live or dry run, on top. Advanced holds the rest, such as how many books the list shows, the collection name on your Kobo, your reading as a file and, on a server, the computers that may upload for you. You see and change only your own.",
             ],
         ),
     ],
