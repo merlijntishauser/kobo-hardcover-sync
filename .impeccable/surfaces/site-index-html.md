@@ -35,7 +35,11 @@ button; blue: the reader's choice or a question), Tick Green for up to date.
 Schibsted Grotesk 800 for headings, 400/600 for everything else; Source Serif 4
 600 for book titles only. Square-cut 2 to 4px corners, 1px rules, the 3px double
 rule at the margin. The Kobo drawn from the icon's own device drawing (dark body,
-e-ink screen in Margin Tint). Light and dark share every role.
+the e-ink in the icon's own EINK_TOP/EINK_BOTTOM, art.py: a Clara's warm
+grey paper, not the page's Margin Tint; its greys darkened to 4.5:1). The
+site's own type scale, a page read once from a chair: 1rem body and lede,
+a fluid h1 to 2.1rem and h2 to 2.1rem, 1.1rem name in the head, 11px on
+the device's running head and facts. Light and dark share every role.
 
 STORY: Sees their own device with a book on it, reads the mark beside it,
 understands in one glance that the Kobo's reading goes to Hardcover and that the
@@ -43,17 +47,20 @@ page shows before it sends. Downloads the Mac app. Scrolls to the two printed
 lights of the page, the Mac app's window, the four steps from plug-in to shelf,
 what it does not do, the other tools, the independent sentence.
 
-FIRST VIEWPORT: Two fifths left: the Kobo at about 300px wide on a desk, its
-screen holding "Middlemarch, George Eliot", the line gauge full, "100%, finished
-21 Sep"; under the device the headline in two short lines at 2.1rem ("Your Kobo
-knows what you read. Now Hardcover does too." or as written), the red Download
-for Mac button with the live version under it in small type and "Homebrew, pip"
-beside it. Three fifths right: the proof margin behind its double rule, three
-sample books with their marks: Next sync (struck "Currently reading", caret
-"Read, 21 Sep 2026"), Up to date (Moby-Dick 37%), Needs you (De avonden). One
-red stroke from the end of the gauge into the first mark, drawn once on load
-(1.2s, ease-out), static under reduced motion. Below 1024px the Kobo and the
-margin stack, the button stays within the first screen on a 390 by 844 phone.
+FIRST VIEWPORT: Two fifths left: the Kobo at 18rem (288px) wide on a desk, its
+screen the last page of Middlemarch (running head, the Finale's opening lines,
+the line gauge full, "100%, finished 21 Sep"); under the device the headline in
+two short lines at 2.1rem ("Your Kobo knows what you read. Now Hardcover does
+too."), the red Download for Mac button with the live version under it in small
+type and the brew and uv commands beside it. Three fifths right: the proof margin
+behind its double rule, four sample books with their marks: Next sync (struck
+"Currently reading, 88%", caret "Read, 21 Sep 2026"), Up to date (Moby-Dick 37%),
+Needs you (De avonden), Not syncing (Bleak House, history switched off). One red
+stroke from the end of the gauge into the first mark, there without JavaScript
+(a path for the desk layout, stretched with it), measured and drawn once on load
+with JavaScript (1.2s, ease-out), static under reduced motion. Below 1024px the
+Kobo and the margin stack, the button stays within the first screen on a 390 by
+844 phone and at 1280 by 800.
 
 FORM: The e-ink page, structure 7 of 7 on my ordered list, dealt to lead by
 concept seed 795e9dc3 (surface scope, persuade). Raised by the declined hand: the
@@ -68,6 +75,7 @@ provenance.
 
 ## Unresolved
 
-- Whether the Mac app's window picture (snapshot mode, sidebar blank) is good
-  enough or the app is shown by its icon and the Overview only.
+- The Mac app's window picture: the snapshot render was not fit for a public
+  page; the app is shown by its icon and words, and the page says a picture
+  follows. The owner is asked for real screenshots of their window.
 - GitHub Pages is not switched on for the repository; the owner decides when.

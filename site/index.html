@@ -113,13 +113,13 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
       </div>
       <p class="caption">The page's own margin, with a made-up shelf. What the next sync will tell Hardcover is written in before anything is sent: the old value struck through, the new one after a caret. Nothing is sent until you say so.</p>
     </div>
-    <svg class="stroke" id="stroke" aria-hidden="true"><path id="strokepath" d="" /></svg>
+    <svg class="stroke" id="stroke" aria-hidden="true" viewBox="0 0 1440 824" preserveAspectRatio="none"><path id="strokepath" d="M241 333 C 708 333, 623 89, 1091 89" /></svg>
   </section>
 
   <!-- The page, printed twice. -->
   <section class="block" id="page" aria-labelledby="page-h">
     <h2 id="page-h">The page: a proof of your shelf, by day and at night</h2>
-    <p class="lede">Each book is a line on the sheet. The Hardcover column is the proof margin: a red caret where the next sync changes something, a tick where Hardcover is up to date, a circled query where it needs you. Switch a book on or off, pin a state, choose a match. It works without JavaScript and on a phone.</p>
+    <p class="lede">Each book is a line on the sheet. The Hardcover column is the proof margin: a red caret where the next sync changes something, a tick where Hardcover is up to date, a circled query where it needs you. Switch a book on or off, pin a state, choose a match. It works without JavaScript and on a phone. The pictures show a made-up shelf of 34 books; the marks are the page's own.</p>
     <div class="pulls">
       <figure><img src="img/books-light.jpg" alt="The Books page in the light theme: a sidebar with the name, Books, Settings and Admin, the last sync and the Sync now button; a list of books with covers, progress gauges and Sync and State switches; the Hardcover status margin with its marks" width="1280" height="800" loading="lazy"><figcaption>By day</figcaption></figure>
       <figure><img src="img/books-dark.jpg" alt="The same Books page in the dark theme" width="1280" height="800" loading="lazy"><figcaption>At night</figcaption></figure>
@@ -143,6 +143,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
           <li>Updates: the app says when there is a newer release and installs it when you ask, after checking Apple's notarisation and the signature.</li>
         </ul>
         <p class="ways"><a class="primary" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a> <span class="muted">A disk image; drag the app to Applications. Linux: the command line, with the same page.</span></p>
+        <p class="muted">A picture of the window follows; until then the page above is the closest look, and the window shows the same books with the same marks.</p>
       </div>
     </div>
   </section>
@@ -189,10 +190,10 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
       <table>
         <thead><tr><th scope="col"></th><th scope="col">What it needs</th><th scope="col">Choose it when</th></tr></thead>
         <tbody>
-          <tr><th scope="row">Kobo Hardcover Sync</th><td>A computer to plug the Kobo into. Nothing on the Kobo.</td><td>You read Kobo-store books on an unmodified Kobo, or your Kobo's software is too new for the tools below.</td></tr>
-          <tr><th scope="row"><a href="https://codeberg.org/StrayRose/NickelHardcover">NickelHardcover</a></th><td>An add-on installed on the Kobo itself. Its README says firmware 5.x is not supported yet.</td><td>Your Kobo's firmware is supported and you are happy to modify the device. It syncs over Wi-Fi without a computer, and also does highlights, notes and reviews.</td></tr>
-          <tr><th scope="row"><a href="https://github.com/Billiam/hardcoverapp.koplugin">KOReader with the Hardcover plugin</a></th><td>KOReader on the device. KOReader cannot open the store's DRM books.</td><td>You read your own, DRM-free books in KOReader.</td></tr>
-          <tr><th scope="row"><a href="https://github.com/crocodilestick/Calibre-Web-Automated">Calibre-Web Automated</a></th><td>A Calibre library on a server that the Kobo syncs with.</td><td>Your books live in Calibre and reach the Kobo from there.</td></tr>
+          <tr><th scope="row">Kobo Hardcover Sync</th><td data-label="What it needs">A computer to plug the Kobo into. Nothing on the Kobo.</td><td data-label="Choose it when">You read Kobo-store books on an unmodified Kobo, or your Kobo's software is too new for the tools below.</td></tr>
+          <tr><th scope="row"><a href="https://codeberg.org/StrayRose/NickelHardcover">NickelHardcover</a></th><td data-label="What it needs">An add-on installed on the Kobo itself. Its README says firmware 5.x is not supported yet.</td><td data-label="Choose it when">Your Kobo's firmware is supported and you are happy to modify the device. It syncs over Wi-Fi without a computer, and also does highlights, notes and reviews.</td></tr>
+          <tr><th scope="row"><a href="https://github.com/Billiam/hardcoverapp.koplugin">KOReader with the Hardcover plugin</a></th><td data-label="What it needs">KOReader on the device. KOReader cannot open the store's DRM books.</td><td data-label="Choose it when">You read your own, DRM-free books in KOReader.</td></tr>
+          <tr><th scope="row"><a href="https://github.com/crocodilestick/Calibre-Web-Automated">Calibre-Web Automated</a></th><td data-label="What it needs">A Calibre library on a server that the Kobo syncs with.</td><td data-label="Choose it when">Your books live in Calibre and reach the Kobo from there.</td></tr>
         </tbody>
       </table>
     </div>

@@ -11,11 +11,12 @@ repository, with Actions as its source (`configure-pages` with `enablement`).
 
 - **The first viewport** is a Kobo at reading scale, its e-ink screen on the
   last page of *Middlemarch* with the reading line as the Kobo keeps it, and,
-  beside it, the page's own proof margin with three sample books and their
+  beside it, the page's own proof margin with four sample books and their
   marks. One red stroke runs from the end of the gauge into the first mark:
-  drawn once on load, measured with JavaScript so it meets both ends at any
-  width, left out below 1024px where the two stack, and still under reduced
-  motion. The headline and the download sit under the device; the download
+  a path written for the desk layout and stretched with it, so it is there
+  without JavaScript; with JavaScript it is measured so it meets both ends at
+  any width and drawn once on load, still under reduced motion; left out
+  below 1024px where the two stack. The e-ink's colours are the icon's own. The headline and the download sit under the device; the download
   is within the first screen at 1280x800 and on a 390x844 phone.
 - **The download** goes to the latest release on GitHub. With JavaScript the
   version, date, size and the disk image's own address are read from the

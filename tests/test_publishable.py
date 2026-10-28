@@ -25,6 +25,7 @@ WHERE = (
     "CHANGELOG.md",
     "packaging",
     ".impeccable",
+    "site",
 )
 TEXT = {".py", ".md", ".json", ".toml", ".yml", ".yaml", ".css", ".js", ".html", ".svg", ".txt", ".sh", ".applescript", ""}
 # Written in pieces, so this file does not find itself.
@@ -62,6 +63,8 @@ ALLOWED = (
     "owner `mer" + "lijntishauser`",  # docs/releasing.md: the PyPI publisher
     "mer" + "lijntishauser/tap",  # the Homebrew tap
     "mer" + "lijntishauser/homebrew-tap",
+    "mer" + "lijntishauser.github.io/kobo-hardcover-sync",  # the site
+    "mer" + "lijntishauser/kobo-hardcover-sync",  # the repository, as the site's script and the test of it name it
 )
 
 

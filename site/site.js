@@ -41,6 +41,7 @@
     if (!svg || !path || !gauge || !mark || !hero) return;
     function draw() {
       if (window.innerWidth < 1024) { svg.classList.remove("on"); return; }
+      svg.removeAttribute("preserveAspectRatio");  // measured from here on, not stretched
       var h = hero.getBoundingClientRect();
       var g = gauge.getBoundingClientRect();
       var m = mark.querySelector(".mk").getBoundingClientRect();

@@ -68,7 +68,7 @@ a { color: var(--blue); text-underline-offset: 3px; text-decoration-thickness: 1
 a:hover { text-decoration-thickness: 2px; }
 :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 2px; }
 h1, h2, h3 { margin: 0; letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; }
-h1 { font-size: clamp(1.8rem, 1.1rem + 2.2vw, 2.5rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; }
+h1 { font-size: clamp(1.75rem, 1.25rem + 1vw, 2.1rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; }
 h2 { font-size: clamp(1.45rem, 1.1rem + 1.4vw, 2.1rem); font-weight: 800; letter-spacing: -0.03em; }
 h3 { font-size: 1.0625rem; font-weight: 700; }
 p { margin: 0; }
@@ -82,7 +82,7 @@ code { font: 0.875rem var(--mono); color: var(--ink); background: var(--sheet); 
 /* The head: the name with its caret, and the page's places. */
 .top {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1.5rem;
-  padding-inline: var(--gutter) var(--gutter-r); padding-block: 1rem; max-width: 92rem; margin: 0 auto;
+  padding-inline: var(--gutter) var(--gutter-r); padding-block: 0.75rem; max-width: 92rem; margin: 0 auto;
 }
 .name { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--ink); text-decoration: none; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
 .name svg { width: 1rem; height: 1rem; color: var(--red); }
@@ -99,10 +99,10 @@ main { display: grid; gap: clamp(4rem, 8vw, 7.5rem); padding-block: 0.5rem 5rem;
   width: 100%; max-width: 92rem; margin: 0 auto; padding-inline: var(--gutter) var(--gutter-r);
 }
 @media (min-width: 1024px) {
-  .hero { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 3.5rem; padding-top: 0.5rem; }
-  .hero { --kobo-w: 16rem; }
+  .hero { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 3.5rem; padding-top: 0.25rem; }
+  .hero { --kobo-w: 18rem; }
 }
-.device-col { display: grid; gap: 1.25rem; min-width: 0; }
+.device-col { display: grid; gap: 1rem; min-width: 0; }
 .proof-col { display: grid; gap: 0.9rem; min-width: 0; }
 
 /* The Kobo: the icon's own device, as a thing that holds real parts. */
@@ -186,8 +186,8 @@ main { display: grid; gap: clamp(4rem, 8vw, 7.5rem); padding-block: 0.5rem 5rem;
 
 /* The stroke: one continuous red line from the gauge into the first mark, drawn once. */
 .stroke { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; display: none; }
-.stroke path { fill: none; stroke: var(--red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-@media (min-width: 1024px) { .stroke.on { display: block; } }
+.stroke path { fill: none; stroke: var(--red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+@media (min-width: 1024px) { .stroke { display: block; } }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 .stroke.on path { stroke-dasharray: var(--len, 1000); stroke-dashoffset: var(--len, 1000); animation: draw 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; }
 @media (prefers-reduced-motion: reduce) {
@@ -243,6 +243,17 @@ thead th { font-size: 0.78rem; font-weight: 650; color: var(--graphite); backgro
 tbody th { font-weight: 650; white-space: nowrap; }
 tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
 tbody tr:first-child th, tbody tr:first-child td { background: var(--blue-wash); }
+@media (max-width: 719.98px) {
+  table { min-width: 0; display: block; }
+  thead { display: none; }
+  tbody, tr { display: block; }
+  tr { border-bottom: 1px solid var(--rule); }
+  tr:last-child { border-bottom: 0; }
+  th, td { display: block; border-bottom: 0; padding: 0.5rem 1rem; }
+  tbody th { white-space: normal; padding-top: 0.9rem; }
+  td:last-child { padding-bottom: 0.9rem; }
+  td::before { content: attr(data-label); display: block; font-size: 0.78rem; font-weight: 650; color: var(--graphite); margin-bottom: 0.1rem; }
+}
 
 /* The close. */
 .close { padding-block: 0.5rem; }
