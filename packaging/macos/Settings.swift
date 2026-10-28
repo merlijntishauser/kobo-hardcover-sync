@@ -286,7 +286,7 @@ struct TokenSection: View {
                 }
                 .disabled(settings.uploadTokenHash.isEmpty)
                 Button("Open Devices on the page") {
-                    if let page = URL(string: settings.server + "/settings") { NSWorkspace.shared.open(page) }
+                    if let page = URL(string: settings.server + "/settings#devices") { NSWorkspace.shared.open(page) }  // inside Advanced: the fold opens on it
                 }
                 Spacer()
                 Button("New upload token…") { renew() }.disabled(model.working)
