@@ -75,7 +75,6 @@ provenance.
 
 ## Unresolved
 
-- The Mac app's window picture: the snapshot render was not fit for a public
-  page; the app is shown by its icon and words, and the page says a picture
-  follows. The owner is asked for real screenshots of their window.
+- The Mac app's window: the owner's own screenshots (Overview, Books, Covers,
+  light and dark), shown in the page's theme; the snapshot render was not fit.
 - GitHub Pages is on (switched on by the owner, 2026-10-29); the site is live.

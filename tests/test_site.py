@@ -9,7 +9,7 @@ PAGE = (SITE / "index.html").read_text()
 
 
 def test_every_file_the_page_and_its_stylesheet_name_is_shipped():
-    named = set(re.findall(r'(?:src|href)="([^"#:]+)"', PAGE))
+    named = set(re.findall(r'(?:src|srcset|href)="([^"#:]+)"', PAGE))
     named |= set(re.findall(r"url\(([^)]+)\)", (SITE / "site.css").read_text()))
     named = {n.strip("\"'") for n in named if not n.startswith(("./", "#"))}
     assert named, "the page names its files"

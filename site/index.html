@@ -143,9 +143,23 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
           <li>Updates: the app says when there is a newer release and installs it when you ask, after checking Apple's notarisation and the signature.</li>
         </ul>
         <p class="ways"><a class="primary" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a> <span class="muted">A disk image; drag the app to Applications. Linux: the command line, with the same page.</span></p>
-        <p class="muted">A picture of the window follows; until then the page above is the closest look, and the window shows the same books with the same marks.</p>
       </div>
     </div>
+    <div class="appshots">
+      <figure>
+        <picture class="app"><source srcset="img/mac-overview-dark.jpg" media="(prefers-color-scheme: dark)"><img src="img/mac-overview-light.jpg" alt="The app's Overview: a sidebar with Overview, Books, Covers and History; the line Ready for the Kobo with the server and the last sync; the chain Kobo, This Mac, Server, Hardcover with a tick on each step that is in order" width="1800" height="1177" loading="lazy"></picture>
+        <figcaption>Overview: the chain a sync takes, each step with its checks.</figcaption>
+      </figure>
+      <figure>
+        <picture class="app"><source srcset="img/mac-books-dark.jpg" media="(prefers-color-scheme: dark)"><img src="img/mac-books-light.jpg" alt="The app's Books pane: the shelf as a list with covers, progress, the Sync and State switches, and the Hardcover status with its marks; a band says twenty books need a match" width="1800" height="1177" loading="lazy"></picture>
+        <figcaption>Books: the same shelf and the same marks as the page.</figcaption>
+      </figure>
+      <figure>
+        <picture class="app"><source srcset="img/mac-covers-dark.jpg" media="(prefers-color-scheme: dark)"><img src="img/mac-covers-light.jpg" alt="The app's Covers pane: rows of book covers, one opened to a spread with its title, author and progress, and the book that asks to be picked up again" width="1800" height="1177" loading="lazy"></picture>
+        <figcaption>Covers: the library as a press run; a cover opens to its spread.</figcaption>
+      </figure>
+    </div>
+    <p class="caption">The author's own shelf, in the theme this page is in; the app follows the Mac's.</p>
   </section>
 
   <!-- The four steps: one strip that scales. -->

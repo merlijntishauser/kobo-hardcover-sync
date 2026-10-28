@@ -25,8 +25,11 @@ repository, with Actions as its source (`configure-pages` with `enablement`).
   uv follow as the second way.
 - **The proof** is real: the Books page rendered from the code with a made-up
   shelf (`browser_tests/shots.py`), light and dark at 2560 pixels wide, a
-  phone at 390, and a book's Details; the Mac app by its icon and its words,
-  until there is a screenshot of it worth showing. The sample covers are
+  phone at 390, and a book's Details; the Mac app by the owner's own
+  screenshots of its window (Overview, Books, Covers), taken on the Mac in
+  both themes and shown in the theme the page is in (a `<picture>` on the
+  system's theme, swapped by the theme switch), cropped to the window with
+  the corners filled in the theme's ground. The sample covers are
   drawn (`browser_tests/covers/`, a publisher's series on bookcloth, each
   saying *A made-up shelf* at its foot) so the shelf does not show the
   crossed box of a missing cover; the captions say the shelf is made up.

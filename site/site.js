@@ -59,9 +59,14 @@
     window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(draw, 120); });
   }
 
-  // 3. The theme switch in the foot: Light, Auto, Dark, kept in this browser.
+  // 3. The theme switch in the foot: Light, Auto, Dark, kept in this browser. The app's
+  //    pictures follow it too: a <picture> only knows the system's theme by itself.
   function theme() {
     var buttons = document.querySelectorAll("[data-theme-choice]");
+    var sources = document.querySelectorAll("picture.app > source");
+    function pictures(c) {
+      sources.forEach(function (src) { src.media = c === "dark" ? "all" : c === "light" ? "not all" : "(prefers-color-scheme: dark)"; });
+    }
     function current() {
       try { return localStorage.getItem("theme") || "auto"; } catch (e) { return "auto"; }
     }
@@ -74,9 +79,11 @@
         var c = b.dataset.themeChoice;
         try { if (c === "auto") localStorage.removeItem("theme"); else localStorage.setItem("theme", c); } catch (e) {}
         if (c === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = c;
+        pictures(c);
         show();
       });
     });
+    pictures(current());
     show();
   }
 
