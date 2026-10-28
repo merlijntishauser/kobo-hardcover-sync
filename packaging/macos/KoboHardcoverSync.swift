@@ -20,6 +20,7 @@ import SwiftUI
 import UserNotifications
 
 let name = "Kobo Hardcover Sync"
+let site = URL(string: "https://merlijntishauser.github.io/kobo-hardcover-sync/")!  // the tool's own page, in About
 let agentPlist = "org.gargleblaster.kobo-hardcover-sync.app.agent.plist"
 let releases = "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v"
 let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=" + (Bundle.main.bundleIdentifier ?? "")
@@ -524,6 +525,17 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         model.watch()
     }
 
+    /// The standard About panel, with the site and the independent-project sentence as its credits.
+    @objc func showAbout() {
+        let credits = NSMutableAttributedString()
+        let para = NSMutableParagraphStyle()
+        para.alignment = .center
+        let plain: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.labelColor, .paragraphStyle: para]
+        credits.append(NSAttributedString(string: "merlijntishauser.github.io/kobo-hardcover-sync\n", attributes: plain.merging([.link: site], uniquingKeysWith: { $1 })))
+        credits.append(NSAttributedString(string: "\nAn independent project: not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover.", attributes: plain))
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+    }
+
     @objc func showSettings() {
         if let settings {
             NSApp.activate(ignoringOtherApps: true)
@@ -661,8 +673,10 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         settingsItem.target = self
         let updatesItem = item("Check for Updates…", #selector(checkForUpdates), "")
         updatesItem.target = self
+        let aboutItem = item("About \(name)", #selector(showAbout), "")
+        aboutItem.target = self
         _ = menu(name, [
-            item("About \(name)", #selector(NSApplication.orderFrontStandardAboutPanel(_:)), ""),
+            aboutItem,
             updatesItem,
             .separator(),
             settingsItem,

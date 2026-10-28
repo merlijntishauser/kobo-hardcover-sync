@@ -7,6 +7,12 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- Mac app: About shows a link to the tool's site,
+  merlijntishauser.github.io/kobo-hardcover-sync, with the
+  independent-project sentence.
+
 ### Changed
 
 - The tag on a book first opened after the tool started says *Auto*, the
