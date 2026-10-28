@@ -312,9 +312,11 @@ def test_the_pictures_are_what_art_py_draws(tmp_path, monkeypatch):
     for size in (16, 32):  # drawn for their size
         assert art.small_icon(size) == (MACOS / f"AppIcon-{size}.svg").read_text()
         assert art.small_volume(size) == (MACOS / f"VolumeIcon-{size}.svg").read_text()
-    for name in ("icon.json", "Assets/slip.svg", "Assets/marks.svg"):
+    for name in ("icon.json", "Assets/reader.svg", "Assets/sync.svg"):
         assert (tmp_path / "AppIcon.icon" / name).read_text() == (MACOS / "AppIcon.icon" / name).read_text(), name
-    assert (MACOS / "AppIcon.icon" / "Assets" / "slip.svg").read_text().count("filter") == 0  # not drawn by actool
+    for layer in ("reader.svg", "sync.svg"):  # neither filters nor gradients: actool draws flat, macOS lights the layers
+        assert (MACOS / "AppIcon.icon" / "Assets" / layer).read_text().count("filter") == 0
+        assert (MACOS / "AppIcon.icon" / "Assets" / layer).read_text().count("Gradient") == 0
 
 
 def test_the_icon_and_the_disk_window_are_packed():

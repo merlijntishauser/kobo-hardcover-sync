@@ -57,6 +57,10 @@ minor version may change behaviour; the notes will say so.
 
 ### Changed
 
+- A new icon for the Mac app: the Kobo itself, a page on its e-ink screen
+  and the two-way sync under it in blue, on a blue-to-navy tile. It holds
+  its own in the Dock and reads at 16 pixels, which the galley slip did
+  not. The disk image's icon and window follow it.
 - Covers in the Mac app takes about a third less of the processor while
   the rows drift, and next to nothing while a book or its large cover is
   open over them: each row now moves as one, and the rows stop drawing

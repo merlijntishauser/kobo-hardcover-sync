@@ -382,24 +382,29 @@ What the environment holds, and how to set it up once, is in
 Drawn in the page's Galley Proof (`DESIGN.md`) by
 `packaging/macos/art.py`, which writes the SVGs; a test holds them to it.
 
-- **The app's icon** is a galley of the list of books: three books with
-  their covers and line gauges on a slip, and in its proof margin the red
-  caret, the tick and the dashed caret, on the non-repro blue. From macOS
-  26 on it is `AppIcon.icon`, two layers for Icon Composer (the slip, and
-  its marks in glass), which `build.sh` compiles into `Assets.car` with
-  `actool`. Only Xcode 26 or later reads that format: `build.sh` takes the
+- **The app's icon** is the Kobo itself: the e-reader, a page of text on
+  its e-ink screen and under it, in the blue pencil, the two-way sync (an
+  arrow that goes, one that comes back), on a tile that runs from the
+  rail's blue down to navy. It replaced the galley slip of 0.14.0 to 0.17.0,
+  which was pale, busy at small sizes and the page's idea rather than an
+  icon's; the owner chose it from four directions, and asked for the sync
+  mark in place of a red caret. From macOS 26 on it is `AppIcon.icon`:
+  the gradient as the bundle's fill (`linear-gradient` with an
+  orientation, the unofficial schema), and two flat layers for Icon
+  Composer (the e-reader, and the sync mark in glass), which macOS lights
+  itself; `build.sh` compiles it into `Assets.car` with `actool`. Only Xcode 26 or later reads that format: `build.sh` takes the
   selected Xcode's `actool`, or else the newest Xcode installed, and stops
   when none can. Without `Assets.car`, macOS 26 shrinks an older icon into
   a grey tile. Up to macOS 15 it is `AppIcon.png`, the same drawn flat on
   Apple's grid, made into `AppIcon.icns`, with `AppIcon-16.png` and
   `AppIcon-32.png` for the two smallest sizes: drawn on their own pixel
-  grid, two books and the red caret as large as the margin takes, where
-  the large one shrunk is grey noise. (From macOS 26 on the system draws
-  every size from `AppIcon.icon` itself.)
-- **The disk's icon** (`VolumeIcon.png`) is the slip lying in a galley
-  tray, so the disk and the app tell apart on the desktop; at 16 and 32
-  pixels (`VolumeIcon-16.png`, `VolumeIcon-32.png`) a plain tray with the
-  slip standing up out of it. A downloaded
+  grid, the device, two or three lines and the arrows as whole pixels,
+  where the large one shrunk is grey noise. (From macOS 26 on the system
+  draws every size from `AppIcon.icon` itself.)
+- **The disk's icon** (`VolumeIcon.png`) is the e-reader standing half
+  out of a slate cloth sleeve, so the disk and the app tell apart on the
+  desktop; at 16 and 32 pixels (`VolumeIcon-16.png`, `VolumeIcon-32.png`)
+  the same, square to the grid. A downloaded
   `.dmg` file itself keeps the plain disk image icon: a file's own icon
   does not come along in a download.
 - **The disk's window** (`dmg-background.png` and its `@2x`) is the app's

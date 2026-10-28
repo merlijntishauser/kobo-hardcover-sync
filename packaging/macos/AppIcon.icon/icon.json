@@ -1,17 +1,30 @@
 {
   "fill" : {
-    "solid" : "srgb:0.76471,0.88627,0.93725,1.00000"
+    "linear-gradient" : [
+      "srgb:0.06275,0.12941,0.18431,1.00000",
+      "srgb:0.16471,0.36078,0.51765,1.00000"
+    ],
+    "orientation" : {
+      "start" : {
+        "x" : 0.5,
+        "y" : 1
+      },
+      "stop" : {
+        "x" : 0.5,
+        "y" : 0
+      }
+    }
   },
   "groups" : [
     {
       "layers" : [
         {
           "glass" : true,
-          "image-name" : "marks.svg",
-          "name" : "marks"
+          "image-name" : "sync.svg",
+          "name" : "sync"
         }
       ],
-      "name" : "marks",
+      "name" : "sync",
       "shadow" : {
         "kind" : "layer-color",
         "opacity" : 0.5
@@ -22,11 +35,11 @@
       "layers" : [
         {
           "glass" : false,
-          "image-name" : "slip.svg",
-          "name" : "slip"
+          "image-name" : "reader.svg",
+          "name" : "reader"
         }
       ],
-      "name" : "slip",
+      "name" : "reader",
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
