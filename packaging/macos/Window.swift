@@ -435,8 +435,13 @@ struct OverviewSections: View {
             ProofSheet {
                 ChainView(model: model, open: $chosen).padding(12)
             }
-            HStack {
-                Text(model.checks == nil ? "Checking everything a sync depends on…" : model.summary).font(.callout).foregroundStyle(Pencil.graphite)
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(model.checks == nil ? "Checking everything a sync depends on…" : model.summary).font(.callout).foregroundStyle(Pencil.graphite)
+                    if model.checks != nil && open == nil {  // nothing opened by itself: say that a step can be
+                        Text("Click a step for its checks.").font(.callout).foregroundStyle(Pencil.graphite)
+                    }
+                }
                 Spacer()
                 Button("Check again") { model.refresh() }.disabled(model.checks == nil)
             }

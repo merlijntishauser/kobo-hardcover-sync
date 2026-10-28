@@ -46,8 +46,8 @@ let helpTopics: [HelpTopic] = [
         .term("Your Kobo", "Nothing on it is changed, except a collection of the books that sync, and only if you give that collection a name."),
     ]),
     HelpTopic(id: Pane.overview.rawValue, symbol: Pane.overview.symbol, lines: [
-        .say("Until you go live, Getting started comes first: the four steps, each with its button. Under it, the overview draws the way a sync goes: from your Kobo, through this Mac and your server if you use one, to Hardcover. Each link has its mark, and the arrows carry the books."),
-        .say("Click a link for its checks: what each found, and what to do about it. The first link that needs you opens by itself."),
+        .say("Until you go live, Getting started comes first: the four steps, each with its button. Under it, the overview draws the way a sync goes: from your Kobo, through this Mac and your server if you use one, to Hardcover. Each step has its mark, and the arrows carry the books."),
+        .say("Click a step for its checks: what each found, and what to do about it. The first step that needs you opens by itself."),
         .term("Sync Now", "Runs a sync now, without waiting for the Kobo to be plugged in (⌘R)."),
         .term("Check Again", "Runs the checks again, after you fixed something (⇧⌘R)."),
     ]),
@@ -99,7 +99,7 @@ let helpTopics: [HelpTopic] = [
         .key("Escape", "Close a book, or put a cover back"),
     ]),
     HelpTopic(id: "When something is wrong", symbol: "lifebuoy", lines: [
-        .say("Start with the overview. A link with the question mark or the black square opens its checks, and each says what to do."),
+        .say("Start with the overview. A step with the question mark or the black square opens its checks, and each says what to do."),
         .term("Nothing happens when the Kobo is plugged in", "Tap Connect on the Kobo. If the Kobo's check says macOS does not let the app read it, do what the check says, then plug it in again."),
         .term("The Kobo's database is in use", "Close Calibre, the Kobo desktop app or anything else that reads the Kobo, and plug it in again."),
         .term("Nothing new", "The Kobo is as it was at the last sync. Read a page, and plug it in again."),
