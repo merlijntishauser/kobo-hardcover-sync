@@ -173,15 +173,28 @@ document.querySelectorAll('dialog').forEach(d => d.addEventListener('click', ev 
   const box = document.getElementById('details');
   if (!box || !box.showModal) return;
   const body = box.querySelector('.dbody');
-  document.addEventListener('click', async ev => {
-    const a = ev.target.closest && ev.target.closest('a.details');
-    if (!a || ev.metaKey || ev.ctrlKey || ev.shiftKey) return;
-    ev.preventDefault();
+  const show = async a => {
     const r = await fetch(a.href, { headers: { 'X-Requested-With': 'fetch' } });
     if (!r.ok) { location.href = a.href; return; }
     body.innerHTML = await r.text();
     box.showModal();
+  };
+  document.addEventListener('click', ev => {
+    const a = ev.target.closest && ev.target.closest('a.details');
+    if (!a || ev.metaKey || ev.ctrlKey || ev.shiftKey) return;
+    ev.preventDefault();
+    show(a);
   });
+  // Opened at a book from the app or `open --book` (at=…&open=details): its details, over its row.
+  // open= leaves the address, so a reload or the way back shows the list.
+  const u = new URL(location.href);
+  if (u.searchParams.get('open') === 'details') {
+    const row = document.getElementById('b-' + u.searchParams.get('at'));
+    u.searchParams.delete('open');
+    history.replaceState(null, '', u);
+    const a = row && row.querySelector('a.details');
+    if (a) show(a);
+  }
   box.addEventListener('click', ev => { if (ev.target === box) box.close(); });
   // Forms in the dialog (Use, Search Hardcover, Remove) work in place: the
   // dialog and the row refresh, the dialog stays open.

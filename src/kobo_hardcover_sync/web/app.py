@@ -751,9 +751,9 @@ def frame_for(me, current: str, main: str, side: str = "", head: str = "") -> st
 
 
 def view_query(query: str, show: int, size: int = PAGE) -> str:
-    """The view's own query, to come back to after an action: as it came, without at=, and with
+    """The view's own query, to come back to after an action: as it came, without at= and open=, and with
     show= when more than the first books are shown (size: how many those are; 0, all)."""
-    pairs = [(k, v) for k, v in parse_qsl(query, keep_blank_values=False) if k not in ("at", "show")]
+    pairs = [(k, v) for k, v in parse_qsl(query, keep_blank_values=False) if k not in ("at", "show", "open")]
     if size and show > size:
         pairs.append(("show", str(show)))
     return urlencode(pairs)

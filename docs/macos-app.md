@@ -164,8 +164,8 @@ started in three ways:
   gives a token on standard input (`token --paste --json`). Settings,
   Sync, has the connection with *Disconnect…* and *Send to Hardcover*,
   the switch between live and a dry run. *Open in Browser* (in server
-  mode *Open on* and the server's name) opens the page at the book (`open
-  --book`), on the server in server mode. Above the list sits the tip (`tip` in
+  mode *Open on* and the server's name) opens the page at the book with its details
+  (`open --book`), on the server in server mode. Above the list sits the tip (`tip` in
   `books --json`, from `tip.py`): one book from your own shelf, with the
   blue circled query because it asks you something; *Open* shows it in
   Details, *Not now* puts it aside for a month (`book ID --not-now`).

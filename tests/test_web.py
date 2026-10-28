@@ -139,6 +139,13 @@ def test_pick_returns_to_the_row_with_filters(tmp_path, monkeypatch):
     assert r.status_code == 303 and r.headers["location"] == "/?f=reading&q=mine&at=mine#b-mine"
 
 
+
+def test_a_page_opened_at_a_book_with_its_details_comes_back_to_the_list_alone(tmp_path, monkeypatch):
+    """open --book lands with at= and open=details; the way back from an action on that page has neither."""
+    c = client(tmp_path, monkeypatch)
+    page = c.get("/?f=reading&at=mine&open=details", headers={"Remote-User": "robin"}).text
+    assert 'name="back" value="f=reading"' in page
+
 def test_page_has_theme_switch_chips_and_static_assets(tmp_path, monkeypatch):
     c = client(tmp_path, monkeypatch)
     h = {"Remote-User": "robin"}

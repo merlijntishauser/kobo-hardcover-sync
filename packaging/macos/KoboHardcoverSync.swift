@@ -216,6 +216,8 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     var settings: NSWindow?
     var settingsModel: SettingsModel?
     var help: NSWindow?
+    var guide = GuidePlace()
+    let guideSearch = GuideSearch()
 
     func begin() { running += 1 }
 
@@ -256,6 +258,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         if isPreview, let folder = ProcessInfo.processInfo.environment["KHS_SNAPSHOT"], !folder.isEmpty {
             return snapshots(into: URL(fileURLWithPath: folder))
         }
+        NSApp.registerUserInterfaceItemSearchHandler(guideSearch)  // the Help menu's search finds the guide too
         DispatchQueue.main.async { self.openedByHand() }
     }
 
@@ -448,6 +451,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             settings = nil
         } else if closing === help {
             help = nil
+            guide = GuidePlace()  // the next time it opens as new
         }
         if window == nil && settings == nil && help == nil { NSApp.setActivationPolicy(.accessory) }
         end()
@@ -606,7 +610,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         ])
         let helpItem = item("\(name) Help", #selector(helpFromMenu), "?")
         helpItem.target = self
-        NSApp.helpMenu = menu("Help", [helpItem])  // macOS puts its search of the menus above it
+        NSApp.helpMenu = menu("Help", [helpItem])  // macOS puts its search above it: of the menus, and of the guide (GuideSearch)
         return bar
     }
 
@@ -634,7 +638,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         help.title = "\(name) Help"
         help.toolbar = NSToolbar()
         help.toolbarStyle = .unified
-        help.contentView = NSHostingView(rootView: HelpView())
+        help.contentView = NSHostingView(rootView: HelpView(place: guide))
         help.isReleasedWhenClosed = false
         help.delegate = self
         help.center()
@@ -642,6 +646,13 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         self.help = help
         begin()  // as Settings: the app stays while it is open
         help.makeKeyAndOrderFront(nil)
+    }
+
+    /// The guide at a topic, searching for what was typed in the Help menu.
+    func showGuide(at topic: String?, search: String) {
+        guide.search = search
+        guide.chosen = topic
+        helpFromMenu()
     }
 
     // ---------- the first time ----------

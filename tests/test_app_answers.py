@@ -371,7 +371,7 @@ def test_open_at_a_book_lands_on_its_row(home, monkeypatch):
     monkeypatch.setattr(page, "link", lambda: "http://127.0.0.1:5000/?k=key")
     cli.main(["open", "--book", "file:///mnt/onboard/a b.epub"], computer=computer)
     assert computer.opened == [
-        "http://127.0.0.1:5000/?k=key&at=file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub#b-file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub"
+        "http://127.0.0.1:5000/?k=key&at=file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub&open=details#b-file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub"
     ]
 
 
@@ -380,7 +380,7 @@ def test_open_at_a_book_in_server_mode_lands_on_its_row_on_the_server(home):
     config.save(config.Config(server="https://kobo.example.org/"))
     cli.main(["open", "--book", "file:///mnt/onboard/a b.epub"], computer=computer)
     assert computer.opened == [
-        "https://kobo.example.org/?at=file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub#b-file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub"
+        "https://kobo.example.org/?at=file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub&open=details#b-file%3A%2F%2F%2Fmnt%2Fonboard%2Fa%20b.epub"
     ]
 
 

@@ -19,6 +19,15 @@ enum HelpLine: Hashable {
         case .mark(_, let a, let b): return a + " " + b
         }
     }
+
+    /// Its name in the Help menu's search: none for a paragraph, which its topic stands for.
+    var title: String? {
+        switch self {
+        case .say: return nil
+        case .term(let a, _), .mark(_, let a, _): return a
+        case .key(let a, let b): return a + "  " + b
+        }
+    }
 }
 
 struct HelpTopic: Identifiable {
@@ -105,32 +114,84 @@ let helpTopics: [HelpTopic] = [
     ]),
 ]
 
-struct HelpView: View {
-    @State private var chosen: String? = helpTopics.first?.id
-    @State private var search = ""
+/// The topics that say `search`: all of them for no search.
+func guideTopics(saying search: String) -> [HelpTopic] {
+    let q = search.trimmingCharacters(in: .whitespaces)
+    guard !q.isEmpty else { return helpTopics }
+    return helpTopics.filter { topic in
+        topic.id.localizedCaseInsensitiveContains(q) || topic.lines.contains { $0.words.localizedCaseInsensitiveContains(q) }
+    }
+}
 
-    private var shown: [HelpTopic] {
-        let q = search.trimmingCharacters(in: .whitespaces)
-        guard !q.isEmpty else { return helpTopics }
-        return helpTopics.filter { topic in
-            topic.id.localizedCaseInsensitiveContains(q) || topic.lines.contains { $0.words.localizedCaseInsensitiveContains(q) }
+/// Where the guide is open and what it searches for: its sidebar sets them, and so does the Help menu's search.
+final class GuidePlace: ObservableObject {
+    @Published var chosen: String? = helpTopics.first?.id
+    @Published var search = ""
+}
+
+/// The Help menu's search field: macOS finds the menus, this finds the guide's topics and the words it explains.
+final class GuideSearch: NSObject, NSUserInterfaceItemSearching {
+    /// What a result opens: a topic, and the guide searching for what was typed.
+    final class Hit: NSObject {
+        let topic: String
+        let title: String
+        let search: String
+
+        init(_ topic: String, _ title: String, _ search: String) {
+            self.topic = topic
+            self.title = title
+            self.search = search
         }
     }
 
+    func searchForItems(withSearch searchString: String, resultLimit: Int, matchedItemHandler handleMatchedItems: @escaping ([Any]) -> Void) {
+        let q = searchString.trimmingCharacters(in: .whitespaces)
+        guard !q.isEmpty else { return handleMatchedItems([]) }
+        var hits: [Hit] = []
+        for topic in guideTopics(saying: q) {
+            let lines = topic.lines.filter { $0.words.localizedCaseInsensitiveContains(q) }
+            if topic.id.localizedCaseInsensitiveContains(q) || lines.contains(where: { $0.title == nil }) {
+                hits.append(Hit(topic.id, topic.id, q))
+            }
+            hits += lines.compactMap { line in line.title.map { Hit(topic.id, $0, q) } }
+        }
+        handleMatchedItems(Array(hits.prefix(resultLimit)))
+    }
+
+    func localizedTitles(forItem item: Any) -> [String] {
+        [(item as? Hit)?.title ?? ""]
+    }
+
+    func performAction(forItem item: Any) {
+        guard let hit = item as? Hit else { return }
+        DispatchQueue.main.async { (NSApp.delegate as? App)?.showGuide(at: hit.topic, search: hit.search) }
+    }
+
+    func showAllHelpTopics(forSearch searchString: String) {
+        let first = guideTopics(saying: searchString).first?.id
+        DispatchQueue.main.async { (NSApp.delegate as? App)?.showGuide(at: first, search: searchString) }
+    }
+}
+
+struct HelpView: View {
+    @ObservedObject var place: GuidePlace
+
+    private var shown: [HelpTopic] { guideTopics(saying: place.search) }
+
     var body: some View {
         NavigationSplitView {
-            List(shown, selection: $chosen) { topic in
+            List(shown, selection: $place.chosen) { topic in
                 Label(topic.id, systemImage: topic.symbol).tag(topic.id)
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200)
         } detail: {
-            if let topic = shown.first(where: { $0.id == chosen }) ?? shown.first {
-                HelpPage(topic: topic, search: search)
+            if let topic = shown.first(where: { $0.id == place.chosen }) ?? shown.first {
+                HelpPage(topic: topic, search: place.search)
             } else {
-                Galley { Text("Nothing in the guide says “\(search)”.").foregroundStyle(Pencil.graphite) }
+                Galley { Text("Nothing in the guide says “\(place.search)”.").foregroundStyle(Pencil.graphite) }
             }
         }
-        .searchable(text: $search, placement: .sidebar, prompt: "Search the guide")
+        .searchable(text: $place.search, placement: .sidebar, prompt: "Search the guide")
         .frame(minWidth: 680, minHeight: 440)
     }
 }

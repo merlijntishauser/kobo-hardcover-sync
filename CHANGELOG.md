@@ -15,7 +15,8 @@ minor version may change behaviour; the notes will say so.
   it.
 - A guide in the Mac app (*Help*, ⌘?): how it works, each pane, what the
   marks mean, the keys, and what to do when something is wrong.
-  Searchable, and it no longer sends you to GitHub.
+  Searchable, also from the *Help* menu's own search field, and it no
+  longer sends you to GitHub.
 - A full-screen cover in the Mac app: on a cover shown large, the button
   in its corner (or F) puts it alone on black over the whole screen; a
   click or any key puts it back.
@@ -48,8 +49,8 @@ minor version may change behaviour; the notes will say so.
   window is in the back.
 - The Mac app's menu bar has a *View* menu (the four panes on ⌘1 to ⌘4,
   the sidebar on ⌃⌘S, full screen on ⌃⌘F), *Zoom* and *Bring All to
-  Front* in *Window*, and a *Help* menu with the guide and the search of
-  the menus.
+  Front* in *Window*, and a *Help* menu with the guide, whose search
+  field finds the guide's topics as well as the menus.
 - VoiceOver can move by heading through a book's Details, and open a
   cover on the Covers rows. Covers shows its keys for a few seconds each
   time the keyboard comes into its rows.
@@ -57,8 +58,11 @@ minor version may change behaviour; the notes will say so.
   tool starts.
 - A book's *Open on the Page* in the Mac app opened the server's front
   page in server mode, not the book; `open --book` now lands on the book
-  there too. The button says where it goes: *Open in Browser*, or *Open
-  on* and the server's name.
+  there too, with its details open. The button says where it goes:
+  *Open in Browser*, or *Open on* and the server's name.
+- On a wide window, the page opened at a book (after an action, or from
+  `open --book`) scrolled the whole page as well as the list: its top
+  out of view, and no way to scroll back up. Only the list scrolls now.
 - With Increase Contrast on (Accessibility, Display), the Mac app's grey
   text, colours and rules are stronger: the words 7:1 on the paper.
 

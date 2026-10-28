@@ -75,7 +75,7 @@ kobo-hardcover-sync book ID [--sync MODE] [--state STATE [--date DATE]] [--searc
 
 kobo-hardcover-sync open [--book ID]
     Open the page (local mode: it is started for the occasion). --book
-    opens it at that book.
+    opens it at that book, with its details.
 
 kobo-hardcover-sync export [--output FILE [--every-sync]] [--stop]
     Your reading as JSON: every book the Kobo has seen touched, how far,
@@ -244,7 +244,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     bk.add_argument("--large-cover", action="store_true", help="also its cover large (fetched once and kept): large in the answer")
     bk.add_argument("--json", action="store_true", help="as JSON")
     opn = sub.add_parser("open", help="open the page")
-    opn.add_argument("--book", default="", metavar="ID", help="at this book (its id in books --json)")
+    opn.add_argument("--book", default="", metavar="ID", help="at this book, with its details (its id in books --json)")
     exp = sub.add_parser("export", help="your reading as JSON, for a database or dashboard of your own")
     exp.add_argument("--output", default="", metavar="FILE", help="write to FILE (readable by you only) instead of the screen")
     exp.add_argument("--reader", default="", metavar="NAME", help="on the server: the reader to export")
@@ -941,10 +941,10 @@ def _open(a, computer) -> None:
     cfg = config.load()
     if not cfg.mode:
         sys.exit("kobo-hardcover-sync: not set up yet: run setup first.")
-    if a.book:  # the page lands on the book: its place in the list, then its row; the server's page has the same rows
+    if a.book:  # the page lands on the book: its place in the list, its row, and its details; the server's page has the same rows
         at = quote(a.book, safe="")
         start = cfg.server.rstrip("/") + "/?" if cfg.server else page.link() + "&"
-        return computer.open_page(f"{start}at={at}#b-{at}")
+        return computer.open_page(f"{start}at={at}&open=details#b-{at}")
     computer.open_page(cfg.server or page.link())
 
 

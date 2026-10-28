@@ -639,7 +639,9 @@ code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color
   .head { gap: 0.45rem; margin-bottom: 1.1rem; }
   .pagehead { font-size: 2.1rem; }
   .sheet { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  .tablewrap { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; scroll-padding-top: 3.25rem; }
+  /* position: the same for the list. Its text for screen readers would otherwise make the page as long as the
+     list, and a jump to a book (#b-…) would scroll the page as well as the list, its top out of reach. */
+  .tablewrap { position: relative; flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; scroll-padding-top: 3.25rem; }
   thead th { position: sticky; top: 0; z-index: 1; }
   th.c-hc { background: var(--margin); }
   tbody tr { scroll-margin-top: 3rem; }
