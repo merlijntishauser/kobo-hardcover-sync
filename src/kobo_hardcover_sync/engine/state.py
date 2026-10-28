@@ -197,7 +197,17 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
     added = new_auto = changed = read_seconds = 0
     for b in books:
         if not (b.seconds_read or b.first_event or b.percent):
-            continue  # never touched by anyone: not interesting yet
+            # Never touched by anyone: not interesting yet. One that was, and is
+            # known here from then (the Kobo keeps its events a while, not for
+            # ever), still gets the cover and language it may have lacked.
+            if b.image_id or b.language:
+                con.execute(
+                    """update book set image_id = case when image_id is null or image_id = '' then ? else image_id end,
+                       language = case when language is null or language = '' then ? else language end
+                       where reader=? and device=? and content_id=?""",
+                    (b.image_id, b.language, reader, device, b.content_id),
+                )
+            continue
         row = con.execute(
             "select mode, first_seen_reading, percent, status, finished_at, seconds_read from book where reader=? and device=? and content_id=?",
             (reader, device, b.content_id),

@@ -7,6 +7,14 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Fixed
+
+- A book's cover reaches the server even when the book is no longer
+  reported as touched: a book that came in before its cover id travelled
+  with the upload, and that the Kobo has since stopped listing events for,
+  kept an empty cover (the crossed box on Covers and Books). The next
+  import fills it in.
+
 ## 0.19.0 - 2026-10-28
 
 ### Fixed

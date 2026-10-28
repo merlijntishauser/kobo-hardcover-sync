@@ -74,3 +74,20 @@ def test_cover_route_serves_own_books_only(tmp_path, monkeypatch):
 def test_cdn_url_per_size():
     assert covers.CDN.format(id="x", size=covers.SIZES["thumb"]).endswith("/x/240/360/85/False/image.jpg")
     assert covers.CDN.format(id="x", size=covers.SIZES["large"]).endswith("/x/1200/1800/90/False/image.jpg")
+
+
+def test_a_cover_id_the_kobo_sends_later_reaches_a_book_it_no_longer_reports_as_touched(tmp_path):
+    # The book came in with an event but no cover id (an older upload). Later the Kobo has
+    # forgotten the event, so the import skips the book as untouched, yet now sends the id.
+    st = state.connect(str(tmp_path / "state.db"))
+    then = kobo_db.Book("b1", "T", "A", "1", 0, 0, "2026-01-01T00:00:00Z", 0, "2026-01-01T00:00:00")
+    state.import_books(st, "alice", "k1", [then])
+    assert tuple(st.execute("select image_id, language, first_event from book").fetchone()) == ("", "", "2026-01-01T00:00:00")
+    later = kobo_db.Book("b1", "T", "A", "1", 0, 0, "2026-01-01T00:00:00Z", 0, "", image_id="img-1", language="nl")
+    unknown = kobo_db.Book("b2", "U", "A", "2", 0, 0, "", 0, "", image_id="img-2")  # never touched: still not a row
+    counts = state.import_books(st, "alice", "k1", [later, unknown])
+    assert [tuple(r) for r in st.execute("select image_id, language, first_event from book")] == [("img-1", "nl", "2026-01-01T00:00:00")]
+    assert counts["tracked_added"] == 0 and counts["changed"] == 0
+    kept = kobo_db.Book("b1", "T", "A", "1", 0, 0, "2026-01-01T00:00:00Z", 0, "", image_id="img-9", language="en")
+    state.import_books(st, "alice", "k1", [kept])  # an id once known is not replaced from a skipped row
+    assert tuple(st.execute("select image_id, language from book").fetchone()) == ("img-1", "nl")
