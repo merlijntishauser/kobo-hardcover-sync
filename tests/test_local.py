@@ -302,7 +302,9 @@ def test_the_page_wants_the_key_from_open(local):
     # With the cookie, the page is the usual one, for the one built-in reader.
     home_page = inside.get("/")
     assert (
-        home_page.status_code == 200 and "Connect to Hardcover under Settings" in home_page.text and "On this computer:" in home_page.text
+        home_page.status_code == 200
+        and "Tap Connect on the Kobo. The first sync reads your books." in home_page.text
+        and "On this computer:" in home_page.text
     )
     assert 'href="/admin"' not in home_page.text
 

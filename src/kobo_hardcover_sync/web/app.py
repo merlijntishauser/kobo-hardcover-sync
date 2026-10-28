@@ -25,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware.gzip import GZipMiddleware
 
-from .. import __version__, appbooks, booklist, doctor
+from .. import __version__, appbooks, booklist, doctor, start
 from ..engine import export, hardcover, job, oauth, state
 from ..engine.plan import action, quiet_for
 from ..env import env
@@ -303,30 +303,34 @@ def status_html(status: tuple[str, str]) -> str:
     return marks.line(*status)
 
 
-def first_run(con, reader: str, live: bool) -> str:
-    """Above the list until the reader goes live: what to do with a Kobo full
-    of books read before, and the three steps from here to a live shelf. Going
-    live is the last step, so going live ends it. Empty when there is nothing
-    to show."""
-    total, history = con.execute("select count(*), coalesce(sum(history), 0) from reader_book where reader=?", (reader,)).fetchone()
-    if live or not total:
-        return ""
-    on = sum(1 for r in con.execute("select mode, history from reader_book where reader=?", (reader,)) if state.syncs(r))
-    if accounts.has_token(con, reader):
-        connect = f'<li class="done">{marks.mark("ok")}<b>{T["fr_connect"]}</b><span class="s">{T["fr_connect_done"]}</span></li>'
-    else:
-        connect = (
-            f'<li><span class="n">1</span><b>{T["fr_connect"]}</b><span class="s">{T["fr_connect_todo"]} '
-            f'<a href="/settings#hardcover">{T["fr_connect_link"]}</a></span></li>'
-        )
-    return (
-        f'<section class="firstrun" aria-labelledby="fr-h"><div><h3 id="fr-h">{T["fr_title"]}</h3>'
-        f"<p>{e(T['fr_text'].format(n=total, h=history))}</p>"
-        f'<p class="tally"><strong>{on}</strong> <span>{T["fr_tally"]} {T["fr_dry"]}</span></p></div>'
-        f'<ol class="steps" aria-label="{T["fr_steps"]}">{connect}'
-        f'<li class="here" aria-current="step"><span class="n">2</span><b>{T["fr_pick"]}</b><span class="s">{T["fr_pick_here"]}</span></li>'
-        f'<li><span class="n">3</span><b>{T["fr_live"]}</b><span class="s">{T["fr_live_when"]}</span></li></ol></section>'
+def getting_started(con, me, waiting: bool = False, link: bool = True) -> tuple[str, str]:
+    """Above the books: Getting started until the reader is live, Needs you
+    after (start.py, worked out as the Mac app has it). (card, band); either
+    may be empty. link: the band leads to the books that need a match (not
+    when they are what the list shows)."""
+    reader, live = me["name"], bool(me["hardcover_live"])
+    found = start.facts(con, reader)
+    devices = () if local else tuple(d["device"] for d in accounts.devices(con, reader))
+    steps = start.steps(
+        connected=accounts.has_token(con, reader),
+        books=found["books"],
+        on=found["on"],
+        live=live,
+        mode="local" if local else "server",
+        devices=devices,
     )
+    card = ""
+    if steps:
+        signin = _signins.get(reader)
+        connect = ("here" if oauth.available() else "settings") if accounts.can_store_tokens() else ""
+        card = account_pages.getting_started(
+            steps,
+            signin=signin if isinstance(signin, oauth.Device) else None,
+            waiting=waiting,
+            connect=connect,
+            device_name="kobo-" + (re.sub(r"[^A-Za-z0-9_-]", "", reader)[:34] or "reader"),
+        )
+    return card, account_pages.needs_you(start.needs_you(live=live, **found), link)
 
 
 def sync_progress(reader: str) -> dict | None:
@@ -825,6 +829,11 @@ def more_rows(request: Request, q: str = "", f: str = "all", sort: str = "last_r
 
 @app.get("/", response_class=HTMLResponse)
 def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read", show: int = 0, at: str = ""):
+    return books_page(request, q, f, sort, show, at)
+
+
+def books_page(request: Request, q: str = "", f: str = "all", sort: str = "last_read", show: int = 0, at: str = "", waiting: bool = False):
+    """Books. waiting: the reader said they approved a sign-in started on Getting started, and Hardcover has not seen it."""
     con = db()
     me = me_for(request, con)
     if me is None:
@@ -902,8 +911,13 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read",
         if rows
         else ""
     )
-    if not counts["all"] and not q:  # a new reader: say what to do first
-        return frame_for(me, "books", account_pages.start(local=bool(local)))
+    card, band = getting_started(con, me, waiting, link=f != "needs_match")
+    if not counts["all"] and not q:  # a new reader: Getting started, and no list yet
+        return frame_for(
+            me,
+            "books",
+            f'<main><div class="head"><h2 class="pagehead">{T["nav_books"]}</h2></div><div class="sheet alone">{card}</div></main>',
+        )
     # Refresh reloads the same view: search, filter and sort stay as they are.
     keep = "".join(
         f'<input type="hidden" name="{k}" value="{e(v)}">'
@@ -912,7 +926,6 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read",
     )
     fcur = f if f in booklist.FILTERS else "all"
     total = con.execute("select count(*) from reader_book where reader=?", (reader,)).fetchone()[0]
-    first = first_run(con, reader, live)  # says what the line under the title would, and more
     # The sidebar: what the Kobo and Hardcover last did, and the buttons that act on it.
     side = f"""<section class="status" aria-label="{T["status"]}">
 {status_items(con, reader, live, dev, j)}
@@ -927,8 +940,8 @@ def page(request: Request, q: str = "", f: str = "all", sort: str = "last_read",
         me,
         "books",
         f"""<main><div class="head"><h2 class="pagehead">{T["nav_books"]}</h2>
-{"" if first else f'<p class="intro">{e(T["books_meta"].format(n=total))}</p>'}{LEGEND}</div>
-<div class="sheet">{first}
+{"" if card else f'<p class="intro">{e(T["books_meta"].format(n=total))}</p>'}{LEGEND}</div>
+<div class="sheet">{card}{band}
 <nav class="toolbar" aria-label="{T["filter"]}">
 <form class="find" method="get"><input type="search" name="q" value="{e(q)}" placeholder="{T["search"]}" aria-label="{T["search"]}">
 <input type="hidden" name="f" value="{e(f)}"><button>{T["apply"]}</button>
@@ -1109,7 +1122,7 @@ def for_the_app(request: Request, fn):
 @app.get("/api/app/books")
 def app_books(request: Request):
     def answer(con, reader):
-        return appbooks.listing(con, reader, app_cover, lambda: accounts.has_token(con, reader))
+        return appbooks.listing(con, reader, app_cover, lambda: accounts.has_token(con, reader), "server")
 
     return for_the_app(request, answer)
 
@@ -1137,7 +1150,7 @@ async def app_book(request: Request):
             remove=asked.get("remove") is True,
             not_now=asked.get("not_now") is True,
         )
-        return appbooks.one(con, reader, cid, app_cover)
+        return appbooks.one(con, reader, cid, app_cover, lambda: accounts.has_token(con, reader), "server")
 
     return await run_in_threadpool(for_the_app, request, answer)
 
@@ -1362,12 +1375,20 @@ def signup(request: Request):
     except accounts.AccountError as ex:
         if ex.key != "err_exists":
             return PlainTextResponse(T[ex.key], status_code=403)
-    return RedirectResponse("/settings?ok=signed_up", status_code=303)
+    return RedirectResponse("/#start", status_code=303)  # Getting started, above the books, says what comes first
 
 
 # Sign-ins that wait for the reader to approve on Hardcover, per reader. In
 # memory: one lasts a quarter of an hour, and a restart only means starting again.
 _signins: dict[str, oauth.Device | oauth.Browser] = {}
+# Where a sign-in was started, when that was Getting started on the books ("/")
+# rather than Settings: where the reader goes back to when it ends.
+_signin_back: dict[str, str] = {}
+
+
+def _signed_in_to(name: str, settings: str) -> str:
+    """Where a sign-in that ended goes on to: the books when it was started there, else Settings (settings)."""
+    return "/" if _signin_back.pop(name, "") == "/" else settings
 
 
 def settings_page(
@@ -1443,9 +1464,11 @@ def settings(request: Request, ok: str = "", show: str = ""):
     return resp
 
 
-def change(request: Request, ok: str, fn):
+def change(request: Request, ok: str, fn, back: str = ""):
     """One settings form: fn(con, reader name) makes the change; a refusal
-    comes back on the page, next to the form."""
+    comes back on the page, next to the form. back "/": the form stands on
+    Getting started, and the reader goes back to the books, where the step
+    shows what changed."""
     con, me, bad = guard(request)
     if bad:
         return bad
@@ -1453,7 +1476,7 @@ def change(request: Request, ok: str, fn):
         fn(con, me["name"])
     except accounts.AccountError as ex:
         return settings_page(con, me, err=ex.key, status=400)
-    return RedirectResponse(f"/settings?ok={ok}", status_code=303)
+    return RedirectResponse("/" if back == "/" else f"/settings?ok={ok}", status_code=303)
 
 
 @app.post("/settings/profile")
@@ -1473,8 +1496,8 @@ def settings_collection(request: Request, collection: str = Form("")):
 
 
 @app.post("/settings/live")
-def settings_live(request: Request, live: str = Form("0")):
-    return change(request, "live" if live == "1" else "dry", lambda con, name: accounts.set_live(con, name, live == "1"))
+def settings_live(request: Request, live: str = Form("0"), back: str = Form("")):
+    return change(request, "live" if live == "1" else "dry", lambda con, name: accounts.set_live(con, name, live == "1"), back)
 
 
 @app.post("/settings/start-over")
@@ -1484,8 +1507,8 @@ def settings_start_over(request: Request):
 
 
 @app.post("/settings/devices/add")
-def settings_device_add(request: Request, device: str = Form(""), hash: str = Form("")):
-    return change(request, "device_added", lambda con, name: accounts.add_device(con, name, device, hash))
+def settings_device_add(request: Request, device: str = Form(""), hash: str = Form(""), back: str = Form("")):
+    return change(request, "device_added", lambda con, name: accounts.add_device(con, name, device, hash), back)
 
 
 @app.post("/settings/devices/remove")
@@ -1515,12 +1538,17 @@ def settings_token(request: Request, token: str = Form("")):
 
 
 @app.post("/settings/connect")
-def settings_connect(request: Request):
+def settings_connect(request: Request, back: str = Form("")):
     """Start signing in to Hardcover (engine/oauth.py): ask for a code, and
-    show the reader where to approve it."""
+    show the reader where to approve it: on Getting started when it was
+    started there (back "/"), else under Settings."""
     con, me, bad = guard(request)
     if bad:
         return bad
+    if back == "/":
+        _signin_back[me["name"]] = "/"
+    else:
+        _signin_back.pop(me["name"], None)
     try:
         if not accounts.can_store_tokens():
             raise accounts.AccountError("err_no_key")
@@ -1533,6 +1561,10 @@ def settings_connect(request: Request):
         return settings_page(con, me, err=ex.key, status=400)
     except oauth.OAuthError as ex:
         return settings_page(con, me, err="err_connect", detail=f"{ex}.", status=502)
+    if back == "/":
+        resp = RedirectResponse("/#start", status_code=303)
+        resp.headers["Cache-Control"] = "no-store"
+        return resp
     resp = settings_page(con, me)
     resp.headers["Cache-Control"] = "no-store"
     return resp
@@ -1555,14 +1587,15 @@ def oauth_callback(request: Request):
     if name is None:  # an old tab, a second visit, or an answer for another sign-in
         return _back_to_settings(T["s_connect_lost"], "/settings")
     sign_in = _signins.pop(name)
+    back = _signed_in_to(name, "")
     try:
         got = oauth.browser_finish(sign_in, answer)
         who = hardcover.Client(got.access, tries=1).whoami()
         accounts.set_token(con, name, got.pack(), str(who.get("username") or ""))
     except (oauth.OAuthError, hardcover.HardcoverError, accounts.AccountError) as ex:
         detail = T[ex.key] if isinstance(ex, accounts.AccountError) else f"{ex}."
-        return _back_to_settings(f"{T['err_connect']} {detail}", "/settings")
-    return _back_to_settings(T["ok_connected"], "/settings?ok=connected")
+        return _back_to_settings(f"{T['err_connect']} {detail}", back or "/settings")
+    return _back_to_settings(T["ok_connected"], back or "/settings?ok=connected")
 
 
 def _back_to_settings(said: str, to: str) -> HTMLResponse:
@@ -1587,26 +1620,35 @@ def settings_connect_check(request: Request):
     if bad:
         return bad
     name, quiet = me["name"], request.headers.get("x-requested-with") == "fetch"
+    on_books = _signin_back.get(name) == "/"  # started on Getting started: it ends there too
     device = _signins.get(name)
     if device is None:  # nothing waiting: done in another tab, cancelled, or the server restarted
-        return JSONResponse({"done": True}) if quiet else RedirectResponse("/settings", status_code=303)
+        to = _signed_in_to(name, "/settings")
+        return JSONResponse({"done": True, "to": to}) if quiet else RedirectResponse(to, status_code=303)
     try:
         got = oauth.collect(device)
         if isinstance(got, int):  # not yet; ask again after this many seconds
             _signins[name] = dataclasses.replace(device, interval=got)
-            return JSONResponse({"done": False, "wait": got}) if quiet else settings_page(con, me, waiting=True)
+            if quiet:
+                return JSONResponse({"done": False, "wait": got})
+            if on_books:
+                shown = books_page(request, waiting=True)
+                return shown if isinstance(shown, Response) else HTMLResponse(shown)
+            return settings_page(con, me, waiting=True)
         who = hardcover.Client(got.access, tries=1).whoami()
         accounts.set_token(con, name, got.pack(), str(who.get("username") or ""))
     except (oauth.OAuthError, hardcover.HardcoverError, accounts.AccountError) as ex:
         _signins.pop(name, None)
+        to = _signed_in_to(name, "/settings")
         if quiet:  # the page reloads and the reader starts again
-            return JSONResponse({"done": True})
+            return JSONResponse({"done": True, "to": to})
         detail = T[ex.key] if isinstance(ex, accounts.AccountError) else f"{ex}."
         return settings_page(con, me, err="err_connect", detail=detail, status=400)
     _signins.pop(name, None)
+    to = _signed_in_to(name, "/settings?ok=connected")
     if quiet:
-        return JSONResponse({"done": True, "to": "/settings?ok=connected"})
-    return RedirectResponse("/settings?ok=connected", status_code=303)
+        return JSONResponse({"done": True, "to": to})
+    return RedirectResponse(to, status_code=303)
 
 
 @app.post("/settings/connect/cancel")
@@ -1615,7 +1657,7 @@ def settings_connect_cancel(request: Request):
     if bad:
         return bad
     _signins.pop(me["name"], None)
-    return RedirectResponse("/settings", status_code=303)
+    return RedirectResponse(_signed_in_to(me["name"], "/settings"), status_code=303)
 
 
 @app.post("/settings/check")

@@ -988,6 +988,7 @@ def _book(a, computer) -> None:
     """One book: what it is, and the changes the page makes to it."""
     from . import appbooks
     from .computer import page
+    from .computer.platform import HARDCOVER
     from .engine import hardcover
 
     if (server := _books_server(computer)) is not None:
@@ -1012,7 +1013,7 @@ def _book(a, computer) -> None:
             not_now=a.not_now,
         )
         rows = []
-        found = appbooks.one(con, "me", a.id, lambda r: rows.append(r) or _cover(folder, r))
+        found = appbooks.one(con, "me", a.id, lambda r: rows.append(r) or _cover(folder, r), lambda: bool(computer.secret(HARDCOVER)))
         if a.large_cover:
             found["large"] = _large_cover(folder, rows[0]) if rows else ""
     except (appbooks.Refused, hardcover.HardcoverError) as ex:

@@ -270,11 +270,16 @@ def test_the_first_run_and_going_live_in_local_mode(home, capsys):
     computer.in_app = True
     config.save(LOCAL)
     kobo(home)
+    nothing = answer(capsys, "books", "--json", computer=computer)  # before the Kobo was read: Getting started all the same
+    assert [s["state"] for s in nothing["start"]["steps"]] == ["now", "later", "later", "later"] and nothing["needs_you"] is None
     said = runner.sync(computer, LOCAL).message
     assert said.endswith("Not connected to Hardcover yet: connect in the app.")  # the app's words, where there is no page to go to
-    first = answer(capsys, "books", "--json", computer=computer)["first_run"]
-    assert (first["on"], first["connected"], first["steps"]) == (0, False, ["Connect to Hardcover", "Pick your books", "Go live"])
-    assert "Your Kobo sent 9 books" in first["text"]
+    start = answer(capsys, "books", "--json", computer=computer)["start"]
+    steps = start["steps"]
+    assert [s["title"] for s in steps] == ["Connect to Hardcover", "Plug in your Kobo", "Choose your books", "Go live"]
+    assert [s["state"] for s in steps] == ["now", "done", "later", "later"]
+    assert [s["action"] for s in steps] == ["connect", "", "", "go_live"] and not start["can_go_live"]  # Go live waits for the connection
+    assert steps[0]["text"] == "You approve on Hardcover itself; nothing to copy." and steps[1]["text"] == "9 books from your Kobo."
 
     found = answer(capsys, "settings", "--json", computer=computer)
     same_shape(found, sample("settings.json"))
@@ -282,9 +287,17 @@ def test_the_first_run_and_going_live_in_local_mode(home, capsys):
     with pytest.raises(SystemExit, match="connect to Hardcover first"):
         cli.main(["settings", "--set", "live=true"], computer=computer)
     computer.set_secret(HARDCOVER, TOKEN)
-    assert answer(capsys, "books", "--json", computer=computer)["first_run"]["connected"] is True
+    start = answer(capsys, "books", "--json", computer=computer)["start"]
+    assert [s["state"] for s in start["steps"]] == ["done", "done", "now", "later"] and start["can_go_live"]
+    assert start["steps"][2]["action"] == "show_books" and start["steps"][2]["text"].startswith("Books read before")
+    con = state.connect(str(home / "state" / "state.db"))
+    state.set_mode(con, "me", BOOKS[:2], "on")
+    con.close()
+    changed = answer(capsys, "book", BOOKS[2], "--sync", "on", "--json", computer=computer)  # a change answers the steps as they are then
+    assert changed["start"]["on"] == 3 and [s["state"] for s in changed["start"]["steps"]] == ["done", "done", "done", "now"]
+    assert changed["start"]["steps"][2]["text"] == "3 switched on so far."
     assert answer(capsys, "settings", "--set", "live=true", "--json", computer=computer)["live"] is True
-    assert answer(capsys, "books", "--json", computer=computer)["first_run"] is None  # going live ends it
+    assert answer(capsys, "books", "--json", computer=computer)["start"] is None  # going live ends it
     assert answer(capsys, "status", "--json", computer=computer)["books"]["live"] is True
     assert answer(capsys, "settings", "--set", "live=false", "--json", computer=computer)["live"] is False
 
@@ -300,7 +313,9 @@ def test_in_server_mode_the_books_come_from_the_server_for_this_computers_reader
     runner.sync(mac, config.load())  # the Kobo's books, sent to the server for sam
     found = answer(capsys, "books", "--json", computer=mac)
     same_shape(found, sample("books.json"))
-    assert len(found["books"]) == 9 and found["first_run"]["connected"] is False and not found["live"]
+    assert len(found["books"]) == 9 and not found["start"]["can_go_live"] and not found["live"]
+    connect = found["start"]["steps"][0]  # the connection is the server's: made on its page
+    assert (connect["state"], connect["action"]) == ("now", "server_page") and connect["text"].startswith("On the server's page.")
     one, two = BOOKS[:2]
 
     # Covers: the server's, kept on this computer; fetched once, and only with --covers.
@@ -353,7 +368,12 @@ def test_in_server_mode_the_books_come_from_the_server_for_this_computers_reader
     assert srv.execute("select count(*) from tip_aside where reader='sam' and content_id=?", (two,)).fetchone()[0] == 1
     went = answer(capsys, "settings", "--set", "live=true", "--json", computer=mac)
     assert (went["live"], went["hardcover_connected"], went["hardcover_user"]) == (True, True, "sam")
-    assert answer(capsys, "books", "--json", computer=mac)["first_run"] is None  # going live ends it
+    assert answer(capsys, "books", "--json", computer=mac)["start"] is None  # going live ends it
+    # Live: what waits for the reader is said instead.
+    srv.execute("update book set hc_error='Hardcover refused it' where reader='sam' and content_id=?", (one,))
+    srv.commit()
+    needs = answer(capsys, "books", "--json", computer=mac)["needs_you"]
+    assert (needs["failed"], needs["match"]) == (1, 0) and needs["text"] == "1 book could not be sent at the last sync: its row says why."
     srv.close()
 
     # Only this computer's token opens them: never the proxy's headers, and not a token the server does not know.

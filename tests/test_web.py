@@ -46,26 +46,109 @@ def test_mode_post_and_cross_origin_refusal(tmp_path, monkeypatch):
     assert "mark Read, finished 2021-05-01" in c.get("/", headers=h).text
 
 
-def test_the_first_run_says_what_to_do_until_the_reader_goes_live(tmp_path, monkeypatch):
+def card_of(page: str) -> str:
+    at = page.index('<section class="firstrun" id="start"')
+    return page[at : page.index("</section>", at)]
+
+
+def test_getting_started_says_the_four_steps_until_the_reader_goes_live(tmp_path, monkeypatch):
+    from cryptography.fernet import Fernet
+
+    monkeypatch.setenv("KHS_SECRET_KEY", Fernet.generate_key().decode())  # a token can be kept: the step connects right there
     c = client(tmp_path, monkeypatch)
     h = {"Remote-User": "robin"}
     page = c.get("/", headers=h).text
-    # Dry run with books: above the list, what to do with them and the three steps.
-    assert '<section class="firstrun" aria-labelledby="fr-h">' in page and "Pick the books that are yours" in page
-    assert "Your Kobo sent 2 books." in page
-    assert '<a href="/settings#hardcover">Connect in Settings</a>' in page  # step 1 not done: no token yet
-    assert '<li class="here" aria-current="step"><span class="n">2</span><b>Pick your books</b>' in page
-    before = int(re.search(r'<p class="tally"><strong>(\d+)</strong>', page).group(1))
+    card = card_of(page)
+    assert '<h3 id="gs-h">Getting started</h3>' in card and card.count("<li") == 4
+    # 1: not connected yet, so it is the step of now, with the sign-in as its one control; it comes back to the books.
+    assert '<li class="here" aria-current="step"><span class="n">1</span><b>Connect to Hardcover</b>' in card
+    assert (
+        '<form method="post" action="/settings/connect"><input type="hidden" name="back" value="/">'
+        '<button class="solid">Connect to Hardcover</button></form>' in card
+    )
+    assert "/settings#hardcover" not in card  # never sent to Settings for it
+    # 2: done, the Kobo sent its books. 3: later, with the tally. 4: Go live, waiting for the connection.
+    assert '<b>Plug in your Kobo</b><span class="s">2 books from your Kobo.</span>' in card
+    assert "Books read before Kobo Hardcover Sync started begin as Off" in card
+    assert '<button class="primary" disabled>Go live</button><span class="hint">Connect to Hardcover first.</span>' in card
+    assert '<p class="intro">' not in page  # the line under Books would say the same
+    before = int(re.search(r'<span class="count"><b>(\d+)</b>', card).group(1))
     # Switching a book on counts at once, for the row redrawn in place.
     d = c.post(
         "/mode", data={"ids": "old", "mode": "on"}, headers={**h, "X-Requested-With": "fetch", "Origin": "https://kobo.example.org"}
     ).json()
     assert d["on"] == before + 1
-    # Going live is the last step, so the first run is over.
+    # Connected: Go live is the step of now, with its question, and it comes back to the books.
+    st = state.connect(str(tmp_path / "state.db"))
+    accounts.set_token(st, "robin", "hc-token", "robin_reads")
+    card = card_of(c.get("/", headers=h).text)
+    assert card.count('<li class="done">') == 3 and '<span class="n">4</span><b>Go live</b>' in card
+    assert (
+        '<form method="post" action="/settings/live" data-confirm="Go live? From the next sync Kobo Hardcover Sync writes to your Hardcover shelf.">'
+        '<input type="hidden" name="back" value="/"><input type="hidden" name="live" value="1"><button class="primary">Go live</button></form>'
+        in card
+    )
+    went = c.post(
+        "/settings/live", data={"live": "1", "back": "/"}, headers={**h, "Origin": "https://kobo.example.org"}, follow_redirects=False
+    )
+    assert went.status_code == 303 and went.headers["location"] == "/"
+    # Going live is the last step, so Getting started is over.
+    assert 'id="start"' not in c.get("/", headers=h).text
+    # From Settings, the same form still goes back to Settings.
+    back = c.post("/settings/live", data={"live": "0"}, headers={**h, "Origin": "https://kobo.example.org"}, follow_redirects=False)
+    assert back.headers["location"] == "/settings?ok=dry"
+
+
+def test_getting_started_on_a_server_adds_the_first_computer_in_its_step(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    o = {"Origin": "https://kobo.example.org"}
+    st = state.connect(str(tmp_path / "state.db"))
+    accounts.sign_up(st, "kim", "", "")
+    kim = {"Remote-User": "kim"}
+    page = c.get("/", headers=kim).text
+    # No books: the card alone, no list, no legend.
+    assert '<div class="sheet alone"><section class="firstrun" id="start"' in page and "<table" not in page and 'class="legend"' not in page
+    card = card_of(page)
+    assert "Tokens cannot be stored yet" in card  # this server has no key: the step says so instead of a button that would fail
+    assert "On the computer you plug the Kobo into, the Kobo Hardcover Sync app sends your books here." in card
+    assert '<li class="wide"><span class="n">2</span><b>Plug in your Kobo</b>' in card  # later: connecting comes first
+    assert 'action="/settings/devices/add"' in card  # but the computer can be added already: the two do not wait for each other
+    monkeypatch.setattr(accounts, "has_token", lambda con, name: True)  # connected
+    card = card_of(c.get("/", headers=kim).text)
+    assert '<li class="here wide" aria-current="step"><span class="n">2</span><b>Plug in your Kobo</b>' in card
+    assert '<input type="text" id="gs-device" name="device" maxlength="40" value="kobo-kim" required>' in card
+    assert 'action="/settings/devices/add" class="field adddev"><input type="hidden" name="back" value="/">' in card
+    added = c.post(
+        "/settings/devices/add", data={"device": "kobo-kim", "hash": "a" * 64, "back": "/"}, headers={**kim, **o}, follow_redirects=False
+    )
+    assert added.status_code == 303 and added.headers["location"] == "/"
+    card = card_of(c.get("/", headers=kim).text)
+    assert "Plug in the Kobo at kobo-kim. Tap Connect on it." in card and 'action="/settings/devices/add"' not in card
+
+
+def test_once_live_the_books_that_need_you_are_said_above_the_list(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    h = {"Remote-User": "robin"}
+    c.get("/", headers=h)  # the reader is taken over from readers.yaml
     st = state.connect(str(tmp_path / "state.db"))
     st.execute("update reader set hardcover_live=1 where name='robin'")
+    st.execute("update book set mode='on' where reader='robin'")
     st.commit()
-    assert "firstrun" not in c.get("/", headers=h).text
+    assert 'class="needsyou"' not in c.get("/", headers=h).text  # matched and sent fine: nothing to say
+    st.execute("update book set hc_book_id=null, hc_how='none' where reader='robin' and content_id='old'")
+    st.execute("update book set hc_error='Hardcover refused it' where reader='robin' and content_id='mine'")
+    st.commit()
+    page = c.get("/", headers=h).text
+    band = page[page.index('<div class="needsyou"') : page.index("</div></div>", page.index('<div class="needsyou"'))]
+    assert "2 books need you: 1 needs a Hardcover match, 1 could not be sent at the last sync." in band
+    assert '<svg class="mk"' in band and 'class="act warn"' in band  # the blue circled query: a question for the reader
+    assert '<a href="/?f=needs_match">Show the books that need a match</a>' in band
+    assert 'href="/?f=needs_match">Show' not in c.get("/?f=needs_match", headers=h).text  # already there: no way to it
+    # Before going live the card says what to do, not the band.
+    st.execute("update reader set hardcover_live=0 where name='robin'")
+    st.commit()
+    page = c.get("/", headers=h).text
+    assert 'class="needsyou"' not in page and 'id="start"' in page
 
 
 def test_the_browser_sign_ins_way_back_is_not_there_on_a_server(tmp_path, monkeypatch):

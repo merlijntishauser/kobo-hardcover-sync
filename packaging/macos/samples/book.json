@@ -101,5 +101,12 @@
     "user": "sam",
     "collection": "On Hardcover"
   },
-  "tip": null
+  "tip": null,
+  "start": null,
+  "needs_you": {
+    "n": 3,
+    "match": 2,
+    "failed": 1,
+    "text": "3 books need you: 2 need a Hardcover match, 1 could not be sent at the last sync."
+  }
 }

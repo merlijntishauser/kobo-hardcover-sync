@@ -108,14 +108,33 @@ struct BooksAnswer: Codable {
         let onShelf: Bool
     }
 
-    /// Above the list until going live: the page's first run, in its words.
-    struct FirstRun: Codable {
+    /// Getting started (start.py): the four steps from a new reader to a live
+    /// shelf, the same as above the page's books; nil once live with books.
+    struct Start: Codable {
+        struct Step: Codable, Identifiable {
+            let key: String  // "connect", "kobo", "books", "live"
+            let n: Int
+            let title: String
+            let text: String
+            let state: String  // "done", "now" (the first not done), "later"
+            let action: String  // "connect", "server_page", "show_books", "go_live", or ""
+
+            var id: String { key }
+        }
+
         let title: String
-        let text: String
         let on: Int  // switched on so far
-        let tally: String
-        let connected: Bool
-        let steps: [String]  // connect, pick, go live
+        let tally: String  // "switched on so far."
+        let canGoLive: Bool  // connected: Go live can be chosen
+        let steps: [Step]
+    }
+
+    /// Once live, the books switched on that wait for you (start.py); nil when none do.
+    struct NeedsYou: Codable {
+        let n: Int
+        let match: Int  // without a Hardcover match: the filter Needs a match
+        let failed: Int  // not sent at the last sync
+        let text: String
     }
 
     /// One book from your own shelf, as a question (tip.py); nil when no rule finds one.
@@ -147,7 +166,8 @@ struct BooksAnswer: Codable {
     let schema: Int
     let live: Bool
     let user: String
-    let firstRun: FirstRun?  // nil once live
+    var start: Start?  // nil once live; nil also from a server before 0.18.0
+    var needsYou: NeedsYou?
     var tip: Tip?
     var books: [Book]
     let sorts: [Sort]
@@ -160,6 +180,8 @@ struct BookAnswer: Codable {
     let book: BooksAnswer.Book
     let books: StatusAnswer.Books
     let tip: BooksAnswer.Tip?  // a change can make another book the tip
+    let start: BooksAnswer.Start?  // and move Getting started on
+    let needsYou: BooksAnswer.NeedsYou?
     let large: String?  // with --large-cover: the cover large, "" when there is none
 }
 

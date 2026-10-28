@@ -1,8 +1,8 @@
 // Hardcover in the app (docs/plans/2026-10-24-mac-app-native-books-design.md,
 // step 4): signing in, as the page does it (`token --json`: where to
 // approve, then who signed in), a pasted token as the second way, and
-// going live (`settings --set live=true`). The first run above the list
-// of books leads there.
+// going live (`settings --set live=true`). Getting started, on the
+// Overview and above the list of books, leads there.
 
 import AppKit
 import SwiftUI
@@ -184,68 +184,138 @@ struct ConnectSheet: View {
     }
 }
 
-/// Above the list until going live: the page's three steps, with the buttons that do them.
-struct FirstRun: View {
+/// Getting started (start.py): the four steps from a new reader to a live
+/// shelf, the same as above the page's books, each with the one button that
+/// does it. On the Overview a sheet of its own above the chain; above Books
+/// the same steps in one band (`compact`).
+struct StartSteps: View {
     @ObservedObject var model: WindowModel
-    let first: BooksAnswer.FirstRun
+    let start: BooksAnswer.Start
+    var compact = false
     @State private var asking = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(first.title).font(.title3.weight(.semibold))  // not a book title: the system font
-            Text(first.text).font(.callout).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(first.on)").font(.title3.weight(.semibold).monospacedDigit())
-                Text(first.tally).font(.callout).foregroundStyle(Pencil.graphite)
-            }
-            HStack(alignment: .top, spacing: 18) {
-                step(1, first.steps.first ?? "", done: first.connected) {
-                    if first.connected {
-                        Text("Done.").font(.callout).foregroundStyle(Pencil.graphite)
-                    } else if let status = model.status, status.mode == "server" {  // the connection is the server's, made on its page
-                        Button("Connect on the page…") { openServerSettings(status.server) }.controlSize(.small)
-                    } else {
-                        Button("Connect…") { model.connect() }.controlSize(.small)
+        Group {
+            if compact {
+                HStack(alignment: .top, spacing: 18) {
+                    ForEach(start.steps) { step in
+                        HStack(alignment: .top, spacing: 8) {
+                            number(step, size: 18)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(step.title).font(.callout.weight(.semibold)).foregroundStyle(step.state == "now" ? Pencil.blue : Pencil.ink)
+                                if step.key == "books" {
+                                    tally.font(.callout)
+                                }
+                                action(step)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityElement(children: .contain)
                     }
                 }
-                step(2, first.steps.dropFirst().first ?? "", done: false) {
-                    Text("You are here: switch on the books that are yours.").font(.callout).foregroundStyle(Pencil.graphite)
-                        .fixedSize(horizontal: false, vertical: true)
+                .padding(14)
+                .background(Pencil.sheet, in: RoundedRectangle(cornerRadius: 4))  // a proof sheet, as on the overview
+                .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Pencil.rule, lineWidth: 1))
+                .padding(.horizontal, 14)
+                .padding(.bottom, 10)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel(start.title)
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                SheetHead(start.title)
+                ProofSheet {
+                    ForEach(Array(start.steps.enumerated()), id: \.element.id) { n, step in
+                        if n > 0 { SoftRule() }
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            number(step, size: 22).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 5 }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(step.title).fontWeight(step.state == "now" ? .semibold : .medium)
+                                    .foregroundStyle(step.state == "now" ? Pencil.blue : step.state == "done" ? Pencil.graphite : Pencil.ink)
+                                if step.key == "books" && step.state != "done" {
+                                    (Text(step.text + " ") + tally).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
+                                } else {
+                                    Text(step.text).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                            Spacer(minLength: 8)
+                            action(step)
+                        }
+                        .onSheet()
+                        .accessibilityElement(children: .contain)
+                    }
                 }
-                step(3, first.steps.last ?? "", done: false) {
-                    Button("Go live") { asking = true }
-                        .buttonStyle(.borderedProminent)
-                        .tint(Pencil.fill)  // red fills only what a sync sends
-                        .controlSize(.small)
-                        .disabled(!first.connected)
                 }
             }
         }
-        .padding(14)
-        .background(Pencil.sheet, in: RoundedRectangle(cornerRadius: 4))  // a proof sheet, as on the overview
-        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Pencil.rule, lineWidth: 1))
-        .padding(.horizontal, 14)
-        .padding(.bottom, 10)
         .confirmationDialog("Go live?", isPresented: $asking) {
             Button("Go Live") { model.goLive() }
         } message: {
-            Text("From the next sync on, Hardcover is told what the red marks say, for the \(first.on == 1 ? "book" : "\(first.on) books") switched on. \(model.status?.mode == "server" ? "Settings on the page" : "Settings, Sync,") turns it off again.")
+            Text(
+                "From the next sync on, Hardcover is told what the red marks say, for the \(start.on == 1 ? "book" : "\(start.on) books") switched on. \(model.status?.mode == "server" ? "Settings on the page" : "Settings, General,") turns it off again."
+            )
         }
     }
 
-    @ViewBuilder private func step<Action: View>(_ n: Int, _ title: String, done: Bool, @ViewBuilder action: () -> Action) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            if done {
-                Mark(state: "ok", size: 18)
-            } else {
-                Text("\(n)").font(.callout.weight(.semibold).monospacedDigit()).frame(width: 18, height: 18)
-                    .overlay(Circle().stroke(Pencil.edge, lineWidth: 1))
-            }
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.callout.weight(.semibold))
-                action()
+    /// "41 switched on so far.", the number in ink and tabular, as the page's tally.
+    private var tally: Text {
+        Text("\(start.on)").fontWeight(.semibold).monospacedDigit().foregroundColor(Pencil.ink)
+            + Text(" \(start.tally)").foregroundColor(Pencil.graphite)
+    }
+
+    /// The step's number in a ring (filled blue for the step of now: the reader's), or a tick once done.
+    @ViewBuilder private func number(_ step: BooksAnswer.Start.Step, size: CGFloat) -> some View {
+        if step.state == "done" {
+            Mark(state: "ok", size: size).accessibilityLabel("Done")
+        } else {
+            let now = step.state == "now"
+            Text("\(step.n)").font(.callout.weight(.semibold).monospacedDigit())
+                .foregroundStyle(now ? Pencil.onFlag : Pencil.graphite)
+                .frame(width: size, height: size)
+                .background(Circle().fill(now ? Pencil.blue : Color.clear))
+                .overlay(Circle().stroke(now ? Pencil.blue : Pencil.edge, lineWidth: 1))
+                .accessibilityLabel(now ? "Step \(step.n), now" : "Step \(step.n)")
+        }
+    }
+
+    /// The step's one button: what the tool says it is (start.py, `action`).
+    @ViewBuilder private func action(_ step: BooksAnswer.Start.Step) -> some View {
+        switch step.action {
+        case "connect":
+            Button("Connect…") { model.connect() }.controlSize(compact ? .small : .regular)
+        case "server_page":
+            Button("Open the page") { if let server = model.status?.server { openServerSettings(server) } }
+                .controlSize(compact ? .small : .regular)
+        case "show_books" where !compact:  // above Books the list is right below
+            Button("Show the books") { model.pane = .books }
+        case "go_live":
+            Button("Go live") { asking = true }
+                .buttonStyle(.borderedProminent)
+                .tint(Pencil.fill)  // red fills only what a sync sends
+                .controlSize(compact ? .small : .regular)
+                .disabled(!start.canGoLive)
+                .help(start.canGoLive ? "" : "Connect to Hardcover first.")
+        default:
+            EmptyView()
+        }
+    }
+}
+
+/// Once live: the books switched on that wait for you, a question for you (the blue circled query), with the way to them.
+struct NeedsYouBand: View {
+    @ObservedObject var model: WindowModel
+    let needs: BooksAnswer.NeedsYou
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Mark(state: "warn", size: 20)
+            Text(needs.text).font(.callout.weight(.medium)).fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 8)
+            if needs.match > 0 && model.filter != "needs_match" {
+                Button("Show Them") { model.filter = "needs_match" }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .accessibilityElement(children: .contain)
     }
 }

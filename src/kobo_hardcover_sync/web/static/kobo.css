@@ -275,17 +275,15 @@ button:disabled:hover { border-color: var(--edge); }
 .bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: var(--graphite); font-size: 0.8125rem;
   margin-top: 0.35rem; padding-top: 0.75rem; border-top: 1px solid var(--rule-soft); }
 
-/* The first run: until the reader goes live, the top of the sheet says what
-   to do with a Kobo full of books read before, and the three steps from here
-   to a live shelf. The current step is filled blue (it is the reader's); the
-   count is ink, because nothing is sent yet. */
+/* Getting started: until the reader goes live, the top of the sheet holds
+   the four steps from a new reader to a live shelf (start.py), each with its
+   one control right there. The current step is filled blue (it is the
+   reader's); the tally is ink, because nothing is sent yet. With no books it
+   is the whole sheet. */
 .firstrun { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem 2.5rem; padding: 1.3rem 1.25rem 1.25rem;
   border-bottom: 3px double var(--rule); }
 .firstrun h3 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
 .firstrun p { margin: 0.55rem 0 0; max-width: 62ch; color: var(--graphite); }
-.firstrun .tally { display: flex; align-items: baseline; gap: 0.6rem; margin-top: 0.85rem; }
-.firstrun .tally strong { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
-.firstrun .tally span { font-size: 0.875rem; }
 .steps { list-style: none; margin: 0; padding: 0; display: grid; align-content: start; }
 .steps li { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); column-gap: 0.7rem; padding: 0.65rem 0; border-top: 1px solid var(--rule-soft); }
 .steps li:first-child { border-top: 0; padding-top: 0.1rem; }
@@ -298,7 +296,21 @@ button:disabled:hover { border-color: var(--edge); }
 .steps .here .n { border-color: var(--blue); background: var(--blue); color: var(--on-fill); }
 .steps .here b { color: var(--blue); }
 .steps .done b { color: var(--graphite); font-weight: 500; }
-@media (min-width: 1100px) { .firstrun { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); padding: 1.4rem 1.5rem; } }
+.steps .do { grid-column: 2; min-width: 0; margin-top: 0.6rem; }
+.steps .do > form:not(.field) { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
+.steps .do .hint { margin: 0; }
+.steps .do .field { margin-top: 0; }
+.steps .do .signin ol { margin: 0.1rem 0 0.75rem; }
+.steps .do .signin li { font-size: 0.875rem; color: var(--ink); }
+.steps .count { display: block; margin-top: 0.3rem; }
+.steps .count b { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.sheet.alone { flex: none; }
+.sheet.alone .firstrun { border-bottom: 0; }
+/* Needs you: once live, the books switched on that wait for the reader, as
+   a question for them (blue), at the top of the sheet. */
+.needsyou { padding: 0.8rem 1rem; border-bottom: 1px solid var(--rule); font-size: 0.875rem; }
+.needsyou .act > span { font-weight: 650; }
+.needsyou .act a { font-weight: 600; margin-top: 0.15rem; justify-self: start; }
 
 /* ---------- books ---------- */
 table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 0; }
@@ -535,6 +547,8 @@ code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color
   .sheet { background: none; border: 0; box-shadow: none; overflow: visible; }
   .toolbar { padding: 0 0 0.85rem; border-bottom: 0; }
   .firstrun { margin-bottom: 0.85rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); padding: 1.1rem 1rem; }
+  .needsyou { margin-bottom: 0.85rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); }
+  .needsyou .act a { display: inline-flex; align-items: center; min-height: 2.75rem; }
   .more { margin-top: 0.75rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); }
   .morelink { min-height: 2.75rem; }
   table, tbody, tr, td { display: block; width: auto; }
@@ -594,6 +608,7 @@ code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color
   .chip { min-height: 2.75rem; }
   .details, td.hc .details { min-height: 2.75rem; padding-inline: 0.9rem; }
   .morelink { min-height: 2.75rem; }
+  .needsyou .act a { display: inline-flex; align-items: center; min-height: 2.75rem; }
 }
 /* A tablet has room for two books side by side. */
 @media (min-width: 720px) and (max-width: 1023.98px) {
@@ -654,4 +669,15 @@ code.secret { display: block; margin-top: 0.4rem; padding: 0.5rem 0.65rem; color
   .gname { flex: none; margin: 0 0.4rem 0 0; }
   .bulk { margin: 0 0 0 auto; padding: 0; border: 0; }
   th:first-child, td:first-child { padding-left: 1.1rem; }
+  /* Getting started on a desk: the steps side by side, under one line that
+     names them, so the list keeps the window. A step with a form or a
+     sign-in takes twice the room. */
+  .firstrun { gap: 0.85rem; padding: 1.05rem 1.1rem 1.15rem; }
+  .firstrun > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 1rem; }
+  .firstrun > div p { margin: 0; }
+  .steps { display: flex; gap: 1rem; }
+  .steps li { flex: 1 1 0; min-width: 0; align-content: start; padding: 0 0 0 1rem; border-top: 0; border-left: 1px solid var(--rule-soft); }
+  .steps li:first-child { padding: 0; border-left: 0; }
+  .steps li.here { flex-grow: 1.35; }
+  .steps li.wide { flex-grow: 2.2; }
 }

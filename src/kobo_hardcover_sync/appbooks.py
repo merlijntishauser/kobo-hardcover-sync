@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 
-from . import booklist, tip
+from . import booklist, start, tip
 from .engine import state
 from .term import plural
 from .web.strings import T
@@ -28,12 +28,25 @@ def _quiet(con, reader: str) -> dict:
     return quiet_for(con, reader) if con else {}
 
 
-def listing(con, reader: str, cover_of, connected) -> dict:
+def _start(con, reader: str, live: bool, connected, mode: str) -> dict:
+    """Getting started and Needs you (start.py), as the app shows them. The
+    app is the computer the Kobo is plugged into, also in server mode.
+    connected() is asked only while Getting started is there."""
+    found = start.facts(con, reader)
+    steps = (
+        None
+        if live and found["books"]
+        else start.steps(connected=connected(), books=found["books"], on=found["on"], live=live, mode=mode, app=True)
+    )
+    return {"start": steps, "needs_you": start.needs_you(live=live, **found)}
+
+
+def listing(con, reader: str, cover_of, connected, mode: str = "local") -> dict:
     """Every book with its row and its Details, the filters it is in, the
-    page's sorts and words, and the first run while it is a dry run.
-    cover_of(row) is what the answer says of its cover; connected() whether
-    the reader has a Hardcover connection, asked only for the first run;
-    con None before a Kobo was read."""
+    page's sorts and words, and Getting started until the reader is live
+    (Needs you after). cover_of(row) is what the answer says of its cover;
+    connected() whether the reader has a Hardcover connection; mode "local",
+    or "server" when the server answers; con None before a Kobo was read."""
     rows = booklist.query_rows(con, reader, "", "all", "last_read") if con else []
     live = bool(con and booklist.summary(con, reader)["live"])
     quiet = _quiet(con, reader)
@@ -49,21 +62,10 @@ def listing(con, reader: str, cover_of, connected) -> dict:
         for k in booklist.SORTS
     ]
     summary = booklist.summary(con, reader) if con else {"user": "", "on": 0}
-    first = None
-    if con and rows and not live:  # the page's first run: until going live ends it
-        history = sum(1 for r in rows if r["history"])
-        first = {
-            "title": T["fr_title"],
-            "text": T["fr_text"].format(n=len(rows), h=history),
-            "on": summary["on"],
-            "tally": f"{T['fr_tally']} {T['fr_dry']}",
-            "connected": connected(),
-            "steps": [T["fr_connect"], T["fr_pick"], T["fr_live"]],
-        }
     return {
         "live": live,
         "user": summary["user"],
-        "first_run": first,
+        **_start(con, reader, live, connected, mode),
         "tip": tip.pick(con, reader) if con else None,
         "books": books,
         "sorts": sorts,
@@ -84,14 +86,16 @@ def _row(con, reader: str, cid: str):
     return row
 
 
-def one(con, reader: str, cid: str, cover_of) -> dict:
-    """One book as listing() has it, the counts that changed with it, and the tip, which may have."""
+def one(con, reader: str, cid: str, cover_of, connected=lambda: False, mode: str = "local") -> dict:
+    """One book as listing() has it, the counts that changed with it, and the
+    tip, Getting started and Needs you, which may have."""
     row = _row(con, reader, cid)
     summary = booklist.summary(con, reader)
     return {
         "book": booklist.entry(row, summary["live"], _quiet(con, reader), booklist.filters_of(con, reader, cid), cover_of(row)),
         "books": summary,
         "tip": tip.pick(con, reader),
+        **_start(con, reader, summary["live"], connected, mode),
     }
 
 

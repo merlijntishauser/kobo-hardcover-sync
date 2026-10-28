@@ -57,6 +57,8 @@ extension WindowModel {
                     if let n = self.books?.books.firstIndex(where: { $0.id == id }) { self.books?.books[n] = changed.book }
                     self.status?.books = changed.books
                     self.books?.tip = changed.tip
+                    self.books?.start = changed.start
+                    self.books?.needsYou = changed.needsYou
                 case .failure(let why):
                     self.problem = said(why)
                     self.loadBooks()  // back to what the tool has
@@ -109,7 +111,8 @@ struct BooksPane: View {
             HStack(spacing: 0) {
                 VStack(spacing: 0) {
                     BooksBar(model: model, words: books.words)
-                    if let first = books.firstRun { FirstRun(model: model, first: first) }
+                    if let start = books.start { StartSteps(model: model, start: start, compact: true) }
+                    if let needs = books.needsYou { NeedsYouBand(model: model, needs: needs) }
                     if let tip = books.tip, let book = books.books.first(where: { $0.id == tip.id }) {
                         TipBand(model: model, tip: tip, book: book)
                     }

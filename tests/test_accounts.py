@@ -110,7 +110,7 @@ def test_sign_up_creates_a_reader_in_dry_run(tmp_path, monkeypatch):
     assert "Old Finished" not in r.text and accounts.get(st, "anna") is None  # looking creates nothing
     assert c.post("/signup", headers={**ANNA, "Origin": "https://evil.example"}).status_code == 403
     r = c.post("/signup", headers=ANNA, follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/settings?ok=signed_up"
+    assert r.status_code == 303 and r.headers["location"] == "/#start"  # on to Getting started
     anna = accounts.get(st, "anna")
     assert anna["display_name"] == "Anna B" and anna["is_admin"] == 0 and anna["hardcover_live"] == 0
     assert accounts.logins(anna) == ["anna", "anna@example.org"]
@@ -118,7 +118,7 @@ def test_sign_up_creates_a_reader_in_dry_run(tmp_path, monkeypatch):
     c.post("/signup", headers=ANNA)
     assert len(accounts.all_readers(st)) == 2
     page = c.get("/", headers={"Remote-Email": "ANNA@example.org"}).text
-    assert "Nothing from your Kobo yet" in page and "Old Finished" not in page
+    assert 'id="start"' in page and "Getting started" in page and "Old Finished" not in page
     # A second login with the same user name gets its own reader.
     c.post("/signup", headers={"Remote-User": "anna!", "Remote-Email": "other@example.org", **ORIGIN})
     assert accounts.get(st, "anna-2") is not None

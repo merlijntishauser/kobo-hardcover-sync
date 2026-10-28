@@ -407,9 +407,10 @@ struct TopLine: View {
     }
 }
 
-/// The overview on the galley stock: the chain on a proof sheet, a sync as
-/// it runs, and the checks of the link that is open: by itself the first that
-/// needs the reader, else the one clicked.
+/// The overview on the galley stock: Getting started until the reader is
+/// live, the chain on a proof sheet, a sync as it runs, and the checks of the
+/// link that is open: by itself the first that needs the reader, else the one
+/// clicked.
 struct OverviewSections: View {
     @ObservedObject var model: WindowModel
     @State private var chosen: String?  // nil: the first link with a problem; "": none
@@ -427,6 +428,9 @@ struct OverviewSections: View {
                     .onSheet()
                 }
                 .padding(.bottom, 8)
+            }
+            if let start = model.books?.start {  // until live: what to do, step by step; the chain under it stays the status board
+                StartSteps(model: model, start: start).padding(.bottom, 14)
             }
             ProofSheet {
                 ChainView(model: model, open: $chosen).padding(12)

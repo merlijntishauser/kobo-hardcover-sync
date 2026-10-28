@@ -189,7 +189,7 @@ def main():
 
             p = page("light", 1280)
             p.goto(url)  # first request takes over readers.yaml
-            # Before Hardcover is connected and live: the first run above the list.
+            # Before Hardcover is connected and live: Getting started above the list.
             p.goto(url)
             snap(p, "firstrun-light")
             p = page("dark", 390, 844)

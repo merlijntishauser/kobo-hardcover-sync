@@ -437,10 +437,10 @@ def test_a_new_login_signs_up_and_sees_what_to_do(browser, base_url):
     assert "Welcome to Kobo Hardcover Sync" in page.inner_text("main") and page.locator(".nav").count() == 0
     shot(page, "kobo-signup.png")
     page.click("form[action='/signup'] button")
-    assert page.inner_text(".pagetitle") == "Settings" and "Your reader is ready" in page.inner_text(".flash")
+    page.wait_for_url("**/#start")  # on to Getting started, above the books
+    assert page.inner_text("#start h3") == "Getting started" and page.locator("#start .steps > li").count() == 4
+    assert page.inner_text("#start li[aria-current='step'] b") == "Connect to Hardcover" and "Book 01" not in page.inner_text("body")
     assert page.locator(".nav a[href='/admin']").count() == 0  # not an admin
-    page.click(".nav a[href='/']")
-    assert "Nothing from your Kobo yet" in page.inner_text("main") and "Book 01" not in page.inner_text("body")
     shot(page, "kobo-start.png")
     assert page.goto(base_url + "/admin").status == 403
     ctx.close()

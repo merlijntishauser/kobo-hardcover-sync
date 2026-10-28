@@ -280,6 +280,32 @@ def test_connecting_on_the_page(tmp_path, monkeypatch, hc):
     assert accounts.token_kind(db, "anna") == "" and accounts.get(db, "anna")["hardcover_live"] == 0
 
 
+def test_connecting_from_getting_started_stays_on_the_books(tmp_path, monkeypatch, hc):
+    c, db = connected(tmp_path, monkeypatch, hc)
+    books = c.get("/", headers=ANNA).text
+    assert '<form method="post" action="/settings/connect"><input type="hidden" name="back" value="/">' in books
+    r = c.post("/settings/connect", data={"back": "/"}, headers=ANNA, follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/#start" and r.headers["cache-control"] == "no-store"
+    books = c.get("/", headers=ANNA).text
+    card = books[books.index('id="start"') :]
+    assert (
+        '<code class="code">ABCD-EFGH</code>' in card and 'data-poll="/settings/connect/check"' in card
+    )  # the code to compare, in the step
+    assert 'action="/settings/connect/check#start"' in card
+    # Without JavaScript, too early: the books again, saying so in the step.
+    r = c.post("/settings/connect/check", headers=ANNA)
+    assert r.status_code == 200 and "Not approved on Hardcover yet." in r.text and '<h3 id="gs-h">Getting started</h3>' in r.text
+    hc.approved = True
+    assert c.post("/settings/connect/check", headers={**ANNA, "X-Requested-With": "fetch"}).json() == {"done": True, "to": "/"}
+    assert accounts.token_kind(db, "anna") == "oauth"
+    assert '<b>Connect to Hardcover</b><span class="s">Connected.</span>' in c.get("/", headers=ANNA).text
+    # Cancelled on the card: back to the books. Started under Settings: back to Settings, as before.
+    c.post("/settings/connect", data={"back": "/"}, headers=ANNA)
+    assert c.post("/settings/connect/cancel", headers=ANNA, follow_redirects=False).headers["location"] == "/"
+    c.post("/settings/connect", headers=ANNA)
+    assert c.post("/settings/connect/cancel", headers=ANNA, follow_redirects=False).headers["location"] == "/settings"
+
+
 def test_a_sign_in_that_fails_on_the_page_and_one_from_elsewhere(tmp_path, monkeypatch, hc):
     c, db = connected(tmp_path, monkeypatch, hc)
     assert c.post("/settings/connect", headers={"Remote-User": "Anna", "Origin": "https://evil.example"}).status_code == 403

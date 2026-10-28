@@ -44,13 +44,81 @@ def signup(who: str) -> str:
     )
 
 
-def start(local: bool = False) -> str:
-    """Instead of an empty list: what a new reader does first."""
-    steps = "".join(f"<li>{e(s)}</li>" for s in T["start_steps_local" if local else "start_steps"])
+def getting_started(steps: dict, *, signin=None, waiting: bool = False, connect: str = "here", device_name: str = "") -> str:
+    """Getting started (start.py), above the books: the four steps, each done,
+    now or later, and the one control of the current step, here, so that the
+    reader never has to look for it under Settings. connect: "here" (signing
+    in to Hardcover starts on this card, and a sign-in that waits shows its
+    code here), "settings" (this installation can only take a pasted token:
+    a link there), or "" (tokens cannot be stored). device_name: what the
+    form for the first computer suggests (server mode)."""
+    back = '<input type="hidden" name="back" value="/">'
+
+    def do(step: dict) -> str:
+        what = step["action"]
+        if what == "connect":
+            if signin is not None:
+                return _signin(signin, waiting, "start")
+            if connect == "here":
+                return f'<form method="post" action="/settings/connect">{back}<button class="solid">{T["s_connect"]}</button></form>'
+            if connect == "settings":
+                return f'<a class="details" href="/settings#hardcover">{T["gs_connect_settings"]}</a>'
+            return line("warn", T["tok_no_key"])
+        if what == "add_device":
+            return (
+                f'<form method="post" action="/settings/devices/add" class="field adddev">{back}<div class="pair">'
+                f'<div><label for="gs-device">{T["gs_device_name"]}</label><input type="text" id="gs-device" name="device" maxlength="40"'
+                f' value="{e(device_name)}" required></div>'
+                f'<div class="grow"><label for="gs-hash">{T["gs_device_hash"]}</label><input type="text" id="gs-hash" name="hash" maxlength="80"'
+                f' spellcheck="false" autocomplete="off" placeholder="{T["gs_device_hash_hint"]}" required></div>'
+                f"<button>{T['gs_device_add']}</button></div></form>"
+            )
+        if what == "go_live":
+            ready = steps["can_go_live"]
+            return (
+                f'<form method="post" action="/settings/live" data-confirm="{e(T["s_go_live_confirm"])}">{back}'
+                f'<input type="hidden" name="live" value="1"><button class="primary"{"" if ready else " disabled"}>{T["s_go_live"]}</button>'
+                + ("" if ready else f'<span class="hint">{T["gs_live_needs"]}</span>')
+                + "</form>"
+            )
+        return ""  # show_books: the list is right below
+
+    def text(step: dict) -> str:
+        if step["key"] != "books":
+            return e(step["text"])
+        # The tally moves with the rows (kobo.js), so it is a number of its own.
+        tally = f'<span class="count"><b>{steps["on"]}</b> {T["fr_tally"]}</span>'
+        if step["state"] == "done":
+            return tally
+        has_books = steps["steps"][1]["state"] == "done"  # before the Kobo sent its books there is nothing to count
+        return f"{e(step['text'])} {tally}" if has_books else e(step["text"])
+
+    items = []
+    for step in steps["steps"]:
+        mark = marks.mark("ok") if step["state"] == "done" else f'<span class="n">{step["n"]}</span>'
+        act = do(step)
+        wide = " wide" if step["action"] == "add_device" or 'class="signin"' in act else ""  # a form or a sign-in: room for it
+        cls = {"done": "done", "now": "here"}.get(step["state"], "") + wide
+        cls = (f' class="{cls.strip()}"' if cls else "") + (' aria-current="step"' if step["state"] == "now" else "")
+        items.append(
+            f'<li{cls}>{mark}<b>{e(step["title"])}</b><span class="s">{text(step)}</span>'
+            + (f'<div class="do">{act}</div>' if act else "")
+            + "</li>"
+        )
     return (
-        f'<main class="cards"><section class="card"><h2>{T["start_title"]}</h2><ol>{steps}</ol>'
-        f'<p><a class="details" href="/settings">{T["start_btn"]}</a></p></section></main>'
+        f'<section class="firstrun" id="start" aria-labelledby="gs-h"><div><h3 id="gs-h">{e(steps["title"])}</h3>'
+        f"<p>{e(T['gs_lead'])}</p></div>"
+        f'<ol class="steps" aria-label="{T["gs_steps"]}">{"".join(items)}</ol></section>'
     )
+
+
+def needs_you(found: dict | None, link: bool = True) -> str:
+    """Once live: the books switched on that wait for the reader (start.py), with
+    the way to the ones that need a match. Empty when there are none."""
+    if not found:
+        return ""
+    more = f' <a href="/?f=needs_match">{T["ny_show"]}</a>' if link and found["match"] else ""
+    return f'<div class="needsyou" role="status">{marks.line("warn", found["text"], more)}</div>'
 
 
 def confirm_bulk(n: int, mode: str, q: str, f: str, back: str) -> str:
@@ -119,7 +187,7 @@ def check_card(checks: list | None, local: bool) -> str:
     )
 
 
-def _signin(device, waiting: bool) -> str:
+def _signin(device, waiting: bool, at: str = "hardcover") -> str:
     """A sign-in that waits for the reader: where to approve, the code to
     recognise it by, and a button for when they have. The page asks by
     itself every few seconds (kobo.js); the button does the same without."""
@@ -130,7 +198,7 @@ def _signin(device, waiting: bool) -> str:
         f'<li>{e(T["s_connect_step2"])} <code class="code">{e(device.user_code)}</code></li>'
         f"<li>{e(T['s_connect_step3'])}</li></ol>"
         + (line("warn", T["s_connect_waiting"]) if waiting else "")
-        + f'<div class="btnrow"><form method="post" action="/settings/connect/check#hardcover"><button class="solid">{T["s_connect_done"]}</button></form>'
+        + f'<div class="btnrow"><form method="post" action="/settings/connect/check#{at}"><button class="solid">{T["s_connect_done"]}</button></form>'
         f'<form method="post" action="/settings/connect/cancel"><button>{T["s_connect_cancel"]}</button></form></div></div>'
     )
 

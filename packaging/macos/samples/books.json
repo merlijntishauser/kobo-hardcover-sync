@@ -2,18 +2,47 @@
   "schema": 1,
   "live": false,
   "user": "sam",
-  "first_run": {
-    "title": "Pick the books that are yours",
-    "text": "Your Kobo sent 312 books. The 290 that were on it before Kobo Hardcover Sync started begin as Off, so books someone else read on a shared Kobo account stay off your Hardcover shelf. Search for an author or a title, then switch on everything shown at once.",
+  "start": {
+    "title": "Getting started",
     "on": 41,
-    "tally": "switched on so far. Nothing is sent while this is a dry run.",
-    "connected": true,
+    "tally": "switched on so far.",
+    "can_go_live": true,
     "steps": [
-      "Connect to Hardcover",
-      "Pick your books",
-      "Go live"
+      {
+        "key": "connect",
+        "n": 1,
+        "title": "Connect to Hardcover",
+        "text": "Connected.",
+        "state": "done",
+        "action": ""
+      },
+      {
+        "key": "kobo",
+        "n": 2,
+        "title": "Plug in your Kobo",
+        "text": "312 books from your Kobo.",
+        "state": "done",
+        "action": ""
+      },
+      {
+        "key": "books",
+        "n": 3,
+        "title": "Choose your books",
+        "text": "41 switched on so far.",
+        "state": "done",
+        "action": ""
+      },
+      {
+        "key": "live",
+        "n": 4,
+        "title": "Go live",
+        "text": "Until then nothing is sent: the red marks show what Hardcover would be told.",
+        "state": "now",
+        "action": "go_live"
+      }
     ]
   },
+  "needs_you": null,
   "tip": {
     "id": "file:///mnt/onboard/Saramago/Blindness.kepub.epub",
     "rule": "left_off",
