@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-27T00:00:00Z",
+  "generatedAt": "2026-10-28T23:18:41Z",
   "title": "Design System: Kobo Hardcover Sync",
   "extensions": {
     "colorMeta": {
@@ -675,6 +675,198 @@
           "#c1c4c9",
           "#eceff3"
         ]
+      },
+      "device-top": {
+        "role": "neutral",
+        "displayName": "Device (top)",
+        "canonical": "#4a515b",
+        "oklch": "oklch(43.2% 0.019 257)",
+        "tonalRamp": [
+          "#060b13",
+          "#1f252e",
+          "#3c434c",
+          "#5b626c",
+          "#7b838e",
+          "#9ea6b1",
+          "#c2cad6",
+          "#e7effb"
+        ]
+      },
+      "device-bottom": {
+        "role": "neutral",
+        "displayName": "Device (bottom)",
+        "canonical": "#2b3038",
+        "oklch": "oklch(30.8% 0.016 260)",
+        "tonalRamp": [
+          "#070b12",
+          "#20252d",
+          "#3d424b",
+          "#5c626b",
+          "#7d838c",
+          "#9fa5af",
+          "#c3cad4",
+          "#e8effa"
+        ]
+      },
+      "eink-top": {
+        "role": "neutral",
+        "displayName": "E-ink (top)",
+        "canonical": "#f0ede3",
+        "oklch": "oklch(94.6% 0.014 93)",
+        "tonalRamp": [
+          "#0d0b05",
+          "#27251e",
+          "#44423a",
+          "#646159",
+          "#858279",
+          "#a8a59c",
+          "#ccc9bf",
+          "#f1eee4"
+        ]
+      },
+      "eink-bottom": {
+        "role": "neutral",
+        "displayName": "E-ink (bottom)",
+        "canonical": "#e3dfd2",
+        "oklch": "oklch(90.3% 0.018 93)",
+        "tonalRamp": [
+          "#0e0b04",
+          "#28251b",
+          "#454237",
+          "#656156",
+          "#868276",
+          "#a9a599",
+          "#cdc9bc",
+          "#f2eee1"
+        ]
+      },
+      "eink-ink": {
+        "role": "neutral",
+        "displayName": "E-ink Ink",
+        "canonical": "#2a2d31",
+        "oklch": "oklch(29.6% 0.008 256)",
+        "tonalRamp": [
+          "#090b0f",
+          "#222529",
+          "#3f4246",
+          "#5e6166",
+          "#7f8387",
+          "#a2a5aa",
+          "#c6c9cf",
+          "#ebeff4"
+        ]
+      },
+      "eink-grey": {
+        "role": "neutral",
+        "displayName": "E-ink Grey",
+        "canonical": "#575c64",
+        "oklch": "oklch(47.3% 0.014 260)",
+        "tonalRamp": [
+          "#080b11",
+          "#21252c",
+          "#3e424a",
+          "#5c626a",
+          "#7d838b",
+          "#a0a5ae",
+          "#c4c9d3",
+          "#e9eff8"
+        ]
+      },
+      "device-top-dark": {
+        "role": "neutral",
+        "displayName": "Device (top) (dark)",
+        "canonical": "#3a4049",
+        "oklch": "oklch(36.9% 0.017 258)",
+        "tonalRamp": [
+          "#070b13",
+          "#20252e",
+          "#3c424b",
+          "#5b626b",
+          "#7c838d",
+          "#9ea6b0",
+          "#c2cad5",
+          "#e7effb"
+        ]
+      },
+      "device-bottom-dark": {
+        "role": "neutral",
+        "displayName": "Device (bottom) (dark)",
+        "canonical": "#1d2126",
+        "oklch": "oklch(24.6% 0.011 254)",
+        "tonalRamp": [
+          "#080b10",
+          "#21252b",
+          "#3e4248",
+          "#5d6268",
+          "#7e8389",
+          "#a0a6ac",
+          "#c4cad0",
+          "#e9eff6"
+        ]
+      },
+      "eink-top-dark": {
+        "role": "neutral",
+        "displayName": "E-ink (top) (dark)",
+        "canonical": "#d9d6cc",
+        "oklch": "oklch(87.6% 0.014 93)",
+        "tonalRamp": [
+          "#0d0b05",
+          "#27251d",
+          "#44423a",
+          "#646158",
+          "#858279",
+          "#a8a59b",
+          "#ccc9bf",
+          "#f1eee4"
+        ]
+      },
+      "eink-bottom-dark": {
+        "role": "neutral",
+        "displayName": "E-ink (bottom) (dark)",
+        "canonical": "#cac7bd",
+        "oklch": "oklch(82.9% 0.014 93)",
+        "tonalRamp": [
+          "#0d0b05",
+          "#27251d",
+          "#44423a",
+          "#646158",
+          "#858279",
+          "#a8a59b",
+          "#ccc9bf",
+          "#f2eee4"
+        ]
+      },
+      "eink-ink-dark": {
+        "role": "neutral",
+        "displayName": "E-ink Ink (dark)",
+        "canonical": "#23262a",
+        "oklch": "oklch(26.7% 0.009 256)",
+        "tonalRamp": [
+          "#090b0f",
+          "#222529",
+          "#3f4247",
+          "#5e6166",
+          "#7f8388",
+          "#a1a5aa",
+          "#c5c9cf",
+          "#ebeff4"
+        ]
+      },
+      "eink-grey-dark": {
+        "role": "neutral",
+        "displayName": "E-ink Grey (dark)",
+        "canonical": "#474c53",
+        "oklch": "oklch(41.5% 0.013 257)",
+        "tonalRamp": [
+          "#080b11",
+          "#21252c",
+          "#3d4249",
+          "#5c6269",
+          "#7d838a",
+          "#a0a5ae",
+          "#c4cad2",
+          "#e9eff8"
+        ]
       }
     },
     "typographyMeta": {
@@ -729,6 +921,30 @@
       "sign-in-code": {
         "displayName": "Sign-in code",
         "purpose": "The code compared by eye with Hardcover."
+      },
+      "site-headline": {
+        "displayName": "Site headline",
+        "purpose": "The site's one h1, fluid from 1.75rem to 2.1rem; off the page's ramp on purpose, a page read once from a chair."
+      },
+      "site-section": {
+        "displayName": "Site section heading",
+        "purpose": "The site's h2, fluid from 1.45rem to 2.1rem."
+      },
+      "site-name": {
+        "displayName": "Site name",
+        "purpose": "The name in the site's head, with the caret before it."
+      },
+      "site-lede": {
+        "displayName": "Site lede",
+        "purpose": "The line under a section heading on the site, in graphite, 62ch."
+      },
+      "site-body": {
+        "displayName": "Site body",
+        "purpose": "The site's body and the hero's lede."
+      },
+      "eink-small": {
+        "displayName": "E-ink small",
+        "purpose": "The drawn Kobo's running head (600, 0.02em) and facts (tabular), 11px."
       }
     },
     "shadows": [
@@ -756,6 +972,11 @@
         "name": "nav-current",
         "value": "0 1px 0 var(--rule)",
         "purpose": "A hairline under the current page in the desk navigation."
+      },
+      {
+        "name": "device",
+        "value": "inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 36px -18px rgba(6, 17, 26, 0.55)",
+        "purpose": "Site only: the drawn Kobo lying on the stock, in both themes, because it is an object and not a surface."
       }
     ],
     "motion": [
@@ -828,6 +1049,16 @@
         "name": "run-reduced-motion",
         "value": "none",
         "purpose": "Mac app, Covers: under Reduce motion, and whenever the window is not visible, the run stands still and moves only by hand; under Reduce motion the lift does not grow and the large cover appears without moving."
+      },
+      {
+        "name": "site-stroke",
+        "value": "1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s, on stroke-dashoffset",
+        "purpose": "Site only, from 1024px: the red stroke from the Kobo's gauge into the first mark draws once on load, measured with JavaScript; without it a default path stands, stretched with the hero."
+      },
+      {
+        "name": "site-reduced-motion",
+        "value": "none",
+        "purpose": "Site: under prefers-reduced-motion the stroke stands drawn in full, the strike and write-in are off, and smooth scrolling is off."
       }
     ],
     "breakpoints": [
@@ -865,6 +1096,11 @@
         "name": "coarse-pointer",
         "value": "(pointer: coarse)",
         "purpose": "Everything operated is 2.75rem, chips, Help and the theme switch included."
+      },
+      {
+        "name": "site-two-up",
+        "value": "900px",
+        "purpose": "Site: the two pulls and What it does go to two columns; the hero goes to two at 1024px, the Mac app's icon beside its words at 720px."
       }
     ]
   },
@@ -980,6 +1216,14 @@
       "description": "Three rows of covers drifting left on Galley Stock (back 72pt never opened, middle 108pt the rest read, front 150pt read in the last year); the red caret on a Proof Sheet disc at the foot of a cover the next sync changes; a lifted cover grows 1.12x with its caption slip; a 3pt double rule; the delivery pile below.",
       "html": "<div class=\"ds-run\"><div class=\"ds-row\" style=\"--h:36px\"><i></i><i></i><i></i><i></i><i></i></div><div class=\"ds-row\" style=\"--h:54px\"><i></i><i></i><i class=\"ds-up\"></i><i></i></div><div class=\"ds-row\" style=\"--h:75px\"><i></i><i><svg class=\"ds-caret\" viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M5 14 10 6 15 14\"/></svg></i><i></i></div><div class=\"ds-slip\"><div class=\"ds-st\">Stad vol geesten</div><div class=\"ds-sa\">V.E. Schwab</div></div><div class=\"ds-dr\" aria-hidden=\"true\"></div><div class=\"ds-pile\"><i style=\"--h:75px\"></i><div><div class=\"ds-pt\">Waarom slapende vogels niet uit de boom vallen</div><div class=\"ds-sa\">Mick O'Hare</div></div></div></div>",
       "css": ".ds-run{background:var(--ground);padding:12px 10px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink)} .ds-row{display:flex;gap:12px;margin-bottom:11px} .ds-row i,.ds-pile i{display:block;position:relative;height:var(--h);width:calc(var(--h) / 1.5);flex:none;background:var(--sheet);border:1px solid var(--edge);box-shadow:0 1px 2px rgba(0,0,0,0.28),0 3px 8px rgba(0,0,0,0.1);transition:transform 0.25s cubic-bezier(0.16,1,0.3,1)} .ds-row i:hover,.ds-row .ds-up{transform:scale(1.12);transform-origin:bottom;z-index:1;box-shadow:0 6px 12px rgba(0,0,0,0.22),0 3px 8px rgba(0,0,0,0.1)} .ds-caret{position:absolute;left:-5px;bottom:-6px;width:14px;height:14px;border-radius:50%;background:var(--sheet);fill:none;stroke:var(--red);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .ds-slip{width:180px;padding:10px;background:var(--sheet);border:1px solid var(--rule);border-radius:2px;box-shadow:0 6px 20px rgba(0,0,0,0.18);margin-bottom:11px} .ds-st{font-family:var(--serif);font-size:15px;font-weight:600} .ds-sa{font-size:12px;color:var(--graphite)} .ds-dr{height:3px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0 10px 14px} .ds-pile{display:flex;gap:16px;align-items:flex-start} .ds-pt{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.2} @media (prefers-reduced-motion: reduce){.ds-row i{transition:none} .ds-row i:hover,.ds-row .ds-up{transform:none}}"
+    },
+    {
+      "name": "The drawn Kobo (site)",
+      "kind": "custom",
+      "refersTo": "eink",
+      "description": "The icon's device as a surface holding real components: the running head and facts in E-ink Grey at 11px, a passage in Source Serif 4, and the page's own line gauge with its ticks in E-ink Grey and the read part in E-ink Ink.",
+      "html": "<figure class=\"ds-kobo\" aria-label=\"A Kobo e-reader on the last page of Middlemarch\"><div class=\"ds-eink\"><p class=\"ds-running\">Middlemarch <span>Finale</span></p><p class=\"ds-passage\">Every limit is a beginning as well as an ending. Who can quit young lives after being long in company with them, and not desire to know what befell them in their after-years?</p><div class=\"ds-einkfoot\"><div class=\"ds-bar\" role=\"img\" aria-label=\"Read 100 percent\"><span style=\"width:100%\"></span></div><p class=\"ds-meta\"><span>100%</span><span>finished 21 Sep</span></p></div></div></figure>",
+      "css": ".ds-kobo{margin:0;width:13rem;aspect-ratio:624/920;padding:11.5% 9%;border-radius:11%/7.6%;background:linear-gradient(var(--device-top,#4a515b),var(--device-bottom,#2b3038));box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08),0 1px 2px rgba(0,0,0,0.3),0 18px 36px -18px rgba(6,17,26,0.55);font-family:var(--sans)} .ds-eink{height:100%;border-radius:3px;padding:0.8rem 0.9rem 0.75rem;display:flex;flex-direction:column;gap:0.5rem;overflow:hidden;background:linear-gradient(var(--eink-top,#f0ede3),var(--eink-bottom,#e3dfd2));color:var(--eink-ink,#2a2d31)} .ds-eink p{margin:0} .ds-running{display:flex;justify-content:space-between;gap:0.5rem;color:var(--eink-grey,#575c64);font-size:0.6875rem;font-weight:600;letter-spacing:0.02em;white-space:nowrap;overflow:hidden} .ds-passage{font-family:var(--serif);font-size:0.8125rem;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:7} .ds-passage::first-letter{font-size:1.6em;font-weight:600;line-height:1} .ds-einkfoot{margin-top:auto;display:grid;gap:0.35rem} .ds-bar{position:relative;height:9px;max-width:16rem;background:repeating-linear-gradient(to right,var(--eink-grey,#575c64) 0 1px,transparent 1px 10%) left bottom/100% 4px no-repeat,linear-gradient(var(--eink-grey,#575c64),var(--eink-grey,#575c64)) left bottom/100% 1px no-repeat} .ds-bar::after{content:\"\";position:absolute;right:0;bottom:0;width:1px;height:4px;background:var(--eink-grey,#575c64)} .ds-bar span{position:absolute;left:0;bottom:1px;height:4px;background:var(--eink-ink,#2a2d31)} .ds-meta{display:flex;gap:0.1rem 0.5rem;flex-wrap:wrap;color:var(--eink-grey,#575c64);font-size:0.6875rem;font-variant-numeric:tabular-nums}"
     }
   ],
   "narrative": {
@@ -990,9 +1234,9 @@
       "Seven marks, all in the legend above the list: red caret, dashed caret, tick, *stet*, circled query, ink square with a cross, dash.",
       "Two pencils with one job each: red for what a sync sends, blue for the reader's own choice or a question for them.",
       "Two typefaces with one job each: Source Serif 4 for book titles, Schibsted Grotesk for everything else.",
-      "Square-cut: 2px to 4px corners, no pills.",
+      "Square-cut: 2px to 4px corners, no pills; the round shapes are the ring around a Getting started step number and, in the Mac app's *Covers*, the disc under a cover's red caret.",
       "Light and dark share every role; WCAG 2.2 AA in both.",
-      "One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts."
+      "One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts. The site has one of its own, drawn once: the red stroke from the Kobo's gauge into the margin."
     ],
     "rules": [
       {
@@ -1022,7 +1266,7 @@
       },
       {
         "name": "The Figures Rule",
-        "body": "Tabular figures go only where numbers stand in columns or are compared: the facts under a gauge (`.meta`), the counts on chips, the count on the Filter button, and code. Never on the root or on running text: in Schibsted Grotesk `tabular-nums` widens full stops and commas too. `tests/test_design_tokens.py` holds this.",
+        "body": "Tabular figures go only where numbers stand in columns or are compared: the facts under a gauge (`.meta`), the counts on chips, the count on the Filter button, the end of the list's count, Getting started's tally and step numbers, and code. Never on the root or on running text: in Schibsted Grotesk `tabular-nums` widens full stops and commas too. `tests/test_design_tokens.py` holds this.",
         "section": "typography"
       },
       {
@@ -1048,7 +1292,7 @@
       "**Do** keep blue for the reader's own choice or a question for them.",
       "**Do** add any new mark to the legend and to Help's *Hardcover status*, drawn and coloured the same, before it appears in a row.",
       "**Do** set book titles in Source Serif 4 at 600 and everything else in Schibsted Grotesk.",
-      "**Do** put `tabular-nums` only on numbers that stand in columns or are compared: the facts, chip counts, the Filter count, code.",
+      "**Do** put `tabular-nums` only on numbers that stand in columns or are compared: the facts, chip counts, the Filter count, the end of the list's count, Getting started's tally and step numbers, code.",
       "**Do** use 2px for sheets, cards and dialogs, 4px for what you operate, and the 3px double rule where the margin begins.",
       "**Do** make every control 2.75rem below 1024px and under a finger.",
       "**Do** give every new colour a light and a dark value with the same role, and check it: 4.5:1 for words, 3:1 for field edges and marks.",
@@ -1063,7 +1307,7 @@
       "**Don't** set anything but a book title in Source Serif 4.",
       "**Don't** rely on a shadow to separate surfaces; the dark theme has none.",
       "**Don't** set labels in capitals or track them out.",
-      "**Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible.",
+      "**Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible. The site's stroke is its own one, drawn once on load and standing under reduced motion.",
       "**Don't** load a font, a script, a style or a picture from elsewhere; the tool serves everything, the two fonts and the book covers included."
     ]
   }

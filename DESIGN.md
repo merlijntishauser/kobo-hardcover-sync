@@ -23,6 +23,12 @@ colors:
   flag: "#17191c"
   on-flag: "#fbfbf8"
   on-fill: "#ffffff"
+  device-top: "#4a515b"
+  device-bottom: "#2b3038"
+  eink-top: "#f0ede3"
+  eink-bottom: "#e3dfd2"
+  eink-ink: "#2a2d31"
+  eink-grey: "#575c64"
   ground-dark: "#0f1114"
   sheet-dark: "#171a1e"
   margin-dark: "#1b1f24"
@@ -44,6 +50,12 @@ colors:
   flag-dark: "#e7e9e4"
   on-flag-dark: "#0f1114"
   on-fill-dark: "#0f1114"
+  device-top-dark: "#3a4049"
+  device-bottom-dark: "#1d2126"
+  eink-top-dark: "#d9d6cc"
+  eink-bottom-dark: "#cac7bd"
+  eink-ink-dark: "#23262a"
+  eink-grey-dark: "#474c53"
 typography:
   display:
     fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
@@ -112,6 +124,36 @@ typography:
     fontWeight: 600
     letterSpacing: "0.12em"
     fontFeature: "\"tnum\""
+  site-headline:
+    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontSize: "clamp(1.75rem, 1.25rem + 1vw, 2.1rem)"
+    fontWeight: 800
+    lineHeight: 1.05
+    letterSpacing: "-0.035em"
+  site-section:
+    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontSize: "clamp(1.45rem, 1.1rem + 1.4vw, 2.1rem)"
+    fontWeight: 800
+    lineHeight: 1.1
+    letterSpacing: "-0.03em"
+  site-name:
+    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontSize: "1.1rem"
+    fontWeight: 800
+    letterSpacing: "-0.02em"
+  site-lede:
+    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontSize: "1.0625rem"
+    fontWeight: 400
+    lineHeight: 1.5
+  site-body:
+    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontSize: "1rem"
+    fontWeight: 400
+    lineHeight: 1.5
+  eink-small:
+    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontSize: "0.6875rem"
 rounded:
   sheet: "2px"
   inner: "3px"
@@ -227,6 +269,17 @@ components:
     typography: "{typography.sign-in-code}"
     rounded: "{rounded.ctl}"
     padding: "0.2rem 0.7rem"
+  button-primary-site:
+    backgroundColor: "{colors.red}"
+    textColor: "{colors.on-fill}"
+    rounded: "{rounded.ctl}"
+    padding: "0.5rem 1.2rem"
+    height: "2.75rem"
+  eink:
+    backgroundColor: "{colors.eink-top}"
+    textColor: "{colors.eink-ink}"
+    rounded: "{rounded.inner}"
+    padding: "0.8rem 0.9rem 0.75rem"
 ---
 
 # Design System: Kobo Hardcover Sync
@@ -263,7 +316,7 @@ covers are the only pictures, and the tool fetches them itself.
 - Two typefaces with one job each: Source Serif 4 for book titles, Schibsted Grotesk for everything else.
 - Square-cut: 2px to 4px corners, no pills; the round shapes are the ring around a Getting started step number and, in the Mac app's *Covers*, the disc under a cover's red caret.
 - Light and dark share every role; WCAG 2.2 AA in both.
-- One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts.
+- One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts. The site has one of its own, drawn once: the red stroke from the Kobo's gauge into the margin.
 
 ## Colors
 
@@ -307,6 +360,7 @@ browser's `theme-color` is the rail colour in each theme.
 - **Field Edge** (`edge`): the edge of every field, select and button, the gauge's ticks, the crossed box of a missing cover.
 - **Rule** (`rule`) and **Soft Rule** (`rule-soft`): the sheet's border and the double rules; lines between rows and sections.
 - **Non-repro Blue** (`rail`, with `rail-ink` and `rail-graphite`): the rail on a desk, the band and the bottom navigation below 1024px. In the rail the dash of "books syncing" is Rail Graphite and the ticks are Tick Green.
+- **Device** (`device-top`, `device-bottom`) and **E-ink** (`eink-top`, `eink-bottom`, with `eink-ink` and `eink-grey`): the site's drawn Kobo, and nothing else. The shell and the screen are the Mac app icon's own (`packaging/macos/art.py`: `BODY_TOP`/`BODY_BOTTOM`, `EINK_TOP`/`EINK_BOTTOM`), a Clara's warm grey paper, not Margin Tint. The words on the screen are E-ink Ink; its running head, facts and the gauge's ticks are E-ink Grey, darker than the icon's line grey (`TEXT`) so that they hold 4.5:1 on the paper (5.05:1 at the foot of the screen, 5.12:1 in dark). In dark the shell and the paper are dimmed, as a screen in a dark room; the paper stays paper.
 
 ### Named Rules
 **The Two Pencils Rule.** Red fills only *Sync now* and *Go live*, and
@@ -362,6 +416,20 @@ macOS has.
 - **Label** (650, 0.78rem): table heads and filter group names. Sentence case, never capitals.
 - **Small** (400, 0.8125rem): facts under a gauge, the legend (0.75rem below 1024px), hints, the edition line, the foot.
 - **Sign-in code** (system monospace, 600, min(1.375rem, 7vw), 0.12em): set large because the reader compares it by eye with what Hardcover shows. Other code is the monospace at 0.8125rem.
+
+### The site's scale
+The site (`site/`) is a page read once from a chair, not a list worked
+daily, so it stands off the page's ramp on purpose, on the same two faces
+at the same weights. Body and the hero's lede are 1rem (`site-body`), a
+section's lede 1.0625rem (`site-lede`), both held to 62ch; the headline
+is fluid from 1.75rem to 2.1rem at 800 (`site-headline`), a section
+heading from 1.45rem to 2.1rem at 800 (`site-section`), a step's heading
+1.0625rem at 700, the name in the head 1.1rem at 800 (`site-name`). The
+drawn Kobo's running head (600, 0.02em) and facts (tabular) are
+0.6875rem, 11px (`eink-small`); its passage is Source Serif 4 at
+0.8125rem, the book's own page shown on the book's own screen. Captions,
+the version line, the foot and code are 0.875rem; the proof, the table
+and the steps keep the page's sizes.
 
 ### Named Rules
 **The Book Face Rule.** Source Serif 4 is for book titles and nothing
@@ -429,6 +497,17 @@ are 2.75rem (44px), and the theme switch 2.5rem. Under a coarse pointer,
 at any width, everything you operate is 2.75rem, chips and the theme
 switch included.
 
+**The site** keeps the page's 92rem cap, with a gutter of 16px or the
+safe area. The first viewport is one column; from 1024px it is two, the
+Kobo's column to the proof's as 2 to 3, 3.5rem apart, the Kobo 18rem wide
+(13rem below). The blocks under it are sheets on the stock with deep gaps
+between (`clamp(4rem, 8vw, 7.5rem)`): the two pulls and *What it does*
+go to two columns from 900px, the Mac app's icon stands beside its words
+from 720px. The four steps are one row that never wraps: cards of at
+least 16rem that scroll sideways and snap. The other tools' table stacks
+below 720px, each cell under its column's name, and the head's in-page
+links go; the GitHub link stays.
+
 ## Elevation & Depth
 
 Flat paper. The sheet and cards lie on the page with a 1px rule and, in
@@ -442,6 +521,7 @@ dialog.
 - **Cover** (`box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1)`): a book cover lying on the sheet.
 - **Dialog** (`box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35)`): Help and Details, over `rgba(10, 12, 14, 0.6)`. The cover lightbox uses `0 24px 64px rgba(0, 0, 0, 0.55)` over `rgba(10, 12, 14, 0.88)`.
 - **Current page** (`box-shadow: 0 1px 0 var(--rule)`): the current item in the desk navigation.
+- **Device, site only** (`box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 36px -18px rgba(6, 17, 26, 0.55)`): the drawn Kobo lying on the stock, in both themes, because it is an object and not a surface. The site's sheets take the lift.
 
 ### Named Rules
 **The Flat Paper Rule.** Surfaces are told apart by tone and a rule. A
@@ -457,7 +537,9 @@ small inner parts (a tag, a theme-switch button, a cover's fore-edge) are
 3px; buttons, fields, selects, chips, *Details* and navigation items are
 4px. Covers are 1px at the spine and 3px at the fore-edge, the one 1px
 corner there is, kept because a book's spine is square. The focus ring
-has 2px corners.
+has 2px corners. The site's drawn Kobo has the shell's own corners as the
+icon draws them (`11% / 7.6%`), its screen 3px; the site's step numbers
+sit in 1.7rem rings, as Getting started's do.
 
 Lines carry the structure. Borders are 1px. The one heavy line is a 3px
 double rule, the proofreader's hairline pair: down the left of the margin
@@ -691,6 +773,17 @@ any picture; every other mark waits for the caption.
 - **Lightbox:** Space on the run, or a click on the cover in the spread, shows the cover over the whole window, sidebar included, as large as it fits (48pt clear at the sides, room for the title below), the large cover once the tool has it, with the page's lightbox shadow over the same `rgba(10, 12, 14, 0.88)`, its title in Source Serif 4 at 22pt in white. A click, Space or Escape puts it back (Escape first closes the lightbox, then the spread).
 - **Tones:** the app's pencils hold the page's Galley Stock, Proof Sheet and Rule (`ground`, `sheet`, `rule`) at the same values in light and dark: the ground under the covers, the sheet behind a cover and of the caption, the rule of the caption and the double rule. No colour outside the page's.
 
+### The site (signature)
+One static page, `site/`, in the page's world: the same tokens, the same
+fonts from its own files, light and dark by the same switch, in the foot.
+What it adds:
+
+- **The drawn Kobo:** the icon's device, 18rem wide on a desk, at the Kobo's own proportion (624 by 920): the shell a gradient of Device with the device shadow, the screen a gradient of E-ink at 3px inside it. The screen is a surface that holds real components, not a picture: the running head and the facts in E-ink Grey at 0.6875rem, a passage of the book in Source Serif 4, and the page's own line gauge (its ticks E-ink Grey, the read part E-ink Ink) with its facts under it. What is drawn on the screen is drawn as the page draws it.
+- **The proof:** the Books page's sheet with its margin (1px Rule, 2px, the lift; Margin Tint behind the 3px double rule, 42% of the width), four made-up books with their marks, the strike and the write-in on the first. The caption says the shelf is made up.
+- **The one red fill:** *Download for Mac* (`button-primary-site`), 2.75rem tall, 0.5rem 1.2rem, 600 at 1rem, as *Sync now* is; brew and uv beside it as code on the sheet. The Two Pencils Rule holds: the first step's number is blue, the first row of the other tools' table is Blue Wash, and nothing else takes a pencil but the marks and links.
+- **The stroke:** one continuous red line, 2px, round-capped, from the end of the Kobo's gauge into the first mark of the margin, ending 10px short of the caret so that the mark is the arrowhead. Only from 1024px, where the two stand side by side. Without JavaScript it is a default path over the hero, stretched with it; with it, measured from the gauge and the mark once the fonts have loaded and on resize, and drawn once by `stroke-dashoffset`. Under reduced motion it stands drawn.
+- **The steps:** the four steps as sheet cards in a strip, each with its number in a 1.7rem Field Edge ring, the first filled blue, a heading at 1.0625rem and one graphite paragraph.
+
 ### Motion
 One authored moment. When the list loads, and whenever a row is redrawn,
 the strike draws across the old value (0.5s) and the new value writes in
@@ -719,6 +812,13 @@ still and moves only by hand; under Reduce motion a lifted cover does not
 grow and the large cover and the spread appear without moving. Nowhere else does
 anything drift or lift.
 
+The site has one of its own, drawn once: the stroke, 1.2s on the expo
+ease-out, 0.3s after load, and only with JavaScript to measure it; the
+strike and write-in on the first row keep the page's timing, delayed to
+1.1s so that the stroke has reached the mark. Under
+`prefers-reduced-motion` the stroke is drawn in full, the strike and
+write-in are off, and the smooth scroll to an in-page link is off too.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -743,5 +843,5 @@ anything drift or lift.
 - **Don't** set anything but a book title in Source Serif 4.
 - **Don't** rely on a shadow to separate surfaces; the dark theme has none.
 - **Don't** set labels in capitals or track them out.
-- **Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible.
+- **Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible. The site's stroke is its own one, drawn once on load and standing under reduced motion.
 - **Don't** load a font, a script, a style or a picture from elsewhere; the tool serves everything, the two fonts and the book covers included.

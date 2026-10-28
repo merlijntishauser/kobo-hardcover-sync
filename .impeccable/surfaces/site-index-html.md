@@ -78,4 +78,4 @@ provenance.
 - The Mac app's window picture: the snapshot render was not fit for a public
   page; the app is shown by its icon and words, and the page says a picture
   follows. The owner is asked for real screenshots of their window.
-- GitHub Pages is not switched on for the repository; the owner decides when.
+- GitHub Pages is on (switched on by the owner, 2026-10-29); the site is live.
