@@ -254,3 +254,25 @@ document.querySelectorAll('dialog').forEach(d => d.addEventListener('click', ev 
     btn.setAttribute('aria-expanded', String(panel.classList.toggle('open')));
   });
 })();
+
+// Settings: Advanced, folded behind its heading. It opens by itself when the
+// address points at one of its cards (/settings#list, #export, #stats,
+// #computer), on arriving and when the address changes. Without JS it is open.
+(function () {
+  const box = document.querySelector('.advanced'), btn = box && box.querySelector('.advtoggle');
+  const body = document.getElementById('adv');
+  if (!box || !btn || !body) return;
+  box.classList.add('js');
+  const show = open => { body.classList.toggle('open', open); btn.setAttribute('aria-expanded', String(open)); };
+  show(body.classList.contains('open'));  // the page may come open: a form in it was refused
+  btn.addEventListener('click', () => show(!body.classList.contains('open')));
+  const follow = () => {
+    let at = null;
+    try { at = location.hash.length > 1 && document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch (e) {}
+    if (!at || !body.contains(at)) return;
+    show(true);
+    at.scrollIntoView();
+  };
+  follow();
+  addEventListener('hashchange', follow);
+})();

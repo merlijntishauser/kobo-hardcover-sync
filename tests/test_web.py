@@ -151,6 +151,25 @@ def test_once_live_the_books_that_need_you_are_said_above_the_list(tmp_path, mon
     assert 'class="needsyou"' not in page and 'id="start"' in page
 
 
+def test_settings_has_the_few_on_top_and_the_rest_under_advanced(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    main = c.get("/settings", headers={"Remote-User": "robin"}).text
+    main = main[main.index('<main class="cards">') : main.index("</main>")]
+    assert re.findall(r"<h2[^>]*>([^<]+)<", main)[:3] == ["Settings", "You", "Hardcover"]
+    # Without JavaScript Advanced is a heading over its cards; kobo.js turns the heading into a button that folds them.
+    head = (
+        '<h2 class="advhead" id="adv-h"><span class="advname">Advanced</span><button type="button" class="advtoggle" aria-expanded="false"'
+    )
+    assert head in main
+    advanced = main[main.index('<div class="advbody" id="adv">') : main.index('<section class="card" id="check">')]
+    for card in ("list", "collection", "devices", "stats", "export"):  # the links to them (/settings#list ...) keep working
+        assert f'<section class="card" id="{card}">' in advanced, card
+    assert 'id="hardcover"' not in advanced and main.index('id="hardcover"') < main.index('class="advanced"')  # on top
+    assert main.index('id="check"') > main.index('class="advbody"')  # Check stays in sight, after it
+    js = c.get("/static/kobo.js").text
+    assert "location.hash" in js and "hashchange" in js and "aria-expanded" in js
+
+
 def test_the_browser_sign_ins_way_back_is_not_there_on_a_server(tmp_path, monkeypatch):
     # Coming back to the page by the browser is for a reader's own computer only; a server signs in with a code.
     c = client(tmp_path, monkeypatch)
@@ -512,7 +531,7 @@ def test_how_many_books_the_list_shows_at_first_is_the_readers_choice(tmp_path, 
     settings = c.get("/settings", headers=h).text
     assert '<option value="100" selected>100</option><option value="0">All of them</option>' in settings  # the usual 100
     r = c.post("/settings/list", data={"size": "25"}, headers=h, follow_redirects=False)
-    assert r.status_code == 303 and r.headers["location"] == "/settings?ok=list"
+    assert r.status_code == 303 and r.headers["location"] == "/settings?ok=list#list"
     page = c.get("/", headers=h).text
     assert page.count('<tr id="b-') == 25 and "25 of 60 shown" in page and ">Show 25 more</a>" in page
     assert "Set all 60 in this list to" in page  # Set all still takes the whole list

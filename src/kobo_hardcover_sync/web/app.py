@@ -1401,6 +1401,7 @@ def settings_page(
     new_stats_token: str = "",
     checks: list | None = None,
     waiting: bool = False,
+    open_advanced: bool = False,
 ) -> HTMLResponse:
     me = accounts.get(con, me["name"])  # after a change: the row as it is now
     body = account_pages.settings(
@@ -1421,6 +1422,7 @@ def settings_page(
         if oauth.available()
         else None,
         state.hardcover_account(con, me["name"]),
+        open_advanced,
     )
     return HTMLResponse(frame_for(me, "settings", body), status_code=status)
 
@@ -1475,8 +1477,12 @@ def change(request: Request, ok: str, fn, back: str = ""):
     try:
         fn(con, me["name"])
     except accounts.AccountError as ex:
-        return settings_page(con, me, err=ex.key, status=400)
-    return RedirectResponse("/" if back == "/" else f"/settings?ok={ok}", status_code=303)
+        return settings_page(con, me, err=ex.key, status=400, open_advanced=ok in AT_CARD)
+    return RedirectResponse("/" if back == "/" else f"/settings?ok={ok}{AT_CARD.get(ok, '')}", status_code=303)
+
+
+# A change made on a card under Advanced comes back to that card, which opens the fold (kobo.js).
+AT_CARD = {"list": "#list", "collection": "#collection", "device_added": "#devices", "device_removed": "#devices", "stats_off": "#stats"}
 
 
 @app.post("/settings/profile")
@@ -1708,7 +1714,7 @@ def settings_updates(request: Request, check: str = Form("0")):
     cfg = computer_config.load()
     cfg.check_for_updates = check == "1"
     computer_config.save(cfg)
-    return RedirectResponse("/settings?ok=" + ("updates_on" if cfg.check_for_updates else "updates_off"), status_code=303)
+    return RedirectResponse("/settings?ok=" + ("updates_on" if cfg.check_for_updates else "updates_off") + "#computer", status_code=303)
 
 
 @app.post("/settings/eject")
@@ -1722,7 +1728,7 @@ def settings_eject(request: Request, eject: str = Form("0")):
     cfg = computer_config.load()
     cfg.eject_after_sync = eject == "1"
     computer_config.save(cfg)
-    return RedirectResponse("/settings?ok=" + ("eject_on" if cfg.eject_after_sync else "eject_off"), status_code=303)
+    return RedirectResponse("/settings?ok=" + ("eject_on" if cfg.eject_after_sync else "eject_off") + "#computer", status_code=303)
 
 
 @app.get("/settings/export")

@@ -451,7 +451,7 @@ def test_stats_are_off_until_the_reader_makes_a_token(tmp_path, monkeypatch):
     new = re.search(r'<code class="secret">([^<]+)</code>', c.post("/settings/stats/token", headers=h).text).group(1)
     assert new != token and c.get("/api/stats/robin", headers={"Authorization": f"Bearer {token}"}).status_code == 401
     assert c.get("/api/stats/robin", headers={"Authorization": f"Bearer {new}"}).status_code == 200
-    assert c.post("/settings/stats/off", headers=h, follow_redirects=False).headers["location"] == "/settings?ok=stats_off"
+    assert c.post("/settings/stats/off", headers=h, follow_redirects=False).headers["location"] == "/settings?ok=stats_off#stats"
     assert c.get("/api/stats/robin", headers={"Authorization": f"Bearer {new}"}).status_code == 401
     # Another site cannot make someone a token.
     assert c.post("/settings/stats/token", headers={**ROBIN, "Origin": "https://evil.example"}).status_code == 403

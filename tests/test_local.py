@@ -338,6 +338,8 @@ def test_what_local_mode_does_not_have(local):
         assert (r.status_code, r.text) == (404, "Not there in local mode."), path
     settings = inside.get("/settings").text
     assert "This computer" in settings and "Devices" not in settings and "stats" not in settings.lower() and "Logins" not in settings
+    advanced = settings[settings.index('<div class="advbody" id="adv">') : settings.index('<section class="card" id="check">')]
+    assert all(f'<section class="card" id="{card}">' in advanced for card in ("list", "collection", "export", "computer"))
     assert accounts.get(st_of(web), "me")["is_admin"] == 0
 
 
@@ -368,7 +370,7 @@ def test_the_token_goes_to_the_secret_store_from_the_page(local, monkeypatch):
     )
     assert (
         inside.post("/settings/eject", data={"eject": "1"}, headers=ORIGIN, follow_redirects=False).headers["location"]
-        == "/settings?ok=eject_on"
+        == "/settings?ok=eject_on#computer"
     )
     assert config.load().eject_after_sync is True and "The Kobo is ejected after a sync" in inside.get("/settings").text
     inside.post("/settings/eject", data={"eject": "0"}, headers=ORIGIN)

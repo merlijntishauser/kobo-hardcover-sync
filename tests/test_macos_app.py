@@ -235,7 +235,7 @@ def test_the_page_shows_the_version_and_the_setting_in_the_app(local, home, the_
         and 'href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v99.0.0"' in settings
     )
     r = inside.post("/settings/updates", data={"check": "0"}, headers=ORIGIN, follow_redirects=False)
-    assert r.headers["location"] == "/settings?ok=updates_off" and config.load().check_for_updates is False
+    assert r.headers["location"] == "/settings?ok=updates_off#computer" and config.load().check_for_updates is False
     settings = inside.get("/settings").text
     assert "Does not look for a newer version" in settings and "is out" not in settings
     inside.post("/settings/updates", data={"check": "1"}, headers=ORIGIN)

@@ -359,6 +359,8 @@ def test_header_names_the_reader_and_leads_to_settings_and_admin(browser, base_u
     page.click("form[action='/settings/profile'] button")
     assert page.inner_text(".who") == "Signed in as Sam the Reader" and "Name saved." in page.inner_text(".flash")
     # A device: a bad hash is refused next to the form, a good one is listed and can be removed.
+    assert not page.is_visible("#device")  # Devices is under Advanced, folded
+    page.click(".advtoggle")
     page.fill("#device", "kobo-sam")
     page.fill("#hash", "nope")
     page.click("form[action='/settings/devices/add'] button")
@@ -380,6 +382,34 @@ def test_header_names_the_reader_and_leads_to_settings_and_admin(browser, base_u
     page.click(".nav a[href='/admin']")
     assert page.inner_text(".pagetitle") == "Admin" and "Sam the Reader" in page.inner_text(".readers")
     shot(page, "kobo-admin.png")
+    ctx.close()
+
+
+def test_advanced_settings_fold_and_open_by_themselves_for_a_link(browser, base_url):
+    ctx, page = new_page(browser, base_url, width=390)
+    page.goto(base_url + "/settings")
+    toggle = page.locator(".advtoggle")
+    assert toggle.get_attribute("aria-expanded") == "false" and not page.is_visible("#list") and page.is_visible("#hardcover")
+    assert page.is_visible("#check")  # Check stays in sight
+    assert toggle.bounding_box()["height"] >= 44
+    toggle.click()
+    assert toggle.get_attribute("aria-expanded") == "true" and page.is_visible("#list") and page.is_visible("#export")
+    shot(page, "kobo-settings-advanced.png")
+    toggle.click()
+    assert not page.is_visible("#stats")
+    # A link to a card inside opens it: on arriving, and when the address changes.
+    page.goto(base_url + "/settings#export")
+    assert toggle.get_attribute("aria-expanded") == "true" and page.is_visible("#export")
+    page.goto(base_url + "/settings")
+    page.evaluate("location.hash = '#stats'")
+    page.wait_for_timeout(100)
+    assert page.is_visible("#stats")
+    ctx.close()
+    # Without JavaScript everything is there, open.
+    ctx = browser.new_context(java_script_enabled=False, extra_http_headers={"Remote-User": "sam"})
+    page = ctx.new_page()
+    page.goto(base_url + "/settings")
+    assert page.is_visible("#list") and page.is_visible("#devices") and not page.is_visible(".advtoggle")
     ctx.close()
 
 

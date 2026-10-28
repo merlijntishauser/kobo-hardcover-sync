@@ -511,6 +511,22 @@ details.paste summary::before { content: ""; width: 0.4rem; height: 0.4rem; marg
 details.paste[open] summary::before { transform: rotate(-135deg); margin-bottom: -0.15rem; }
 @media (prefers-reduced-motion: reduce) { details.paste summary::before { transition: none; } }
 details.paste summary:hover { color: var(--ink); }
+/* Advanced: the settings few readers need, under one heading. Without JS
+   they are open; kobo.js folds them behind the heading, a button like the
+   toolbar's Filter, and opens them when the address points at one of them. */
+.advanced { display: grid; grid-template-columns: minmax(0, 1fr); margin-top: 0.6rem; }
+.advhead { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+.advanced > .hint { margin: 0.35rem 0 0; max-width: 64ch; }
+.advbody { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; margin-top: 1rem; }
+.advbody .card { scroll-margin-top: 1rem; }
+.advtoggle { display: none; align-items: center; gap: 0.5rem; width: 100%; min-height: 2.75rem; text-align: left;
+  font-size: 1.0625rem; font-weight: 750; letter-spacing: -0.01em; }
+.advtoggle::after { content: ""; display: inline-block; width: 0.5rem; height: 0.5rem; margin: 0 0.2rem 0.25rem auto;
+  border: solid var(--graphite); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+.advtoggle[aria-expanded="true"]::after { transform: rotate(-135deg); margin-bottom: -0.1rem; }
+.advanced.js .advname { display: none; }
+.advanced.js .advtoggle { display: flex; }
+.advanced.js .advbody:not(.open) { display: none; }
 /* What the check found: one line per thing looked at, what to do under it. */
 .found { font-weight: 700; }
 .checks { list-style: none; margin: 0.35rem 0 0.75rem; padding: 0; }

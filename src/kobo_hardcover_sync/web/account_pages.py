@@ -225,6 +225,7 @@ def settings(
     checks: list | None = None,
     connect: dict | None = None,
     bound: tuple[int, str] | None = None,
+    open_advanced: bool = False,
 ) -> str:
     """local: None in server mode; in local mode what this computer does
     ({"eject": bool, "kept_in": where the token is kept, "app": None, or in
@@ -234,7 +235,8 @@ def settings(
     Hardcover app to connect through; else {"kind": "oauth" | "pasted" | "",
     "signin": a sign-in that waits for the reader (oauth.Device) or None,
     "waiting": the reader said they approved and Hardcover has not seen it}. bound: the Hardcover
-    account the books were put on (state.hardcover_account), or None."""
+    account the books were put on (state.hardcover_account), or None.
+    open_advanced: Advanced is shown open (a form in it was refused)."""
     has_token = token_state in ("stored", "env")
     you = (
         f'<section class="card"><h2>{T["s_profile"]}</h2>'
@@ -317,7 +319,7 @@ def settings(
     )
 
     collection = (
-        f'<section class="card"><h2>{T["s_collection"]}</h2>'
+        f'<section class="card" id="collection"><h2>{T["s_collection"]}</h2>'
         f'<form method="post" action="/settings/collection" class="field"><label for="collection">{T["s_collection_name"]}</label>'
         f'<div class="inputs"><input type="text" id="collection" name="collection" value="{e(me["kobo_collection"] or "")}" maxlength="60">'
         f'<button>{T["save"]}</button></div><p class="hint">{e(T["s_collection_help"])}</p></form></section>'
@@ -340,7 +342,7 @@ def settings(
         for d in devices
     )
     devs = (
-        f'<section class="card"><h2>{T["s_devices"]}</h2>'
+        f'<section class="card" id="devices"><h2>{T["s_devices"]}</h2>'
         + (f'<ul class="devices">{rows}</ul>' if rows else line("none", T["s_no_devices"]))
         + f'<form method="post" action="/settings/devices/add" class="field adddev"><div class="pair">'
         f'<div><label for="device">{T["s_device_name"]}</label><input type="text" id="device" name="device" maxlength="40" placeholder="{T["s_device_name_hint"]}" required></div>'
@@ -380,12 +382,25 @@ def settings(
             f'<p class="hint">{e(T["s_eject_help"])}</p>' + _the_app(local.get("app")) + "</section>"
         )
         return (
-            f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{booklist}{collection}{computer}{download}'
-            f"{check_card(checks, True)}</main>"
+            f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}'
+            f"{advanced(T['s_advanced_what_local'], booklist + collection + download + computer, open_advanced)}{check_card(checks, True)}</main>"
         )
     return (
-        f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}{booklist}{collection}{devs}{stats}{download}'
-        f"{check_card(checks, False)}</main>"
+        f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}'
+        f"{advanced(T['s_advanced_what'], booklist + collection + devs + stats + download, open_advanced)}{check_card(checks, False)}</main>"
+    )
+
+
+def advanced(what: str, cards: str, open_: bool = False) -> str:
+    """The settings few readers need, under one heading. Without JavaScript
+    they are simply there; kobo.js folds them behind the heading's button,
+    and opens them by itself when the address points at one of their cards
+    (/settings#list, #export, #stats, #computer). open_: shown open, as
+    after a form in it was refused, so that the reader sees it again."""
+    return (
+        f'<section class="advanced" aria-labelledby="adv-h"><h2 class="advhead" id="adv-h"><span class="advname">{T["s_advanced"]}</span>'
+        f'<button type="button" class="advtoggle" aria-expanded="{"true" if open_ else "false"}" aria-controls="adv">{T["s_advanced"]}</button></h2>'
+        f'<p class="hint">{e(what)}</p><div class="advbody{" open" if open_ else ""}" id="adv">{cards}</div></section>'
     )
 
 
