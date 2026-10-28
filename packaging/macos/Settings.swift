@@ -423,13 +423,13 @@ struct AppTab: View {
                 LabeledContent("Version", value: bundleVersion())
                 if let settings = model.current {
                     Choice(model: model, name: "check_for_updates", on: settings.settings.checkForUpdates, label: "Look for a newer version",
-                           about: "At most once a day, after a sync, the app asks GitHub for the latest release. It only says so; it never updates itself.")
+                           about: "At most once a day, after a sync, the app asks GitHub for the latest release. It only says so: installing is yours to start.")
                 }
                 HStack {
                     Text(updateSaid).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                     Spacer()
-                    if case .success(let found) = model.update, found.newer, let link = URL(string: releases + found.latest) {
-                        Button("Get it") { NSWorkspace.shared.open(link) }
+                    if case .success(let found) = model.update, found.newer {
+                        Button("Install and Restart") { installUpdate(found.latest) }
                     }
                     Button("Check now") { model.checkNow() }.disabled(model.checking)
                 }

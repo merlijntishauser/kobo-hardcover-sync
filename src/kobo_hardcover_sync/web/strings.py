@@ -43,7 +43,7 @@ T = {
     "s_updates_off": "Does not look for a newer version",
     "s_updates_turn_on": "Look for a newer version",
     "s_updates_turn_off": "Do not look",
-    "s_updates_help": "After a sync, at most once a day, the app asks GitHub which version is the newest. Nothing about you or your books is sent. It never updates itself: download the new version from its release and drag it over this one.",
+    "s_updates_help": "After a sync, at most once a day, the app asks GitHub which version is the newest. Nothing about you or your books is sent. A new version is installed only when you choose Install and Restart in the app.",
     "ok_updates_on": "The app looks for a newer version once a day.",
     "ok_updates_off": "The app no longer looks for a newer version.",
     "not_through_proxy": "This page is only served through its sign-in proxy.",

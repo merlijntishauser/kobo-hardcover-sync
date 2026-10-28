@@ -335,8 +335,10 @@ you gave and nowhere else (no redirect is followed).
 **To GitHub, from the Mac app only**: once a day at most, after a sync,
 a request for the number of the newest release, so that the app can say
 when there is a newer one. Nothing about you or your books goes with it.
-It never updates itself; switch it off on the page under Settings, This
-computer. Homebrew and PyPI installations do not ask.
+It only says so: a new version is downloaded, from its release on
+GitHub, when you choose *Install and Restart*. Switch the check off on
+the page under Settings, This computer. Homebrew and PyPI installations
+do not ask.
 
 **Where you ask for it**: `export` writes your reading, titles included,
 to the screen or to the file you name (after every sync, if you asked for

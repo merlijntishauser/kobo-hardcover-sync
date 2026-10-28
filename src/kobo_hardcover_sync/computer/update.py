@@ -1,7 +1,8 @@
 """The Mac app: is there a newer version? (docs/macos-app.md)
 
 The app has no package manager to say so, so after a sync it asks GitHub,
-at most once a day. It only says; it never updates itself. Homebrew and
+at most once a day. It only says; the app installs a version when the
+reader chooses to (packaging/macos/Update.swift). Homebrew and
 PyPI installations do not ask: they have their own way of telling.
 
 What keeps it small:

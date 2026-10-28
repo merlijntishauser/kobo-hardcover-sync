@@ -419,7 +419,10 @@ struct OverviewSections: View {
             if let version = model.newer {
                 ProofSheet {
                     Row(state: "note", what: "Version \(version) is out", found: "This is \(bundleVersion()).") {
-                        Button("Get it") { if let link = URL(string: releases + version) { NSWorkspace.shared.open(link) } }
+                        HStack {
+                            Button("What's New") { if let link = URL(string: releases + version) { NSWorkspace.shared.open(link) } }
+                            Button("Install and Restart") { installUpdate(version) }
+                        }
                     }
                     .onSheet()
                 }

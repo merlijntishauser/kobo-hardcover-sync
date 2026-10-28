@@ -42,7 +42,7 @@ proper prompt.
 |---|---|---|
 | Python inside the app | **A small native wrapper in Swift**, with a standalone Python and the tool inside the bundle. The wrapper runs the tool as a child process, unchanged. | Briefcase (Python runs in-process; notifications and the launch agent would need Objective-C calls from Python); PyInstaller (the same, and notarisation and the disk image are our own work anyway). |
 | Signing and notarising | **In GitHub Actions, in a separate workflow, behind an environment that needs the maintainer's approval for each run.** The certificate and the notary key are secrets of that environment only. | On the maintainer's own Mac with a script: the key never leaves that Mac, but every release then needs it, and the build cannot be repeated from the tag. |
-| Updates | **The app checks, and says so; it does not update itself.** At most once a day, after a sync, it asks GitHub for the newest release. A newer version is shown on the page and in the app's window, with a link to the release. It can be switched off. | No check at all (people would stay on old versions without knowing); a full updater with Sparkle (a signing key of its own to look after, and the largest attack surface). |
+| Updates | **The app checks, and says so; it installs only when asked.** At most once a day, after a sync, it asks GitHub for the newest release. A newer version is shown on the page and in the app's window. *Install and Restart* (added 2026-10-28) downloads the release's disk image and installs the app on it only when it is notarised and signed by the same team as this one (see *Updating*). The check can be switched off. | No check at all (people would stay on old versions without knowing); a full updater with Sparkle (a signing key of its own to look after, an appcast to publish, and a framework to embed without Xcode). |
 | Modes | **Local and server mode**, chosen the first time the app is opened. | Local mode only. |
 
 ## Settled without asking
@@ -216,7 +216,11 @@ started in three ways:
   the full Edit menu (the text fields' keys, ⌘V among them, go through it)
   and a *Sync* menu: *Sync Now* (⌘R), *Check Again* (⇧⌘R) and *Show the
   Log*; *View* has the four panes (⌘1 to ⌘4), the sidebar (⌃⌘S) and full
-  screen (⌃⌘F), and *Help* opens this guide. VoiceOver is told when a sync starts and how it ended, the window's
+  screen (⌃⌘F), and *Help* (⌘?) opens the app's guide in a window of
+  its own (`Help.swift`): how it works, each pane, the marks drawn as the
+  app draws them, the keys, what to do when something is wrong, and
+  updates, searchable. It is written for the reader; this document is how
+  the app is built. VoiceOver is told when a sync starts and how it ended, the window's
   own or one the Kobo started.
 - **Settings (⌘-,),** three tabs, each change through the tool. *Mode*:
   local or a server, which runs `setup --local` or `setup --server ...
@@ -272,6 +276,37 @@ hand. Which of the two happens is the first thing to see on a real Mac.
   the wrapper both read it from there.
 - Switched off on the page (Settings, This computer) or with
   `check_for_updates = false` in `config.toml`.
+
+## Updating
+
+*Install and Restart* (the overview's notice, Settings, *Check for
+Updates…*) installs the new version in the app, in a small window that
+shows how far it is (`Update.swift`). Only the reader starts it; the
+check above never does.
+
+- **Only the released app updates itself.** The team of the running app's
+  own signature (`SecCodeCopySelf`) is what the new one is held to; a
+  preview or a build signed ad hoc has none, and says to update by hand.
+- **The link is built from the version**, which must read three numbers:
+  `releases/download/v<version>/Kobo-Hardcover-Sync-<version>.dmg`, the
+  name the release workflow gives it. Nothing from GitHub's answer is
+  used but that version.
+- **The app on the disk image is checked twice**: on the image, and again
+  as the copy that is installed. The requirement is `anchor apple generic
+  and identifier "<this app's>" and certificate leaf[subject.OU] =
+  "<this app's team>" and notarized`, with all architectures, strict
+  validation and every nested piece of code; its `CFBundleShortVersionString`
+  must be the version asked for. Tried on 2026-10-28 against the 0.16.0
+  release: accepted; the same app against another team, and another
+  vendor's app, refused (`errSecCSReqFailed`).
+- **The swap**: copied with `ditto` into a folder on the app's own volume
+  (`itemReplacementDirectory`), then `FileManager.replaceItemAt`. Not
+  while a sync runs (`status --json`), not from App Translocation, and not
+  where this account cannot write. The window cannot be closed while it
+  checks and swaps.
+- **The restart**: a shell waits for this process to end, then opens the
+  new app. `hdiutil attach` says it is deprecated on newer macOS; its
+  replacement, `diskutil image attach`, does not exist on macOS 13.
 
 ## Building and signing
 

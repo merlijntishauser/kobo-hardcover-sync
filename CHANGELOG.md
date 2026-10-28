@@ -9,6 +9,13 @@ minor version may change behaviour; the notes will say so.
 
 ### Added
 
+- The Mac app updates itself: *Install and Restart*, where it says a
+  new version is out, downloads it, installs it only when Apple notarised
+  it and it carries the same signature as the app you have, and starts
+  it.
+- A guide in the Mac app (*Help*, ⌘?): how it works, each pane, what the
+  marks mean, the keys, and what to do when something is wrong.
+  Searchable, and it no longer sends you to GitHub.
 - A full-screen cover in the Mac app: on a cover shown large, the button
   in its corner (or F) puts it alone on black over the whole screen; a
   click or any key puts it back.

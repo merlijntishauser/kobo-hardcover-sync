@@ -22,7 +22,6 @@ import UserNotifications
 let name = "Kobo Hardcover Sync"
 let agentPlist = "org.gargleblaster.kobo-hardcover-sync.app.agent.plist"
 let releases = "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v"
-let help = "https://github.com/merlijntishauser/kobo-hardcover-sync/blob/main/docs/macos-app.md"
 let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=" + (Bundle.main.bundleIdentifier ?? "")
 let privacySettings = "x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders"
 let stoppedWithoutWord = "The sync stopped before it could say why. Its log is agent.log, in Library/Application Support/kobo-hardcover-sync."
@@ -216,6 +215,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     var model: WindowModel?
     var settings: NSWindow?
     var settingsModel: SettingsModel?
+    var help: NSWindow?
 
     func begin() { running += 1 }
 
@@ -446,8 +446,10 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         } else if closing === settings {
             settingsModel = nil
             settings = nil
+        } else if closing === help {
+            help = nil
         }
-        if window == nil && settings == nil { NSApp.setActivationPolicy(.accessory) }
+        if window == nil && settings == nil && help == nil { NSApp.setActivationPolicy(.accessory) }
         end()
     }
 
@@ -459,10 +461,15 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             switch found {
             case .success(let update) where update.newer:
                 a.messageText = "Version \(update.latest) is out"
-                a.informativeText = "This is \(update.version). The app does not update itself: download the new one, and drag it to Applications."
-                a.addButton(withTitle: "Get it")
+                a.informativeText = "This is \(update.version). \(name) downloads the new one, checks that it is signed and notarised as this one is, puts it in this one's place and starts it again."
+                a.addButton(withTitle: "Install and Restart")
+                a.addButton(withTitle: "What's New")
                 a.addButton(withTitle: "Later")
-                if a.runModal() == .alertFirstButtonReturn, let link = URL(string: releases + update.latest) { NSWorkspace.shared.open(link) }
+                switch a.runModal() {
+                case .alertFirstButtonReturn: installUpdate(update.latest)
+                case .alertSecondButtonReturn: if let link = URL(string: releases + update.latest) { NSWorkspace.shared.open(link) }
+                default: break
+                }
                 return
             case .success(let update) where update.problem.isEmpty:
                 a.messageText = "This is the newest version"
@@ -615,7 +622,27 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         model?.pane = Pane.allCases[sender.tag]
     }
 
-    @objc func helpFromMenu() { NSWorkspace.shared.open(URL(string: help)!) }
+    /// The guide, in a window of its own.
+    @objc func helpFromMenu() {
+        if let help {
+            NSApp.activate(ignoringOtherApps: true)
+            return help.makeKeyAndOrderFront(nil)
+        }
+        let help = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 760, height: 560),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
+        help.title = "\(name) Help"
+        help.toolbar = NSToolbar()
+        help.toolbarStyle = .unified
+        help.contentView = NSHostingView(rootView: HelpView())
+        help.isReleasedWhenClosed = false
+        help.delegate = self
+        help.center()
+        help.setFrameAutosaveName("Help")
+        self.help = help
+        begin()  // as Settings: the app stays while it is open
+        help.makeKeyAndOrderFront(nil)
+    }
 
     // ---------- the first time ----------
     /// Where the reading goes, the launch agent, `setup`. Whether it ended set up.
