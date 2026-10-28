@@ -5,7 +5,11 @@ change to the stylesheet and look at the pictures:
   uv run --group browser python browser_tests/shots.py
 
 They land in $DEV_OUT as shot-*.png. KOBO_TEST_IMAGE_IDS (comma-separated
-Kobo image ids) gives the first books real covers.
+Kobo image ids) gives the first books real covers; KOBO_TEST_COVERS_DIR (a
+folder of sample-NN.jpg, with sample-NN.large.jpg beside them where wanted)
+gives them drawn ones without touching the network. SHOT_SCALE=2 renders the
+desk shots at two device pixels per CSS pixel, for a picture that is shown
+large (the site); the phone shots always are.
 """
 
 import json
@@ -20,6 +24,10 @@ from playwright.sync_api import sync_playwright
 
 OUT = os.environ.get("DEV_OUT", ".")
 IMAGE_IDS = [i for i in os.environ.get("KOBO_TEST_IMAGE_IDS", "").split(",") if i]
+COVERS_DIR = os.environ.get("KOBO_TEST_COVERS_DIR", "")
+if COVERS_DIR and not IMAGE_IDS:
+    IMAGE_IDS = sorted(f[:-4] for f in os.listdir(COVERS_DIR) if f.endswith(".jpg") and not f.endswith(".large.jpg"))
+SCALE = int(os.environ.get("SHOT_SCALE", "1"))
 SHELF = [  # title, author, percent, kobo status, mode, state, how, sent
     ("Moby-Dick; or, The Whale", "Herman Melville", 37, 1, "on", "kobo", "isbn", {"status": "reading", "progress": 35}),
     ("Middlemarch", "George Eliot", 100, 2, "on", "kobo", "isbn", {"status": "read", "finished": "2026-09-21"}),
@@ -87,6 +95,13 @@ def seed(d, reader="sam"):
         )
     st.execute("insert into job values (?,'2026-10-01T09:36:20Z','2026-10-01T09:36:41Z',1,'ok',?)", (reader, json.dumps({"sent": 3})))
     st.commit()
+    if COVERS_DIR:  # the drawn covers, where the tool keeps the ones it fetched
+        import shutil
+
+        os.makedirs(os.path.join(d, "covers"), exist_ok=True)
+        for f in os.listdir(COVERS_DIR):
+            if f.endswith(".jpg"):
+                shutil.copy(os.path.join(COVERS_DIR, f), os.path.join(d, "covers", f))
 
 
 def local_shots(new_page, snap):
@@ -178,7 +193,7 @@ def main():
                     viewport={"width": width, "height": height},
                     color_scheme=scheme,
                     extra_http_headers={"Remote-User": user},
-                    device_scale_factor=2 if width < 700 else 1,
+                    device_scale_factor=2 if width < 700 else SCALE,
                 )
                 open_contexts.append(ctx)
                 return ctx.new_page()

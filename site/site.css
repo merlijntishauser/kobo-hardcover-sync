@@ -1,0 +1,260 @@
+/* The site of kobo-hardcover-sync, in the page's own world (DESIGN.md: the
+   galley proof). Galley stock, a proof sheet, the margin tint, two pencils.
+   The tokens are the page's (src/kobo_hardcover_sync/web/static/kobo.css);
+   the fonts are the project's own files, nothing is loaded from elsewhere. */
+
+@font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 900; font-display: swap; src: url(fonts/SchibstedGrotesk-latin.woff2) format("woff2"); }
+@font-face { font-family: "Schibsted Grotesk"; font-style: italic; font-weight: 400 900; font-display: swap; src: url(fonts/SchibstedGrotesk-italic-latin.woff2) format("woff2"); }
+@font-face { font-family: "Source Serif 4"; font-style: normal; font-weight: 200 900; font-display: swap; src: url(fonts/SourceSerif4-latin.woff2) format("woff2"); }
+
+:root {
+  color-scheme: light;
+  --ground: #edefea; --sheet: #fbfbf8; --margin: #f4f5f1;
+  --ink: #17191c; --graphite: #4a4f57; --faint: #5f656e;
+  --rule: #cdd1cb; --rule-soft: #e3e6e0; --edge: #80868e;
+  --rail: #c3e2ef; --rail-ink: #14222b; --rail-graphite: #2f4653;
+  --blue: #1c5e8b; --blue-wash: #ddeff7;
+  --red: #c0212b; --red-wash: #f9e3e1;
+  --green: #2c6a39; --green-wash: #e1f0e2;
+  --flag: #17191c; --on-flag: #fbfbf8; --on-fill: #ffffff;
+  --lift: 0 1px 0 #cdd1cb, 0 18px 40px -28px rgba(23, 25, 28, 0.38);
+  --device-top: #4a515b; --device-bottom: #2b3038; --eink-top: #f0ede3; --eink-bottom: #e3dfd2; --eink-ink: #2a2d31; --eink-grey: #575c64;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r-sheet: 2px; --r-ctl: 4px;
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0f1114; --sheet: #171a1e; --margin: #1b1f24;
+    --ink: #e7e9e4; --graphite: #aeb4bb; --faint: #959ca4;
+    --rule: #30353c; --rule-soft: #24282e; --edge: #6e757e;
+    --rail: #123040; --rail-ink: #e3f1f7; --rail-graphite: #a9c6d4;
+    --blue: #86c5ea; --blue-wash: #173444;
+    --red: #ff8077; --red-wash: #3b1f1f;
+    --green: #86cf95; --green-wash: #18301e;
+    --flag: #e7e9e4; --on-flag: #0f1114; --on-fill: #0f1114;
+    --lift: none;
+    --device-top: #3a4049; --device-bottom: #1d2126; --eink-top: #d9d6cc; --eink-bottom: #cac7bd; --eink-ink: #23262a; --eink-grey: #474c53;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0f1114; --sheet: #171a1e; --margin: #1b1f24;
+  --ink: #e7e9e4; --graphite: #aeb4bb; --faint: #959ca4;
+  --rule: #30353c; --rule-soft: #24282e; --edge: #6e757e;
+  --rail: #123040; --rail-ink: #e3f1f7; --rail-graphite: #a9c6d4;
+  --blue: #86c5ea; --blue-wash: #173444;
+  --red: #ff8077; --red-wash: #3b1f1f;
+  --green: #86cf95; --green-wash: #18301e;
+  --flag: #e7e9e4; --on-flag: #0f1114; --on-fill: #0f1114;
+  --lift: none;
+  --device-top: #3a4049; --device-bottom: #1d2126; --eink-top: #d9d6cc; --eink-bottom: #cac7bd; --eink-ink: #23262a; --eink-grey: #474c53;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--ground); scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; font: 400 1rem/1.5 var(--sans); color: var(--ink); background: var(--ground);
+  -webkit-font-smoothing: antialiased;
+}
+:root { accent-color: var(--blue); caret-color: var(--red); scrollbar-color: var(--edge) transparent; }
+::selection { background: var(--red-wash); color: var(--ink); }
+a { color: var(--blue); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 2px; }
+h1, h2, h3 { margin: 0; letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; }
+h1 { font-size: clamp(1.8rem, 1.1rem + 2.2vw, 2.5rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; }
+h2 { font-size: clamp(1.45rem, 1.1rem + 1.4vw, 2.1rem); font-weight: 800; letter-spacing: -0.03em; }
+h3 { font-size: 1.0625rem; font-weight: 700; }
+p { margin: 0; }
+.lede { color: var(--graphite); font-size: 1.0625rem; max-width: 62ch; text-wrap: pretty; }
+.hero .lede { font-size: 1rem; }
+.muted { color: var(--graphite); font-size: 0.9375rem; max-width: 70ch; }
+code { font: 0.875rem var(--mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-ctl); padding: 0.2rem 0.5rem; overflow-wrap: anywhere; }
+.skip { position: absolute; left: var(--gutter); top: -3rem; background: var(--sheet); color: var(--ink); padding: 0.5rem 0.8rem; border: 1px solid var(--edge); border-radius: var(--r-ctl); z-index: 10; }
+.skip:focus { top: 0.5rem; }
+
+/* The head: the name with its caret, and the page's places. */
+.top {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1.5rem;
+  padding-inline: var(--gutter) var(--gutter-r); padding-block: 1rem; max-width: 92rem; margin: 0 auto;
+}
+.name { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--ink); text-decoration: none; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
+.name svg { width: 1rem; height: 1rem; color: var(--red); }
+.top nav { display: flex; flex-wrap: wrap; gap: 0.2rem 1.2rem; font-size: 0.9375rem; }
+.top nav a { color: var(--graphite); text-decoration: none; padding: 0.4rem 0; }
+.top nav a:hover { color: var(--ink); text-decoration: underline; }
+@media (max-width: 719.98px) { .top nav .inpage { display: none; } }
+
+main { display: grid; gap: clamp(4rem, 8vw, 7.5rem); padding-block: 0.5rem 5rem; }
+
+/* ---------- the first viewport: the Kobo, the stroke, the margin ---------- */
+.hero {
+  position: relative; display: grid; gap: 2.5rem; align-items: start;
+  width: 100%; max-width: 92rem; margin: 0 auto; padding-inline: var(--gutter) var(--gutter-r);
+}
+@media (min-width: 1024px) {
+  .hero { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 3.5rem; padding-top: 0.5rem; }
+  .hero { --kobo-w: 16rem; }
+}
+.device-col { display: grid; gap: 1.25rem; min-width: 0; }
+.proof-col { display: grid; gap: 0.9rem; min-width: 0; }
+
+/* The Kobo: the icon's own device, as a thing that holds real parts. */
+.kobo {
+  margin: 0; width: min(100%, var(--kobo-w, 13rem)); aspect-ratio: 624 / 920; padding: 11.5% 9%;
+  border-radius: 11% / 7.6%; background: linear-gradient(var(--device-top), var(--device-bottom));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 36px -18px rgba(6, 17, 26, 0.55);
+}
+.eink {
+  height: 100%; border-radius: 3px; padding: 0.8rem 0.9rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; overflow: hidden;
+  background: linear-gradient(var(--eink-top), var(--eink-bottom)); color: var(--eink-ink);
+}
+.running { display: flex; justify-content: space-between; gap: 0.5rem; color: var(--eink-grey); font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; }
+.passage { font-family: var(--serif); font-size: 0.8125rem; line-height: 1.45; font-optical-sizing: auto; overflow: hidden;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 7; line-clamp: 7; }
+.passage::first-letter { font-size: 1.6em; font-weight: 600; line-height: 1; }
+.einkfoot { margin-top: auto; display: grid; gap: 0.35rem; }
+.eink .bar, .eink .bar::after { --edge: var(--eink-grey); }
+.eink .bar span { background: var(--eink-ink); }
+.eink .meta { color: var(--eink-grey); margin-top: 0; font-size: 0.6875rem; gap: 0.1rem 0.5rem; }
+
+/* The line gauge and the facts, as the page draws them. */
+.bar {
+  position: relative; height: 9px; max-width: 16rem;
+  background: repeating-linear-gradient(to right, var(--edge) 0 1px, transparent 1px 10%) left bottom / 100% 4px no-repeat,
+    linear-gradient(var(--edge), var(--edge)) left bottom / 100% 1px no-repeat;
+}
+.bar::after { content: ""; position: absolute; right: 0; bottom: 0; width: 1px; height: 4px; background: var(--edge); }
+.bar span { position: absolute; left: 0; bottom: 1px; height: 4px; background: var(--ink); }
+.meta { display: flex; gap: 0.1rem 0.9rem; flex-wrap: wrap; color: var(--graphite); font-size: 0.8125rem; font-variant-numeric: tabular-nums; margin-top: 0.35rem; }
+.meta > span { white-space: nowrap; }
+
+/* The download: the one red fill, as Sync now is. */
+.get { display: grid; gap: 0.6rem; }
+.primary {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: 0.5rem 1.2rem; width: fit-content;
+  font-weight: 600; font-size: 1rem; color: var(--on-fill); background: var(--red); border: 1px solid var(--red); border-radius: var(--r-ctl); text-decoration: none;
+}
+.primary:hover { filter: brightness(1.07); }
+.ver { color: var(--graphite); font-size: 0.875rem; }
+.ways { color: var(--graphite); font-size: 0.875rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; }
+.ways code { font-size: 0.8125rem; }
+
+/* The proof: the sheet with its margin, as the Books page has it. */
+.proof { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); box-shadow: var(--lift); overflow: hidden; }
+.proofhead, .proof .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 42%); }
+.proofhead { font-size: 0.78rem; font-weight: 650; color: var(--graphite); border-bottom: 1px solid var(--rule); }
+.proofhead > span { padding: 0.75rem 1rem; }
+.proofhead .hc, .proof .row .hc { background: var(--margin); border-left: 3px double var(--rule); }
+.proof .row { border-bottom: 1px solid var(--rule-soft); }
+.proof .row:last-child { border-bottom: 0; }
+.proof .book { display: flex; gap: 0.9rem; padding: 1rem; min-width: 0; }
+.proof .book > div { min-width: 0; }
+.proof .title { font-family: var(--serif); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; letter-spacing: -0.005em; font-optical-sizing: auto; }
+.proof .author { color: var(--graphite); font-size: 0.875rem; margin-top: 0.1rem; }
+.proof .meta { margin-top: 0.45rem; }
+.cover { display: block; flex: none; width: 48px; height: 72px; border-radius: 1px 3px 3px 1px; object-fit: cover; background: var(--sheet);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1); }
+.proof .hc { padding: 1rem 0.9rem; font-size: 0.875rem; }
+.act { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); column-gap: 0.1rem; align-items: start; }
+.act .mk { width: 18px; height: 18px; margin-top: 1px; }
+.act > span { font-weight: 650; font-size: 0.8125rem; }
+.act.next .mk, .act.next > span { color: var(--red); }
+.act.ok .mk, .act.ok > span { color: var(--green); }
+.act.warn .mk, .act.warn > span { color: var(--blue); }
+.act.none .mk { color: var(--faint); }
+.act.none > span { font-weight: 500; color: var(--graphite); font-size: 0.875rem; }
+.act .fix, .act .sub { grid-column: 2; }
+.fix { margin-top: 0.1rem; font-size: 0.9375rem; color: var(--ink); }
+.fix s { position: relative; color: var(--graphite); text-decoration: none; }
+.fix s::after { content: ""; position: absolute; left: 0; right: 0; top: 58%; height: 1.5px; background: var(--red); transform-origin: left; }
+.fix ins { display: inline-flex; align-items: baseline; gap: 1px; color: var(--red); font-weight: 650; text-decoration: none; }
+.fix ins svg { width: 10px; height: 10px; align-self: flex-end; margin-bottom: -4px; }
+.sub { color: var(--graphite); font-size: 0.8125rem; margin-top: 0.2rem; }
+/* The signature, as on the page: the strike draws across, the new value writes in. */
+@keyframes strike { from { transform: scaleX(0); } }
+@keyframes write { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.fix s::after { animation: strike 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--d, 0s); }
+.fix ins { animation: write 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: calc(var(--d, 0s) + 0.2s); }
+.caption { color: var(--graphite); font-size: 0.875rem; max-width: 62ch; }
+
+/* The stroke: one continuous red line from the gauge into the first mark, drawn once. */
+.stroke { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; display: none; }
+.stroke path { fill: none; stroke: var(--red); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (min-width: 1024px) { .stroke.on { display: block; } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.stroke.on path { stroke-dasharray: var(--len, 1000); stroke-dashoffset: var(--len, 1000); animation: draw 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .fix s::after, .fix ins { animation: none; }
+  .stroke.on path { animation: none; stroke-dashoffset: 0; }
+}
+
+/* ---------- the blocks below: sheets on the stock, with deep gaps between ---------- */
+.block { width: 100%; max-width: 92rem; margin: 0 auto; padding-inline: var(--gutter) var(--gutter-r); display: grid; gap: 1.25rem; min-width: 0; }
+.block > h2 + .lede { margin-top: -0.4rem; }
+
+/* The two pulls of the Books page, light and dark side by side. */
+.pulls { display: grid; gap: 1.5rem; margin-top: 0.75rem; }
+@media (min-width: 900px) { .pulls { grid-template-columns: 1fr 1fr; } }
+.pulls figure, .phones figure { margin: 0; display: grid; gap: 0.6rem; min-width: 0; }
+.pulls img, .phones img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: var(--r-sheet); box-shadow: var(--lift); }
+figcaption { color: var(--graphite); font-size: 0.875rem; max-width: 60ch; }
+.phones { display: grid; gap: 1.5rem; align-items: start; margin-top: 0.5rem; }
+@media (min-width: 900px) { .phones { grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr); } }
+.phones figure:first-child img { max-width: 22rem; }
+
+/* The Mac app. */
+.macgrid { display: grid; gap: 1.5rem; align-items: start; }
+@media (min-width: 720px) { .macgrid { grid-template-columns: 10rem minmax(0, 1fr); gap: 2.5rem; } }
+.appicon { display: block; width: 10rem; height: 10rem; }
+.macgrid > div { display: grid; gap: 1rem; }
+.plain { margin: 0; padding-left: 1.2rem; color: var(--graphite); display: grid; gap: 0.4rem; max-width: 62ch; }
+.plain li::marker { color: var(--faint); }
+
+/* The four steps: one row that never wraps, it scrolls. */
+.strip { list-style: none; margin: 0.75rem 0 0; padding: 0 0 0.75rem; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(16rem, 1fr); gap: 1.5rem; overflow-x: auto; scroll-snap-type: x proximity; }
+.strip li { scroll-snap-align: start; display: grid; gap: 0.5rem; align-content: start; padding: 1.2rem 1.35rem 1.35rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); box-shadow: var(--lift); min-width: 0; }
+.strip .n { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 1px solid var(--edge); font-size: 0.8125rem; font-weight: 650; color: var(--graphite); font-variant-numeric: tabular-nums; }
+.strip li:first-child .n { background: var(--blue); border-color: var(--blue); color: var(--on-fill); }
+.strip p { color: var(--graphite); font-size: 0.9375rem; }
+
+/* What it does, what it leaves alone. */
+.two { grid-template-columns: 1fr; gap: 2.5rem; }
+@media (min-width: 900px) { .two { grid-template-columns: 1fr 1fr; gap: 3rem; } }
+.two > div { display: grid; gap: 1rem; min-width: 0; }
+.marks { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.8rem; color: var(--ink); max-width: 56ch; }
+.marks li { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); column-gap: 0.2rem; align-items: start; }
+.marks li > span { min-width: 0; }
+.marks .mk { width: 18px; height: 18px; margin-top: 3px; }
+.mk.ok { color: var(--green); }
+.mk.none { color: var(--faint); }
+
+/* The other tools. */
+.tablewrap { overflow-x: auto; margin-top: 0.5rem; }
+table { border-collapse: collapse; width: 100%; min-width: 40rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-sheet); box-shadow: var(--lift); font-size: 0.9375rem; }
+th, td { text-align: left; vertical-align: top; padding: 0.9rem 1rem; border-bottom: 1px solid var(--rule-soft); }
+thead th { font-size: 0.78rem; font-weight: 650; color: var(--graphite); background: var(--margin); border-bottom: 1px solid var(--rule); }
+tbody th { font-weight: 650; white-space: nowrap; }
+tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+tbody tr:first-child th, tbody tr:first-child td { background: var(--blue-wash); }
+
+/* The close. */
+.close { padding-block: 0.5rem; }
+
+/* The foot. */
+.foot {
+  max-width: 92rem; margin: 0 auto; padding-inline: var(--gutter) var(--gutter-r); padding-block: 2rem calc(2rem + env(safe-area-inset-bottom, 0px));
+  border-top: 3px double var(--rule); display: grid; gap: 1rem; color: var(--graphite); font-size: 0.875rem;
+}
+.foot p { max-width: 62ch; }
+.foot nav { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; }
+.theme { display: inline-flex; width: fit-content; border: 1px solid var(--edge); border-radius: var(--r-ctl); overflow: hidden; background: var(--sheet); }
+.theme button { font: 600 0.875rem var(--sans); color: var(--graphite); background: none; border: 0; padding: 0.45rem 0.8rem; min-height: 2.375rem; cursor: pointer; }
+.theme button + button { border-left: 1px solid var(--rule); }
+.theme button[aria-pressed="true"] { background: var(--blue); color: var(--on-fill); }

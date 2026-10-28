@@ -1,0 +1,32 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-radius",
+        "value": "1px",
+        "createdAt": "2026-10-28T23:02:30.592Z",
+        "reason": "DESIGN.md, Shapes: a cover is 1px at the spine and 3px at the fore-edge, the one 1px corner there is"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "site/site.css"
+        ],
+        "createdAt": "2026-10-28T23:02:30.596Z",
+        "reason": "DESIGN.md, the line gauge: a printer's rule with a tick every tenth, drawn with a repeating gradient as kobo.css draws it"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-10-28T23:06:39.992Z",
+        "reason": "The proof sheet is a table as on the Books page (DESIGN.md, the proof margin): its rows meet the sheet's rule, each row padded 1rem inside"
+      }
+    ]
+  }
+}
