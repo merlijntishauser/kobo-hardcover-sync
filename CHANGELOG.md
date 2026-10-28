@@ -5,14 +5,14 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.17.0 - 2026-10-28
 
 ### Added
 
 - The Mac app updates itself: *Install and Restart*, where it says a
   new version is out, downloads it, installs it only when Apple notarised
   it and it carries the same signature as the app you have, and starts
-  it.
+  it. From the next version on: this one is still installed by hand.
 - A guide in the Mac app (*Help*, ⌘?): how it works, each pane, what the
   marks mean, the keys, and what to do when something is wrong.
   Searchable, also from the *Help* menu's own search field, and it no
@@ -59,7 +59,8 @@ minor version may change behaviour; the notes will say so.
 - A book's *Open on the Page* in the Mac app opened the server's front
   page in server mode, not the book; `open --book` now lands on the book
   there too, with its details open. The button says where it goes:
-  *Open in Browser*, or *Open on* and the server's name.
+  *Open in Browser*, or *Open on* and the server's name. In server mode
+  the details open once the server runs 0.17.0.
 - On a wide window, the page opened at a book (after an action, or from
   `open --book`) scrolled the whole page as well as the list: its top
   out of view, and no way to scroll back up. Only the list scrolls now.
