@@ -1,7 +1,9 @@
 // The app's Settings, ⌘-, (docs/plans/2026-10-24-mac-app-window-design.md):
-// where the reading goes, how a sync behaves, the app itself and its
-// removal; in local mode the Hardcover connection and going live. The
-// books are in the window. Every change goes through the tool
+// two tabs. General has the few most readers touch: the Hardcover
+// connection and going live (in local mode), ejecting, notifications and
+// updates. Advanced has the rest: where the reading goes, the upload token,
+// the log, an untested Kobo, the webhook, export and removal. The books are
+// in the window. Every change goes through the tool
 // (`settings --set`, `setup`, `token`, `webhook`, `export`, `uninstall`),
 // as it would in a terminal.
 //
@@ -134,34 +136,103 @@ final class SettingsModel: ObservableObject {
 }
 
 // ---------- the tabs ----------
-struct ModeTab: View {
+/// The few most readers touch: Hardcover, ejecting, notifications, updates.
+struct GeneralTab: View {
+    @ObservedObject var model: SettingsModel
+
+    var body: some View {
+        Form {
+            if let settings = model.current {
+                if settings.mode == "local" {
+                    HardcoverSection(model: model, settings: settings)
+                } else if settings.mode == "server" {  // the connection is the server's, made on its page
+                    Section {
+                        HStack(alignment: .top) {
+                            Text("The Hardcover connection and going live are on the server's page, under Settings.")
+                                .foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
+                            Spacer()
+                            Button("Open") { openServerSettings(settings.server) }
+                        }
+                    } header: {
+                        Text("Hardcover")
+                    }
+                }
+                Section {
+                    Choice(model: model, name: "eject_after_sync", on: settings.settings.ejectAfterSync, label: "Eject the Kobo after a sync",
+                           about: "Then it can be unplugged at once. Without this, eject it yourself before you unplug it.")
+                }
+            }
+            NotificationsSection(model: model)
+            VersionSection(model: model)
+            ProblemSection(model: model)
+        }
+        .formStyle(.grouped)
+    }
+}
+
+/// The rest, for whoever wants it: where the reading goes, the upload token, the log, an untested Kobo, the webhook, export and removal.
+struct AdvancedTab: View {
+    @ObservedObject var model: SettingsModel
+
+    var body: some View {
+        Form {
+            WhereSection(model: model)
+            if let settings = model.current {
+                if settings.mode == "server" {
+                    TokenSection(model: model, settings: settings)
+                }
+                Section {
+                    Choice(model: model, name: "verbose_log", on: settings.settings.verboseLog, label: "A detailed log",
+                           about: "A line per book and per request in the log, from the next sync on. The log then names your books.")
+                    Choice(model: model, name: "allow_untested_kobo", on: settings.settings.allowUntestedKobo,
+                           label: "Allow an untested Kobo software version",
+                           about: """
+                               A version nobody has tried yet is refused: the collection on the Kobo is left alone, the rest of the sync goes on. \
+                               Allowed, the collection is written anyway, after a copy of the Kobo's database is saved. \
+                               A database it does not understand is still refused.
+                               """)
+                } footer: {
+                    HStack {
+                        Spacer()
+                        Button("Show the log") { showLog() }
+                    }
+                }
+                if settings.mode == "local" {
+                    WebhookSection(model: model, saved: settings.settings.webhookUrl)
+                    ExportSection(model: model, everySync: settings.settings.exportTo)
+                }
+            }
+            RemoveSection(model: model)
+            ProblemSection(model: model)
+        }
+        .formStyle(.grouped)
+    }
+}
+
+/// Where your reading goes: this Mac, or a server; switched through `setup`.
+struct WhereSection: View {
     @ObservedObject var model: SettingsModel
     @State private var choice = ""
     @State private var address = ""
 
     var body: some View {
-        Form {
-            Section {
-                Picker("Your reading goes", selection: $choice) {
-                    Text("On this computer").tag("local")
-                    Text("With a server").tag("server")
-                }
-                .pickerStyle(.radioGroup)
-                TextField("Server's address", text: $address, prompt: Text("https://kobo.example.org"))
-                    .disabled(choice != "server")
-            } footer: {
-                HStack(alignment: .top) {
-                    Text(explained).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
-                    Spacer()
-                    Button("Switch") { switchMode() }.disabled(!isChange || model.working)
-                }
+        Section {
+            Picker("Your reading goes", selection: $choice) {
+                Text("On this computer").tag("local")
+                Text("With a server").tag("server")
             }
-            if let settings = model.current, settings.mode == "server" {
-                TokenSection(model: model, settings: settings)
+            .pickerStyle(.radioGroup)
+            TextField("Server's address", text: $address, prompt: Text("https://kobo.example.org"))
+                .disabled(choice != "server")
+        } header: {
+            Text("Where your reading goes")
+        } footer: {
+            HStack(alignment: .top) {
+                Text(explained).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                Button("Switch") { switchMode() }.disabled(!isChange || model.working)
             }
-            ProblemSection(model: model)
         }
-        .formStyle(.grouped)
         .onAppear(perform: fill)
         .onChange(of: model.current?.mode) { _ in fill() }
         .onChange(of: model.current?.server) { _ in fill() }
@@ -169,7 +240,7 @@ struct ModeTab: View {
 
     private var explained: String {
         choice == "local"
-            ? "This Mac reads the Kobo and keeps your shelf on Hardcover in step itself. You connect to Hardcover under Sync."
+            ? "This Mac reads the Kobo and keeps your shelf on Hardcover in step itself. You connect to Hardcover under General."
             : "This Mac sends what the Kobo knows to the server, which keeps your shelf in step. The server is asked first; if it does not answer, nothing changes."
     }
 
@@ -191,9 +262,7 @@ struct ModeTab: View {
         let local = choice == "local"
         guard model.allowed(local ? "run setup --local" : "ask \(wanted) whether it answers, then run setup --server") else { return }
         let args = local ? ["setup", "--local"] : ["setup", "--server", wanted, "--check"]
-        model.change(args, done: local ? "Now on this computer" : "Now with the server", buttons: local ? ["Open the page", "Later"] : ["OK"]) {
-            if local && $0 == 0 { openThePage() }
-        }
+        model.change(args, done: local ? "Now on this computer" : "Now with the server")
     }
 }
 
@@ -242,42 +311,6 @@ struct TokenSection: View {
     }
 }
 
-struct SyncTab: View {
-    @ObservedObject var model: SettingsModel
-
-    var body: some View {
-        Form {
-            if let settings = model.current {
-                Section {
-                    Choice(model: model, name: "eject_after_sync", on: settings.settings.ejectAfterSync, label: "Eject the Kobo after a sync",
-                           about: "Then it can be unplugged at once. Without this, eject it yourself before you unplug it.")
-                    Choice(model: model, name: "verbose_log", on: settings.settings.verboseLog, label: "A detailed log",
-                           about: "A line per book and per request in the log, from the next sync on. The log then names your books.")
-                    Choice(model: model, name: "allow_untested_kobo", on: settings.settings.allowUntestedKobo,
-                           label: "Allow an untested Kobo software version",
-                           about: """
-                               A version nobody has tried yet is refused: the collection on the Kobo is left alone, the rest of the sync goes on. \
-                               Allowed, the collection is written anyway, after a copy of the Kobo's database is saved. \
-                               A database it does not understand is still refused.
-                               """)
-                } footer: {
-                    HStack {
-                        Spacer()
-                        Button("Show the log") { showLog() }
-                    }
-                }
-                if settings.mode == "local" {
-                    HardcoverSection(model: model, settings: settings)
-                    WebhookSection(model: model, saved: settings.settings.webhookUrl)
-                    ExportSection(model: model, everySync: settings.settings.exportTo)
-                }
-            }
-            ProblemSection(model: model)
-        }
-        .formStyle(.grouped)
-    }
-}
-
 struct HardcoverSection: View {
     @ObservedObject var model: SettingsModel
     let settings: SettingsAnswer
@@ -310,7 +343,7 @@ struct HardcoverSection: View {
             Text("Hardcover")
         } footer: {
             HStack(alignment: .top) {
-                Text("The collection on the Kobo is named on the page, under Settings.")
+                Text("The collection on the Kobo is named on the page, under Settings, Advanced.")
                     .foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                 Spacer()
                 Button("Open the page") { openThePage() }
@@ -414,49 +447,54 @@ struct ExportSection: View {
     }
 }
 
-struct AppTab: View {
+/// Notifications: whether macOS shows them, and the way to its settings.
+struct NotificationsSection: View {
     @ObservedObject var model: SettingsModel
 
     var body: some View {
-        Form {
-            Section {
-                LabeledContent("Version", value: bundleVersion())
-                if let settings = model.current {
-                    Choice(model: model, name: "check_for_updates", on: settings.settings.checkForUpdates, label: "Look for a newer version",
-                           about: "At most once a day, after a sync, the app asks GitHub for the latest release. It only says so: installing is yours to start.")
-                }
-                HStack {
-                    Text(updateSaid).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
-                    Spacer()
-                    if case .success(let found) = model.update, found.newer {
-                        Button("Install and Restart") { installUpdate(found.latest) }
-                    }
-                    Button("Check now") { model.checkNow() }.disabled(model.checking)
-                }
+        Section {
+            LabeledContent("Notifications") {
+                Text(notificationsSaid).foregroundStyle(Pencil.graphite)
             }
-            Section {
-                LabeledContent("Notifications") {
-                    Text(notificationsSaid).foregroundStyle(Pencil.graphite)
-                }
-                HStack {
-                    Spacer()
-                    Button("Open Notification Settings") { if let url = URL(string: notificationSettings) { NSWorkspace.shared.open(url) } }
-                }
-            } footer: {
-                Text("They say what a sync did when the Kobo started it, with the window closed. With Show previews at Never, macOS hides what they say.")
-                    .foregroundStyle(Pencil.graphite)
+            HStack {
+                Spacer()
+                Button("Open Notification Settings") { if let url = URL(string: notificationSettings) { NSWorkspace.shared.open(url) } }
             }
-            Section {
-                HStack(alignment: .top) {
-                    Text("Stop syncing on this Mac, or also delete what the app keeps here.")
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer()
-                    Button("Remove…", role: .destructive) { model.remove() }.disabled(model.working)
-                }
-            }
-            ProblemSection(model: model)
+        } footer: {
+            Text("They say what a sync did when the Kobo started it, with the window closed. With Show previews at Never, macOS hides what they say.")
+                .foregroundStyle(Pencil.graphite)
         }
-        .formStyle(.grouped)
+    }
+
+    private var notificationsSaid: String {
+        switch model.notifications {
+        case .denied: return "Off"
+        case .notDetermined: return "Not asked yet"
+        default: return model.previews == .never ? "On, showing only the app's name" : "On"
+        }
+    }
+}
+
+/// The app's version, whether it looks for a newer one, and Check now.
+struct VersionSection: View {
+    @ObservedObject var model: SettingsModel
+
+    var body: some View {
+        Section {
+            LabeledContent("Version", value: bundleVersion())
+            if let settings = model.current {
+                Choice(model: model, name: "check_for_updates", on: settings.settings.checkForUpdates, label: "Look for a newer version",
+                       about: "At most once a day, after a sync, the app asks GitHub for the latest release. It only says so: installing is yours to start.")
+            }
+            HStack {
+                Text(updateSaid).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                if case .success(let found) = model.update, found.newer {
+                    Button("Install and Restart") { installUpdate(found.latest) }
+                }
+                Button("Check now") { model.checkNow() }.disabled(model.checking)
+            }
+        }
     }
 
     private var updateSaid: String {
@@ -469,12 +507,20 @@ struct AppTab: View {
             return found.problem.isEmpty ? "This is the newest version." : found.problem
         }
     }
+}
 
-    private var notificationsSaid: String {
-        switch model.notifications {
-        case .denied: return "Off"
-        case .notDetermined: return "Not asked yet"
-        default: return model.previews == .never ? "On, showing only the app's name" : "On"
+/// Stop syncing on this Mac, or also delete what the app keeps here.
+struct RemoveSection: View {
+    @ObservedObject var model: SettingsModel
+
+    var body: some View {
+        Section {
+            HStack(alignment: .top) {
+                Text("Stop syncing on this Mac, or also delete what the app keeps here.")
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                Button("Remove…", role: .destructive) { model.remove() }.disabled(model.working)
+            }
         }
     }
 }
@@ -506,14 +552,13 @@ struct ProblemSection: View {
     }
 }
 
-/// The Settings window: a tab per subject, as in macOS's own apps.
+/// The Settings window: General and Advanced, as tabs, as in macOS's own apps.
 func settingsWindow(_ model: SettingsModel) -> NSWindow {
     let tabs = NSTabViewController()
     tabs.tabStyle = .toolbar
     let pages: [(String, String, AnyView)] = [
-        ("Mode", "arrow.triangle.branch", AnyView(ModeTab(model: model))),
-        ("Sync", "arrow.triangle.2.circlepath", AnyView(SyncTab(model: model))),
-        ("App", "app.badge", AnyView(AppTab(model: model))),
+        ("General", "gearshape", AnyView(GeneralTab(model: model))),
+        ("Advanced", "gearshape.2", AnyView(AdvancedTab(model: model))),
     ]
     for (label, symbol, page) in pages {
         let controller = NSHostingController(rootView: page.frame(width: 540, height: 520))

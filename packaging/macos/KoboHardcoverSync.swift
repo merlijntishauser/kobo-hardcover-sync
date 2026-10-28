@@ -269,7 +269,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         showWindow()
         showSettings()
-        settingsModel?.checkNow()  // so the App tab shows an answer
+        settingsModel?.checkNow()  // so the General tab shows an answer
         let tabs = (settings?.contentViewController as? NSTabViewController)?.tabViewItems.count ?? 0
         var steps: [() -> Void] = []
         for pane in Pane.allCases {
@@ -656,7 +656,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     }
 
     // ---------- the first time ----------
-    /// Where the reading goes, the launch agent, `setup`. Whether it ended set up.
+    /// Where the reading goes, the launch agent, `setup`. Whether to go on to the window: set up, and Continue chosen.
     func setUpHere() -> Bool {
         let ask = NSAlert()
         ask.messageText = "Set up \(name)"
@@ -665,7 +665,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
 
             On this computer: this Mac reads the Kobo when you plug it in, and keeps your shelf on Hardcover in step itself.
 
-            With a server: this Mac sends what the Kobo knows to a Kobo Hardcover Sync server, such as a household's.
+            With a server: only if someone in your household runs one. This Mac sends what the Kobo knows to that Kobo Hardcover Sync server.
             """
         ask.addButton(withTitle: "On this computer")
         ask.addButton(withTitle: "With a server")
@@ -696,13 +696,12 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
                 Allow it: that is how it tells you what a sync did.
                 """
         }
-        let local = ok && args[1] == "--local"
-        done.addButton(withTitle: local ? "Open the page" : "OK")
-        if local { done.addButton(withTitle: "Later") }
-        let openPage = done.runModal() == .alertFirstButtonReturn && local
+        // The window is the home now: Getting started, on its Overview, says what comes next.
+        done.addButton(withTitle: ok ? "Continue" : "OK")
+        if ok { done.addButton(withTitle: "Later") }
+        let goOn = done.runModal() == .alertFirstButtonReturn && ok
         if askNext { askForNotifications() }
-        if openPage { openThePage() }
-        return ok
+        return goOn
     }
 
     /// macOS's question whether this app may show notifications. The app
