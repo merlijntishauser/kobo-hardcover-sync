@@ -67,15 +67,17 @@ final class WindowModel: ObservableObject {
     var signInProcess: Process?
     private var coversFetched = false  // once per window: the covers this Mac does not have yet
 
-    let setUp: () -> Void
+    let register: () -> String?  // the launch agent, before setup: nil when it is in place
+    @Published var settingUp = false  // the galley shows setup (Setup.swift): the first time, or asked for from a check
+    @Published var setupRun: SetupRun?
     private var foldSince: String?  // the newest sync in History when Sync now was clicked
     private var elsewhereSince: String?  // the newest sync in History when a sync elsewhere began
     private var run = 0  // which Sync now the steps on screen belong to
     private var watcher: DispatchSourceFileSystemObject?
     private var pending: DispatchWorkItem?
 
-    init(setUp: @escaping () -> Void) {
-        self.setUp = setUp
+    init(register: @escaping () -> String?) {
+        self.register = register
     }
 
     /// Everything again; the check (which asks the server or Hardcover) unless only the files changed.
@@ -343,18 +345,14 @@ struct MainView: View {
                 Divider()
                 if let broken = model.broken {
                     Galley { ProofSheet { Row(state: "fail", what: "The tool", found: broken).onSheet() } }
+                } else if model.settingUp || model.status?.mode == "" {  // not set up yet, or setting up again from a check
+                    SetupGalley(model: model)
                 } else {
                     switch model.pane ?? .overview {
                     case .overview: OverviewSections(model: model)
                     case .history: HistorySection(model: model)
-                    case .books, .covers:
-                        if (model.status?.mode ?? "").isEmpty {
-                            Galley { ProofSheet { Text("Not set up yet.").foregroundStyle(Pencil.graphite).onSheet() } }
-                        } else if model.pane == .books {
-                            BooksPane(model: model)
-                        } else {
-                            CoversPane(model: model)
-                        }
+                    case .books: BooksPane(model: model)
+                    case .covers: CoversPane(model: model)
                     }
                 }
             }
@@ -525,7 +523,7 @@ struct OverviewSections: View {
         } else if check.state == "fail" || check.state == "warn" {
             switch check.what {
             case "Setup", "Upload token":
-                Button("Set up") { model.setUp() }
+                Button("Set up") { model.settingUp = true }
             case "Trigger":
                 Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() }
             case "Hardcover" where model.status?.mode == "local":  // not connected, or no longer usable

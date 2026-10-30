@@ -5,8 +5,8 @@
 //
 // - by its launch agent when a volume is mounted (KHS_TRIGGER=mount): a
 //   sync, its notification, and quit;
-// - opened by hand before it is set up: where the reading goes, then
-//   `setup`, then its window;
+// - opened by hand before it is set up: its window, which asks where the
+//   reading goes and runs `setup` on its galley (Setup.swift);
 // - opened by hand afterwards, or by a click on a notification: its
 //   window (Window.swift), until that is closed.
 //
@@ -127,19 +127,6 @@ func notice(_ line: String) -> (title: String, body: String, picture: String)? {
     return parts.count >= 3 ? (parts[1], parts[2], parts.count == 4 ? parts[3] : "") : nil
 }
 
-/// What macOS lets this app do with notifications. The answer comes on
-/// another queue, so waiting for it here does not hold it up.
-func notificationStatus() -> UNAuthorizationStatus {
-    let answered = DispatchSemaphore(value: 0)
-    var status = UNAuthorizationStatus.notDetermined
-    UNUserNotificationCenter.current().getNotificationSettings { settings in
-        status = settings.authorizationStatus
-        answered.signal()
-    }
-    _ = answered.wait(timeout: .now() + 2)
-    return status
-}
-
 /// `update --json`: is there a newer version? Asked on another queue, answered on the main one.
 func lookForUpdate(_ answered: @escaping (Result<UpdateAnswer, NoAnswer>) -> Void) {
     DispatchQueue.global(qos: .userInitiated).async {
@@ -255,7 +242,6 @@ final class SidebarToolbar: NSObject, NSToolbarDelegate {
 final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotificationCenterDelegate {
     let sidebarToolbar = SidebarToolbar()  // a toolbar's delegate is weak; one per window, each keeps its split view
     let helpToolbar = SidebarToolbar()
-    var busy = false  // setup's dialogs are open
     var running = 0  // things still to finish before quitting: a sync, the window
     var window: NSWindow?
     var model: WindowModel?
@@ -457,24 +443,19 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         done([.banner, .list])
     }
 
+    /// The window; before setup, its galley asks where the reading goes (Setup.swift).
     func openedByHand() {
-        guard !busy else { return }
         if window != nil { return showWindow() }
-        busy = true
         begin()
         NSApp.activate(ignoringOtherApps: true)
-        if isPreview {
-            if stateFile("config.toml") == nil {
-                say("Nothing to preview", "The preview reads a copy of the tool's folder, at \(stateDir().path). Copy one there, then open it again.")
-            } else {
-                showWindow()
+        if isPreview && stateFile("config.toml") == nil {
+            say("Nothing to preview", "The preview reads a copy of the tool's folder, at \(stateDir().path). Copy one there, then open it again.")
+        } else {
+            if !isPreview && stateFile("config.toml") != nil && SMAppService.agent(plistName: agentPlist).status != .enabled {
+                _ = registerAgent()  // set up by the tool in a terminal, or not allowed yet: what macOS still asks, the overview's Trigger check says
             }
-        } else if stateFile("config.toml") != nil && SMAppService.agent(plistName: agentPlist).status == .enabled {
-            showWindow()
-        } else if setUpHere() {
             showWindow()
         }
-        busy = false
         end()
     }
 
@@ -491,13 +472,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             window.makeKeyAndOrderFront(nil)
             return
         }
-        let model = WindowModel { [weak self] in
-            guard let self, !self.busy else { return }
-            self.busy = true
-            _ = self.setUpHere()
-            self.busy = false
-            self.model?.refresh()
-        }
+        let model = WindowModel(register: { [weak self] in self?.registerAgent() })
         registerTitleFont()
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 1040, height: 680),
@@ -780,84 +755,9 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     }
 
     // ---------- the first time ----------
-    /// Where the reading goes, the launch agent, `setup`. Whether to go on to the window: set up, and Continue chosen.
-    func setUpHere() -> Bool {
-        let ask = NSAlert()
-        ask.messageText = "Set up \(name)"
-        ask.informativeText = """
-            Where should your reading go?
-
-            On this computer: this Mac reads the Kobo when you plug it in, and keeps your shelf on Hardcover in step itself.
-
-            With a server: only if someone in your household runs one. This Mac sends what the Kobo knows to that Kobo Hardcover Sync server.
-            """
-        ask.addButton(withTitle: "On this computer")
-        ask.addButton(withTitle: "With a server")
-        ask.addButton(withTitle: "Cancel")
-        let choice = ask.runModal()
-        let args: [String]
-        if choice == .alertFirstButtonReturn {
-            args = ["setup", "--local"]
-        } else if choice == .alertSecondButtonReturn, let address = askAddress() {
-            args = ["setup", "--server", address]
-        } else {
-            return false
-        }
-        if let problem = registerAgent() {
-            say("\(name) is not set up yet", problem)
-            return false
-        }
-        let (ok, output) = tool(args)
-        let done = NSAlert()
-        done.messageText = ok ? "\(name) is set up" : "Setup did not finish"
-        done.accessoryView = textView(output)
-        // Asked only now: asked earlier, the question came in the corner of
-        // the screen while setup's own windows were open, and was missed.
-        let askNext = ok && notificationStatus() == .notDetermined
-        if askNext {
-            done.informativeText = """
-                Next, macOS asks in the corner of the screen whether \(name) may show notifications. \
-                Allow it: that is how it tells you what a sync did.
-                """
-        }
-        // The window is the home now: Getting started, on its Overview, says what comes next.
-        done.addButton(withTitle: ok ? "Continue" : "OK")
-        if ok { done.addButton(withTitle: "Later") }
-        let goOn = done.runModal() == .alertFirstButtonReturn && ok
-        if askNext { askForNotifications() }
-        return goOn
-    }
-
-    /// macOS's question whether this app may show notifications. The app
-    /// stays until it is answered, so the answer is not lost.
-    func askForNotifications() {
-        begin()
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { _, _ in
-            DispatchQueue.main.async {
-                self.model?.refresh(check: false)
-                self.end()
-            }
-        }
-    }
-
-    func askAddress() -> String? {
-        let a = NSAlert()
-        a.messageText = "The server's address"
-        a.informativeText = "The address of its page, starting with https://"
-        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
-        field.placeholderString = "https://kobo.example.org"
-        field.stringValue = configuredServer() ?? ""
-        a.accessoryView = field
-        a.addButton(withTitle: "Set up")
-        a.addButton(withTitle: "Cancel")
-        a.window.initialFirstResponder = field
-        guard a.runModal() == .alertFirstButtonReturn else { return nil }
-        let address = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        return address.isEmpty ? nil : address
-    }
-
     /// The launch agent that starts a sync when a volume is mounted: the
-    /// app's own background item. nil when it is in place.
+    /// app's own background item, registered before `setup` runs (Setup.swift).
+    /// nil when it is in place.
     func registerAgent() -> String? {
         let agent = SMAppService.agent(plistName: agentPlist)
         if agent.status != .enabled {

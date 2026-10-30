@@ -116,15 +116,21 @@ started in three ways:
 - **By the launch agent, when a volume is mounted.** The agent sets
   `KHS_TRIGGER=mount`. The wrapper runs `sync --trigger mount`, shows each
   `NOTIFY|title|message` line the tool prints as a notification, and quits.
-- **Opened by hand, before setup.** It asks: on this computer, or with a
-  server (and its address). It registers its launch agent and runs
-  `setup`. It then shows what `setup` said, and says that macOS is about
-  to ask whether it may show notifications; macOS asks once that window
-  is closed. (macOS asks in a corner of the screen; asked while setup's
-  windows were still open, the question was missed.) In local mode it
-  opens the page, where the reader connects to Hardcover; in server mode
-  what `setup` said includes this Mac's hash, to paste on the server's
-  page.
+- **Opened by hand, before setup.** It opens its window, whose galley
+  asks where the reading goes (`Setup.swift`): on this computer, or with
+  a server and its address, as two choices on a proof sheet. *Set up*
+  registers its launch agent and runs `setup` off the window's thread;
+  the sheet then says in the app's words how it went: in server mode
+  with this Mac's hash (from `settings --json`) in the sign-in code's
+  style, *Copy* and *Open Devices on* the server's name; everything
+  `setup` printed stays behind *Details*. *Continue* leaves the galley
+  for the panes and only then lets macOS ask whether the app may show
+  notifications (asked in a corner of the screen while setup's own
+  windows were open, the question was missed). A check's *Set up* button
+  (no setup, no upload token) opens the same galley with the mode and
+  address filled in. A folder set up by the tool in a terminal gets the
+  app's launch agent registered when the window opens; what macOS asks
+  then, the overview's Trigger check says.
 - **Opened by hand after setup, or by a click on a notification.** It
   opens its window; the design is
   `docs/plans/2026-10-24-mac-app-native-books-design.md`, which follows

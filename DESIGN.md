@@ -781,6 +781,23 @@ graphite, then *Open* (Details) and *Not now* (aside for a month) on the
 right, small plain buttons ending on the same edge as *Show Them* above.
 On Covers the same tip lies on the delivery pile.
 
+### Setup (Mac app)
+The first run is on the galley, not in alerts. One proof sheet under the
+head *Where should your reading go?* holds the two ways as rows, each a
+radio in the pencils (a 16pt ring in Edge; chosen, filled Blue with a 6pt
+dot of On Flag, the title in Blue): *On this computer* and *With a
+server*, each with its sentence in graphite; under the second, when
+chosen, the address field. *Set up* is the default button, right, with
+the spinner and *Setting up…* on its left while it runs. What setup said
+is a second sheet: one row with the tick and the mode in the app's
+words, in server mode this Mac's hash at 14pt monospaced 600 (as the
+sign-in shows its code) with a small *Copy*; everything setup printed
+behind *Details*, monospaced in graphite. Under the sheet, in callout,
+that macOS asks about notifications next; then *Open Devices on* the
+server's name, and *Continue* as the default. A failure is the ink
+square and the tool's last sentence, with *Open Login Items* when that is
+what macOS asks, and *Try Again*.
+
 ### The press run (signature, Mac app)
 The Mac app's *Covers* pane: the library as a press run, the covers the
 work itself. The upper 62% is the run on Galley Stock, three rows
