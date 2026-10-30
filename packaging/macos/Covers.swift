@@ -83,6 +83,7 @@ struct CoversPane: View {
     @State private var watcher: Any?
     @FocusState private var focused: Bool
     @State private var hinting = false  // the keys, for a few seconds each time the run gets the focus
+    @State private var moving = false  // moved by hand a moment ago: a held run's row words step aside while the covers pass
     @State private var settled = false  // the whole run stands and has eased to a stop: no frames until it moves
 
     var body: some View {
@@ -196,6 +197,8 @@ struct CoversPane: View {
                             .background(RoundedRectangle(cornerRadius: 2).fill(Pencil.sheet))
                             .overlay(RoundedRectangle(cornerRadius: 2).strokeBorder(Pencil.rule))
                             .offset(x: 10, y: max(2, rowTop(row, present: present, k: k, height: size.height) - 20))
+                            .opacity(moving ? 0 : 1)
+                            .animation(.easeOut(duration: 0.2), value: moving)
                             .allowsHitTesting(false)
                             .accessibilityHidden(true)  // the run's own label says the order
                     }
@@ -274,6 +277,12 @@ struct CoversPane: View {
             }
         }
         .animation(.easeOut(duration: 0.2), value: hinting)
+        .task(id: byHand) {  // the row words come back three seconds after the last move by hand, as the drift would
+            guard byHand > 0 else { return }
+            moving = true
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            moving = false
+        }
         .task(id: focused) {  // not tied to the pointer: hovering a cover does not make it blink
             hinting = focused
             guard focused else { return }
