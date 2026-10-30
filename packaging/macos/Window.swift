@@ -21,12 +21,26 @@ final class WindowModel: ObservableObject {
     @Published var broken: String?  // the tool did not answer: nothing else can be shown
     @Published var steps: [StepLine] = []
     @Published var outcome: StepLine.Done? {
-        didSet { if let outcome { announce("\(outcome.title). \(outcome.message)") } }
+        didSet {
+            guard let outcome else { return }  // folded into History: the top line keeps what it said
+            told = Told(ok: outcome.ok, message: outcome.message, date: Date())
+            announce("\(outcome.title). \(outcome.message)")
+        }
     }
     @Published var syncing = false {  // Sync now, in this window
         didSet { if syncing && !oldValue { announce("Syncing") } }
     }
-    @Published var elsewhere = ""  // a sync this window did not start, while it runs: what started it
+    @Published var elsewhere = "" {  // a sync this window did not start, while it runs: what started it
+        didSet {
+            if oldValue.isEmpty && !elsewhere.isEmpty {
+                elsewhereSince = syncs.first?.id ?? ""
+                told = nil
+            }
+        }
+    }
+    /// What the last sync that ended while this window was open said: on the
+    /// top line, from every pane, until the next sync starts or a check is run.
+    @Published var told: Told?
     @Published var notifications = UNAuthorizationStatus.notDetermined
     @Published var previews = UNShowPreviewsSetting.always
     @Published var newer: String?
@@ -55,6 +69,7 @@ final class WindowModel: ObservableObject {
 
     let setUp: () -> Void
     private var foldSince: String?  // the newest sync in History when Sync now was clicked
+    private var elsewhereSince: String?  // the newest sync in History when a sync elsewhere began
     private var run = 0  // which Sync now the steps on screen belong to
     private var watcher: DispatchSourceFileSystemObject?
     private var pending: DispatchWorkItem?
@@ -65,7 +80,10 @@ final class WindowModel: ObservableObject {
 
     /// Everything again; the check (which asks the server or Hardcover) unless only the files changed.
     func refresh(check: Bool = true) {
-        if check { checks = nil }
+        if check {
+            checks = nil
+            told = nil
+        }
         DispatchQueue.global(qos: .userInitiated).async {
             let status = answer(StatusAnswer.self, ["status", "--json"])
             let history = answer(HistoryAnswer.self, ["history", "--json"])
@@ -87,8 +105,11 @@ final class WindowModel: ObservableObject {
                 }
                 if !self.syncing && was.isEmpty && !self.elsewhere.isEmpty {  // a sync this window did not start: said, as the top line shows it
                     announce(self.elsewhere == "mount" ? "Syncing: started by plugging in the Kobo" : "Syncing: started elsewhere")
-                } else if !was.isEmpty && self.elsewhere.isEmpty, let last = self.syncs.first {
-                    announce("\(last.ok ? "Synced" : "The sync failed"). \(last.message.isEmpty ? "Nothing new." : last.message)")
+                } else if !was.isEmpty && self.elsewhere.isEmpty, let last = self.syncs.first, last.id != self.elsewhereSince {
+                    // It ended, and History has it: the top line says what it did, as the subtitle promised.
+                    let message = last.message.isEmpty ? "Nothing new." : last.message
+                    self.told = Told(ok: last.ok, message: message, date: last.date ?? Date())
+                    announce("\(last.ok ? "Synced" : "The sync failed"). \(message)")
                 }
                 self.newer = newer
             }
@@ -160,6 +181,7 @@ final class WindowModel: ObservableObject {
         syncing = true
         steps = []
         outcome = nil
+        told = nil
         foldSince = syncs.first?.id ?? ""
         run += 1
         if isPreview { return playSampleSync() }
@@ -248,6 +270,13 @@ final class WindowModel: ObservableObject {
             self.syncing = false
         }
     }
+}
+
+/// What a sync that ended while the window was open said, for the top line.
+struct Told {
+    let ok: Bool
+    let message: String
+    let date: Date
 }
 
 /// Said by VoiceOver: a sync's start and outcome, which change the window without moving its focus.
@@ -358,7 +387,16 @@ struct TopLine: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(busy ? "Syncing…" : readiness.sentence).font(.title3.weight(.semibold))
                     .foregroundStyle(busy ? Pencil.ink : said(readiness.state))  // the first line in its mark's colour
-                Text(subtitle).foregroundStyle(Pencil.graphite).textSelection(.enabled)
+                if let told = model.told, !busy {  // a sync ended while the window was open: what it did, with its mark; a failure in ink
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Mark(state: told.ok ? "ok" : "fail", size: 15).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
+                        Text(toldLine(told)).fontWeight(told.ok ? .regular : .semibold).foregroundStyle(told.ok ? Pencil.graphite : Pencil.ink)
+                            .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    }
+                    .accessibilityElement(children: .combine)
+                } else {
+                    Text(subtitle).foregroundStyle(Pencil.graphite).textSelection(.enabled)
+                }
             }
             Spacer(minLength: 12)
             Button("Open the page") { openThePage() }
@@ -389,6 +427,14 @@ struct TopLine: View {
         if let broken = links.first(where: { $0.state == "fail" }) { return ("Needs attention: \(broken.id)", "fail") }
         if links.contains(where: { $0.state == "warn" }) { return ("Ready, with a warning", "warn") }
         return ("Ready for the Kobo", "ok")
+    }
+
+    /// "11 books updated · today at 10:22 · Kobo plugged in": what the sync said, in the subtitle's place, with the subtitle's facts after it.
+    private func toldLine(_ told: Told) -> String {
+        let message = told.message.hasSuffix(".") ? String(told.message.dropLast()) : told.message  // a fragment, as the facts are
+        var parts = [message, spoken(told.date).lowercased()]
+        if model.status?.kobo != nil { parts.append("Kobo plugged in") }
+        return parts.joined(separator: " · ")
     }
 
     private var subtitle: String {

@@ -130,7 +130,10 @@ started in three ways:
   `docs/plans/2026-10-24-mac-app-native-books-design.md`, which follows
   `docs/plans/2026-10-24-mac-app-window-design.md`. One line says whether
   it is ready for the Kobo, with the mode and the last sync, beside
-  *Open the page* and *Sync now*. Beside it a sidebar: *Overview*,
+  *Open the page* and *Sync now*. When a sync ends while the window is
+  open (*Sync now*, or the Kobo plugged in), that second line says what
+  it did instead, with its mark, on every pane, until the next sync or
+  check. Beside it a sidebar: *Overview*,
   *Books* and *History*. The window's toolbar is AppKit's own, not the
   one SwiftUI gives a `NavigationSplitView`: the sidebar button at the
   content's leading edge (`isNavigational`) and a tracking separator at
