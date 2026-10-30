@@ -18,6 +18,8 @@ enum RunRow: Int, CaseIterable {
     var height: CGFloat { [72, 108, 150][rawValue] }
     /// Points a second at full size: the front row moves one cover in about six seconds, the rows behind slower.
     var speed: CGFloat { [7, 11, 17][rawValue] }
+    /// The row's word, at its left edge while it stands: why a book is where it is.
+    var word: String { ["Never opened", "Read earlier", "Read this year"][rawValue] }
 }
 
 /// Which row a book runs in.
@@ -176,6 +178,19 @@ struct CoversPane: View {
                     Text("No books in this selection.").foregroundStyle(Pencil.graphite)
                         .frame(width: size.width, height: size.height)
                 }
+                ForEach(present, id: \.self) { row in  // a row's word at its left edge while it stands (always, under reduced motion): the key to the run
+                    if reduceMotion || standing[row.rawValue] {
+                        Text(row.word).font(.caption.weight(.medium)).foregroundStyle(Pencil.graphite)
+                            .padding(.horizontal, 6).frame(height: 17)
+                            .background(RoundedRectangle(cornerRadius: 2).fill(Pencil.sheet))
+                            .overlay(RoundedRectangle(cornerRadius: 2).strokeBorder(Pencil.rule))
+                            .offset(x: 10, y: max(2, rowTop(row, present: present, k: k, height: size.height) - 20))
+                            .transition(.opacity)
+                            .allowsHitTesting(false)
+                            .accessibilityHidden(true)  // the run's own label says the order
+                    }
+                }
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: lifted?.row)
                 if let lifted, let item = placed[lifted.row.rawValue].first(where: { $0.book.id == lifted.id }) {
                     // Under the cover; where the run has no room under it (the front row), above the lifted cover.
                     let frame = shown(lifted.row, item)
@@ -261,14 +276,20 @@ struct CoversPane: View {
         .accessibilityHint("Arrow keys pick a cover, Return opens it, Space shows it large")
     }
 
+    /// Where a row's covers begin, from the top of the run: the rows that have books share the height with equal gaps.
+    private func rowTop(_ row: RunRow, present: [RunRow], k: CGFloat, height: CGFloat) -> CGFloat {
+        guard let n = present.firstIndex(of: row) else { return 0 }
+        let gap = (height - present.reduce(0) { $0 + $1.height * k }) / CGFloat(present.count + 1)
+        return gap * CGFloat(n + 1) + present.prefix(n).reduce(0) { $0 + $1.height * k }
+    }
+
     /// The covers of a row that show now, at their places on its strip: the loop repeated along it.
     private func place(_ books: [BooksAnswer.Book], row: RunRow, present: [RunRow], k: CGFloat, size: CGSize) -> [Placed] {
-        guard !books.isEmpty, let n = present.firstIndex(of: row) else { return [] }
+        guard !books.isEmpty else { return [] }
         let h = row.height * k
         let w = h / 1.5
         let step = runStep(row, count: books.count, k: k, width: size.width)
-        let gap = (size.height - present.reduce(0) { $0 + $1.height * k }) / CGFloat(present.count + 1)
-        let y = gap * CGFloat(n + 1) + present.prefix(n).reduce(0) { $0 + $1.height * k }
+        let y = rowTop(row, present: present, k: k, height: size.height)
         let shift = drift.offset[row.rawValue]
         var out: [Placed] = []
         var place = Int(((shift - w) / step).rounded(.down)) + 1  // the first whose right edge is in the window

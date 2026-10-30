@@ -135,7 +135,7 @@ struct BooksPane: View {
                 if model.status?.mode == "server" {  // an older server, or a proxy that does not let the app through: the page still has them
                     HStack {
                         Spacer()
-                        Button("Open the page") { openThePage() }
+                        Button(model.pageTitle) { openThePage() }
                     }
                 }
             }
@@ -357,7 +357,7 @@ struct BooksTable: View {
                 .width(min: 140, ideal: 190)
         }
         .contextMenu(forSelectionType: String.self) { ids in
-            if let id = ids.first { Button(model.openBookTitle) { openAt(id) } }
+            if let id = ids.first { Button(model.pageTitle) { openAt(id) } }
         }
     }
 }
@@ -380,11 +380,14 @@ struct WordPicker: View {
 }
 
 extension WindowModel {
-    /// Where a book opens outside the app: the server's page, by its name, else the page this Mac serves.
-    var openBookTitle: String {
-        if status?.mode == "server", let host = URL(string: status?.server ?? "")?.host { return "Open on \(host)" }
-        return "Open in Browser"
-    }
+    /// The page outside the app, by the one name it has everywhere: the server's by its name, else the page this Mac serves.
+    var pageTitle: String { pageName(mode: status?.mode ?? "", server: status?.server ?? "") }
+}
+
+/// "Open on kobo.example.org" with a server, else "Open in Browser": every button that opens the page says this.
+func pageName(mode: String, server: String) -> String {
+    if mode == "server", let host = URL(string: server)?.host { return "Open on \(host)" }
+    return "Open in Browser"
 }
 
 /// The page, at this book: for what the app does not change.
@@ -545,7 +548,7 @@ struct DetailsPane: View {
                     if let link = URL(string: book.details.link), !book.details.link.isEmpty {
                         Button("Open on Hardcover") { NSWorkspace.shared.open(link) }
                     }
-                    Button(model.openBookTitle) { openAt(book.id) }
+                    Button(model.pageTitle) { openAt(book.id) }
                         .help("This book on the page with your books, in your browser")
                 }
                 if book.details.onShelf {

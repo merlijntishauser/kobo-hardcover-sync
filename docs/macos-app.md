@@ -130,7 +130,8 @@ started in three ways:
   `docs/plans/2026-10-24-mac-app-native-books-design.md`, which follows
   `docs/plans/2026-10-24-mac-app-window-design.md`. One line says whether
   it is ready for the Kobo, with the mode and the last sync, beside
-  *Open the page* and *Sync now*. When a sync ends while the window is
+  *Open in Browser* (in server mode *Open on* and the server's name:
+  the page has that one name everywhere in the app) and *Sync now*. When a sync ends while the window is
   open (*Sync now*, or the Kobo plugged in), that second line says what
   it did instead, with its mark, on every pane, until the next sync or
   check. Beside it a sidebar: *Overview*,
@@ -172,7 +173,7 @@ started in three ways:
   and a band above the list in Books: *Connect to Hardcover*, *Plug in
   your Kobo*, *Choose your books*, *Go live*, each done, now (the first
   not done, in blue) or later, with the one button that does it:
-  *Connect…*, *Open the page* (the server's Settings, in server mode),
+  *Connect…*, *Open on* the server's name (its Settings, in server mode),
   *Show the books* (Overview only) and a red *Go live* that asks first
   (`settings --set live=true`), off until connected. A book answer
   (`book ID --json`) carries the steps as they are after the change.
@@ -184,7 +185,8 @@ started in three ways:
   says each step as a line of JSON, the sheet follows it, and *Paste a
   token instead…* gives a token on standard input (`token --paste
   --json`). Settings, General, has the connection with *Disconnect…* and
-  *Send to Hardcover*, the switch between live and a dry run. *Open in Browser* (in server
+  *Send to Hardcover*, the switch between live and a dry run, which asks
+  first when switched on, as *Go live* does. *Open in Browser* (in server
   mode *Open on* and the server's name) opens the page at the book with its details
   (`open --book`), on the server in server mode. Above the list, as one
   quieter line under *Needs you*, sits the tip (`tip` in
@@ -227,11 +229,11 @@ started in three ways:
   In server mode Books is the same, with the
   server's books for this Mac's reader: the tool asks the server
   (`/api/app/`, with the upload token) and keeps its covers in
-  `server-covers` in its folder; Getting started's *Open the page* opens
-  the server's Settings, where that reader's Hardcover connection is
+  `server-covers` in its folder; Getting started's *Open on* the server's
+  name opens the server's Settings, where that reader's Hardcover connection is
   made. A server older than 0.18.0 sends no steps: then there are none.
   A server older than 0.15.0, or a proxy that does not let `/api/app/`
-  past its sign-in, is said so, with *Open the page*. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
+  past its sign-in, is said so, with the button that opens the page. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
   shows as "Syncing…" while it runs (`status --json` says so, from the
   sync's lock; the sync keeps a `sync.running` marker in the tool's folder,
   which wakes the window), and in History when it ends. With the window open the app has a

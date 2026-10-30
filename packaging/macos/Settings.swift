@@ -151,7 +151,7 @@ struct GeneralTab: View {
                             Text("The Hardcover connection and going live are on the server's page, under Settings.")
                                 .foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                             Spacer()
-                            Button("Open") { openServerSettings(settings.server) }
+                            Button(pageName(mode: settings.mode, server: settings.server)) { openServerSettings(settings.server) }
                         }
                     } header: {
                         Text("Hardcover")
@@ -285,7 +285,7 @@ struct TokenSection: View {
                     NSPasteboard.general.setString(settings.uploadTokenHash, forType: .string)
                 }
                 .disabled(settings.uploadTokenHash.isEmpty)
-                Button("Open Devices on the page") {
+                Button("Open Devices on \(URL(string: settings.server)?.host ?? settings.server)") {
                     if let page = URL(string: settings.server + "/settings#devices") { NSWorkspace.shared.open(page) }  // inside Advanced: the fold opens on it
                 }
                 Spacer()
@@ -314,6 +314,7 @@ struct TokenSection: View {
 struct HardcoverSection: View {
     @ObservedObject var model: SettingsModel
     let settings: SettingsAnswer
+    @State private var asking = false  // Go live, asked first, as Getting started asks it
 
     var body: some View {
         Section {
@@ -334,11 +335,16 @@ struct HardcoverSection: View {
                     }
                 }
             }
-            Toggle(isOn: Binding(get: { settings.live }, set: { model.set("live", $0) })) {
+            Toggle(isOn: Binding(get: { settings.live }, set: { on in if on { asking = true } else { model.set("live", false) } })) {
                 Text("Send to Hardcover")
                 Text(settings.live ? "Live: each sync sends what the red marks say." : "A dry run: each sync says what it would send, and sends nothing.")
             }
             .disabled(!settings.hardcoverConnected && !settings.live)
+            .confirmationDialog("Go live?", isPresented: $asking) {  // back to a dry run needs no question
+                Button("Go Live") { model.set("live", true) }
+            } message: {
+                Text("From the next sync on, Hardcover is told what the red marks say, for the books switched on. This switch turns it off again.")
+            }
         } header: {
             Text("Hardcover")
         } footer: {
@@ -346,7 +352,7 @@ struct HardcoverSection: View {
                 Text("The collection on the Kobo is named on the page, under Settings, Advanced.")
                     .foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                 Spacer()
-                Button("Open the page") { openThePage() }
+                Button(pageName(mode: settings.mode, server: settings.server)) { openThePage() }
             }
         }
     }

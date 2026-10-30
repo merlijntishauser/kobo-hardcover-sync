@@ -283,7 +283,7 @@ struct StartSteps: View {
         case "connect":
             Button("Connect…") { model.connect() }.controlSize(compact ? .small : .regular)
         case "server_page":
-            Button("Open the page") { if let server = model.status?.server { openServerSettings(server) } }
+            Button(model.pageTitle) { if let server = model.status?.server { openServerSettings(server) } }
                 .controlSize(compact ? .small : .regular)
         case "show_books" where !compact:  // above Books the list is right below
             Button("Show the books") { model.pane = .books }

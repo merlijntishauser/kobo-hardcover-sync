@@ -66,11 +66,13 @@ extension WindowModel {
             out.append(
                 ChainLink(id: "Server", checks: checks.filter { $0.what == "Server" }, line: URL(string: status?.server ?? "")?.host ?? ""))
         }
+        // Who, and live or a dry run: from the status in local mode, from the books answer (the server's) in server mode.
+        let who: (live: Bool, user: String)? = books.map { ($0.live, $0.user) } ?? self.books.map { ($0.live, $0.user) }
         let hardcover: String
-        if server {
-            hardcover = "Checked on the server"
-        } else if let books, !books.user.isEmpty {
-            hardcover = books.live ? "Live · @\(books.user)" : "Dry run · @\(books.user)"
+        if let who, !who.user.isEmpty {
+            hardcover = who.live ? "Live · @\(who.user)" : "Dry run · @\(who.user)"
+        } else if who == nil && server {
+            hardcover = "Checked on the server"  // the server's books not answered yet
         } else {
             hardcover = "Not connected yet"
         }
