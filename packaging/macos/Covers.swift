@@ -614,6 +614,7 @@ struct Lightbox: View {
             .buttonStyle(.plain)
             .padding(14)
             .help("Full screen (F)")
+            .accessibilityLabel("Full Screen")
         }
         .contentShape(Rectangle())
         .onTapGesture(perform: close)

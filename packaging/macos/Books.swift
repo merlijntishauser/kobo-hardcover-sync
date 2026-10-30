@@ -202,6 +202,7 @@ struct HeadNotes: View {
 struct BooksBar: View {
     @ObservedObject var model: WindowModel
     let words: BooksAnswer.Words
+    @FocusState private var searching: Bool
 
     var body: some View {
         let counts = model.filterCounts
@@ -225,6 +226,11 @@ struct BooksBar: View {
 
     private var search: some View {
         TextField("Search title or author", text: $model.search).textFieldStyle(.roundedBorder)
+            .focused($searching)
+            .help("Search (⌘F)")
+            .background {  // ⌘F puts the keyboard in the field, as in a Mac app
+                Button("") { searching = true }.keyboardShortcut("f").opacity(0).accessibilityHidden(true)
+            }
     }
 
     @ViewBuilder private func choices(_ counts: [String: Int]) -> some View {

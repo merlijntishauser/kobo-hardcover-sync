@@ -316,7 +316,7 @@ enum Pane: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var symbol: String {
         switch self {
-        case .overview: return "link"
+        case .overview: return "point.3.connected.trianglepath.dotted"  // the chain, not a hyperlink
         case .books: return "books.vertical"
         case .covers: return "rectangle.stack"
         case .history: return "clock"
@@ -333,7 +333,7 @@ struct MainView: View {
             List(selection: $model.pane) {
                 ForEach(Pane.allCases) { pane in
                     Label(pane.rawValue, systemImage: pane.symbol)
-                        .badge(pane == .books ? model.status?.books?.needsMatch ?? 0 : 0)  // books that wait for a match
+                        .badge(pane == .books ? model.status?.books?.needsMatch ?? model.books?.needsYou?.match ?? 0 : 0)  // books that wait for a match; in server mode from the server's books
                         .tag(pane)
                 }
             }
@@ -359,9 +359,9 @@ struct MainView: View {
         }
         .overlay { if let book = model.enlarged { Lightbox(model: model, book: book) } }  // over the whole window
         .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: model.enlarged?.id)
-        .frame(minWidth: 880, minHeight: 520)  // the sidebar, the list and a book's Details side by side
+        .frame(minWidth: 920, minHeight: 520)  // the sidebar (170), the list (440) and a book's Details (300) side by side
         .sheet(isPresented: Binding(get: { model.signIn != nil }, set: { if !$0 { model.cancelSignIn() } })) { ConnectSheet(model: model) }
-        .alert("Not changed", isPresented: Binding(get: { model.problem != nil }, set: { if !$0 { model.problem = nil } })) {
+        .alert("Nothing was changed", isPresented: Binding(get: { model.problem != nil }, set: { if !$0 { model.problem = nil } })) {  // as Settings says it
             Button("OK") { model.problem = nil }
         } message: {
             Text(model.problem ?? "")
