@@ -38,8 +38,15 @@ def test_every_font_travels_with_its_full_licence():
 
 def test_the_page_carries_no_pictures_but_its_own_icon():
     # The page has no photographs (DESIGN.md): nothing under another licence
-    # but the fonts. Book covers are fetched while it runs, not shipped.
-    assert not list(STATIC.glob("img/*")) and "Unsplash" not in NOTICES
+    # but the fonts. Book covers are fetched while it runs, not shipped. The
+    # site (site/, not installed) has its Unsplash photographs, listed in
+    # their own section of the notices and nowhere else.
+    assert not list(STATIC.glob("img/*"))
+    before, site_section = NOTICES.split("### Photographs on the site")
+    site_section = site_section.split("\n## ")[0]
+    assert "Unsplash" not in before and "Unsplash" not in NOTICES.replace(site_section, "")
+    for photo in sorted(p.name for p in (STATIC.parents[3] / "site" / "img").glob("photo-*.jpg")):
+        assert f"`site/img/{photo}`" in site_section, photo
     # The project's own artwork is the icon, and only that.
     assert sorted(p.name for p in STATIC.iterdir() if p.is_file()) == ["apple-touch-icon.png", "favicon.svg", "kobo.css", "kobo.js"]
 

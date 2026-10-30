@@ -1,6 +1,5 @@
-// The site's three small jobs. Without this script the page is complete: the
-// download link goes to the latest release, the margin is drawn, the theme
-// follows the system.
+// The site's two small jobs. Without this script the page is complete: the
+// download link goes to the latest release and the theme follows the system.
 (function () {
   "use strict";
   var REPO = "merlijntishauser/kobo-hardcover-sync";
@@ -29,37 +28,7 @@
       .catch(function () { /* the plain link stands */ });
   }
 
-  // 2. The stroke: one continuous line from the end of the Kobo's gauge into the
-  //    first mark of the margin. Measured, so it meets both at any width; only on a
-  //    desk, where the two stand side by side.
-  function stroke() {
-    var svg = document.getElementById("stroke");
-    var path = document.getElementById("strokepath");
-    var gauge = document.getElementById("gauge");
-    var mark = document.getElementById("mark-1");
-    var hero = svg && svg.parentNode;
-    if (!svg || !path || !gauge || !mark || !hero) return;
-    function draw() {
-      if (window.innerWidth < 1024) { svg.classList.remove("on"); return; }
-      svg.removeAttribute("preserveAspectRatio");  // measured from here on, not stretched
-      var h = hero.getBoundingClientRect();
-      var g = gauge.getBoundingClientRect();
-      var m = mark.querySelector(".mk").getBoundingClientRect();
-      var x1 = g.right - h.left, y1 = g.bottom - 3 - h.top;
-      var x2 = m.left - 10 - h.left, y2 = m.top + m.height / 2 - h.top;  // ends just short of the caret: the mark is the arrowhead
-      var dx = Math.max(60, (x2 - x1) * 0.55);
-      svg.setAttribute("viewBox", "0 0 " + h.width + " " + h.height);
-      path.setAttribute("d", "M" + x1 + " " + y1 + " C " + (x1 + dx) + " " + y1 + ", " + (x2 - dx) + " " + y2 + ", " + x2 + " " + y2);
-      var len = path.getTotalLength();
-      path.style.setProperty("--len", len);
-      svg.classList.add("on");
-    }
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw); else draw();
-    var t;
-    window.addEventListener("resize", function () { clearTimeout(t); t = setTimeout(draw, 120); });
-  }
-
-  // 3. The theme switch in the foot: Light, Auto, Dark, kept in this browser. The app's
+  // 2. The theme switch in the foot: Light, Auto, Dark, kept in this browser. The app's
   //    pictures follow it too: a <picture> only knows the system's theme by itself.
   function theme() {
     var buttons = document.querySelectorAll("[data-theme-choice]");
@@ -88,6 +57,5 @@
   }
 
   release();
-  stroke();
   theme();
 })();

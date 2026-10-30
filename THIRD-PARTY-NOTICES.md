@@ -22,8 +22,32 @@ The files are the subsets Google Fonts serves, unchanged. If you pass this
 project on, the fonts go with their licence files; the Open Font License
 does not allow selling the fonts by themselves.
 
-The page uses no photographs or other pictures from elsewhere: the icon is
-the project's own, and book covers are fetched while it runs (below).
+The tool's page uses no photographs or other pictures from elsewhere: the
+icon is the project's own, and book covers are fetched while it runs
+(below). The fonts are in `site/fonts/` a second time, with the same
+licence files, for the site.
+
+### Photographs on the site
+
+The site (`site/`, published on GitHub Pages; not part of what is
+installed) carries five photographs from [Unsplash](https://unsplash.com),
+each under the **Unsplash License**: free to use, no permission or
+attribution needed, but not to be sold as they are or compiled into a
+service like Unsplash's. The site credits the photographers in its foot.
+Each file says where it came from in its JPEG comment.
+
+| File | Photograph | Photographer |
+|---|---|---|
+| `site/img/photo-park.jpg` | [woman lying on chair holding tablet computer](https://unsplash.com/photos/woman-lying-on-chair-holding-tablet-computer-2gllPE42ouU) (a Kobo, in a park) | Perfecto Capucine |
+| `site/img/photo-hammock.jpg` | [person reading story in Amazon Kindle tablet](https://unsplash.com/photos/person-reading-story-in-amazon-kindle-tablet-3gC4gBnD3Xs) (the device is a Kobo) | Perfecto Capucine |
+| `site/img/photo-bed.jpg` | [a woman laying on a bed with a teddy bear](https://unsplash.com/photos/a-woman-laying-on-a-bed-with-a-teddy-bear-ypdO5AlNMgs) | Paige Cody |
+| `site/img/photo-teal.jpg` | [woman covering her face with teal book](https://unsplash.com/photos/woman-covering-her-face-with-teal-book-HFeG2vERmWo) | Sincerely Media |
+| `site/img/photo-bench.jpg` | [woman in black jacket and blue denim jeans sitting on brown wooden bench reading book](https://unsplash.com/photos/woman-in-black-jacket-and-blue-denim-jeans-sitting-on-brown-wooden-bench-reading-book-hQzBAtJoJQo), cropped | Leon Seibert |
+
+The site's other pictures are its own: screenshots of the page and of the
+Mac app, drawn sample covers, the icon. With JavaScript the site asks
+GitHub's API once per visit which release is the latest; it loads nothing
+else from elsewhere.
 
 ## Installed next to it, not in this repository
 

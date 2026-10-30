@@ -6,7 +6,7 @@
 <title>Kobo Hardcover Sync</title>
 <meta name="description" content="Keeps your Hardcover shelf in step with what you read on a Kobo e-reader: which books, how far, finished when. Works with the Kobo as it comes, Kobo-store books included, on your own computer.">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#2a5c84">
+<meta name="theme-color" content="#5b2a86">
 <meta property="og:title" content="Kobo Hardcover Sync">
 <meta property="og:description" content="Your Kobo knows what you read. Now Hardcover does too. Plug in the Kobo; the page shows what the next sync changes before it is sent.">
 <meta property="og:type" content="website">
@@ -21,10 +21,9 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
 <body>
 <a class="skip" href="#download">Skip to the download</a>
 
-<div class="field">
 <header class="top">
   <a class="name" href="./" aria-label="Kobo Hardcover Sync, the start of this page">
-    <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg>
+    <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg>
     Kobo Hardcover Sync
   </a>
   <nav aria-label="On this page">
@@ -36,105 +35,60 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
   </nav>
 </header>
 
-  <!-- The first viewport, on the icon's own field: the Kobo, the stroke, the margin. -->
+<main>
+  <!-- The first viewport: the made-up shelf told as four cards, then the headline. -->
   <section class="hero" aria-labelledby="claim">
-    <div class="device-col">
-      <figure class="kobo" aria-label="A Kobo e-reader on the last page of Middlemarch by George Eliot, read to the end on 21 September">
-        <div class="eink">
-          <p class="running">Middlemarch <span>Finale</span></p>
-          <p class="passage">Every limit is a beginning as well as an ending. Who can quit young lives after being long in company with them, and not desire to know what befell them in their after-years?</p>
-          <div class="einkfoot">
-            <div class="bar" id="gauge" role="img" aria-label="Read 100 percent"><span style="width:100%"></span></div>
-            <p class="meta"><span>100%</span><span>finished 21 Sep</span></p>
-          </div>
-        </div>
+    <div class="cards four" id="shelf">
+      <div class="card plum" style="--i:0">
+        <p class="figure" aria-hidden="true">34</p>
+        <p class="line"><span class="sr">34</span> books on the Kobo, read from the device's own database over the cable. Nothing goes on the Kobo.</p>
+      </div>
+      <figure class="card photo" style="--i:1">
+        <img src="img/photo-park.jpg" alt="Someone lying back on a park chair in the sun, feet up on the railing, reading on a Kobo" width="1600" height="1067">
+        <figcaption><span class="title">Middlemarch</span><span class="facts"><span>100%</span><span>finished 21 Sep</span></span></figcaption>
       </figure>
-      <h1 id="claim">Your Kobo knows what you read.<br>Now Hardcover does too.</h1>
-      <p class="lede">Plug in the Kobo and your shelf on <a href="https://hardcover.app">Hardcover</a> follows: which books, how far, finished when. Nothing goes on the Kobo, Kobo-store books included, and nothing leaves your computer but what you see written in the margin.</p>
-      <div class="get" id="download">
+      <div class="card teal" style="--i:2">
+        <div class="fix">
+          <p class="old"><s>Currently reading, 88%</s></p>
+          <p class="new"><ins><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg>Read, 21 Sep 2026</ins></p>
+          <p class="line">What the next sync tells Hardcover, shown before it is sent. Nothing goes until you say so.</p>
+        </div>
+      </div>
+      <div class="card flag get" id="download" style="--i:3">
+        <img class="mini" src="img/app-icon.svg" alt="" width="64" height="64">
         <a class="primary" id="dmg" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a>
         <p class="ver" id="ver">The latest release's disk image, on GitHub. Signed and notarised; macOS 13 or later.</p>
-        <p class="ways">Or in a terminal, on a Mac or Linux:
-          <code>brew install merlijntishauser/tap/kobo-hardcover-sync</code>
-          <code>uv tool install kobo-hardcover-sync</code>
-        </p>
+        <p class="ways">Or in a terminal, on a Mac or Linux:</p>
+        <code>brew install merlijntishauser/tap/kobo-hardcover-sync</code>
+        <code>uv tool install kobo-hardcover-sync</code>
       </div>
     </div>
-
-    <div class="proof-col">
-      <div class="proof" id="proof">
-        <div class="proofhead"><span>Book</span><span class="hc">Hardcover status</span></div>
-        <div class="row">
-          <div class="book">
-            <img class="cover" src="img/cover-middlemarch.jpg" alt="" width="48" height="72">
-            <div><p class="title">Middlemarch</p><p class="author">George Eliot</p><p class="meta"><span>100%</span><span>finished 21 Sep</span></p></div>
-          </div>
-          <div class="hc">
-            <div class="act next" id="mark-1"><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg><span>Next sync</span>
-              <p class="fix" style="--d:1.1s">Currently reading, <s>88%</s> <ins><svg viewBox="0 0 10 10" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8.5 5 2l3.5 6.5"/></svg>Read, 21 Sep 2026</ins></p>
-              <p class="sub">Middlemarch, Ebook</p>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="book">
-            <img class="cover" src="img/cover-moby-dick.jpg" alt="" width="48" height="72">
-            <div><p class="title">Moby-Dick; or, The Whale</p><p class="author">Herman Melville</p><p class="meta"><span>37%</span><span>last read yesterday</span></p></div>
-          </div>
-          <div class="hc">
-            <div class="act ok"><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Up to date on Hardcover</span>
-              <p class="sub">Moby-Dick, Paperback</p>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="book">
-            <img class="cover" src="img/cover-de-avonden.jpg" alt="" width="48" height="72">
-            <div><p class="title">De avonden: een winterverhaal</p><p class="author">Gerard Reve</p><p class="meta"><span>12%</span><span>last read Sunday</span></p></div>
-          </div>
-          <div class="hc">
-            <div class="act warn"><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.6" stroke-width="1.7"/><path d="M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.7" stroke-width="1.7"/><circle cx="10" cy="14.1" r=".6" fill="currentColor"/></svg><span>Needs you</span>
-              <p class="sub">Two editions on Hardcover: it will not guess. Choose one.</p>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="book">
-            <img class="cover" src="img/cover-bleak-house.jpg" alt="" width="48" height="72">
-            <div><p class="title">Bleak House</p><p class="author">Charles Dickens</p><p class="meta"><span>8%</span><span>last read in May</span></p></div>
-          </div>
-          <div class="hc">
-            <div class="act none"><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Not syncing</span>
-              <p class="sub">Switched off. History from before the tool stays yours to switch on.</p>
-            </div>
-          </div>
-        </div>
+    <div class="claim">
+      <h1 id="claim">Your Kobo knows what you read. Now Hardcover does too.</h1>
+      <div>
+        <p class="lede">Plug in the Kobo and your shelf on <a href="https://hardcover.app">Hardcover</a> follows: which books, how far, finished when. Works with the Kobo as it comes, Kobo-store books included, and nothing leaves your computer but what the cards show.</p>
+        <p class="caption">The cards show a made-up shelf of 34 books; the marks and the motion are the page's own.</p>
       </div>
-      <p class="caption">The page's own margin, with a made-up shelf. What the next sync will tell Hardcover is written in before anything is sent: the old value struck through, the new one after a caret. Nothing is sent until you say so.</p>
     </div>
-    <svg class="stroke" id="stroke" aria-hidden="true" viewBox="0 0 1440 824" preserveAspectRatio="none"><path id="strokepath" d="M241 333 C 708 333, 623 89, 1091 89" /></svg>
   </section>
-</div>
-
-<main>
 
   <!-- The page, printed twice. -->
   <section class="block" id="page" aria-labelledby="page-h">
-    <h2 id="page-h">The page: a proof of your shelf, by day and at night</h2>
-    <p class="lede">Each book is a line on the sheet. The Hardcover column is the proof margin: a red caret where the next sync changes something, a tick where Hardcover is up to date, a circled query where it needs you. Switch a book on or off, pin a state, choose a match. It works without JavaScript and on a phone. The pictures show a made-up shelf of 34 books; the marks are the page's own.</p>
-    <div class="pulls">
-      <figure><img src="img/books-light.jpg" alt="The Books page in the light theme: a sidebar with the name, Books, Settings and Admin, the last sync and the Sync now button; a list of books with covers, progress gauges and Sync and State switches; the Hardcover status margin with its marks" width="1280" height="800" loading="lazy"><figcaption>By day</figcaption></figure>
-      <figure><img src="img/books-dark.jpg" alt="The same Books page in the dark theme" width="1280" height="800" loading="lazy"><figcaption>At night</figcaption></figure>
+    <div class="head">
+      <h2 id="page-h">The page: your shelf, by day and at night</h2>
+      <p class="lede">Each book is a line, and the Hardcover column says what the next sync will do with it: a red caret where something changes, a tick where Hardcover is up to date, a circled query where it needs you. Switch a book on or off, pin a state, choose a match. It works without JavaScript and on a phone.</p>
     </div>
-    <div class="phones">
-      <figure><img src="img/phone-light.jpg" alt="The Books page on a phone: each book a card with its cover, gauge, Sync and State, and the margin strip under a double rule" width="390" height="844" loading="lazy"><figcaption>On a phone, in a household: every reader has their own books and their own Hardcover account, behind the sign-in the house already has.</figcaption></figure>
-      <figure><img src="img/details-light.jpg" alt="A book's Details: the cover large, the edition line, the Hardcover candidates to choose from, and what the next sync will send" width="1280" height="800" loading="lazy"><figcaption>A book's Details: the match, the edition, and what the next sync sends and why.</figcaption></figure>
+    <div class="cards shots">
+      <figure class="card shot wide"><img src="img/books-light.jpg" alt="The Books page in the light theme: a sidebar with the name, Books, Settings and Admin, the last sync and the Sync now button; a list of books with covers, progress gauges and Sync and State switches; the Hardcover status column with its marks" width="1280" height="800" loading="lazy"><figcaption>By day. The shelf is made up, the marks are real.</figcaption></figure>
+      <figure class="card shot wide"><img src="img/books-dark.jpg" alt="The same Books page in the dark theme" width="1280" height="800" loading="lazy"><figcaption>At night.</figcaption></figure>
+      <figure class="card shot tall"><img src="img/phone-light.jpg" alt="The Books page on a phone: each book a card with its cover, gauge, Sync and State, and the Hardcover status under it" width="390" height="844" loading="lazy"><figcaption>On a phone, in a household: every reader has their own books and their own Hardcover account, behind the sign-in the house already has.</figcaption></figure>
+      <figure class="card shot wider"><img src="img/details-light.jpg" alt="A book's Details: the cover large, the edition line, the Hardcover candidates to choose from, and what the next sync will send" width="1280" height="800" loading="lazy"><figcaption>A book's Details: the match, the edition, and what the next sync sends and why.</figcaption></figure>
     </div>
   </section>
 
   <!-- The Mac app. -->
-  <section class="block mac" id="mac" aria-labelledby="mac-h">
-    <div class="macgrid">
+  <section class="block" id="mac" aria-labelledby="mac-h">
+    <div class="card cobalt macintro">
       <img class="appicon" src="img/app-icon.svg" alt="" width="160" height="160">
       <div>
         <h2 id="mac-h">The Mac app</h2>
@@ -144,19 +98,19 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
           <li>Books and Covers: the shelf as a list, or as a press run of covers; Spotlight finds a book and opens it there.</li>
           <li>Updates: the app says when there is a newer release and installs it when you ask, after checking Apple's notarisation and the signature.</li>
         </ul>
-        <p class="ways"><a class="primary" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a> <span class="muted">A disk image; drag the app to Applications. Linux: the command line, with the same page.</span></p>
+        <p class="ways"><a class="primary" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a> <span>A disk image; drag the app to Applications. Linux: the command line, with the same page.</span></p>
       </div>
     </div>
-    <div class="appshots">
-      <figure>
+    <div class="cards appshots">
+      <figure class="card shot">
         <picture class="app"><source srcset="img/mac-overview-dark.jpg" media="(prefers-color-scheme: dark)"><img src="img/mac-overview-light.jpg" alt="The app's Overview: a sidebar with Overview, Books, Covers and History; the line Ready for the Kobo with the server and the last sync; the chain Kobo, This Mac, Server, Hardcover with a tick on each step that is in order" width="1800" height="1177" loading="lazy"></picture>
         <figcaption>Overview: the chain a sync takes, each step with its checks.</figcaption>
       </figure>
-      <figure>
+      <figure class="card shot">
         <picture class="app"><source srcset="img/mac-books-dark.jpg" media="(prefers-color-scheme: dark)"><img src="img/mac-books-light.jpg" alt="The app's Books pane: the shelf as a list with covers, progress, the Sync and State switches, and the Hardcover status with its marks; a band says twenty books need a match" width="1800" height="1177" loading="lazy"></picture>
         <figcaption>Books: the same shelf and the same marks as the page.</figcaption>
       </figure>
-      <figure>
+      <figure class="card shot">
         <picture class="app"><source srcset="img/mac-covers-dark.jpg" media="(prefers-color-scheme: dark)"><img src="img/mac-covers-light.jpg" alt="The app's Covers pane: rows of book covers, one opened to a spread with its title, author and progress, and the book that asks to be picked up again" width="1800" height="1177" loading="lazy"></picture>
         <figcaption>Covers: the library as a press run; a cover opens to its spread.</figcaption>
       </figure>
@@ -164,45 +118,64 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
     <p class="caption">The author's own shelf, in the theme this page is in; the app follows the Mac's.</p>
   </section>
 
-  <!-- The four steps: one strip that scales. -->
+  <!-- The four steps, each a card. -->
   <section class="block" id="steps" aria-labelledby="steps-h">
-    <h2 id="steps-h">How it goes, from the cable to the shelf</h2>
-    <ol class="strip">
-      <li><span class="n">1</span><h3>Plug in the Kobo</h3><p>The tool reads the Kobo's own database, the one the device keeps for itself. Kobo's cloud has no public API; the cable is the only way, and it needs nothing on the Kobo.</p></li>
-      <li><span class="n">2</span><h3>A notification</h3><p>"8 books updated. Ejected: safe to unplug." Most days that is all you see of it.</p></li>
-      <li><span class="n">3</span><h3>The page, when you want it</h3><p>Open it to see what the next sync will do with each book and why, to switch a book on, pin a finish date, or choose a match it would not guess.</p></li>
-      <li><span class="n">4</span><h3>Hardcover, in step</h3><p>Status, progress and dates. What you change on Hardcover is taken over at the next sync, not overwritten. One read-through per book, never a duplicate.</p></li>
+    <div class="head">
+      <h2 id="steps-h">How it goes, from the cable to the shelf</h2>
+    </div>
+    <ol class="cards four steps">
+      <li class="card photo step">
+        <img src="img/photo-hammock.jpg" alt="Someone reading on a Kobo in a striped hammock, bare feet up, trees behind" width="1600" height="1067" loading="lazy">
+        <div class="over"><p class="figure" aria-hidden="true">1</p><h3>Plug in the Kobo</h3><p>The tool reads the Kobo's own database, the one the device keeps for itself. Kobo's cloud has no public API; the cable is the only way, and it needs nothing on the Kobo.</p></div>
+      </li>
+      <li class="card photo step">
+        <img src="img/photo-bed.jpg" alt="Someone lying on a bed reading, a small dog on the pillow behind them" width="1100" height="1648" loading="lazy">
+        <div class="over"><p class="figure" aria-hidden="true">2</p><h3>A notification</h3><p>"8 books updated. Ejected: safe to unplug." Most days that is all you see of it.</p></div>
+      </li>
+      <li class="card cobalt step">
+        <p class="figure" aria-hidden="true">3</p><h3>The page, when you want it</h3><p>Open it to see what the next sync will do with each book and why, to switch a book on, pin a finish date, or choose a match it would not guess.</p>
+      </li>
+      <li class="card plum step">
+        <p class="figure" aria-hidden="true">4</p><h3>Hardcover, in step</h3><p>Status, progress and dates. What you change on Hardcover is taken over at the next sync, not overwritten. One read-through per book, never a duplicate.</p>
+      </li>
     </ol>
   </section>
 
   <!-- What it does and leaves alone. -->
-  <section class="block two" aria-labelledby="does-h">
-    <div>
-      <h2 id="does-h">What it does</h2>
-      <ul class="marks">
-        <li><svg class="mk ok" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Sends status, progress and dates to Hardcover for the books you switched on.</span></li>
-        <li><svg class="mk ok" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Starts as a dry run: it shows what it would send, and sends nothing until you say so.</span></li>
-        <li><svg class="mk ok" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Never guesses a match. A book it cannot place by ISBN, or by title and author together, waits for you.</span></li>
-        <li><svg class="mk ok" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Keeps your reading minutes, exports your reading as JSON, and can put a collection of your synced books on the Kobo if you ask for it.</span></li>
-        <li><svg class="mk ok" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Writes every rule down, each held by a test: <a href="https://github.com/merlijntishauser/kobo-hardcover-sync/blob/main/docs/sync-rules.md">the sync rules</a>.</span></li>
-      </ul>
-    </div>
-    <div>
-      <h2>What it leaves alone</h2>
-      <ul class="marks">
-        <li><svg class="mk none" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>The Kobo. No add-on, no other reading software, no change to how you read.</span></li>
-        <li><svg class="mk none" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Highlights, notes and ratings. It does not manage books either; it works with what is on the Kobo.</span></li>
-        <li><svg class="mk none" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Your data. No account with this project and no cloud of its own: your computer or your own server, your own Hardcover token. The page loads nothing from elsewhere; covers are fetched by the tool once and kept.</span></li>
-        <li><svg class="mk none" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Your history. Books read before the tool came start switched off; you choose which of them Hardcover should know about.</span></li>
-      </ul>
+  <section class="block" aria-labelledby="does-h">
+    <div class="cards three does">
+      <div class="card teal">
+        <h2 id="does-h">What it does</h2>
+        <ul class="marks">
+          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Sends status, progress and dates to Hardcover for the books you switched on.</span></li>
+          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Starts as a dry run: it shows what it would send, and sends nothing until you say so.</span></li>
+          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Keeps your reading minutes, exports your reading as JSON, and can put a collection of your synced books on the Kobo if you ask for it.</span></li>
+          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Writes every rule down, each held by a test: <a href="https://github.com/merlijntishauser/kobo-hardcover-sync/blob/main/docs/sync-rules.md">the sync rules</a>.</span></li>
+        </ul>
+      </div>
+      <figure class="card photo tall">
+        <img src="img/photo-teal.jpg" alt="Someone looking at you over the top of a teal book held up to their face" width="1100" height="1650" loading="lazy">
+        <figcaption><span class="title">It never guesses a match</span><span class="facts">A book it cannot place by ISBN, or by title and author together, waits for you. Two editions? It asks.</span></figcaption>
+      </figure>
+      <div class="card ink">
+        <h2>What it leaves alone</h2>
+        <ul class="marks">
+          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>The Kobo. No add-on, no other reading software, no change to how you read.</span></li>
+          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Highlights, notes and ratings. It does not manage books either; it works with what is on the Kobo.</span></li>
+          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Your data. No account with this project and no cloud of its own: your computer or your own server, your own Hardcover token. The page loads nothing from elsewhere.</span></li>
+          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Your history. Books read before the tool came start switched off; you choose which of them Hardcover should know about.</span></li>
+        </ul>
+      </div>
     </div>
   </section>
 
   <!-- Is it for you. -->
   <section class="block" id="fit" aria-labelledby="fit-h">
-    <h2 id="fit-h">Is this the right tool for you?</h2>
-    <p class="lede">There are other good ways to get reading progress onto Hardcover. As far as their own documentation said on 2 October 2026:</p>
-    <div class="tablewrap">
+    <div class="head">
+      <h2 id="fit-h">Is this the right tool for you?</h2>
+      <p class="lede">There are other good ways to get reading progress onto Hardcover. As far as their own documentation said on 2 October 2026:</p>
+    </div>
+    <div class="card quiet tablewrap">
       <table>
         <thead><tr><th scope="col"></th><th scope="col">What it needs</th><th scope="col">Choose it when</th></tr></thead>
         <tbody>
@@ -213,22 +186,27 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
         </tbody>
       </table>
     </div>
-    <p class="muted">Tested with a real Kobo Clara Colour and macOS, and used daily by its author. Linux desktop support is built and not yet seen with a real Kobo. It is beta software: read <a href="https://github.com/merlijntishauser/kobo-hardcover-sync#readme">the README</a>, in particular the part on the collection, the one thing it can write to the Kobo.</p>
+    <p class="caption">Tested with a real Kobo Clara Colour and macOS, and used daily by its author. Linux desktop support is built and not yet seen with a real Kobo. It is beta software: read <a href="https://github.com/merlijntishauser/kobo-hardcover-sync#readme">the README</a>, in particular the part on the collection, the one thing it can write to the Kobo.</p>
   </section>
 
   <!-- The close. -->
-  <section class="block close" aria-labelledby="close-h">
-    <h2 id="close-h">Yours, on your machine</h2>
-    <p class="lede">Open source under the MIT licence. Install it, plug in the Kobo, and look at the margin.</p>
-    <div class="get">
-      <a class="primary" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a>
-      <p class="ways"><code>brew install merlijntishauser/tap/kobo-hardcover-sync</code> <code>uv tool install kobo-hardcover-sync</code></p>
+  <section class="block" aria-labelledby="close-h">
+    <div class="card photo close">
+      <img src="img/photo-bench.jpg" alt="Someone sitting on a quay by the water, reading" width="1800" height="1000" loading="lazy">
+      <div class="over">
+        <h2 id="close-h">Yours, on your machine</h2>
+        <p class="lede">Open source under the MIT licence. Install it, plug in the Kobo, and look at the cards.</p>
+        <div class="get">
+          <a class="primary" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a>
+          <p class="ways"><code>brew install merlijntishauser/tap/kobo-hardcover-sync</code> <code>uv tool install kobo-hardcover-sync</code></p>
+        </div>
+      </div>
     </div>
   </section>
 </main>
 
 <footer class="foot">
-  <p>Kobo Hardcover Sync is an independent project. It is not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover.</p>
+  <p>Kobo Hardcover Sync is an independent project. It is not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover. The photographs are from Unsplash, under the Unsplash License: Perfecto Capucine, Paige Cody, Sincerely Media and Leon Seibert.</p>
   <nav aria-label="Elsewhere">
     <a href="https://github.com/merlijntishauser/kobo-hardcover-sync">GitHub</a>
     <a href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases">Releases</a>
