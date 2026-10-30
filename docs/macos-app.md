@@ -208,8 +208,10 @@ started in three ways:
   cover with a caption; a click opens the spread (the cover large in the
   left third, from `book ID --large-cover`, and Details beside it); Space shows
   it large; arrows, Return and Escape for the keyboard; two fingers move
-  the run. The drift pauses when the app is hidden, and stands still
-  under Reduce motion. A row without books takes no room, and a short
+  the run. The drift pauses when the app is hidden, stands still under
+  Reduce motion, and stands at the reader's choice with *Hold* on the
+  rule (remembered). A lifted cover's caption ends with its row's name;
+  a held run shows each row's name at its left edge. A row without books takes no room, and a short
   row is not shown twice across the window. *Show*, on the double rule,
   narrows the run to one of the list's filters (Syncing is the books the
   collection on the Kobo holds); Covers and Books each remember their

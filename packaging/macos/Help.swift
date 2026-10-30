@@ -76,8 +76,9 @@ let helpTopics: [HelpTopic] = [
     ]),
     HelpTopic(id: Pane.covers.rawValue, symbol: Pane.covers.symbol, lines: [
         .say("Your books as covers, in three rows that drift by: in front the books you read in the last year, behind them the rest you read, at the back the ones never opened. Show picks the same filters as Books."),
-        .term("Point at a cover", "It lifts, with its title and status under it. Click it to open the book."),
+        .term("Point at a cover", "It lifts, with its title, status and its row's name under it. Click it to open the book."),
         .term("The trackpad", "Two fingers move the rows; they drift again a few seconds later."),
+        .term("Hold", "On the rule, beside Show: the rows stand, each with its name at its left edge, until you let them drift again. Remembered."),
         .term("A cover large", "Space, or a click on the cover in a book, shows it over the window. Its corner button, or F, puts it on black over the whole screen. A click or a key puts it back."),
     ]),
     HelpTopic(id: Pane.history.rawValue, symbol: Pane.history.symbol, lines: [

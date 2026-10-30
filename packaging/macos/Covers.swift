@@ -79,6 +79,7 @@ struct CoversPane: View {
     @State private var runFrame = CGRect.zero  // in the window, for the trackpad
     @State private var captionHeight: CGFloat = 96
     @AppStorage("CoversShow") private var show = "all"  // which books the run holds: one of the list's filters, kept apart from Books'
+    @AppStorage("CoversHeld") private var held = false  // the run stands until let go: the reader's choice, kept
     @State private var watcher: Any?
     @FocusState private var focused: Bool
     @State private var hinting = false  // the keys, for a few seconds each time the run gets the focus
@@ -93,8 +94,16 @@ struct CoversPane: View {
                 VStack(spacing: 0) {
                     run(books, rows: rows, present: present, size: CGSize(width: box.size.width, height: runHeight))
                     DoubleRule().padding(.horizontal, 20)
-                        .overlay(alignment: .trailing) {  // on the rule, which breaks for it: a mark in the margin
-                            Show(show: $show, books: books).padding(.horizontal, 8).background(Pencil.ground).padding(.trailing, 28)
+                        .overlay(alignment: .trailing) {  // on the rule, which breaks for them: marks in the margin
+                            HStack(spacing: 10) {
+                                if !reduceMotion {  // under reduced motion the run stands anyway
+                                    Button(held ? "Let drift" : "Hold") { held.toggle() }
+                                        .controlSize(.small)
+                                        .help(held ? "The rows drift by again" : "The rows stand until you let them drift")
+                                }
+                                Show(show: $show, books: books)
+                            }
+                            .padding(.horizontal, 8).background(Pencil.ground).padding(.trailing, 28)
                         }
                         .zIndex(1)
                     Pile(model: model, books: books, coverWidth: RunRow.front.height * scale(runHeight, present) / 1.5)
@@ -150,7 +159,7 @@ struct CoversPane: View {
 
     @ViewBuilder private func run(_ books: BooksAnswer, rows: [[BooksAnswer.Book]], present: [RunRow], size: CGSize) -> some View {
         let k = scale(size.height, present)
-        let standing = RunRow.allCases.map { row in keyed || lifted?.row == row || model.enlarged != nil || model.chosenBook != nil }
+        let standing = RunRow.allCases.map { row in held || keyed || lifted?.row == row || model.enlarged != nil || model.chosenBook != nil }
         let still = present.allSatisfy { standing[$0.rawValue] }  // nothing on the run drifts: under the spread, the large cover, the keyboard
         let paused = reduceMotion || !visible || present.isEmpty || (still && settled)
         TimelineView(.animation(minimumInterval: nil, paused: paused)) { time in
@@ -178,25 +187,23 @@ struct CoversPane: View {
                     Text("No books in this selection.").foregroundStyle(Pencil.graphite)
                         .frame(width: size.width, height: size.height)
                 }
-                ForEach(present, id: \.self) { row in  // a row's word at its left edge while it stands (always, under reduced motion): the key to the run
-                    if reduceMotion || standing[row.rawValue] {
+                if reduceMotion || held {  // the whole run stands by choice: each row's word at its left edge, the key to the run (a lifted cover's caption says its own)
+                    ForEach(present, id: \.self) { row in
                         Text(row.word).font(.caption.weight(.medium)).foregroundStyle(Pencil.graphite)
                             .padding(.horizontal, 6).frame(height: 17)
                             .background(RoundedRectangle(cornerRadius: 2).fill(Pencil.sheet))
                             .overlay(RoundedRectangle(cornerRadius: 2).strokeBorder(Pencil.rule))
                             .offset(x: 10, y: max(2, rowTop(row, present: present, k: k, height: size.height) - 20))
-                            .transition(.opacity)
                             .allowsHitTesting(false)
                             .accessibilityHidden(true)  // the run's own label says the order
                     }
                 }
-                .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: lifted?.row)
                 if let lifted, let item = placed[lifted.row.rawValue].first(where: { $0.book.id == lifted.id }) {
                     // Under the cover; where the run has no room under it (the front row), above the lifted cover.
                     let frame = shown(lifted.row, item)
                     let below = frame.maxY + 10
                     let top = frame.maxY - frame.height * (reduceMotion ? 1 : 1.12)
-                    Caption(book: item.book)
+                    Caption(book: item.book, row: lifted.row)
                         .frame(width: 260, alignment: .leading)
                         .background(GeometryReader { g in
                             Color.clear.onAppear { captionHeight = g.size.height }.onChange(of: g.size.height) { captionHeight = $0 }
@@ -434,9 +441,11 @@ struct Show: View {
     }
 }
 
-/// Under a lifted cover: its title, author, gauge and status line, on a slip of the sheet.
+/// Under a lifted cover: its title, author, gauge and status line, and why it
+/// is on this row, on a slip of the sheet.
 struct Caption: View {
     let book: BooksAnswer.Book
+    let row: RunRow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -447,6 +456,7 @@ struct Caption: View {
                 Mark(state: book.status.kind, size: 14).padding(.top, 1)
                 Text(book.status.text).font(.caption).lineLimit(2)
             }
+            Text(row.word).font(.caption).foregroundStyle(Pencil.faint).padding(.top, 2)
         }
         .padding(10)
         .background(RoundedRectangle(cornerRadius: 2).fill(Pencil.sheet))
