@@ -338,6 +338,7 @@ struct MainView: View {
                 }
             }
             .navigationSplitViewColumnWidth(min: 150, ideal: 170, max: 220)
+            .disabled(settingUp)  // the galley is setup: a click on a pane would do nothing
             .withoutSidebarToggle()  // the window's toolbar has AppKit's (KoboHardcoverSync.swift)
         } detail: {
             VStack(spacing: 0) {
@@ -345,7 +346,7 @@ struct MainView: View {
                 Divider()
                 if let broken = model.broken {
                     Galley { ProofSheet { Row(state: "fail", what: "The tool", found: broken).onSheet() } }
-                } else if model.settingUp || model.status?.mode == "" {  // not set up yet, or setting up again from a check
+                } else if settingUp {
                     SetupGalley(model: model)
                 } else {
                     switch model.pane ?? .overview {
@@ -367,6 +368,11 @@ struct MainView: View {
             Text(model.problem ?? "")
         }
     }
+}
+
+extension MainView {
+    /// Not set up yet, or setting up again from a check: the galley is setup (Setup.swift).
+    private var settingUp: Bool { model.settingUp || model.status?.mode == "" }
 }
 
 struct TopLine: View {
@@ -430,7 +436,7 @@ struct TopLine: View {
     /// "11 books updated · today at 10:22 · Kobo plugged in": what the sync said, in the subtitle's place, with the subtitle's facts after it.
     private func toldLine(_ told: Told) -> String {
         let message = told.message.hasSuffix(".") ? String(told.message.dropLast()) : told.message  // a fragment, as the facts are
-        var parts = [message, spoken(told.date).lowercased()]
+        var parts = [message, spokenInSentence(told.date)]
         if model.status?.kobo != nil { parts.append("Kobo plugged in") }
         return parts.joined(separator: " · ")
     }
@@ -442,11 +448,11 @@ struct TopLine: View {
         }
         var parts: [String] = []
         switch status.mode {
-        case "server": parts.append("With the server \(URL(string: status.server)?.host ?? status.server)")
+        case "server": parts.append("With the server")  // named on the chain and on the button beside this line
         case "local": parts.append("On this Mac")
         default: parts.append("Choose where your reading goes")
         }
-        if let last = status.lastSync, let date = last.date { parts.append("last sync \(spoken(date).lowercased())") }
+        if let last = status.lastSync, let date = last.date { parts.append("last sync \(spokenInSentence(date))") }
         if status.kobo != nil { parts.append("Kobo plugged in") }
         return parts.joined(separator: " · ")
     }
@@ -491,7 +497,12 @@ struct OverviewSections: View {
                 Button("Check again") { model.refresh() }.disabled(model.checks == nil)
             }
             .padding(.horizontal, 4)
-            if model.syncing || model.outcome != nil { SyncSection(model: model).padding(.top, 14) }
+            if model.syncing || model.outcome != nil {
+                SyncSection(model: model).padding(.top, 14)
+            } else if model.elsewhere.isEmpty, let last = model.syncs.first {  // nothing runs: the last sync, as History has it; History keeps the rest
+                SheetHead("Last sync").padding(.top, 14)
+                ProofSheet { SyncRow(sync: last) }
+            }
             if let link = model.links.first(where: { $0.id == open }), model.checks != nil {
                 SheetHead(link.id).padding(.top, 14)
                 ProofSheet {
@@ -630,7 +641,6 @@ func openServerSettings(_ server: String) {
 
 struct HistorySection: View {
     @ObservedObject var model: WindowModel
-    private let started = ["mount": "Kobo plugged in", "app": "Sync now", "hand": "By hand"]
 
     var body: some View {
         Galley {
@@ -641,16 +651,7 @@ struct HistorySection: View {
                 }
                 ForEach(Array(model.syncs.prefix(25).enumerated()), id: \.element.id) { n, sync in
                     if n > 0 { SoftRule() }
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Mark(state: sync.ok ? "ok" : "fail").alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(sync.message.isEmpty ? "Nothing new." : sync.message).foregroundStyle(Pencil.ink)
-                            Text([sync.date.map(spoken), started[sync.trigger]].compactMap { $0 }.joined(separator: " · "))
-                                .font(.callout).foregroundStyle(Pencil.graphite)
-                        }
-                    }
-                    .onSheet()
-                    .accessibilityElement(children: .combine)
+                    SyncRow(sync: sync)
                 }
             }
             HStack {
@@ -658,6 +659,25 @@ struct HistorySection: View {
                 Button("Show the log") { showLog() }
             }
         }
+    }
+}
+
+/// A sync as History has it: its mark, what it said, when and what started it.
+struct SyncRow: View {
+    let sync: Sync
+    private let started = ["mount": "Kobo plugged in", "app": "Sync now", "hand": "By hand"]
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Mark(state: sync.ok ? "ok" : "fail").alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(sync.message.isEmpty ? "Nothing new." : sync.message).foregroundStyle(Pencil.ink)
+                Text([sync.date.map(spoken), started[sync.trigger]].compactMap { $0 }.joined(separator: " · "))
+                    .font(.callout).foregroundStyle(Pencil.graphite)
+            }
+        }
+        .onSheet()
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -700,6 +720,15 @@ func spoken(_ date: Date) -> String {
     say.timeStyle = .short
     say.doesRelativeDateFormatting = true
     return say.string(from: date)
+}
+
+/// The same, mid-sentence: "today at 10:22", but a date keeps its capitals ("28 Oct 2026 at 23:21").
+func spokenInSentence(_ date: Date) -> String {
+    let said = spoken(date)
+    let plain = DateFormatter()
+    plain.dateStyle = .medium
+    plain.timeStyle = .short
+    return said == plain.string(from: date) ? said : said.prefix(1).lowercased() + said.dropFirst()
 }
 
 func bundleVersion() -> String {

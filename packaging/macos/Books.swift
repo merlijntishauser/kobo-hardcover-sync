@@ -391,8 +391,9 @@ extension WindowModel {
 }
 
 /// "Open on kobo.example.org" with a server, else "Open in Browser": every button that opens the page says this.
-func pageName(mode: String, server: String) -> String {
-    if mode == "server", let host = URL(string: server)?.host { return "Open on \(host)" }
+/// `short`, inside a form, says "the server" for a host too long for a button there.
+func pageName(mode: String, server: String, short: Bool = false) -> String {
+    if mode == "server", let host = URL(string: server)?.host { return "Open on \(short && host.count > 20 ? "the server" : host)" }
     return "Open in Browser"
 }
 

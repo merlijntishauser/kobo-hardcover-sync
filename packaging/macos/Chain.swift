@@ -57,7 +57,7 @@ extension WindowModel {
         var out = [
             ChainLink(
                 id: "Kobo", checks: checks.filter { $0.group == "Your Kobo" },
-                line: status?.kobo != nil ? "Plugged in" : status?.lastSync?.date.map { "Last seen \(spoken($0).lowercased())" } ?? "Not plugged in"),
+                line: status?.kobo != nil ? "Plugged in" : status?.lastSync?.date.map { "Last seen \(spokenInSentence($0))" } ?? "Not plugged in"),
             ChainLink(
                 id: "This Mac", checks: checks.filter { ($0.group == "This computer" || $0.group == "Also") && $0.what != "Server" },
                 line: "Syncs when the Kobo is plugged in"),

@@ -137,7 +137,10 @@ started in three ways:
   `docs/plans/2026-10-24-mac-app-window-design.md`. One line says whether
   it is ready for the Kobo, with the mode and the last sync, beside
   *Open in Browser* (in server mode *Open on* and the server's name:
-  the page has that one name everywhere in the app) and *Sync now*. When a sync ends while the window is
+  the page has that one name everywhere in the app; inside Settings a
+  long name becomes *Open on the server*) and *Sync now*. In server mode
+  the line says "With the server" without the name, which the chain and
+  the button carry. When a sync ends while the window is
   open (*Sync now*, or the Kobo plugged in), that second line says what
   it did instead, with its mark, on every pane, until the next sync or
   check. Beside it a sidebar: *Overview*,
@@ -241,7 +244,10 @@ started in three ways:
   name opens the server's Settings, where that reader's Hardcover connection is
   made. A server older than 0.18.0 sends no steps: then there are none.
   A server older than 0.15.0, or a proxy that does not let `/api/app/`
-  past its sign-in, is said so, with the button that opens the page. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
+  past its sign-in, is said so, with the button that opens the page.
+  While nothing runs, the Overview shows the last sync under the chain
+  as History draws it; History keeps the rest. Before setup the sidebar
+  is disabled: the galley is the only thing to do. History (`history --json`) has *Show the log*. A sync the Kobo starts while the window is open
   shows as "Syncing…" while it runs (`status --json` says so, from the
   sync's lock; the sync keeps a `sync.running` marker in the tool's folder,
   which wakes the window), and in History when it ends. With the window open the app has a

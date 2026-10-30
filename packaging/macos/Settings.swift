@@ -43,6 +43,16 @@ final class SettingsModel: ObservableObject {
         }
     }
 
+    /// macOS's question whether the app may show notifications, from Settings as from the overview's check.
+    func askForNotifications() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { _, _ in
+            DispatchQueue.main.async {
+                self.load()
+                self.changed()
+            }
+        }
+    }
+
     /// Check now: GitHub is asked, also with the daily look switched off.
     func checkNow() {
         checking = true
@@ -151,7 +161,7 @@ struct GeneralTab: View {
                             Text("The Hardcover connection and going live are on the server's page, under Settings.")
                                 .foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                             Spacer()
-                            Button(pageName(mode: settings.mode, server: settings.server)) { openServerSettings(settings.server) }
+                            Button(pageName(mode: settings.mode, server: settings.server, short: true)) { openServerSettings(settings.server) }
                         }
                     } header: {
                         Text("Hardcover")
@@ -285,7 +295,7 @@ struct TokenSection: View {
                     NSPasteboard.general.setString(settings.uploadTokenHash, forType: .string)
                 }
                 .disabled(settings.uploadTokenHash.isEmpty)
-                Button("Open Devices on \(URL(string: settings.server)?.host ?? settings.server)") {
+                Button("Open Devices on the server") {  // the footer names the server's page; the host would not fit here
                     if let page = URL(string: settings.server + "/settings#devices") { NSWorkspace.shared.open(page) }  // inside Advanced: the fold opens on it
                 }
                 Spacer()
@@ -352,7 +362,7 @@ struct HardcoverSection: View {
                 Text("The collection on the Kobo is named on the page, under Settings, Advanced.")
                     .foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
                 Spacer()
-                Button(pageName(mode: settings.mode, server: settings.server)) { openThePage() }
+                Button(pageName(mode: settings.mode, server: settings.server, short: true)) { openThePage() }
             }
         }
     }
@@ -464,6 +474,9 @@ struct NotificationsSection: View {
             }
             HStack {
                 Spacer()
+                if model.notifications == .notDetermined {  // the app can ask itself, as the overview's check does
+                    Button("Allow") { model.askForNotifications() }
+                }
                 Button("Open Notification Settings") { if let url = URL(string: notificationSettings) { NSWorkspace.shared.open(url) } }
             }
         } footer: {
