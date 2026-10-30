@@ -97,9 +97,11 @@ struct CoversPane: View {
                         .overlay(alignment: .trailing) {  // on the rule, which breaks for them: marks in the margin
                             HStack(spacing: 10) {
                                 if !reduceMotion {  // under reduced motion the run stands anyway
-                                    Button(held ? "Let drift" : "Hold") { held.toggle() }
-                                        .controlSize(.small)
-                                        .help(held ? "The rows drift by again" : "The rows stand until you let them drift")
+                                    Button { held.toggle() } label: {
+                                        Label(held ? "Let drift" : "Hold", systemImage: held ? "play.fill" : "pause.fill")
+                                    }
+                                    .controlSize(.small)
+                                    .help(held ? "The rows drift by again" : "The rows stand until you let them drift")
                                 }
                                 Show(show: $show, books: books)
                             }
