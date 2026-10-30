@@ -771,12 +771,15 @@ Stock, with each part on a Proof Sheet inside a 1pt Rule, 4pt corners,
 ### The tip (Mac app)
 One book from the reader's own shelf, chosen by the tool, with a question
 for them. It takes the blue circled query (*Needs you*), because it asks
-the reader something; red stays for what a sync sends. On Books it is a
-band between the toolbar and the list, padded 14pt by 8pt: the query at
-20pt, the cover 30pt wide, the title in Source Serif 4 at 14pt over the
-question in graphite, then *Open* (Details) and *Not now* (aside for a
-month) on the right, both plain buttons. On Covers the same tip lies on
-the delivery pile.
+the reader something; red stays for what a sync sends. On Books it is
+one line of the notes between the toolbar and the list (padded 14pt by
+8pt, 6pt between lines), under *Needs you* when that shows: *Needs you*
+leads with the query at 20pt and its words at 500, the tip follows as a
+nudge, its query at 14pt centred in the same 20pt column, the cover 20pt
+wide, the title in Source Serif 4 at 13pt and the question after it in
+graphite, then *Open* (Details) and *Not now* (aside for a month) on the
+right, small plain buttons ending on the same edge as *Show Them* above.
+On Covers the same tip lies on the delivery pile.
 
 ### The press run (signature, Mac app)
 The Mac app's *Covers* pane: the library as a press run, the covers the

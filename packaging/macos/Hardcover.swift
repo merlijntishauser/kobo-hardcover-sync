@@ -299,23 +299,3 @@ struct StartSteps: View {
         }
     }
 }
-
-/// Once live: the books switched on that wait for you, a question for you (the blue circled query), with the way to them.
-struct NeedsYouBand: View {
-    @ObservedObject var model: WindowModel
-    let needs: BooksAnswer.NeedsYou
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            Mark(state: "warn", size: 20)
-            Text(needs.text).font(.callout.weight(.medium)).fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 8)
-            if needs.match > 0 && model.filter != "needs_match" {
-                Button("Show Them") { model.filter = "needs_match" }
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .accessibilityElement(children: .contain)
-    }
-}
