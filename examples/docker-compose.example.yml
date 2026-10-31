@@ -8,7 +8,7 @@ services:
     # (for example :0.4.0) keeps it at one version until you change it. To
     # build it yourself from a checkout of the repository: `build: .` here
     # instead of this line.
-    image: ghcr.io/merlijntishauser/kobo-hardcover-sync:latest
+    image: ghcr.io/merlijntishauser/lastread:latest
     container_name: lastread
     # Publish the port only where your sign-in proxy can reach it: the page
     # has no login of its own. "3012:3012" opens it on every address of the

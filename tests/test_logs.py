@@ -140,8 +140,7 @@ def test_something_nobody_expected_is_said_and_written_down(home, monkeypatch, c
     out = runner.sync(mac, LOCAL)
     assert (out.ok, out.title) == (False, "Kobo sync failed")
     assert out.message.startswith("Something went wrong that this tool did not expect (RuntimeError). The details are in ")
-    # The repository's name, until it is renamed on GitHub.
-    assert str(home / "state" / "agent.log") in out.message and out.message.endswith("/kobo-hardcover-sync/issues")
+    assert str(home / "state" / "agent.log") in out.message and out.message.endswith("/lastread/issues")
     log = log_of(home)
     assert " error sync stopped by something unexpected" in log and "Traceback" in log and "RuntimeError: a bug" in log
     assert open(home / "state" / "last-message.txt").read().startswith("Kobo sync failed\nSomething went wrong")

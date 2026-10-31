@@ -53,7 +53,7 @@ final class Updater: NSObject, ObservableObject, URLSessionDownloadDelegate, NSW
         guard FileManager.default.isWritableFile(atPath: here.deletingLastPathComponent().path) else {
             return stop("This account cannot replace the app in \(here.deletingLastPathComponent().path).")
         }
-        let link = URL(string: "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/download/v\(version)/Lastread-\(version).dmg")!
+        let link = URL(string: "https://github.com/merlijntishauser/lastread/releases/download/v\(version)/Lastread-\(version).dmg")!
         let session = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: .main)
         download = session.downloadTask(with: link)
         download?.resume()

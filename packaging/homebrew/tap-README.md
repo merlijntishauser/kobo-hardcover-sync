@@ -16,7 +16,7 @@ On a Mac with Apple silicon and macOS 15 or newer Homebrew fetches a
 ready-made build (a bottle), made by the workflow in this repository. On
 other Macs it builds from source, which takes several minutes. What the
 tool does, and everything after installing:
-<https://github.com/merlijntishauser/kobo-hardcover-sync>
+<https://github.com/merlijntishauser/lastread>
 
 Before `brew uninstall lastread`, run `lastread
 uninstall`, or the plug-in trigger stays behind.

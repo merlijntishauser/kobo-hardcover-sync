@@ -2,7 +2,7 @@
 // download link goes to the latest release and the theme follows the system.
 (function () {
   "use strict";
-  var REPO = "merlijntishauser/kobo-hardcover-sync";
+  var REPO = "merlijntishauser/lastread";
 
   // 1. The latest release: its version, date and disk image, from GitHub.
   function release() {

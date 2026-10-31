@@ -18,4 +18,4 @@ try:
 except PackageNotFoundError:  # run from a checkout that was never installed
     __version__ = "0+unknown"
 
-ISSUES = "https://github.com/merlijntishauser/kobo-hardcover-sync/issues"
+ISSUES = "https://github.com/merlijntishauser/lastread/issues"

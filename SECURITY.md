@@ -4,7 +4,7 @@
 
 Please report it privately, not in a public issue:
 
-**<https://github.com/merlijntishauser/kobo-hardcover-sync/security/advisories/new>**
+**<https://github.com/merlijntishauser/lastread/security/advisories/new>**
 
 (the *Report a vulnerability* button under the repository's *Security*
 tab). Say what you found, how to reproduce it, and what someone could do

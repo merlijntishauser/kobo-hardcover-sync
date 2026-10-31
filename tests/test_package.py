@@ -66,7 +66,7 @@ def test_what_ci_tests_is_what_the_package_says_it_supports():
     assert promised == tested and project["requires-python"] == f">={promised[0]}"
     assert project["urls"]["Homepage"] == "https://lastread.app/"  # the site, since 2026-10-31
     for name in ("Repository", "Changelog", "Issues"):
-        assert project["urls"][name].startswith("https://github.com/merlijntishauser/kobo-hardcover-sync")
+        assert project["urls"][name].startswith("https://github.com/merlijntishauser/lastread")
 
 
 def test_the_readme_pypi_shows_has_no_link_that_leads_nowhere():
@@ -82,6 +82,6 @@ def test_the_readme_pypi_shows_has_no_link_that_leads_nowhere():
     for rule in hook["substitutions"]:
         text = re.sub(rule["pattern"], rule["replacement"].replace("$HFPR_VERSION", "9.9.9"), text)
     assert re.findall(relative, text) == []
-    assert "https://raw.githubusercontent.com/merlijntishauser/kobo-hardcover-sync/v9.9.9/docs/img/books.png" in text
-    assert "(https://github.com/merlijntishauser/kobo-hardcover-sync/blob/v9.9.9/docs/sync-rules.md)" in text
+    assert "https://raw.githubusercontent.com/merlijntishauser/lastread/v9.9.9/docs/img/books.png" in text
+    assert "(https://github.com/merlijntishauser/lastread/blob/v9.9.9/docs/sync-rules.md)" in text
     assert "](#the-collection-on-the-kobo)" in text  # a link within the page stays as it is

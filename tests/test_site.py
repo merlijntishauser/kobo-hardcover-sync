@@ -20,7 +20,7 @@ def test_every_file_the_page_and_its_stylesheet_name_is_shipped():
 
 
 def test_the_download_goes_to_the_latest_release_and_the_page_says_who_it_is():
-    assert 'id="dmg" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest"' in PAGE
+    assert 'id="dmg" href="https://github.com/merlijntishauser/lastread/releases/latest"' in PAGE
     assert "not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover" in PAGE
     assert "made-up shelf" in PAGE  # the proof is real, the shelf is not
     assert 'property="og:image" content="https://lastread.app/img/og.png"' in PAGE  # absolute: a link card needs it
@@ -33,7 +33,7 @@ def test_the_page_loads_nothing_from_elsewhere():
     outside = [u for u in outside if "fonts.g" in u or ".js" in u or ".css" in u or "cdn" in u]
     assert outside == []
     script = (SITE / "site.js").read_text()
-    assert "https://api.github.com/repos/" in script and 'REPO = "merlijntishauser/kobo-hardcover-sync"' in script
+    assert "https://api.github.com/repos/" in script and 'REPO = "merlijntishauser/lastread"' in script
 
 
 def test_the_fonts_come_with_their_licences():

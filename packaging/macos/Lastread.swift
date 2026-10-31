@@ -22,7 +22,7 @@ import UserNotifications
 let name = "Lastread"
 let site = URL(string: "https://lastread.app/")!  // the tool's site, in About
 let agentPlist = "org.gargleblaster.kobo-hardcover-sync.app.agent.plist"
-let releases = "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v"
+let releases = "https://github.com/merlijntishauser/lastread/releases/tag/v"
 let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=" + (Bundle.main.bundleIdentifier ?? "")
 let privacySettings = "x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders"
 let stoppedWithoutWord = "The sync stopped before it could say why. Its log is agent.log, in Library/Application Support/kobo-hardcover-sync."

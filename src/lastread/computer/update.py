@@ -28,8 +28,8 @@ import urllib.request
 from .. import __version__
 from . import config, macos
 
-LATEST = "https://api.github.com/repos/merlijntishauser/kobo-hardcover-sync/releases/latest"
-RELEASE = "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v{version}"
+LATEST = "https://api.github.com/repos/merlijntishauser/lastread/releases/latest"
+RELEASE = "https://github.com/merlijntishauser/lastread/releases/tag/v{version}"
 EVERY = 24 * 3600
 TIMEOUT = 5
 TAG = re.compile(r"v(\d{1,4})\.(\d{1,4})\.(\d{1,4})")  # whole, with fullmatch: no newline after it either

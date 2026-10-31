@@ -35,7 +35,7 @@ You need [uv](https://docs.astral.sh/uv/); it brings Python and the
 packages.
 
 ```
-git clone https://github.com/merlijntishauser/kobo-hardcover-sync
+git clone https://github.com/merlijntishauser/lastread
 cd lastread
 uv run pytest -q tests                              # the unit tests
 uv run ruff check . && uv run ruff format --check . # style

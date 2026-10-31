@@ -263,13 +263,13 @@ a sign-in proxy you already run (forward authentication) and believes the
 
 ```
 mkdir lastread && cd lastread
-curl -fsSLo docker-compose.yml https://raw.githubusercontent.com/merlijntishauser/kobo-hardcover-sync/main/examples/docker-compose.example.yml
+curl -fsSLo docker-compose.yml https://raw.githubusercontent.com/merlijntishauser/lastread/main/examples/docker-compose.example.yml
 python3 -c "import base64,os;print('KHS_SECRET_KEY='+base64.urlsafe_b64encode(os.urandom(32)).decode())" > .env
 chmod 600 .env && mkdir -p data
 docker compose up -d
 ```
 
-That runs the published image, `ghcr.io/merlijntishauser/kobo-hardcover-sync`
+That runs the published image, `ghcr.io/merlijntishauser/lastread`
 (amd64 and arm64). Look through `docker-compose.yml` before the last
 line: it has two addresses that are yours to fill in. To build the image
 yourself, clone the repository and put `build: .` in place of the `image:`
@@ -433,7 +433,7 @@ holds a token.
 | "Your Hardcover token may not do this (it lacks: ...)" | The token was made without one of the four permissions. Make a new one with the link the tool gives. |
 | *Needs a Hardcover match* on a book | Open its Details and choose the right book, or search for it there. |
 | "Collection not updated: This Kobo's software has not been tested ..." | Your Kobo's software has not been tried yet. Syncing to Hardcover still works. See [the collection](#the-collection-on-the-kobo). |
-| "Something went wrong that this tool did not expect" | A bug. The details are in `agent.log`; please [report it](https://github.com/merlijntishauser/kobo-hardcover-sync/issues) with the output of `doctor`. |
+| "Something went wrong that this tool did not expect" | A bug. The details are in `agent.log`; please [report it](https://github.com/merlijntishauser/lastread/issues) with the output of `doctor`. |
 | "The Hardcover connection is for @new, and your books were put on the shelf of @old" | You connected another Hardcover account than the one your books went to. Nothing was sent or switched off. Connect the old account again; or, if you are moving on purpose, start over on the new one (Settings, or `lastread token --start-over`). |
 | "None of the N books this tool put on your Hardcover shelf are on the shelf ..." | The token belongs to another Hardcover account, or you emptied the shelf yourself. Nothing was switched off. Fix the token, or switch those books off on the page. |
 | "Hardcover could not be reached" or "Today's number of requests ... is used up" | Nothing is lost. The next sync carries on. |

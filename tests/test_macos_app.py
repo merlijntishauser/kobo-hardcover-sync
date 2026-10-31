@@ -117,11 +117,11 @@ def test_the_app_asks_once_a_day_and_only_the_app(home, the_app, monkeypatch):
     config.save(config.Config())
     gh, now = GitHub(), [1_000_000.0]
     update.now_and_then(gh, lambda: now[0])
-    assert [a[:2] for a in gh.asked] == [("https://api.github.com/repos/merlijntishauser/kobo-hardcover-sync/releases/latest", 5)]
+    assert [a[:2] for a in gh.asked] == [("https://api.github.com/repos/merlijntishauser/lastread/releases/latest", 5)]
     assert gh.asked[0][2]["User-agent"].startswith("lastread/")
     assert update.newer("0.11.0") == {
         "version": "0.12.0",
-        "link": "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v0.12.0",
+        "link": "https://github.com/merlijntishauser/lastread/releases/tag/v0.12.0",
     }
     assert update.newer("0.12.0.dev0") == update.newer("0.11.0") and update.newer("0.12.0") is None and update.newer("1.0.0") is None
     now[0] += 3600
@@ -166,7 +166,7 @@ def test_check_now_asks_also_when_the_daily_look_is_off_and_keeps_the_answer(hom
         "version": "0.12.1",
         "latest": "0.13.0",
         "newer": True,
-        "link": "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v0.13.0",
+        "link": "https://github.com/merlijntishauser/lastread/releases/tag/v0.13.0",
         "problem": "",
     }
     assert update.kept() == {"checked": 1_000_000.0, "latest": "0.13.0"} and len(gh.asked) == 1
@@ -230,10 +230,7 @@ def test_the_page_shows_the_version_and_the_setting_in_the_app(local, home, the_
     with open(os.path.join(config.state_dir(), "update.json"), "w") as fh:
         json.dump({"checked": 1, "latest": "99.0.0"}, fh)
     settings = inside.get("/settings").text
-    assert (
-        "Version 99.0.0 is out." in settings
-        and 'href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v99.0.0"' in settings
-    )
+    assert "Version 99.0.0 is out." in settings and 'href="https://github.com/merlijntishauser/lastread/releases/tag/v99.0.0"' in settings
     r = inside.post("/settings/updates", data={"check": "0"}, headers=ORIGIN, follow_redirects=False)
     assert r.headers["location"] == "/settings?ok=updates_off#computer" and config.load().check_for_updates is False
     settings = inside.get("/settings").text

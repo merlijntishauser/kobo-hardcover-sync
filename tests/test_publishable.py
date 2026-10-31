@@ -56,16 +56,17 @@ ALLOWED = (
     "Mer" + "lijn Tishauser",
     "mer" + "lijn@cca" + "dd.nl",
     # Where the project lives.
-    "github.com/mer" + "lijntishauser/kobo-hardcover-sync",
-    "githubusercontent.com/mer" + "lijntishauser/kobo-hardcover-sync",
-    "api.github.com/repos/mer" + "lijntishauser/kobo-hardcover-sync",  # the Mac app's check for a newer version
-    "ghcr.io/mer" + "lijntishauser/kobo-hardcover-sync",  # the container image
+    "github.com/mer" + "lijntishauser/lastread",
+    "githubusercontent.com/mer" + "lijntishauser/lastread",
+    "api.github.com/repos/mer" + "lijntishauser/lastread",  # the Mac app's check for a newer version
+    "ghcr.io/mer" + "lijntishauser/lastread",  # the container image
     "owner `mer" + "lijntishauser`",  # docs/releasing.md: the PyPI publisher
     "mer" + "lijntishauser/tap",  # the Homebrew tap
     "mer" + "lijntishauser/homebrew-tap",
-    "mer" + "lijntishauser.github.io/kobo-hardcover-sync",  # the site
-    "mer" + "lijntishauser/kobo-hardcover-sync",  # the repository, as the site's script and the test of it name it
-    "mer" + "lijntishauser/lastread",  # the repository's name after the rename, in docs/releasing.md
+    "mer" + "lijntishauser.github.io/lastread",  # the site
+    "mer" + "lijntishauser/kobo-hardcover-sync",  # the repository's name until 2026-10-31, in the changelog's history
+    "mer" + "lijntishauser.github.io/kobo-hardcover-sync",  # the site's first address, in the changelog's history
+    "mer" + "lijntishauser/lastread",  # the repository, as the site's script and the test of it name it
 )
 
 

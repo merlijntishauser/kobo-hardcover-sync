@@ -311,7 +311,7 @@ hand. Which of the two happens is the first thing to see on a real Mac.
   version is out.
 - After a sync that the trigger started, at most once a day, and after the
   notification has been shown, so it never makes a sync slower.
-- One request, `GET https://api.github.com/repos/merlijntishauser/kobo-hardcover-sync/releases/latest`,
+- One request, `GET https://api.github.com/repos/merlijntishauser/lastread/releases/latest`,
   with a timeout of five seconds. Nothing is sent but the request itself.
   A failure is logged and otherwise ignored.
 - Only the tag is used, and only if it reads `v` plus three numbers. The

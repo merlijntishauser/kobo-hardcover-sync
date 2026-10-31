@@ -132,7 +132,7 @@ from .engine import kobo_db, state
 from .env import env
 from .term import FAIL, NOTE, OK, WARN, Row, plural
 
-HOME_PAGE = "https://github.com/merlijntishauser/kobo-hardcover-sync"
+HOME_PAGE = "https://github.com/merlijntishauser/lastread"
 COMMANDS = (
     (
         "On the computer you plug the Kobo into",

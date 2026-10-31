@@ -32,10 +32,10 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://lastread.app/"
-Repository = "https://github.com/merlijntishauser/kobo-hardcover-sync"
-Documentation = "https://github.com/merlijntishauser/kobo-hardcover-sync#readme"
-Changelog = "https://github.com/merlijntishauser/kobo-hardcover-sync/blob/main/CHANGELOG.md"
-Issues = "https://github.com/merlijntishauser/kobo-hardcover-sync/issues"
+Repository = "https://github.com/merlijntishauser/lastread"
+Documentation = "https://github.com/merlijntishauser/lastread#readme"
+Changelog = "https://github.com/merlijntishauser/lastread/blob/main/CHANGELOG.md"
+Issues = "https://github.com/merlijntishauser/lastread/issues"
 
 [project.scripts]
 lastread = "lastread.cli:main"
@@ -60,15 +60,15 @@ path = "README.md"
 
 [[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
 pattern = '(src=")(src/|docs/)'
-replacement = '\1https://raw.githubusercontent.com/merlijntishauser/kobo-hardcover-sync/v$HFPR_VERSION/\2'
+replacement = '\1https://raw.githubusercontent.com/merlijntishauser/lastread/v$HFPR_VERSION/\2'
 
 [[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
 pattern = '(!\[[^\]]*\]\()(docs/)'
-replacement = '\1https://raw.githubusercontent.com/merlijntishauser/kobo-hardcover-sync/v$HFPR_VERSION/\2'
+replacement = '\1https://raw.githubusercontent.com/merlijntishauser/lastread/v$HFPR_VERSION/\2'
 
 [[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
 pattern = '(?<!!)(\]\()(?!https?://|#)([^)]+\))'
-replacement = '\1https://github.com/merlijntishauser/kobo-hardcover-sync/blob/v$HFPR_VERSION/\2'
+replacement = '\1https://github.com/merlijntishauser/lastread/blob/v$HFPR_VERSION/\2'
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lastread"]

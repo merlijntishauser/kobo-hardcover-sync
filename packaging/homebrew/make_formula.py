@@ -27,7 +27,7 @@ import sys
 import tomllib
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-REPOSITORY = "https://github.com/merlijntishauser/kobo-hardcover-sync"
+REPOSITORY = "https://github.com/merlijntishauser/lastread"
 PYTHON = "python@3.13"  # the version the tests run on
 
 CAVEATS = """\
