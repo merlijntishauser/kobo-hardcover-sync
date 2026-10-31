@@ -9,7 +9,9 @@ PAGE = (SITE / "index.html").read_text()
 
 
 def test_every_file_the_page_and_its_stylesheet_name_is_shipped():
-    named = set(re.findall(r'(?:src|srcset|href)="([^"#:]+)"', PAGE))
+    named = set(re.findall(r'(?:src|href)="([^"#:]+)"', PAGE))
+    for srcset in re.findall(r'srcset="([^"]+)"', PAGE):  # "a.jpg 800w, b.jpg 1600w"
+        named |= {candidate.split()[0] for candidate in srcset.split(",")}
     named |= set(re.findall(r"url\(([^)]+)\)", (SITE / "site.css").read_text()))
     named = {n.strip("\"'") for n in named if not n.startswith(("./", "#"))}
     assert named, "the page names its files"
@@ -21,6 +23,7 @@ def test_the_download_goes_to_the_latest_release_and_the_page_says_who_it_is():
     assert 'id="dmg" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest"' in PAGE
     assert "not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover" in PAGE
     assert "made-up shelf" in PAGE  # the proof is real, the shelf is not
+    assert 'property="og:image" content="https://merlijntishauser.github.io/kobo-hardcover-sync/img/og.png"' in PAGE  # absolute: a link card needs it
     assert "brew install merlijntishauser/tap/kobo-hardcover-sync" in PAGE
 
 

@@ -19,6 +19,15 @@ from playwright.sync_api import sync_playwright
 OUT = os.environ.get("DEV_OUT", ".")
 SITE = pathlib.Path(__file__).resolve().parents[1] / "site"
 SIZES = {"desktop": (1440, 900), "laptop": (1280, 800), "mobile": (390, 844)}
+# The link preview is composed, not cropped: the headline, the lede and the row; no head, no download card.
+OG_STYLE = """
+.top, .card.flag, .story { display: none !important; }
+main { padding-top: 2.25rem !important; }
+.hero { gap: 1.5rem !important; }
+.claim { grid-template-columns: 1fr !important; }
+h1 { font-size: 3.1rem !important; max-width: 20ch; }
+.sheet figcaption { display: none !important; }
+"""
 
 
 def serve():
@@ -50,7 +59,8 @@ def main():
                 page.screenshot(path=f"{OUT}/site-{name}{suffix}.png", full_page=True)
                 page.close()
         page = browser.new_page(viewport={"width": 1200, "height": 630}, color_scheme="light", device_scale_factor=1)
-        page.goto(url, wait_until="networkidle")  # the link preview (og.png): the four cards, by day
+        page.goto(url, wait_until="networkidle")  # the link preview (og.png): the headline and the row, by day
+        page.add_style_tag(content=OG_STYLE)
         page.wait_for_timeout(2500)
         page.screenshot(path=f"{OUT}/site-og.png")
         page.close()

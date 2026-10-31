@@ -1,8 +1,8 @@
-/* The site of kobo-hardcover-sync: the made-up shelf told as the share cards
-   of a year in review (DESIGN.md, the site). Four gradient cards own the
-   first viewport in both lights; the ground is white by day and near-black
-   at night; the two faces are the project's own files; nothing is loaded
-   from elsewhere. */
+/* The site of kobo-hardcover-sync (DESIGN.md, the site). The first viewport
+   is the claim, the download card, and one row of the tool's own Books page
+   at full size, with the proof mark drawn on it; the story follows as three
+   share cards. The ground is white by day and near-black at night; the two
+   faces are the project's own files; nothing is loaded from elsewhere. */
 
 @font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 900; font-display: swap; src: url(fonts/SchibstedGrotesk-latin.woff2) format("woff2"); }
 @font-face { font-family: "Schibsted Grotesk"; font-style: italic; font-weight: 400 900; font-display: swap; src: url(fonts/SchibstedGrotesk-italic-latin.woff2) format("woff2"); }
@@ -18,7 +18,7 @@
   /* The cards: the same in both lights. A share card does not change with the room. */
   --plum: linear-gradient(200deg, #ff6b6b 0%, #c23c8c 45%, #5b2a86 100%);
   --teal: linear-gradient(200deg, #c6f26b 0%, #22c1a0 22%, #0f766e 42%, #0b5c57 100%);
-  --teal-list: linear-gradient(200deg, #c6f26b 0%, #22c1a0 8%, #0f766e 18%, #0b5c57 100%);
+  --teal-list: linear-gradient(200deg, #c6f26b 0%, #22c1a0 5%, #0f766e 11%, #0b5c57 100%);  /* the lime a corner, so the white heading stands on the deep teal at every width */
   --cobalt: linear-gradient(200deg, #38bdf8 0%, #2563eb 25%, #1e3a8a 100%);
   --on-card: #ffffff; --card-red: #ffd1cf;
   --scrim: linear-gradient(180deg, rgba(13, 12, 20, 0) 40%, rgba(13, 12, 20, 0.55) 62%, rgba(13, 12, 20, 0.92) 100%);
@@ -62,9 +62,10 @@ body { margin: 0; font: 400 1rem/1.5 var(--sans); color: var(--ink); background:
 a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1px; }
 a:hover { text-decoration-thickness: 2px; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
-.card :focus-visible { outline-color: #fff; }
+.card.plum :focus-visible, .card.teal :focus-visible, .card.cobalt :focus-visible, .card.ink :focus-visible, .card.photo :focus-visible { outline-color: #fff; }
+.card.flag :focus-visible { outline-color: var(--on-flag); }  /* the quiet card and the sheet keep the page's own ring */
 h1, h2, h3 { margin: 0; line-height: 1.05; text-wrap: balance; }
-h1 { font-size: clamp(2.4rem, 1.4rem + 3.6vw, 4.4rem); font-weight: 800; letter-spacing: -0.04em; line-height: 0.98; }
+h1 { font-size: clamp(2.4rem, 1.2rem + 3vw, 3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 0.98; }
 h2 { font-size: clamp(1.7rem, 1.1rem + 2vw, 2.6rem); font-weight: 800; letter-spacing: -0.035em; }
 h3 { font-size: 1.375rem; font-weight: 800; letter-spacing: -0.02em; }
 p { margin: 0; }
@@ -124,40 +125,31 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 
 /* ---------- the first viewport ---------- */
 .hero { gap: 2rem; }
-.hero .card { min-height: 27.5rem; }
-.hero .card.photo .facts { font-variant-numeric: tabular-nums; }
-.claim { display: grid; gap: 2rem 3rem; align-items: end; }
-@media (min-width: 900px) { .claim { grid-template-columns: 1.4fr 1fr; } }
-.claim > div { display: grid; gap: 0.75rem; padding-bottom: 0.3rem; }
-@media (max-width: 639.98px) {  /* a phone: the claim first, the download second, the story after */
-  .hero { display: flex; flex-direction: column; }
-  .hero .claim { order: 0; }
-  .hero .cards { order: 1; }
-  .hero .card.flag { order: -1; }
-  .hero .card { min-height: 0; }
-  .hero .card.plum, .hero .card.teal { min-height: 22rem; }
-  .hero .card.photo { min-height: 26rem; }
+.claim { display: grid; gap: 2rem 3rem; align-items: start; }
+@media (min-width: 900px) { .claim { grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 1fr); } }
+.claim > div:first-child { display: grid; gap: 1.25rem; align-content: end; padding-bottom: 0.3rem; }
+.story .card { min-height: 24rem; }
+@media (max-width: 639.98px) {  /* a phone: the claim with the download in it, the row, then the story */
+  .story .card { min-height: 0; }
+  .story .card.plum, .story .card.teal { min-height: 20rem; }
+  .story .card.photo { min-height: 24rem; }
 }
 
-/* The write-in: the old value struck through, the new one written in after the caret. */
-.fix { display: grid; gap: 0.35rem; }
-.fix .old { font-size: 1.25rem; font-weight: 600; }
-.fix s { position: relative; text-decoration: none; }
-.fix s::after { content: ""; position: absolute; left: 0; right: 0; top: 56%; height: 2px; background: var(--card-red); transform-origin: left; }
-.fix .new { font-size: clamp(2rem, 1rem + 2.2vw, 3.4rem); font-weight: 800; letter-spacing: -0.045em; line-height: 0.95; }
-.fix ins { display: inline-block; text-decoration: none; }  /* a block, so that the write-in clips both lines together */
-.fix ins svg { display: inline-block; width: 0.55em; height: 0.55em; margin-right: 0.04em; vertical-align: -0.02em; color: var(--card-red); }
-.fix .line { margin-top: 0.6rem; }
-@keyframes strike { from { transform: scaleX(0); } }
-@keyframes write { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-.fix s::after { animation: strike 0.5s var(--ease) 0.9s both; }
-.fix ins { animation: write 0.6s var(--ease) 1.1s both; }
+/* The teal story card: the everyday correction, standing still; the motion is the row's. */
+.corr { display: grid; gap: 0.35rem; }
+.corr .old { font-size: 1.25rem; font-weight: 600; }
+.corr s { position: relative; text-decoration: none; }
+.corr s::after { content: ""; position: absolute; left: 0; right: 0; top: 56%; height: 2px; background: var(--card-red); }
+.corr .new { font-size: clamp(2.6rem, 1.4rem + 2.6vw, 4rem); font-weight: 800; letter-spacing: -0.045em; line-height: 0.95; }
+.corr ins { text-decoration: none; }
+.corr ins svg { display: inline-block; width: 0.55em; height: 0.55em; margin-right: 0.04em; vertical-align: -0.02em; color: var(--card-red); }
+.corr .line { margin-top: 0.6rem; }
 
-/* The one authored entrance: the four cards rise into place once. */
+/* The one authored entrance: the download card, the sheet and the three cards rise into place once. */
 @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
-.hero .card { animation: rise 0.7s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms); }
+.hero .card, .hero .sheet { animation: rise 0.7s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms); }
 @media (prefers-reduced-motion: reduce) {
-  .hero .card, .fix s::after, .fix ins { animation: none; }
+  .hero .card, .hero .sheet, .sheet .fix s, .sheet .fix ins { animation: none; }
 }
 
 /* The download card: the one filled button, white by day on the ink card, ink at night on the white card. */
@@ -170,7 +162,7 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .card.flag .primary { width: 100%; min-height: 3.75rem; font-size: 1.25rem; }
 .card.flag { justify-content: space-between; }
 .card.flag .mini { width: 4rem; height: 4rem; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.3)); }
-.primary:hover { filter: brightness(1.08); }
+.primary:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; }  /* seen on every fill, the link's own hover */
 .card.flag .ver { font-size: 0.875rem; color: var(--flag-quiet); }
 .card.flag .ways { font-size: 0.8125rem; color: var(--flag-quiet); margin-top: 0.35rem; }
 .card.flag code { display: block; color: var(--on-flag); background: var(--flag-code); border-radius: 8px; padding: 0.5rem 0.7rem; }
@@ -179,7 +171,7 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .ways code { font-size: 0.8125rem; }
 
 /* ---------- the page's pictures: cards that hold a screenshot ---------- */
-.shots { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.shots { grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: start; }  /* a card is as tall as its picture, not its row */
 .shot { background: var(--quiet); color: var(--ink); padding: 0.9rem; gap: 0.7rem; justify-content: start; box-shadow: none; }
 .shot img { display: block; width: 100%; height: auto; border-radius: var(--r-shot); }
 .shot figcaption { color: var(--graphite); font-size: 0.875rem; padding: 0 0.3rem; }
@@ -197,9 +189,9 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .plain { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.4rem; max-width: 62ch; opacity: 0.92; }
 .macintro .ways span { opacity: 0.85; font-size: 0.9375rem; }
 .macintro .primary { color: #1e3a8a; background: #fff; }
-.appshots { grid-template-columns: 3fr 2fr; align-items: start; }
-.appshots .shot:first-child { grid-row: 1 / 3; }
-@media (max-width: 899.98px) { .appshots { grid-template-columns: 1fr; } .appshots .shot:first-child { grid-row: auto; } }
+.appshots { grid-template-columns: 1fr 1fr; align-items: start; }
+.appshots .shot:last-child { grid-column: 1 / -1; }  /* Covers, the fullest window, at full width */
+@media (max-width: 899.98px) { .appshots { grid-template-columns: 1fr; } .appshots .shot:last-child { grid-column: auto; } }
 .appshots .shot img { aspect-ratio: 1800 / 1177; }
 
 /* The four steps: the figure, a heading, one paragraph. */
@@ -213,7 +205,7 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 /* What it does, what it leaves alone, and the one who never guesses. */
 .does .card { justify-content: flex-start; gap: 1.1rem; min-height: 28rem; }
 .does .card.teal { background: var(--teal-list); }
-.does .card.teal h2 { color: #06211c; }  /* ink words on the lime end; the list below it is on teal */
+.does .card.photo > figcaption { padding-top: 11rem; background: linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.85) 50%, rgba(13, 12, 20, 0.94) 100%); }  /* the heading wraps on a phone: the step card's scrim */
 .does .card.photo { justify-content: flex-end; }
 .does .card.photo .title { font-family: var(--sans); font-weight: 800; letter-spacing: -0.02em; }  /* not a book title: the Book Face Rule holds */
 .does .card.photo .facts { display: block; font-size: 1rem; font-weight: 400; font-variant-numeric: normal; }
@@ -223,22 +215,21 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 
 /* The other tools. */
 .tablewrap { overflow-x: auto; padding: 0.5rem; }
-table { border-collapse: collapse; width: 100%; min-width: 40rem; font-size: 0.9375rem; }
-th, td { text-align: left; vertical-align: top; padding: 0.9rem 1rem; border-bottom: 1px solid var(--quiet-edge); }
-thead th { font-size: 0.8125rem; font-weight: 700; color: var(--graphite); }
-tbody th { font-weight: 700; white-space: nowrap; }
-tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
-tbody tr:first-child th { color: var(--link); }
+.tablewrap table { border-collapse: collapse; width: 100%; min-width: 40rem; font-size: 0.9375rem; }
+.tablewrap th, .tablewrap td { text-align: left; vertical-align: top; padding: 0.9rem 1rem; border-bottom: 1px solid var(--quiet-edge); }
+.tablewrap thead th { font-size: 0.8125rem; font-weight: 700; color: var(--graphite); }
+.tablewrap tbody th { font-weight: 700; white-space: nowrap; }
+.tablewrap tbody tr:last-child th, .tablewrap tbody tr:last-child td { border-bottom: 0; }
 @media (max-width: 719.98px) {
-  table { min-width: 0; display: block; }
-  thead { display: none; }
-  tbody, tr { display: block; }
-  tr { border-bottom: 1px solid var(--quiet-edge); }
-  tr:last-child { border-bottom: 0; }
-  th, td { display: block; border-bottom: 0; padding: 0.5rem 1rem; }
-  tbody th { white-space: normal; padding-top: 0.9rem; }
-  td:last-child { padding-bottom: 0.9rem; }
-  td::before { content: attr(data-label); display: block; font-size: 0.8125rem; font-weight: 700; color: var(--graphite); margin-bottom: 0.1rem; }
+  .tablewrap table { min-width: 0; display: block; }
+  .tablewrap thead { display: none; }
+  .tablewrap tbody, .tablewrap tr { display: block; }
+  .tablewrap tr { border-bottom: 1px solid var(--quiet-edge); }
+  .tablewrap tr:last-child { border-bottom: 0; }
+  .tablewrap th, .tablewrap td { display: block; border-bottom: 0; padding: 0.5rem 1rem; }
+  .tablewrap tbody th { white-space: normal; padding-top: 0.9rem; }
+  .tablewrap td:last-child { padding-bottom: 0.9rem; }
+  .tablewrap td::before { content: attr(data-label); display: block; font-size: 0.8125rem; font-weight: 700; color: var(--graphite); margin-bottom: 0.1rem; }
 }
 
 /* The close: the last photograph, with the download on it. */
@@ -256,7 +247,82 @@ tbody tr:first-child th { color: var(--link); }
 }
 .foot p { max-width: 70ch; }
 .foot nav { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; }
-.theme { display: inline-flex; width: fit-content; border-radius: var(--r-ctl); overflow: hidden; background: var(--quiet); padding: 3px; gap: 2px; }
+.theme { display: none; }  /* the switch needs the script; shown once it runs */
+.js .theme { display: inline-flex; width: fit-content; border-radius: var(--r-ctl); overflow: hidden; background: var(--quiet); padding: 3px; gap: 2px; }
 .theme button { font: 600 0.875rem var(--sans); color: var(--graphite); background: none; border: 0; padding: 0.45rem 0.9rem; min-height: 2.5rem; cursor: pointer; border-radius: 9px; }
 .theme button:hover { color: var(--ink); }
 .theme button[aria-pressed="true"] { background: var(--flag); color: var(--on-flag); }
+
+/* ---------- one row of the page, at full size ---------- */
+/* The sheet is the tool's own Books row, drawn: it carries the tool's colours, scoped here, by day and at night. */
+.sheet {
+  --sh-sheet: #fbfbf8; --sh-margin: #f4f5f1; --sh-ink: #17191c; --sh-graphite: #4a4f57; --sh-faint: #5f656e;
+  --sh-rule: #cdd1cb; --sh-edge: #80868e; --sh-red: #c0212b; --sh-green: #2c6a39; --sh-blue: #1c5e8b; --sh-on-fill: #ffffff;
+  margin: 0; font-size: 1.0625rem; line-height: 1.4; color: var(--sh-ink); background: var(--sh-sheet);
+  border: 1px solid var(--sh-rule); border-radius: var(--r-card); box-shadow: var(--lift); overflow: hidden;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sheet {
+    --sh-sheet: #171a1e; --sh-margin: #1b1f24; --sh-ink: #e7e9e4; --sh-graphite: #aeb4bb; --sh-faint: #959ca4;
+    --sh-rule: #30353c; --sh-edge: #6e757e; --sh-red: #ff8077; --sh-green: #86cf95; --sh-blue: #86c5ea; --sh-on-fill: #0f1114;
+  }
+}
+:root[data-theme="dark"] .sheet {
+  --sh-sheet: #171a1e; --sh-margin: #1b1f24; --sh-ink: #e7e9e4; --sh-graphite: #aeb4bb; --sh-faint: #959ca4;
+  --sh-rule: #30353c; --sh-edge: #6e757e; --sh-red: #ff8077; --sh-green: #86cf95; --sh-blue: #86c5ea; --sh-on-fill: #0f1114;
+}
+.sheet .rail { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem 1.5rem; padding: 0.9em 1.3em; border-bottom: 1px solid var(--sh-rule); }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3em 1.4em; font-size: 0.875em; color: var(--sh-graphite); }
+.legend li { display: inline-flex; align-items: center; gap: 0.45em; }
+.sheet .mk { flex: none; width: 20px; height: 20px; color: var(--sh-red); }
+.sheet .mk.ok { color: var(--sh-green); }
+.sheet .mk.warn { color: var(--sh-blue); }
+.sheet .mk.none { color: var(--sh-faint); }
+.syncnow { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1em; min-height: 2.75em; padding: 0.4em 1.2em; border-radius: 4px; background: var(--sh-red); color: var(--sh-on-fill); font-weight: 700; line-height: 1.2; }
+.syncnow small { font-size: 0.72em; font-weight: 500; }
+.sheet table { width: 100%; border-collapse: collapse; }
+.sheet th { text-align: left; font-size: 0.875em; font-weight: 700; padding: 0.85em 1.3em; border-bottom: 1px solid var(--sh-rule); }
+.sheet td { vertical-align: top; padding: 1.1em 1.3em 1.2em; }
+.sheet .c-sw { width: 12.5em; }
+.sheet .c-hc { width: 34%; }
+.sheet th.c-hc, .sheet td.hc { border-left: 3px double var(--sh-rule); }
+.sheet td.hc { background: var(--sh-margin); }
+.bk { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 0.95em; align-items: start; }
+.cover { display: block; width: 48px; height: 72px; border-radius: 1px 3px 3px 1px; object-fit: cover; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1); }
+.sheet .title { font-family: var(--serif); font-size: 1.0625em; font-weight: 600; line-height: 1.25; letter-spacing: -0.005em; }
+.sheet .author { color: var(--sh-graphite); font-size: 0.875em; margin-top: 0.1em; }
+/* The line gauge: a printer's rule with a tick every tenth, the part read as a bar of ink. */
+.bar { position: relative; height: 9px; max-width: 16em; margin: 0.7em 0 0.35em;
+  background: repeating-linear-gradient(to right, var(--sh-edge) 0 1px, transparent 1px 10%) left bottom / 100% 4px no-repeat,
+    linear-gradient(var(--sh-edge), var(--sh-edge)) left bottom / 100% 1px no-repeat; }
+.bar::after { content: ""; position: absolute; right: 0; bottom: 0; width: 1px; height: 4px; background: var(--sh-edge); }
+.bar span { position: absolute; left: 0; bottom: 1px; height: 4px; background: var(--sh-ink); }
+.sheet .meta { display: flex; flex-wrap: wrap; gap: 0.1em 0.9em; color: var(--sh-graphite); font-size: 0.8125em; }
+.field { display: inline-flex; align-items: center; justify-content: space-between; gap: 0.6em; width: 100%; min-height: 2.5em; padding: 0.3em 0.8em; border: 1px solid var(--sh-edge); border-radius: 4px; font-size: 0.9375em; white-space: nowrap; }
+.field svg { width: 12px; height: 8px; flex: none; }
+.act { display: grid; grid-template-columns: 1.6em minmax(0, 1fr); column-gap: 0.5em; align-items: start; }
+.act.next > span:first-of-type { color: var(--sh-red); font-weight: 650; font-size: 0.8125em; line-height: 20px; }
+.sheet .fix { margin: 0.1em 0 0 2.1em; font-size: 0.9375em; }
+.sheet .fix s { color: var(--sh-graphite); text-decoration: none; background: linear-gradient(var(--sh-red), var(--sh-red)) no-repeat 0 58% / 100% 1.5px; }
+.sheet .fix ins { display: inline-flex; align-items: baseline; gap: 1px; color: var(--sh-red); font-weight: 650; text-decoration: none; }
+.sheet .fix ins svg { width: 10px; height: 10px; align-self: flex-end; margin-bottom: -4px; }
+.sheet .sub { margin: 0.2em 0 0 2.1em; color: var(--sh-graphite); font-size: 0.8125em; }
+.sheet .details { display: inline-flex; align-items: center; min-height: 2em; margin: 0.55em 0 0 2.1em; padding: 0.15em 0.65em; font-size: 0.8125em; font-weight: 600; border: 1px solid var(--sh-edge); border-radius: 4px; background: var(--sh-sheet); }
+.sheet figcaption { padding: 0.9em 1.3em 1em; border-top: 1px solid var(--sh-rule); color: var(--sh-graphite); max-width: none; }
+/* The page's own motion: the strike draws across and the new value writes in, once the sheet has landed. */
+@keyframes strike { from { background-size: 0 1.5px; } }
+@keyframes write { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.sheet .fix s { animation: strike 0.5s var(--ease) 0.9s both; }
+.sheet .fix ins { animation: write 0.6s var(--ease) 1.1s both; }
+@media (max-width: 719.98px) {  /* a phone: the book, the two switches side by side, the margin under them */
+  .sheet table, .sheet thead { display: block; }
+  .sheet thead { display: none; }
+  .sheet tbody { display: block; }
+  .sheet tr { display: grid; grid-template-columns: 1fr 1fr; gap: 0 0.8em; }
+  .sheet td { display: block; }
+  .sheet td.book, .sheet td.hc { grid-column: 1 / -1; }
+  .sheet td.sw { padding-top: 0; }
+  .sheet td.sw::before { content: attr(data-label); display: block; font-size: 0.75em; font-weight: 700; color: var(--sh-graphite); margin-bottom: 0.25em; }
+  .sheet td.hc { border-left: 0; border-top: 3px double var(--sh-rule); margin-top: 0.6em; }
+  .syncnow { width: 100%; }
+}

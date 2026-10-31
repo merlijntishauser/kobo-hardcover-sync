@@ -34,7 +34,8 @@ installed) carries five photographs from [Unsplash](https://unsplash.com),
 each under the **Unsplash License**: free to use, no permission or
 attribution needed, but not to be sold as they are or compiled into a
 service like Unsplash's. The site credits the photographers in its foot.
-Each file says where it came from in its JPEG comment.
+Each file says where it came from in its JPEG comment, as does the
+smaller copy of each under `site/img/small/`, served to narrow screens.
 
 | File | Photograph | Photographer |
 |---|---|---|
@@ -45,7 +46,7 @@ Each file says where it came from in its JPEG comment.
 | `site/img/photo-bench.jpg` | [woman in black jacket and blue denim jeans sitting on brown wooden bench reading book](https://unsplash.com/photos/woman-in-black-jacket-and-blue-denim-jeans-sitting-on-brown-wooden-bench-reading-book-hQzBAtJoJQo), cropped | Leon Seibert |
 
 The site's other pictures are its own: screenshots of the page and of the
-Mac app, drawn sample covers, the icon. With JavaScript the site asks
+Mac app, one drawn sample cover, the icon. With JavaScript the site asks
 GitHub's API once per visit which release is the latest; it loads nothing
 else from elsewhere.
 

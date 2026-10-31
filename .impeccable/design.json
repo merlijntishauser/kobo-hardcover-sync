@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-30T15:54:03Z",
+  "generatedAt": "2026-10-31T11:16:58Z",
   "title": "Design System: Kobo Hardcover Sync",
   "extensions": {
     "colorMeta": {
@@ -1076,20 +1076,356 @@
           "#f6eceb"
         ]
       },
-      "site-on-lime": {
+      "site-sheet": {
         "role": "neutral",
-        "displayName": "On Lime",
-        "canonical": "#06211c",
-        "oklch": "oklch(22.5% 0.034 179)",
+        "displayName": "Sheet (site, the drawn row)",
+        "canonical": "#fbfbf8",
+        "oklch": "oklch(98.7% 0.004 106)",
         "tonalRamp": [
-          "#080c0b",
-          "#1a2825",
-          "#314742",
-          "#4d6861",
-          "#6d8983",
-          "#92aba5",
-          "#bccec9",
-          "#eaf0ee"
+          "#0b0b0a",
+          "#252524",
+          "#424240",
+          "#61615f",
+          "#828280",
+          "#a5a5a3",
+          "#c9c9c7",
+          "#eeeeed"
+        ]
+      },
+      "site-sheet-margin": {
+        "role": "neutral",
+        "displayName": "Sheet Margin (site)",
+        "canonical": "#f4f5f1",
+        "oklch": "oklch(96.8% 0.005 118)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#424240",
+          "#61625e",
+          "#82837f",
+          "#a5a5a2",
+          "#c9c9c7",
+          "#eeefed"
+        ]
+      },
+      "site-sheet-ink": {
+        "role": "neutral",
+        "displayName": "Sheet Ink (site)",
+        "canonical": "#17191c",
+        "oklch": "oklch(21.3% 0.007 258)",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#242527",
+          "#404245",
+          "#5f6165",
+          "#808286",
+          "#a3a5a8",
+          "#c7c9cc",
+          "#edeef0"
+        ]
+      },
+      "site-sheet-graphite": {
+        "role": "neutral",
+        "displayName": "Sheet Graphite (site)",
+        "canonical": "#4a4f57",
+        "oklch": "oklch(42.6% 0.015 260)",
+        "tonalRamp": [
+          "#090b0e",
+          "#22252a",
+          "#3e4248",
+          "#5d6269",
+          "#7e838b",
+          "#a1a5ad",
+          "#c5c9cf",
+          "#eceff3"
+        ]
+      },
+      "site-sheet-faint": {
+        "role": "neutral",
+        "displayName": "Sheet Faint (site)",
+        "canonical": "#5f656e",
+        "oklch": "oklch(50.5% 0.016 258)",
+        "tonalRamp": [
+          "#090b0e",
+          "#22252a",
+          "#3e4249",
+          "#5c626a",
+          "#7d838c",
+          "#a0a5ad",
+          "#c5c9d0",
+          "#ebeff4"
+        ]
+      },
+      "site-sheet-rule": {
+        "role": "neutral",
+        "displayName": "Sheet Rule (site)",
+        "canonical": "#cdd1cb",
+        "oklch": "oklch(85.6% 0.009 135)",
+        "tonalRamp": [
+          "#0a0c0a",
+          "#242623",
+          "#40433f",
+          "#5f625d",
+          "#80837e",
+          "#a3a6a1",
+          "#c7cac6",
+          "#edefec"
+        ]
+      },
+      "site-sheet-edge": {
+        "role": "neutral",
+        "displayName": "Sheet Edge (site)",
+        "canonical": "#80868e",
+        "oklch": "oklch(61.8% 0.014 256)",
+        "tonalRamp": [
+          "#090b0e",
+          "#222529",
+          "#3e4248",
+          "#5c6269",
+          "#7d838a",
+          "#a0a5ac",
+          "#c5c9cf",
+          "#eceff3"
+        ]
+      },
+      "site-sheet-red": {
+        "role": "primary",
+        "displayName": "Sheet Red (site)",
+        "canonical": "#c0212b",
+        "oklch": "oklch(52.3% 0.192 25)",
+        "tonalRamp": [
+          "#260000",
+          "#520001",
+          "#800011",
+          "#b11f27",
+          "#d94949",
+          "#f67a74",
+          "#ffa8a1",
+          "#ffd8d1"
+        ]
+      },
+      "site-sheet-green": {
+        "role": "tertiary",
+        "displayName": "Sheet Green (site)",
+        "canonical": "#2c6a39",
+        "oklch": "oklch(47.0% 0.101 148)",
+        "tonalRamp": [
+          "#001002",
+          "#082d12",
+          "#1f4d28",
+          "#377042",
+          "#599262",
+          "#82b389",
+          "#add5b2",
+          "#daf8de"
+        ]
+      },
+      "site-sheet-blue": {
+        "role": "secondary",
+        "displayName": "Sheet Blue (site)",
+        "canonical": "#1c5e8b",
+        "oklch": "oklch(46.4% 0.098 243)",
+        "tonalRamp": [
+          "#000c1c",
+          "#012841",
+          "#144668",
+          "#2c6691",
+          "#4e88b5",
+          "#7aabd3",
+          "#a6cff0",
+          "#d6f3ff"
+        ]
+      },
+      "site-sheet-on-fill": {
+        "role": "neutral",
+        "displayName": "Sheet On Fill (site)",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "site-sheet-dark": {
+        "role": "neutral",
+        "displayName": "Sheet (site, night, the drawn row)",
+        "canonical": "#171a1e",
+        "oklch": "oklch(21.6% 0.009 256)",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#232528",
+          "#3f4246",
+          "#5e6166",
+          "#7f8387",
+          "#a2a5aa",
+          "#c7c9cd",
+          "#edeff1"
+        ]
+      },
+      "site-sheet-margin-dark": {
+        "role": "neutral",
+        "displayName": "Sheet Margin (site, night)",
+        "canonical": "#1b1f24",
+        "oklch": "oklch(23.7% 0.011 254)",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#232529",
+          "#3f4247",
+          "#5d6267",
+          "#7e8389",
+          "#a1a5ab",
+          "#c6c9ce",
+          "#eceff2"
+        ]
+      },
+      "site-sheet-ink-dark": {
+        "role": "neutral",
+        "displayName": "Sheet Ink (site, night)",
+        "canonical": "#e7e9e4",
+        "oklch": "oklch(93.1% 0.007 124)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#242523",
+          "#41423f",
+          "#60625e",
+          "#81837f",
+          "#a4a6a2",
+          "#c8cac6",
+          "#eeefec"
+        ]
+      },
+      "site-sheet-graphite-dark": {
+        "role": "neutral",
+        "displayName": "Sheet Graphite (site, night)",
+        "canonical": "#aeb4bb",
+        "oklch": "oklch(76.7% 0.012 252)",
+        "tonalRamp": [
+          "#090b0d",
+          "#222529",
+          "#3e4247",
+          "#5d6268",
+          "#7e8389",
+          "#a1a5ab",
+          "#c6c9ce",
+          "#eceff2"
+        ]
+      },
+      "site-sheet-faint-dark": {
+        "role": "neutral",
+        "displayName": "Sheet Faint (site, night)",
+        "canonical": "#959ca4",
+        "oklch": "oklch(69.0% 0.014 252)",
+        "tonalRamp": [
+          "#090b0e",
+          "#222529",
+          "#3e4348",
+          "#5c6269",
+          "#7d838a",
+          "#a0a6ac",
+          "#c5cacf",
+          "#ebeff3"
+        ]
+      },
+      "site-sheet-rule-dark": {
+        "role": "neutral",
+        "displayName": "Sheet Rule (site, night)",
+        "canonical": "#30353c",
+        "oklch": "oklch(32.7% 0.014 257)",
+        "tonalRamp": [
+          "#090b0e",
+          "#22252a",
+          "#3e4248",
+          "#5c6269",
+          "#7d838a",
+          "#a1a5ac",
+          "#c5c9cf",
+          "#eceff3"
+        ]
+      },
+      "site-sheet-edge-dark": {
+        "role": "neutral",
+        "displayName": "Sheet Edge (site, night)",
+        "canonical": "#6e757e",
+        "oklch": "oklch(56.0% 0.016 255)",
+        "tonalRamp": [
+          "#090b0e",
+          "#22252a",
+          "#3d4249",
+          "#5b626a",
+          "#7c838c",
+          "#a0a6ad",
+          "#c5cad0",
+          "#ebeff3"
+        ]
+      },
+      "site-sheet-red-dark": {
+        "role": "primary",
+        "displayName": "Sheet Red (site, night)",
+        "canonical": "#ff8077",
+        "oklch": "oklch(74.3% 0.156 26)",
+        "tonalRamp": [
+          "#220000",
+          "#4b0407",
+          "#771c1c",
+          "#a43633",
+          "#cb5953",
+          "#e9847c",
+          "#ffb0a7",
+          "#ffddd6"
+        ]
+      },
+      "site-sheet-green-dark": {
+        "role": "tertiary",
+        "displayName": "Sheet Green (site, night)",
+        "canonical": "#86cf95",
+        "oklch": "oklch(79.1% 0.110 150)",
+        "tonalRamp": [
+          "#001002",
+          "#022e11",
+          "#164f27",
+          "#2e7140",
+          "#519461",
+          "#7db588",
+          "#a9d7b1",
+          "#d8f9dd"
+        ]
+      },
+      "site-sheet-blue-dark": {
+        "role": "secondary",
+        "displayName": "Sheet Blue (site, night)",
+        "canonical": "#86c5ea",
+        "oklch": "oklch(79.4% 0.083 235)",
+        "tonalRamp": [
+          "#000d19",
+          "#02293b",
+          "#174760",
+          "#2e6887",
+          "#518aaa",
+          "#7cacc9",
+          "#a8d0e8",
+          "#d7f3ff"
+        ]
+      },
+      "site-sheet-on-fill-dark": {
+        "role": "neutral",
+        "displayName": "Sheet On Fill (site, night)",
+        "canonical": "#0f1114",
+        "oklch": "oklch(17.7% 0.007 258)",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#242527",
+          "#404245",
+          "#5f6165",
+          "#808286",
+          "#a3a5a9",
+          "#c7c9cc",
+          "#edeef1"
         ]
       },
       "plum-coral": {
@@ -1356,7 +1692,7 @@
       },
       "site-headline": {
         "displayName": "Site headline",
-        "purpose": "The site's one h1, fluid from 2.4rem to 4.4rem; its own ramp, large where the page is small."
+        "purpose": "The site's one h1, fluid from 2.4rem to 3.8rem, beside the download card; its own ramp, large where the page is small."
       },
       "site-section": {
         "displayName": "Site section heading",
@@ -1368,19 +1704,23 @@
       },
       "site-figure": {
         "displayName": "Site figure",
-        "purpose": "The count or a step's number on a card, 6rem to 9rem at -0.06em."
+        "purpose": "The count or a step's number on a gradient card, 6rem to 9rem at -0.06em."
       },
-      "site-write-in": {
-        "displayName": "Site write-in",
-        "purpose": "The new value on the teal card, after the Card Red caret."
+      "site-step-figure": {
+        "displayName": "Site step figure",
+        "purpose": "A step's number on a photo step card, 4.5rem to 6.5rem, so that the photograph keeps its top half."
+      },
+      "site-corr": {
+        "displayName": "Site correction",
+        "purpose": "The new value on the teal story card, after the Card Red caret; 2.6rem to 4rem. It stands still."
       },
       "site-struck": {
         "displayName": "Site struck value",
-        "purpose": "The old value on the teal card, struck by a 2px line of Card Red."
+        "purpose": "The old value on the teal story card, its number struck by a 2px line of Card Red at 56%."
       },
       "site-line": {
         "displayName": "Site line",
-        "purpose": "The one line of 600 under a figure or the write-in."
+        "purpose": "The one line of 600 under a figure or the correction."
       },
       "site-lede": {
         "displayName": "Site lede",
@@ -1417,6 +1757,14 @@
       "site-code": {
         "displayName": "Site code",
         "purpose": "The brew and uv commands."
+      },
+      "site-sheet": {
+        "displayName": "Site sheet",
+        "purpose": "The base of the drawn row, 1.0625rem at 1.4; everything in the sheet is in em of it, so the row scales as one."
+      },
+      "site-sheet-title": {
+        "displayName": "Site sheet title",
+        "purpose": "The book's title in the drawn row, Source Serif 4 at 1.0625em, 600: the Book Face Rule's place in the sheet."
       }
     },
     "shadows": [
@@ -1448,12 +1796,7 @@
       {
         "name": "site-lift",
         "value": "0 24px 48px -28px rgba(23, 25, 28, 0.45)",
-        "purpose": "Site, light only: under the gradient and photo cards; none at night and on the quiet cards. The app icon casts drop-shadow(0 10px 18px rgba(0, 0, 0, 0.3)) on the download card and drop-shadow(0 18px 30px rgba(0, 0, 0, 0.35)) on the cobalt card."
-      },
-      {
-        "name": "site-lift",
-        "value": "0 24px 48px -28px rgba(23, 25, 28, 0.45)",
-        "purpose": "Site, light only: under the gradient and photo cards; none at night and on the quiet cards. The app icon casts drop-shadow(0 10px 18px rgba(0, 0, 0, 0.3)) on the download card and drop-shadow(0 18px 30px rgba(0, 0, 0, 0.35)) on the cobalt card."
+        "purpose": "Site, light only: under the gradient and photo cards and the sheet; none at night and on the quiet cards. The cover in the sheet carries the tool's cover shadow. The app icon casts drop-shadow(0 10px 18px rgba(0, 0, 0, 0.3)) on the download card and drop-shadow(0 18px 30px rgba(0, 0, 0, 0.35)) on the cobalt card."
       }
     ],
     "motion": [
@@ -1529,18 +1872,18 @@
       },
       {
         "name": "site-rise",
-        "value": "0.7s cubic-bezier(0.16, 1, 0.3, 1), 60ms apart, from 18px below and transparent",
-        "purpose": "Site, once on load: the four cards of the first viewport rise into place."
+        "value": "0.7s cubic-bezier(0.16, 1, 0.3, 1), 60ms apart by --i, from 18px below and transparent",
+        "purpose": "Site, once on load: the download card, the sheet and the three story cards rise into place in page order."
       },
       {
         "name": "site-strike-write",
-        "value": "strike 0.5s at 0.9s; write-in 0.6s at 1.1s, both cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "Site: on the teal card, the page's own strike and write-in after the cards have landed."
+        "value": "strike (background-size from 0 1.5px) 0.5s at 0.9s; write-in (clip-path from the left) 0.6s at 1.1s, both cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Site: in the sheet's row, the tool's own strike and write-in at the tool's timing, after the sheet has landed. The teal story card's correction does not move."
       },
       {
         "name": "site-reduced-motion",
         "value": "none",
-        "purpose": "Site: under prefers-reduced-motion the cards stand in place, the strike and write-in are off, and smooth scrolling is off."
+        "purpose": "Site: under prefers-reduced-motion the cards and the sheet stand in place, the strike and write-in are off, and smooth scrolling is off."
       }
     ],
     "breakpoints": [
@@ -1582,59 +1925,39 @@
       {
         "name": "site-phone",
         "value": "below 640px",
-        "purpose": "Site: one column; the headline first, the download card second, then the other three cards."
+        "purpose": "Site: the story cards lose their 24rem floor (plum and teal 20rem, the photograph 24rem); the four step cards go to one column."
       },
       {
         "name": "site-stack",
         "value": "below 720px",
-        "purpose": "Site: the other tools' table stacks, the in-page links leave the head; the Mac app's icon stands above its words."
+        "purpose": "Site: the sheet's row stacks (the book, the two switches side by side with their names above them, the margin under a double rule on its top, Sync now full width); the other tools' table stacks; the in-page links leave the head; the Mac app's icon stands above its words."
       },
       {
-        "name": "site-three",
+        "name": "site-claim",
         "value": "900px",
-        "purpose": "Site: three cards across, the screenshots on six columns, the headline beside the lede."
+        "purpose": "Site: the claim in two columns, the headline and lede at 1.5fr beside the download card at 1fr; the story and the Mac app's pictures across; the screenshots on six columns. Below it everything is one column and the download card follows the lede."
       },
       {
         "name": "site-four",
         "value": "1100px",
-        "purpose": "Site: the four cards in one row; two by two below."
-      },
-      {
-        "name": "site-phone",
-        "value": "below 640px",
-        "purpose": "Site: one column; the headline first, the download card second, then the other three cards."
-      },
-      {
-        "name": "site-stack",
-        "value": "below 720px",
-        "purpose": "Site: the other tools' table stacks, the in-page links leave the head; the Mac app's icon stands above its words."
-      },
-      {
-        "name": "site-three",
-        "value": "900px",
-        "purpose": "Site: three cards across, the screenshots on six columns, the headline beside the lede."
-      },
-      {
-        "name": "site-four",
-        "value": "1100px",
-        "purpose": "Site: the four cards in one row; two by two below."
+        "purpose": "Site: the four step cards in one row; two by two below."
       }
     ],
     "gradients": [
       {
         "name": "plum",
         "value": "linear-gradient(200deg, #ff6b6b 0%, #c23c8c 45%, #5b2a86 100%)",
-        "purpose": "Site: the count card and the fourth step. Words at the foot, on the deep end."
+        "purpose": "Site: the count card in the story and the fourth step. Words at the foot, on the deep end."
       },
       {
         "name": "teal",
         "value": "linear-gradient(200deg, #c6f26b 0%, #22c1a0 22%, #0f766e 42%, #0b5c57 100%)",
-        "purpose": "Site: the write-in card. Words at the foot, on the deep end."
+        "purpose": "Site: the correction card in the story. Words at the foot, on the deep end."
       },
       {
         "name": "teal-list",
-        "value": "linear-gradient(200deg, #c6f26b 0%, #22c1a0 8%, #0f766e 18%, #0b5c57 100%)",
-        "purpose": "Site: What it does; the lime holds only the heading, which is On Lime (ink), and the list stands on the teal."
+        "value": "linear-gradient(200deg, #c6f26b 0%, #22c1a0 5%, #0f766e 11%, #0b5c57 100%)",
+        "purpose": "Site: What it does; the lime is a strip at the head of the card, the heading white like every card heading, the list on the teal."
       },
       {
         "name": "cobalt",
@@ -1653,8 +1976,8 @@
       },
       {
         "name": "scrim-step",
-        "value": "linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.85) 30%, rgba(13, 12, 20, 0.94) 100%)",
-        "purpose": "Site: a step card's photograph, which carries more words."
+        "value": "linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.85) 50%, rgba(13, 12, 20, 0.94) 100%)",
+        "purpose": "Site: a step card's photograph and the photograph under What it does, which carry more words; the words are padded 11rem above so that the top half stays photograph."
       },
       {
         "name": "scrim-close",
@@ -1780,31 +2103,39 @@
       "name": "Count card (site)",
       "kind": "card",
       "refersTo": "site-card",
-      "description": "The site's plum card: the figure at 9rem on the dark end of the gradient, one line of 600 under it. The same in both lights.",
+      "description": "The plum story card: the figure at 9rem on the dark end of the gradient, one line of 600 under it. The same in both lights.",
       "html": "<div class=\"ds-site-card ds-plum\"><p class=\"ds-figure\">34</p><p class=\"ds-line\">books on the Kobo, read from the device's own database over the cable.</p></div>",
-      "css": ".ds-site-card{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:flex;flex-direction:column;justify-content:flex-end;gap:0.75rem;padding:1.6rem 1.6rem 1.7rem;border-radius:18px;color:#ffffff;overflow:hidden;min-height:22rem;max-width:22rem;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45)} .ds-plum{background:linear-gradient(200deg,#ff6b6b 0%,#c23c8c 45%,#5b2a86 100%)} .ds-figure{margin:0 0 0.25rem;font-size:clamp(6rem,3rem + 7vw,9rem);font-weight:800;letter-spacing:-0.06em;line-height:0.82} .ds-line{margin:0;font-size:1.125rem;font-weight:600;line-height:1.3}"
+      "css": ".ds-site-card{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:flex;flex-direction:column;justify-content:flex-end;gap:0.75rem;padding:1.6rem 1.6rem 1.7rem;border-radius:18px;color:#ffffff;overflow:hidden;min-height:24rem;max-width:22rem;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45)} .ds-plum{background:linear-gradient(200deg,#ff6b6b 0%,#c23c8c 45%,#5b2a86 100%)} .ds-figure{margin:0 0 0.25rem;font-size:clamp(6rem,3rem + 7vw,9rem);font-weight:800;letter-spacing:-0.06em;line-height:0.82} .ds-line{margin:0;font-size:1.125rem;font-weight:600;line-height:1.3}"
     },
     {
-      "name": "Write-in card (site)",
+      "name": "The drawn row (site)",
+      "kind": "custom",
+      "refersTo": "site-sheet",
+      "description": "The sheet: one row of the Books page drawn in the site's markup, with the tool's colours scoped to it in both lights, a 1px rule border and 18px corners; the legend and Sync now on the rail, the cover, title, gauge and facts, two drawn switches, and the margin with the caret, the strike and the write-in. The strike draws at 0.9s and the write-in at 1.1s, off under reduced motion.",
+      "html": "<figure class=\"ds-sheet\"><div class=\"ds-rail\"><ul class=\"ds-legend\"><li><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg><span>Next sync changes this</span></li><li><svg class=\"ds-mk ds-ok\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 10.5l4 4.5L16.5 5\"/></svg><span>Up to date on Hardcover</span></li><li><svg class=\"ds-mk ds-warn\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"10\" cy=\"10\" r=\"7.6\"/><path d=\"M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.7\"/><circle cx=\"10\" cy=\"14.1\" r=\".6\" fill=\"currentColor\"/></svg><span>Needs a match</span></li><li><svg class=\"ds-mk ds-none\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 10h10\"/></svg><span>Not syncing</span></li></ul><p class=\"ds-syncnow\"><span>Sync now</span><small>sends 4 marked changes</small></p></div><table><thead><tr><th>Book</th><th class=\"ds-c-sw\">Sync</th><th class=\"ds-c-sw\">State</th><th class=\"ds-c-hc\">Hardcover status</th></tr></thead><tbody><tr><td><div class=\"ds-bk\"><span class=\"ds-cover\"></span><div><div class=\"ds-title\">Middlemarch</div><div class=\"ds-author\">George Eliot</div><div class=\"ds-bar\"><span style=\"width:100%\"></span></div><div class=\"ds-meta\"><span>100%</span> <span>last read 21 Sep 2026</span> <span>31 h read</span></div></div></div></td><td><span class=\"ds-field\">On<svg viewBox=\"0 0 12 8\" aria-hidden=\"true\" fill=\"currentColor\"><path d=\"M1 1.5h10L6 7z\"/></svg></span></td><td><span class=\"ds-field\">Follow Kobo<svg viewBox=\"0 0 12 8\" aria-hidden=\"true\" fill=\"currentColor\"><path d=\"M1 1.5h10L6 7z\"/></svg></span></td><td class=\"ds-hc\"><div class=\"ds-act\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg><span>Next sync</span></div><div class=\"ds-fix\"><s>Currently reading, 88%</s> <ins><svg viewBox=\"0 0 10 10\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M1.5 8.5 5 2l3.5 6.5\"/></svg>Read, finished 21 Sep 2026</ins></div><div class=\"ds-sub\">Middlemarch, Ebook</div><span class=\"ds-details\">Details</span></td></tr></tbody></table><figcaption>One row of its page, at full size, from a made-up shelf of 34 books. The marks are the page's own.</figcaption></figure>",
+      "css": ".ds-sheet{--sh-sheet:#fbfbf8;--sh-margin:#f4f5f1;--sh-ink:#17191c;--sh-graphite:#4a4f57;--sh-faint:#5f656e;--sh-rule:#cdd1cb;--sh-edge:#80868e;--sh-red:#c0212b;--sh-green:#2c6a39;--sh-blue:#1c5e8b;--sh-on-fill:#ffffff;font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;margin:0;font-size:17px;line-height:1.4;color:var(--sh-ink);background:var(--sh-sheet);border:1px solid var(--sh-rule);border-radius:18px;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45);overflow:hidden} @media (prefers-color-scheme: dark){.ds-sheet{--sh-sheet:#171a1e;--sh-margin:#1b1f24;--sh-ink:#e7e9e4;--sh-graphite:#aeb4bb;--sh-faint:#959ca4;--sh-rule:#30353c;--sh-edge:#6e757e;--sh-red:#ff8077;--sh-green:#86cf95;--sh-blue:#86c5ea;--sh-on-fill:#0f1114;box-shadow:none}} .ds-sheet p,.ds-sheet figcaption{margin:0} .ds-rail{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0.6rem 1.5rem;padding:0.9em 1.3em;border-bottom:1px solid var(--sh-rule)} .ds-legend{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:0.3em 1.4em;font-size:0.875em;color:var(--sh-graphite)} .ds-legend li{display:inline-flex;align-items:center;gap:0.45em} .ds-mk{flex:none;width:20px;height:20px;color:var(--sh-red)} .ds-mk.ds-ok{color:var(--sh-green)} .ds-mk.ds-warn{color:var(--sh-blue)} .ds-mk.ds-none{color:var(--sh-faint)} .ds-syncnow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.1em;min-height:2.75em;padding:0.4em 1.2em;border-radius:4px;background:var(--sh-red);color:var(--sh-on-fill);font-weight:700;line-height:1.2} .ds-syncnow small{font-size:0.72em;font-weight:500} .ds-sheet table{width:100%;border-collapse:collapse} .ds-sheet th{text-align:left;font-size:0.875em;font-weight:700;padding:0.85em 1.3em;border-bottom:1px solid var(--sh-rule)} .ds-sheet td{vertical-align:top;padding:1.1em 1.3em 1.2em} .ds-c-sw{width:12.5em} .ds-c-hc{width:34%} .ds-sheet th.ds-c-hc,.ds-sheet td.ds-hc{border-left:3px double var(--sh-rule)} .ds-sheet td.ds-hc{background:var(--sh-margin)} .ds-bk{display:grid;grid-template-columns:48px minmax(0,1fr);gap:0.95em;align-items:start} .ds-cover{display:block;width:48px;height:72px;border-radius:1px 3px 3px 1px;background:linear-gradient(160deg,#6b5a4a,#2d2621);box-shadow:0 1px 2px rgba(0,0,0,0.28),0 3px 8px rgba(0,0,0,0.1)} .ds-title{font-family:\"Source Serif 4\", Georgia, \"Times New Roman\", serif;font-size:1.0625em;font-weight:600;line-height:1.25;letter-spacing:-0.005em} .ds-author{color:var(--sh-graphite);font-size:0.875em;margin-top:0.1em} .ds-bar{position:relative;height:9px;max-width:16em;margin:0.7em 0 0.35em;background:repeating-linear-gradient(to right,var(--sh-edge) 0 1px,transparent 1px 10%) left bottom / 100% 4px no-repeat,linear-gradient(var(--sh-edge),var(--sh-edge)) left bottom / 100% 1px no-repeat} .ds-bar::after{content:\"\";position:absolute;right:0;bottom:0;width:1px;height:4px;background:var(--sh-edge)} .ds-bar span{position:absolute;left:0;bottom:1px;height:4px;background:var(--sh-ink)} .ds-meta{display:flex;flex-wrap:wrap;gap:0.1em 0.9em;color:var(--sh-graphite);font-size:0.8125em} .ds-field{display:inline-flex;align-items:center;justify-content:space-between;gap:0.6em;width:100%;min-height:2.5em;padding:0.3em 0.8em;border:1px solid var(--sh-edge);border-radius:4px;font-size:0.9375em;white-space:nowrap} .ds-field svg{width:12px;height:8px;flex:none} .ds-act{display:grid;grid-template-columns:1.6em minmax(0,1fr);column-gap:0.5em;align-items:start} .ds-act > span{color:var(--sh-red);font-weight:650;font-size:0.8125em;line-height:20px} .ds-fix{margin:0.1em 0 0 2.1em;font-size:0.9375em} .ds-fix s{color:var(--sh-graphite);text-decoration:none;background:linear-gradient(var(--sh-red),var(--sh-red)) no-repeat 0 58% / 100% 1.5px;animation:ds-strike 0.5s cubic-bezier(0.16,1,0.3,1) 0.9s both} .ds-fix ins{display:inline-flex;align-items:baseline;gap:1px;color:var(--sh-red);font-weight:650;text-decoration:none;animation:ds-write 0.6s cubic-bezier(0.16,1,0.3,1) 1.1s both} .ds-fix ins svg{width:10px;height:10px;align-self:flex-end;margin-bottom:-4px} .ds-sub{margin:0.2em 0 0 2.1em;color:var(--sh-graphite);font-size:0.8125em} .ds-details{display:inline-flex;align-items:center;min-height:2em;margin:0.55em 0 0 2.1em;padding:0.15em 0.65em;font-size:0.8125em;font-weight:600;border:1px solid var(--sh-edge);border-radius:4px;background:var(--sh-sheet)} .ds-sheet figcaption{padding:0.9em 1.3em 1em;border-top:1px solid var(--sh-rule);color:var(--sh-graphite);font-size:14px} @keyframes ds-strike{from{background-size:0 1.5px}} @keyframes ds-write{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}} @media (prefers-reduced-motion: reduce){.ds-fix s,.ds-fix ins{animation:none}}"
+    },
+    {
+      "name": "Correction card (site)",
       "kind": "card",
       "refersTo": "site-card",
-      "description": "The teal card: the old value struck by Card Red, the new value after a Card Red caret; the strike draws at 0.9s and the write-in at 1.1s, off under reduced motion.",
-      "html": "<div class=\"ds-site-card ds-teal\"><div class=\"ds-fix\"><p class=\"ds-old\"><s>Currently reading, 88%</s></p><p class=\"ds-new\"><ins><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"width:0.55em;height:0.55em;margin-right:0.04em;vertical-align:-0.02em;display:inline-block\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg>Read, 21 Sep 2026</ins></p><p class=\"ds-line\">What the next sync tells Hardcover, shown before it is sent.</p></div></div>",
-      "css": ".ds-site-card{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:flex;flex-direction:column;justify-content:flex-end;gap:0.75rem;padding:1.6rem 1.6rem 1.7rem;border-radius:18px;color:#ffffff;overflow:hidden;min-height:22rem;max-width:22rem;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45)} .ds-teal{background:linear-gradient(200deg,#c6f26b 0%,#22c1a0 22%,#0f766e 42%,#0b5c57 100%)} .ds-fix{display:grid;gap:0.35rem} .ds-fix p{margin:0} .ds-old{font-size:1.25rem;font-weight:600} .ds-fix s{position:relative;text-decoration:none} .ds-fix s::after{content:\"\";position:absolute;left:0;right:0;top:56%;height:2px;background:#ffd1cf;transform-origin:left;animation:ds-strike 0.5s cubic-bezier(0.16,1,0.3,1) 0.9s both} .ds-new{font-size:clamp(2rem,1rem + 2.2vw,3.4rem);font-weight:800;letter-spacing:-0.045em;line-height:0.95} .ds-fix ins{display:inline-block;text-decoration:none;animation:ds-write 0.6s cubic-bezier(0.16,1,0.3,1) 1.1s both} .ds-fix ins svg{color:#ffd1cf} .ds-line{font-size:1.125rem;font-weight:600;line-height:1.3;margin-top:0.6rem} @keyframes ds-strike{from{transform:scaleX(0)}} @keyframes ds-write{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}} @media (prefers-reduced-motion: reduce){.ds-fix s::after,.ds-fix ins{animation:none}}"
+      "description": "The teal story card: the everyday correction, the old number struck by a 2px line of Card Red, the new value at 800 after a Card Red caret. It stands still; the motion is the row's.",
+      "html": "<div class=\"ds-site-card ds-teal\"><div class=\"ds-corr\"><p class=\"ds-small\">Moby-Dick, most days</p><p class=\"ds-old\">Currently reading, <s>35%</s></p><p class=\"ds-new\"><ins><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg>37%</ins></p><p class=\"ds-line\">Most days a sync is this: a few pages further, told to Hardcover.</p></div></div>",
+      "css": ".ds-site-card{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:flex;flex-direction:column;justify-content:flex-end;gap:0.75rem;padding:1.6rem 1.6rem 1.7rem;border-radius:18px;color:#ffffff;overflow:hidden;min-height:24rem;max-width:22rem;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45)} .ds-teal{background:linear-gradient(200deg,#c6f26b 0%,#22c1a0 22%,#0f766e 42%,#0b5c57 100%)} .ds-corr{display:grid;gap:0.35rem} .ds-corr p{margin:0} .ds-small{font-size:0.9375rem;font-weight:600;opacity:0.9} .ds-old{font-size:1.25rem;font-weight:600} .ds-corr s{position:relative;text-decoration:none} .ds-corr s::after{content:\"\";position:absolute;left:0;right:0;top:56%;height:2px;background:#ffd1cf} .ds-new{font-size:clamp(2.6rem,1.4rem + 2.6vw,4rem);font-weight:800;letter-spacing:-0.045em;line-height:0.95} .ds-corr ins{text-decoration:none} .ds-corr ins svg{display:inline-block;width:0.55em;height:0.55em;margin-right:0.04em;vertical-align:-0.02em;color:#ffd1cf} .ds-line{font-size:1.125rem;font-weight:600;line-height:1.3;margin-top:0.6rem} @media (prefers-color-scheme: dark){.ds-site-card{box-shadow:none}}"
     },
     {
       "name": "Download card and the one button (site)",
       "kind": "card",
       "refersTo": "site-card-flag",
-      "description": "The one card that changes with the light: ink by day with white words, white at night with ink words; Download for Mac full width in the card's reverse, the version line in Flag Quiet, brew and uv as code on Flag Code.",
+      "description": "The one card that changes with the light: ink by day with white words, white at night with ink words; Download for Mac full width in the card's reverse, underlined on hover, the version line in Flag Quiet, brew and uv as code on Flag Code. Beside the claim from 900px, under the lede below it.",
       "html": "<div class=\"ds-flag\"><a class=\"ds-primary\" href=\"#\">Download for Mac</a><p class=\"ds-ver\">Version 0.19.0, 28 October 2026. A 12 MB disk image, signed and notarised; macOS 13 or later.</p><p class=\"ds-ways\">Or in a terminal, on a Mac or Linux:</p><code>brew install merlijntishauser/tap/kobo-hardcover-sync</code><code>uv tool install kobo-hardcover-sync</code></div>",
-      "css": ".ds-flag{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:grid;gap:0.75rem;align-content:end;padding:1.6rem 1.6rem 1.7rem;border-radius:18px;max-width:22rem;min-height:22rem;background:#17191c;color:#ffffff;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45)} .ds-flag p{margin:0} .ds-primary{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:3.75rem;padding:0.6rem 1.5rem;font-weight:800;font-size:1.25rem;letter-spacing:-0.01em;color:#17191c;background:#ffffff;border-radius:12px;text-decoration:none} .ds-primary:hover{filter:brightness(1.08)} .ds-primary:focus-visible{outline:3px solid #ffffff;outline-offset:3px;border-radius:4px} .ds-ver{font-size:0.875rem;color:#c9c7d2} .ds-ways{font-size:0.8125rem;color:#c9c7d2;margin-top:0.35rem} .ds-flag code{display:block;font:0.8125rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;color:#ffffff;background:#2b2d33;border-radius:8px;padding:0.5rem 0.7rem;overflow-wrap:anywhere} @media (prefers-color-scheme: dark){.ds-flag{background:#ffffff;color:#17191c;box-shadow:none} .ds-primary{color:#ffffff;background:#17191c} .ds-ver,.ds-ways{color:#4a4f57} .ds-flag code{color:#17191c;background:#f1f0f6}}"
+      "css": ".ds-flag{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:grid;gap:0.75rem;align-content:end;padding:1.6rem 1.6rem 1.7rem;border-radius:18px;max-width:22rem;min-height:22rem;background:#17191c;color:#ffffff;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45)} .ds-flag p{margin:0} .ds-primary{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:3.75rem;padding:0.6rem 1.5rem;font-weight:800;font-size:1.25rem;letter-spacing:-0.01em;color:#17191c;background:#ffffff;border-radius:12px;text-decoration:none} .ds-primary:hover{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px} .ds-primary:focus-visible{outline:3px solid #ffffff;outline-offset:3px;border-radius:4px} @media (prefers-color-scheme: dark){.ds-primary:focus-visible{outline-color:#17191c}} .ds-ver{font-size:0.875rem;color:#c9c7d2} .ds-ways{font-size:0.8125rem;color:#c9c7d2;margin-top:0.35rem} .ds-flag code{display:block;font:0.8125rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;color:#ffffff;background:#2b2d33;border-radius:8px;padding:0.5rem 0.7rem;overflow-wrap:anywhere} @media (prefers-color-scheme: dark){.ds-flag{background:#ffffff;color:#17191c;box-shadow:none} .ds-primary{color:#ffffff;background:#17191c} .ds-ver,.ds-ways{color:#4a4f57} .ds-flag code{color:#17191c;background:#f1f0f6}}"
     },
     {
       "name": "Photo card (site)",
       "kind": "card",
       "refersTo": "site-card",
-      "description": "A photograph as a card: full-bleed on a slate fallback, the book title in Source Serif 4 and its tabular facts on the scrim at the foot. The panel shows the fallback; the site bundles its five Unsplash photographs.",
+      "description": "A photograph as a card: full-bleed on a slate fallback, served with a smaller copy through srcset, the book title in Source Serif 4 and its tabular facts on the scrim at the foot (the park card in the story). The panel shows the fallback; the site bundles its five Unsplash photographs.",
       "html": "<figure class=\"ds-photo\"><figcaption><span class=\"ds-title\">Middlemarch</span><span class=\"ds-facts\"><span>100%</span><span>finished 21 Sep</span></span></figcaption></figure>",
       "css": ".ds-photo{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;position:relative;display:flex;flex-direction:column;justify-content:flex-end;margin:0;padding:0;border-radius:18px;overflow:hidden;min-height:22rem;max-width:22rem;background:#1a1926;color:#ffffff;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45)} .ds-photo figcaption{position:relative;display:grid;gap:0.5rem;padding:5rem 1.6rem 1.7rem;background:linear-gradient(180deg,rgba(13,12,20,0) 40%,rgba(13,12,20,0.55) 62%,rgba(13,12,20,0.92) 100%)} .ds-title{font-family:\"Source Serif 4\", Georgia, \"Times New Roman\", serif;font-weight:600;font-size:1.75rem;line-height:1.1;letter-spacing:-0.005em;font-optical-sizing:auto} .ds-facts{display:flex;flex-wrap:wrap;gap:0.1rem 0.9rem;font-size:1.0625rem;font-weight:600;font-variant-numeric:tabular-nums}"
     },
@@ -1812,22 +2143,22 @@
       "name": "List card with the marks (site)",
       "kind": "card",
       "refersTo": "site-card",
-      "description": "What it does: the heading on the lime end in On Lime, the list on the teal with the page's tick as SVG in the words' colour, a 1.7rem mark column beside 1rem words.",
-      "html": "<div class=\"ds-site-card ds-teal-list\"><h2>What it does</h2><ul class=\"ds-marks\"><li><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"width:20px;height:20px;margin-top:2px\"><path d=\"M4 10.5l4 4.5L16.5 5\"/></svg><span>Sends status, progress and dates to Hardcover for the books you switched on.</span></li><li><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"width:20px;height:20px;margin-top:2px\"><path d=\"M4 10.5l4 4.5L16.5 5\"/></svg><span>Starts as a dry run: it shows what it would send, and sends nothing until you say so.</span></li></ul></div>",
-      "css": ".ds-site-card{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:flex;flex-direction:column;justify-content:flex-end;gap:0.75rem;padding:1.6rem 1.6rem 1.7rem;border-radius:18px;color:#ffffff;overflow:hidden;min-height:22rem;max-width:22rem;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45);justify-content:flex-start;gap:1.1rem} .ds-teal-list{background:linear-gradient(200deg,#c6f26b 0%,#22c1a0 8%,#0f766e 18%,#0b5c57 100%)} .ds-site-card h2{margin:0;font-size:clamp(1.7rem,1.1rem + 2vw,2.6rem);font-weight:800;letter-spacing:-0.035em;line-height:1.05;color:#06211c;text-wrap:balance} .ds-marks{list-style:none;margin:0;padding:0;display:grid;gap:0.9rem} .ds-marks li{display:grid;grid-template-columns:1.7rem minmax(0,1fr);column-gap:0.3rem;align-items:start;font-size:1rem;line-height:1.4}"
+      "description": "What it does: the heading white like every card heading, on the tighter teal whose lime is a strip at the head of the card; the list on the teal with the page's tick as SVG in the words' colour, a 1.7rem mark column beside 1rem words.",
+      "html": "<div class=\"ds-site-card ds-teal-list\"><h2>What it does</h2><ul class=\"ds-marks\"><li><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"width:20px;height:20px;margin-top:2px\"><path d=\"M4 10.5l4 4.5L16.5 5\"/></svg><span>Sends status, progress and dates to Hardcover for the books you switched on.</span></li><li><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"width:20px;height:20px;margin-top:2px\"><path d=\"M4 10.5l4 4.5L16.5 5\"/></svg><span>Starts as a dry run: it shows what it would send, and sends nothing until you go live.</span></li></ul></div>",
+      "css": ".ds-site-card{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:flex;flex-direction:column;justify-content:flex-end;gap:0.75rem;padding:1.6rem 1.6rem 1.7rem;border-radius:18px;color:#ffffff;overflow:hidden;min-height:22rem;max-width:22rem;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45);justify-content:flex-start;gap:1.1rem} .ds-teal-list{background:linear-gradient(200deg,#c6f26b 0%,#22c1a0 8%,#0f766e 18%,#0b5c57 100%)} .ds-site-card h2{margin:0;font-size:clamp(1.7rem,1.1rem + 2vw,2.6rem);font-weight:800;letter-spacing:-0.035em;line-height:1.05;color:#ffffff;text-wrap:balance} .ds-marks{list-style:none;margin:0;padding:0;display:grid;gap:0.9rem} .ds-marks li{display:grid;grid-template-columns:1.7rem minmax(0,1fr);column-gap:0.3rem;align-items:start;font-size:1rem;line-height:1.4}"
     },
     {
       "name": "Theme switch and links (site)",
       "kind": "nav",
       "refersTo": "site-theme-pressed",
-      "description": "The foot's theme switch on Quiet, 12px, the pressed choice in Site Flag; a link in Site Link with a 1px underline that thickens on hover; the 3px focus ring.",
+      "description": "The foot's theme switch on Quiet, 12px with 9px buttons, the pressed choice in Site Flag, shown only once the script has run; a link in Site Link with a 1px underline that thickens on hover; the 3px focus ring.",
       "html": "<div class=\"ds-foot\"><p><a href=\"#\">GitHub</a> <a href=\"#\">Releases</a> <a href=\"#\">Changelog</a></p><div class=\"ds-theme\" role=\"group\" aria-label=\"Theme\"><button type=\"button\">Light</button><button type=\"button\" aria-pressed=\"true\">Auto</button><button type=\"button\">Dark</button></div></div>",
       "css": ".ds-foot{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:grid;gap:1rem;color:#4a4f57;font-size:0.875rem} .ds-foot p{margin:0;display:flex;gap:1.2rem} .ds-foot a{color:#b0246f;text-underline-offset:3px;text-decoration-thickness:1px} .ds-foot a:hover{text-decoration-thickness:2px} .ds-foot a:focus-visible,.ds-theme button:focus-visible{outline:3px solid #b0246f;outline-offset:3px;border-radius:4px} .ds-theme{display:inline-flex;width:fit-content;border-radius:12px;overflow:hidden;background:#f1f0f6;padding:3px;gap:2px} .ds-theme button{font:600 0.875rem \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;color:#4a4f57;background:none;border:0;padding:0.45rem 0.9rem;min-height:2.5rem;cursor:pointer;border-radius:9px} .ds-theme button:hover{color:#17191c} .ds-theme button[aria-pressed=\"true\"]{background:#17191c;color:#ffffff} @media (prefers-color-scheme: dark){.ds-foot{color:#b4b2c0} .ds-foot a{color:#ff8fc2} .ds-foot a:focus-visible,.ds-theme button:focus-visible{outline-color:#ff8fc2} .ds-theme{background:#1a1926} .ds-theme button{color:#b4b2c0} .ds-theme button:hover{color:#f2f1f6} .ds-theme button[aria-pressed=\"true\"]{background:#ffffff;color:#17191c}}"
     }
   ],
   "narrative": {
     "northStar": "The Galley Proof",
-    "overview": "The list of books is a galley proof of your Hardcover shelf. Each book is a line set on the sheet, and the Hardcover column is the proof margin: what the next sync will change is marked there in proofreaders' marks, on the row itself. The old value is struck through in red, the new value is written in after a caret. A reader who looks at the page sees, per book, what Hardcover will be told and why.\n\nThe world is a print shop's, made of paper, pencil and rule. A cool grey galley stock for the page; a near-white sheet for the list; a pale non-repro blue rail that is \"your Kobo\" (the name, the navigation, and on Books what the Kobo and Hardcover last did, with the button that sends). Two pencils do the marking: red for what a sync sends, blue for what the reader chose or is asked. Everything else is ink and graphite. The page is dense where a proof is dense, in the list, and only the book titles are set in a book face.\n\nIt turns down the usual look for this kind of tool: a neutral list with coloured status dots and badges. A mark is drawn beside plain words, never pinned on as a badge. There are no pill shapes and no photographs; book covers are the only pictures, and the tool fetches them itself.\n\nThe site (`site/`) is a world of its own, kept apart from the tool's and the Mac app's: the made-up shelf told as the share cards of a year in review. Four gradient cards own the first viewport on a white ground by day and a near-black one at night, and photographs of people reading are cards too. It keeps the page's two faces from its own font files, the page's marks, its one motion and its theme switch, and nothing else of the galley; its tokens carry the `site-` prefix and the three gradient families, and its rules are under *The site* in Colors and Components.",
+    "overview": "**Creative North Star: \"The Galley Proof\"**\n\nThe list of books is a galley proof of your Hardcover shelf. Each book is a line set on the sheet, and the Hardcover column is the proof margin: what the next sync will change is marked there in proofreaders' marks, on the row itself. The old value is struck through in red, the new value is written in after a caret. A reader who looks at the page sees, per book, what Hardcover will be told and why.\n\nThe world is a print shop's, made of paper, pencil and rule. A cool grey galley stock for the page; a near-white sheet for the list; a pale non-repro blue rail that is \"your Kobo\" (the name, the navigation, and on Books what the Kobo and Hardcover last did, with the button that sends). Two pencils do the marking: red for what a sync sends, blue for what the reader chose or is asked. Everything else is ink and graphite. The page is dense where a proof is dense, in the list, and only the book titles are set in a book face.\n\nIt turns down the usual look for this kind of tool: a neutral list with coloured status dots and badges. A mark is drawn beside plain words, never pinned on as a badge. There are no pill shapes and no photographs; book covers are the only pictures, and the tool fetches them itself.\n\nThe site (`site/`) is a world of its own, kept apart from the tool's and the Mac app's: the claim and the download, then one row of the tool's Books page drawn at full size with the proof mark on it, on a white ground by day and a near-black one at night, and under it the made-up shelf told as the share cards of a year in review, with photographs of people reading as cards too. It keeps the page's two faces from its own font files, the page's marks, its one motion and its theme switch, and the drawn row keeps the tool's own colours; nothing else of the galley. Its tokens carry the `site-` prefix, the `site-sheet-` set and the three gradient families, and its rules are under *The site* in Colors and Components.",
     "keyCharacteristics": [
       "The Hardcover column is a proof margin: a tinted column behind a double hairline rule, holding one status line per book.",
       "Seven marks, all in the legend above the list: red caret, dashed caret, tick, *stet*, circled query, ink square with a cross, dash.",
@@ -1835,8 +2166,8 @@
       "Two typefaces with one job each: Source Serif 4 for book titles, Schibsted Grotesk for everything else.",
       "Square-cut: 2px to 4px corners, no pills; the round shapes are the ring around a Getting started step number and, in the Mac app's *Covers*, the disc under a cover's red caret.",
       "Light and dark share every role; WCAG 2.2 AA in both.",
-      "One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts. The site has one of its own, once on load: the four cards rise into place, and the strike and the write-in follow on the teal card.",
-      "The site is its own world, the year-in-review poster: four gradient cards (plum, teal, cobalt, slate) the same in both lights, 18px corners, photographs under a scrim, no rules between cards; only the download card changes with the light, ink by day and white at night."
+      "One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts. The site has one of its own, once on load: the download card, the sheet and the story cards rise into place, and the strike and the write-in follow in the sheet's row.",
+      "The site is its own world: the tool's row drawn as the hero, then the year-in-review cards (plum, teal, cobalt, slate) the same in both lights, 18px corners, photographs under a scrim, no rules between cards; only the download card and the sheet change with the light, the card ink by day and white at night, the sheet in the tool's two lights."
     ],
     "rules": [
       {
@@ -1851,7 +2182,7 @@
       },
       {
         "name": "The Two Lights Rule",
-        "body": "Every colour has a light and a dark value with the same role. A colour that exists in one theme only is a mistake. In dark the red and blue are lighter and fills carry dark words (`on-fill-dark`). On the site the gradient and photo cards are the same in both lights, a share card does not change with the room; the ground, the words, the quiet card and the download card swap, the download card from ink to white, so that the action stays the strongest thing on the ground in each light.",
+        "body": "Every colour has a light and a dark value with the same role. A colour that exists in one theme only is a mistake. In dark the red and blue are lighter and fills carry dark words (`on-fill-dark`). On the site the gradient and photo cards are the same in both lights, a share card does not change with the room; the ground, the words, the quiet card, the download card and the sheet swap, the download card from ink to white and the sheet in the tool's two lights, so that the action stays the strongest thing on the ground in each light.",
         "section": "colors"
       },
       {
@@ -1898,8 +2229,8 @@
       "**Do** give every new colour a light and a dark value with the same role, and check it: 4.5:1 for words, 3:1 for field edges and marks.",
       "**Do** make every action work without JavaScript, and stop every motion under `prefers-reduced-motion`.",
       "**Do** draw a missing cover as the crossed box.",
-      "**Do** keep the site's cards the same in both lights, the words on the dark end of the gradient; only the download card swaps, ink by day and white at night.",
-      "**Do** draw the site's marks as the page's caret, tick and dash, inline SVG in the words' colour."
+      "**Do** keep the site's cards the same in both lights, the words on the dark end of the gradient; only the download card and the sheet swap, the card ink by day and white at night, the sheet in the tool's two lights.",
+      "**Do** draw the site's marks as the page's caret, tick, circled query and dash, inline SVG: in the words' colour on a card, in the sheet's own red, green, blue and faint on the sheet."
     ],
     "donts": [
       "**Don't** show status as coloured dots or badges on a neutral list; the mark is drawn beside plain words.",
@@ -1909,9 +2240,9 @@
       "**Don't** set anything but a book title in Source Serif 4.",
       "**Don't** rely on a shadow to separate surfaces; the dark theme has none.",
       "**Don't** set labels in capitals or track them out.",
-      "**Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible. The site's is its own one: the cards rise once on load and the strike and write-in follow, standing still under reduced motion.",
+      "**Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible. The site's is its own one: the download card, the sheet and the story cards rise once on load and the strike and write-in follow in the sheet's row, standing still under reduced motion.",
       "**Don't** load a font, a script, a style or a picture from elsewhere; the tool serves everything, the two fonts and the book covers included, and the site bundles its fonts and its five photographs. The site's one request out is the latest release's version, with JavaScript; without it the download link stands.",
-      "**Don't** put a kicker or an eyebrow above a heading on the site, or a hairline between its cards; colour parts them."
+      "**Don't** put a kicker or an eyebrow above a heading on the site, or a hairline between its cards; colour parts them. The sheet's rules are the tool's, and stay inside the sheet."
     ]
   }
 }
