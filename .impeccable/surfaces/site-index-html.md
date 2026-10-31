@@ -105,9 +105,11 @@ its provenance.
 ## Unresolved
 
 - Photographs chosen by the owner on Unsplash: the park Kobo (Perfecto
-  Capucine, 2gllPE42ouU) is the story's card; the teal book (Sincerely Media,
-  HFeG2vERmWo), the bed (Paige Cody, ypdO5AlNMgs) and the bench (Leon Seibert,
-  hQzBAtJoJQo) go lower down. The fifth they named (Lala Azizli, 87lrs0EaNZo)
+  Capucine, 2gllPE42ouU) is the story's card; the hammock (Perfecto
+  Capucine, 3gC4gBnD3Xs) is the four steps, one photograph in four slices,
+  at the owner's ask on 2026-10-31; the teal book (Sincerely Media,
+  HFeG2vERmWo) and the bench (Leon Seibert, hQzBAtJoJQo) go lower down. The
+  bed (Paige Cody, ypdO5AlNMgs) was step 2 until then and is gone. The fifth they named (Lala Azizli, 87lrs0EaNZo)
   shows a Kindle, not a Kobo, and is left out.
 - The Mac app's pictures are the owner's own screenshots of 0.19.0, in both
   themes, as before.

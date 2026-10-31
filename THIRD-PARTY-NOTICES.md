@@ -30,7 +30,7 @@ licence files, for the site.
 ### Photographs on the site
 
 The site (`site/`, published on GitHub Pages; not part of what is
-installed) carries five photographs from [Unsplash](https://unsplash.com),
+installed) carries four photographs from [Unsplash](https://unsplash.com),
 each under the **Unsplash License**: free to use, no permission or
 attribution needed, but not to be sold as they are or compiled into a
 service like Unsplash's. The site credits the photographers in its foot.
@@ -40,8 +40,7 @@ smaller copy of each under `site/img/small/`, served to narrow screens.
 | File | Photograph | Photographer |
 |---|---|---|
 | `site/img/photo-park.jpg` | [woman lying on chair holding tablet computer](https://unsplash.com/photos/woman-lying-on-chair-holding-tablet-computer-2gllPE42ouU) (a Kobo, in a park) | Perfecto Capucine |
-| `site/img/photo-hammock.jpg` | [person reading story in Amazon Kindle tablet](https://unsplash.com/photos/person-reading-story-in-amazon-kindle-tablet-3gC4gBnD3Xs) (the device is a Kobo) | Perfecto Capucine |
-| `site/img/photo-bed.jpg` | [a woman laying on a bed with a teddy bear](https://unsplash.com/photos/a-woman-laying-on-a-bed-with-a-teddy-bear-ypdO5AlNMgs) | Paige Cody |
+| `site/img/photo-hammock.jpg` | [person reading story in Amazon Kindle tablet](https://unsplash.com/photos/person-reading-story-in-amazon-kindle-tablet-3gC4gBnD3Xs) (the device is a Kobo); the four step cards each show a slice of it | Perfecto Capucine |
 | `site/img/photo-teal.jpg` | [woman covering her face with teal book](https://unsplash.com/photos/woman-covering-her-face-with-teal-book-HFeG2vERmWo) | Sincerely Media |
 | `site/img/photo-bench.jpg` | [woman in black jacket and blue denim jeans sitting on brown wooden bench reading book](https://unsplash.com/photos/woman-in-black-jacket-and-blue-denim-jeans-sitting-on-brown-wooden-bench-reading-book-hQzBAtJoJQo), cropped | Leon Seibert |
 

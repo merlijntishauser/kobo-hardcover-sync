@@ -53,12 +53,13 @@ page from the same files.
   theme the page is in (a `<picture>` on the system's theme, swapped by the
   theme switch). The row's cover is drawn (`browser_tests/covers/`, a
   publisher's series on bookcloth); the captions say the shelf is made up.
-- **The photographs** are five from Unsplash, chosen by the owner, under the
+- **The photographs** are four from Unsplash, chosen by the owner, under the
   Unsplash License (`THIRD-PARTY-NOTICES.md` lists them; each file carries
   its origin in its JPEG comment, as does its smaller copy under
   `site/img/small/`, served to narrow screens through `srcset`): a Kobo in a
-  park on the first of the three cards, a Kobo in a hammock and a reader in bed on the
-  first two steps, a reader looking over a teal book beside *What it does*
+  park on the first of the three cards, a Kobo in a hammock behind all four
+  steps (one photograph drawn at the width of the row, each card showing its
+  slice; a quarter each on a phone), a reader looking over a teal book beside *What it does*
   and *What it leaves alone* (*It never guesses a match*), and a reader on a
   quay as the close. They are bundled with the site; the page still loads
   nothing from elsewhere.

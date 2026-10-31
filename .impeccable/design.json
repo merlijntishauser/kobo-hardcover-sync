@@ -1927,7 +1927,7 @@
       {
         "name": "plum",
         "value": "linear-gradient(200deg, #ff6b6b 0%, #c23c8c 45%, #5b2a86 100%)",
-        "purpose": "Site: Your computer in the story and the fourth step. Words at the foot, on the deep end."
+        "purpose": "Site: Your computer in the story. Words at the foot, on the deep end."
       },
       {
         "name": "teal",
@@ -1942,7 +1942,7 @@
       {
         "name": "cobalt",
         "value": "linear-gradient(200deg, #38bdf8 0%, #2563eb 25%, #1e3a8a 100%)",
-        "purpose": "Site: the Mac app's card and the third step."
+        "purpose": "Site: the Mac app's card."
       },
       {
         "name": "slate",
@@ -1957,7 +1957,7 @@
       {
         "name": "scrim-step",
         "value": "linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.85) 50%, rgba(13, 12, 20, 0.94) 100%)",
-        "purpose": "Site: a step card's photograph, the story's and the photograph under What it does, which carry a heading and a paragraph; the words are padded 11rem above (9rem on the story card) so that the top half stays photograph."
+        "purpose": "Site: the step cards (four slices of one photograph), the story's and the photograph under What it does, which carry a heading and a paragraph; the words are padded 11rem above (9rem on the story card) so that the top half stays photograph."
       },
       {
         "name": "scrim-close",
@@ -2107,7 +2107,7 @@
       "name": "Photo card (site)",
       "kind": "card",
       "refersTo": "site-card",
-      "description": "A photograph as a card: full-bleed on a slate fallback, served with a smaller copy through srcset, a heading in the sans at 800 over one paragraph on the step card's scrim at the foot, padded 9rem above (the park card in the story: The Kobo, as it comes). No book title on a photograph. The panel shows the fallback; the site bundles its five Unsplash photographs.",
+      "description": "A photograph as a card: full-bleed on a slate fallback, served with a smaller copy through srcset, a heading in the sans at 800 over one paragraph on the step card's scrim at the foot, padded 9rem above (the park card in the story: The Kobo, as it comes). No book title on a photograph. The panel shows the fallback; the site bundles its four Unsplash photographs, the four steps on one of them in four slices.",
       "html": "<figure class=\"ds-photo\"><figcaption><h2 class=\"ds-title\">The Kobo, as it comes</h2><p class=\"ds-facts\">Kobo-store books and your own files alike, read over the cable from the Kobo's own database. Nothing is installed on it.</p></figcaption></figure>",
       "css": ".ds-photo{font-family:\"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;position:relative;display:flex;flex-direction:column;justify-content:flex-end;margin:0;padding:0;border-radius:18px;overflow:hidden;min-height:22rem;max-width:22rem;background:#1a1926;color:#ffffff;box-shadow:0 24px 48px -28px rgba(23,25,28,0.45)} .ds-photo figcaption{position:relative;display:grid;gap:0.5rem;padding:9rem 1.6rem 1.7rem;background:linear-gradient(180deg,rgba(13,12,20,0) 0%,rgba(13,12,20,0.85) 50%,rgba(13,12,20,0.94) 100%)} .ds-title{margin:0;font-weight:800;font-size:1.75rem;line-height:1.05;letter-spacing:-0.02em;text-wrap:balance} .ds-facts{margin:0;font-size:1rem;line-height:1.4;opacity:0.94} @media (prefers-color-scheme: dark){.ds-photo{box-shadow:none}}"
     },
@@ -2213,7 +2213,7 @@
       "**Don't** rely on a shadow to separate surfaces; the dark theme has none.",
       "**Don't** set labels in capitals or track them out.",
       "**Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible. The site's is its own one: the download card, the sheet and the story cards rise once on load and the strike and write-in follow in the sheet's row, standing still under reduced motion.",
-      "**Don't** load a font, a script, a style or a picture from elsewhere; the tool serves everything, the two fonts and the book covers included, and the site bundles its fonts and its five photographs. The site's one request out is the latest release's version, with JavaScript; without it the download link stands.",
+      "**Don't** load a font, a script, a style or a picture from elsewhere; the tool serves everything, the two fonts and the book covers included, and the site bundles its fonts and its four photographs. The site's one request out is the latest release's version, with JavaScript; without it the download link stands.",
       "**Don't** put a kicker or an eyebrow above a heading on the site, or a hairline between its cards; colour parts them. The sheet's rules are the tool's, and stay inside the sheet."
     ]
   }

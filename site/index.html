@@ -166,25 +166,27 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
     <p class="caption">The author's own shelf, in the theme this page is in; the app follows the Mac's.</p>
   </section>
 
-  <!-- The four steps, from the first run to the shelf, each a card. -->
+  <!-- The four steps, from the first run to the shelf: four cards on one photograph, each showing its slice. -->
   <section class="block" id="steps" aria-labelledby="steps-h">
     <div class="head">
       <h2 id="steps-h">How it goes, from the first run to the shelf</h2>
     </div>
     <ol class="cards four steps" role="list">
-      <li class="card photo step">
-        <img src="img/photo-hammock.jpg" srcset="img/small/photo-hammock.jpg 800w, img/photo-hammock.jpg 1600w" sizes="(max-width: 639.98px) 100vw, (max-width: 1099.98px) 50vw, 25vw" alt="Someone reading on a Kobo in a striped hammock, bare feet up, trees behind" width="1600" height="1067" loading="lazy">
+      <li class="card photo step" style="--n:0">
+        <img src="img/photo-hammock.jpg" srcset="img/small/photo-hammock.jpg 800w, img/photo-hammock.jpg 1600w" sizes="100vw" alt="Someone reading on a Kobo in a striped hammock, bare feet up, trees behind: one photograph, across the four cards" width="1600" height="1067" loading="lazy">
         <div class="over"><p class="figure" aria-hidden="true">1</p><h3>Install it, sign in on Hardcover once</h3><p>A link and a short code on Hardcover's own site, or a token pasted in; either stays on your computer. Then choose which of the books you have already read Hardcover should hear about: they start switched off.</p></div>
       </li>
-      <li class="card photo step">
-        <img src="img/photo-bed.jpg" srcset="img/small/photo-bed.jpg 800w, img/photo-bed.jpg 1100w" sizes="(max-width: 639.98px) 100vw, (max-width: 1099.98px) 50vw, 25vw" alt="Someone lying on a bed reading, a small dog on the pillow behind them" width="1100" height="1648" loading="lazy">
+      <li class="card photo step" style="--n:1">
+        <img src="img/photo-hammock.jpg" srcset="img/small/photo-hammock.jpg 800w, img/photo-hammock.jpg 1600w" sizes="100vw" alt="" width="1600" height="1067" loading="lazy">
         <div class="over"><p class="figure" aria-hidden="true">2</p><h3>Plug in the Kobo</h3><p>It reads the Kobo's own database over the cable and syncs. A notification says "8 books updated. Ejected: safe to unplug." Most days that is all you see of it.</p></div>
       </li>
-      <li class="card cobalt step">
-        <p class="figure" aria-hidden="true">3</p><h3>Its page, when you want it</h3><p>Open it to see what the next sync will do with each book and why, to switch a book on, pin a finish date, or choose a match it would not guess.</p>
+      <li class="card photo step" style="--n:2">
+        <img src="img/photo-hammock.jpg" srcset="img/small/photo-hammock.jpg 800w, img/photo-hammock.jpg 1600w" sizes="100vw" alt="" width="1600" height="1067" loading="lazy">
+        <div class="over"><p class="figure" aria-hidden="true">3</p><h3>Its page, when you want it</h3><p>Open it to see what the next sync will do with each book and why, to switch a book on, pin a finish date, or choose a match it would not guess.</p></div>
       </li>
-      <li class="card plum step">
-        <p class="figure" aria-hidden="true">4</p><h3>Hardcover, in step</h3><p>Status, progress and dates. What you change on Hardcover is taken over at the next sync, not overwritten. One read-through per book, never a duplicate.</p>
+      <li class="card photo step" style="--n:3">
+        <img src="img/photo-hammock.jpg" srcset="img/small/photo-hammock.jpg 800w, img/photo-hammock.jpg 1600w" sizes="100vw" alt="" width="1600" height="1067" loading="lazy">
+        <div class="over"><p class="figure" aria-hidden="true">4</p><h3>Hardcover, in step</h3><p>Status, progress and dates. What you change on Hardcover is taken over at the next sync, not overwritten. One read-through per book, never a duplicate.</p></div>
       </li>
     </ol>
   </section>
@@ -255,7 +257,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
 </main>
 
 <footer class="foot">
-  <p>Kobo Hardcover Sync is an independent project. It is not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover. The photographs are from Unsplash, under the Unsplash License: <a href="https://unsplash.com/photos/woman-lying-on-chair-holding-tablet-computer-2gllPE42ouU">the park</a> and <a href="https://unsplash.com/photos/person-reading-story-in-amazon-kindle-tablet-3gC4gBnD3Xs">the hammock</a> by Perfecto Capucine, <a href="https://unsplash.com/photos/a-woman-laying-on-a-bed-with-a-teddy-bear-ypdO5AlNMgs">the bed</a> by Paige Cody, <a href="https://unsplash.com/photos/woman-covering-her-face-with-teal-book-HFeG2vERmWo">the teal book</a> by Sincerely Media, <a href="https://unsplash.com/photos/woman-in-black-jacket-and-blue-denim-jeans-sitting-on-brown-wooden-bench-reading-book-hQzBAtJoJQo">the quay</a> by Leon Seibert.</p>
+  <p>Kobo Hardcover Sync is an independent project. It is not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover. The photographs are from Unsplash, under the Unsplash License: <a href="https://unsplash.com/photos/woman-lying-on-chair-holding-tablet-computer-2gllPE42ouU">the park</a> and <a href="https://unsplash.com/photos/person-reading-story-in-amazon-kindle-tablet-3gC4gBnD3Xs">the hammock</a> by Perfecto Capucine, <a href="https://unsplash.com/photos/woman-covering-her-face-with-teal-book-HFeG2vERmWo">the teal book</a> by Sincerely Media, <a href="https://unsplash.com/photos/woman-in-black-jacket-and-blue-denim-jeans-sitting-on-brown-wooden-bench-reading-book-hQzBAtJoJQo">the quay</a> by Leon Seibert.</p>
   <p>This page asks GitHub for the latest release and keeps your theme choice in your browser; it fetches and stores nothing else.</p>
   <nav aria-label="Elsewhere">
     <a href="https://github.com/merlijntishauser/kobo-hardcover-sync">GitHub</a>

@@ -188,9 +188,12 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 @media (max-width: 639.98px) { .appshots .shot:not(:first-child) { display: none; } }  /* a phone: the Overview alone; the window is unreadable at 358px */
 .appshots .shot img { aspect-ratio: 1800 / 1177; }
 
-/* The four steps: the figure, a heading, one paragraph. The cards share three rows (subgrid), so that
-   the four figures stand on one line across the row, the headings on another, the paragraphs on a third;
-   the slack from the card's height goes above the figure. */
+/* The four steps: the figure, a heading, one paragraph, on one photograph. The cards share three rows
+   (subgrid), so that the four figures stand on one line across the row, the headings on another, the
+   paragraphs on a third; the slack from the card's height goes above the figure. The photograph is one:
+   drawn at the width of the whole row and shifted by the card's place (--n), so the four cards show four
+   consecutive slices of it; two by two below 1100px the row is two slices; on a phone each card shows
+   its own crop of the whole. */
 .steps .card { min-height: 26rem; display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0.5rem; justify-content: normal; align-items: end; }
 @media (min-width: 1100px) { .steps { grid-template-rows: minmax(0, 1fr) auto auto; } }
 @media (min-width: 640px) and (max-width: 1099.98px) { .steps { grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr) auto auto; } }
@@ -198,8 +201,17 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .steps .step h3 { margin-top: 0.25rem; }
 .steps .step p:not(.figure) { font-size: 1rem; line-height: 1.4; opacity: 0.94; align-self: start; }
 .card.photo.step > .over { display: grid; grid-row: 1 / span 3; grid-template-rows: subgrid; row-gap: 0.5rem; align-items: end; padding-top: 11rem; background: linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.85) 50%, rgba(13, 12, 20, 0.94) 100%); }  /* as specific as the photo card's own rule, which it must beat; the top half stays photograph */
-.card.photo.step > .over .figure { font-size: clamp(4.5rem, 2rem + 5vw, 6.5rem); }
-.card.photo.step > .over .figure { margin-bottom: 0; }
+.card.photo.step > .over .figure { font-size: clamp(4.5rem, 2rem + 5vw, 6.5rem); margin-bottom: 0; }
+.steps .card.photo > img { max-width: none; right: auto; width: calc(400% + 3 * 1.25rem); left: calc(var(--n) * (-100% - 1.25rem)); object-position: 50% 42%; }
+@media (min-width: 640px) and (max-width: 1099.98px) {
+  .steps .card.photo > img { width: calc(200% + 1.25rem); left: 0; }
+  .steps .card.photo:nth-child(even) > img { left: calc(-100% - 1.25rem); }
+}
+@media (max-width: 639.98px) {  /* a phone: the four quarters of the photograph, feet, the Kobo, the lap, the hand */
+  .steps .card.photo > img { width: 200%; left: 0; object-position: 50% 15%; }
+  .steps .card.photo:nth-child(even) > img { left: -100%; }
+  .steps .card.photo:nth-child(n + 3) > img { object-position: 50% 85%; }
+}
 
 /* What it does, what it leaves alone, and the one who never guesses. */
 .does .card { justify-content: flex-start; gap: 1.1rem; min-height: 28rem; }
