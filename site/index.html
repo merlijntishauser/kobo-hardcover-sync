@@ -49,12 +49,13 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
     <div class="claim">
       <div>
         <h1 id="claim">Your Kobo knows what you read. Now Hardcover does too.</h1>
-        <p class="lede">Plug in the Kobo and your shelf on <a href="https://hardcover.app">Hardcover</a>, the book-tracking site, follows: which books, how far, finished when. Works with the Kobo as it comes, Kobo-store books included, and nothing leaves your computer but what its own page shows you first.</p>
+        <p class="lede">Plug in the Kobo and your shelf on <a href="https://hardcover.app">Hardcover</a>, the book-tracking site, follows: which books, how far, finished when. Works with the Kobo as it comes, Kobo-store books included, on your own computer: its page shows you every change before it is sent.</p>
       </div>
       <div class="card flag get" id="download" tabindex="-1" style="--i:0">
         <img class="mini" src="img/app-icon.svg" alt="" width="64" height="64">
         <a class="primary" id="dmg" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a>
-        <p class="ver" id="ver">The latest release's disk image, on GitHub. Signed and notarised; macOS 13 or later.</p>
+        <p class="ver" id="ver" aria-live="polite">The latest release's disk image, on GitHub. Signed and notarised; macOS 13 or later.</p>
+        <p class="sure">Reads your Kobo and writes nothing to it unless you ask. Starts as a dry run. Beta; Mac and Linux only.</p>
         <p class="ways">Or in a terminal, on a Mac or Linux:</p>
         <code>brew install merlijntishauser/tap/kobo-hardcover-sync</code>
         <code>uv tool install kobo-hardcover-sync</code>
@@ -65,15 +66,15 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
          Hardcover column with the proof mark. The words are the page's own; the controls are drawn. -->
     <figure class="sheet" style="--i:1" aria-labelledby="sheet-cap">
       <div class="rail">
-        <ul class="legend" aria-label="The marks in the Hardcover column">
+        <ul class="legend" role="list" aria-label="The marks in the Hardcover column">
           <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg><span>Next sync changes this</span></li>
           <li><svg class="mk ok" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Up to date on Hardcover</span></li>
           <li><svg class="mk warn" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.6"/><path d="M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.7"/><circle cx="10" cy="14.1" r=".6" fill="currentColor"/></svg><span>Needs a match</span></li>
           <li><svg class="mk none" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Not syncing</span></li>
         </ul>
-        <p class="syncnow"><span>Sync now</span><small>sends 4 marked changes</small></p>
       </div>
       <table>
+        <caption class="sr">One row of the Books page</caption>
         <thead><tr><th scope="col" class="c-book">Book</th><th scope="col" class="c-sw">Sync</th><th scope="col" class="c-sw">State</th><th scope="col" class="c-hc">Hardcover status</th></tr></thead>
         <tbody>
           <tr>
@@ -99,26 +100,22 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
           </tr>
         </tbody>
       </table>
-      <figcaption id="sheet-cap" class="caption">One row of its page, at full size, from a made-up shelf of 34 books. The marks are the page's own. It starts as a dry run: the button says what it would send, and sends nothing until you go live.</figcaption>
+      <figcaption id="sheet-cap" class="caption">One row of its page, at full size, from a made-up shelf of 34 books. The marks are the page's own. It starts as a dry run: its Sync now button says what it would send, and sends nothing until you go live.</figcaption>
     </figure>
 
-    <!-- The story in three cards: what the Kobo keeps, what you did, what Hardcover is told. -->
+    <!-- The three it runs between: the Kobo, your computer, Hardcover. One fact each. -->
     <div class="cards three story">
-      <div class="card plum" style="--i:2">
-        <p class="figure" aria-hidden="true">34</p>
-        <p class="line"><span class="sr">34</span> books on the Kobo, read from the device's own database over the cable. Nothing is installed on the Kobo.</p>
-      </div>
-      <figure class="card photo" style="--i:3">
+      <figure class="card photo" style="--i:2">
         <img src="img/photo-park.jpg" srcset="img/small/photo-park.jpg 800w, img/photo-park.jpg 1600w" sizes="(max-width: 639.98px) 100vw, (max-width: 1099.98px) 50vw, 33vw" alt="Someone lying back on a park chair in the sun, feet up on the railing, reading on a Kobo" width="1600" height="1067">
-        <figcaption><span class="title">Middlemarch</span> <span class="facts"><span>100%</span> <span>finished 21 Sep</span></span></figcaption>
+        <figcaption><h2 class="title">The Kobo, as it comes</h2><p class="facts">Kobo-store books and your own files alike, read over the cable from the Kobo's own database. Nothing is installed on it.</p></figcaption>
       </figure>
+      <div class="card plum" style="--i:3">
+        <h2>Your computer</h2>
+        <p class="line">The sync runs here, on your Mac or Linux machine. Its page shows what the next sync changes before anything is sent. No account with this project, no cloud of its own.</p>
+      </div>
       <div class="card teal" style="--i:4">
-        <div class="corr">
-          <p class="small">Moby-Dick, most days</p>
-          <p class="old"><span class="sr">Hardcover has: </span>Currently reading, <s>35%</s></p>
-          <p class="new"><span class="sr">The next sync sends: </span><ins><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg>37%</ins></p>
-          <p class="line">Most days a sync is this: a few pages further, told to Hardcover. Finished, started again, put down: the same mark, the same column.</p>
-        </div>
+        <h2>Hardcover</h2>
+        <p class="line">Your shelf there follows: which books, how far, finished when. What you change on Hardcover is kept, not overwritten.</p>
       </div>
     </div>
   </section>
@@ -132,7 +129,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
     <div class="cards shots">
       <figure class="card shot wide"><picture><source media="(max-width: 639.98px)" srcset="img/small/books-margin-light.jpg"><img src="img/books-light.jpg" srcset="img/small/books-light.jpg 1280w, img/books-light.jpg 2560w" sizes="(max-width: 899.98px) 100vw, 50vw" alt="The Books page in the light theme: a sidebar with the name, Books, Settings and Admin, the last sync and the Sync now button; a list of books with covers, progress gauges and Sync and State switches; the Hardcover status column with its marks" width="1280" height="800" loading="lazy"></picture><figcaption>By day. The shelf is made up, the marks are real. On a phone this shows the switches and the Hardcover column, at size.</figcaption></figure>
       <figure class="card shot wide"><picture><source media="(max-width: 639.98px)" srcset="img/small/books-margin-dark.jpg"><img src="img/books-dark.jpg" srcset="img/small/books-dark.jpg 1280w, img/books-dark.jpg 2560w" sizes="(max-width: 899.98px) 100vw, 50vw" alt="The same Books page in the dark theme" width="1280" height="800" loading="lazy"></picture><figcaption>At night.</figcaption></figure>
-      <figure class="card shot tall"><img src="img/phone-light.jpg" alt="The Books page on a phone: each book a card with its cover, gauge, Sync and State, and the Hardcover status under it" width="390" height="844" loading="lazy"><figcaption>On a phone, in a household: every reader has their own books and their own Hardcover account, behind the sign-in the house already has.</figcaption></figure>
+      <figure class="card shot tall"><img src="img/phone-light.jpg" srcset="img/small/phone-light.jpg 400w, img/phone-light.jpg 780w" sizes="(max-width: 639.98px) 224px, 320px" alt="The Books page on a phone: each book a card with its cover, gauge, Sync and State, and the Hardcover status under it" width="390" height="844" loading="lazy"><figcaption>On a phone, in a household: every reader has their own books and their own Hardcover account, behind the sign-in the house already has.</figcaption></figure>
       <figure class="card shot wider"><img src="img/details-light.jpg" srcset="img/small/details-light.jpg 1280w, img/details-light.jpg 2560w" sizes="(max-width: 899.98px) 100vw, 66vw" alt="A book's Details: the cover large, the edition line, the Hardcover candidates to choose from, and what the next sync will send" width="1280" height="800" loading="lazy"><figcaption>A book's Details: the match, the edition, and what the next sync sends and why.</figcaption></figure>
     </div>
   </section>
@@ -174,10 +171,10 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
     <div class="head">
       <h2 id="steps-h">How it goes, from the first run to the shelf</h2>
     </div>
-    <ol class="cards four steps">
+    <ol class="cards four steps" role="list">
       <li class="card photo step">
         <img src="img/photo-hammock.jpg" srcset="img/small/photo-hammock.jpg 800w, img/photo-hammock.jpg 1600w" sizes="(max-width: 639.98px) 100vw, (max-width: 1099.98px) 50vw, 25vw" alt="Someone reading on a Kobo in a striped hammock, bare feet up, trees behind" width="1600" height="1067" loading="lazy">
-        <div class="over"><p class="figure" aria-hidden="true">1</p><h3>Install it, paste your Hardcover token once</h3><p>Hardcover gives you the token on its site; the tool keeps it on your computer. Then choose which of the books you have already read Hardcover should hear about: they start switched off.</p></div>
+        <div class="over"><p class="figure" aria-hidden="true">1</p><h3>Install it, sign in on Hardcover once</h3><p>A link and a short code on Hardcover's own site, or a token pasted in; either stays on your computer. Then choose which of the books you have already read Hardcover should hear about: they start switched off.</p></div>
       </li>
       <li class="card photo step">
         <img src="img/photo-bed.jpg" srcset="img/small/photo-bed.jpg 800w, img/photo-bed.jpg 1100w" sizes="(max-width: 639.98px) 100vw, (max-width: 1099.98px) 50vw, 25vw" alt="Someone lying on a bed reading, a small dog on the pillow behind them" width="1100" height="1648" loading="lazy">
@@ -197,7 +194,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
     <div class="cards three does">
       <div class="card teal">
         <h2 id="does-h">What it does</h2>
-        <ul class="marks">
+        <ul class="marks" role="list">
           <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Sends status, progress and dates to Hardcover for the books you switched on.</span></li>
           <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Starts as a dry run: it shows what it would send, and sends nothing until you go live.</span></li>
           <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Keeps your reading minutes, exports your reading as JSON, and can put a collection of your synced books on the Kobo if you ask for it.</span></li>
@@ -206,11 +203,11 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
       </div>
       <figure class="card photo tall">
         <img src="img/photo-teal.jpg" srcset="img/small/photo-teal.jpg 800w, img/photo-teal.jpg 1100w" sizes="(max-width: 899.98px) 100vw, 33vw" alt="Someone looking at you over the top of a teal book held up to their face" width="1100" height="1650" loading="lazy">
-        <figcaption><span class="title">It never guesses a match</span> <span class="facts">A book it cannot place by ISBN, or by title and author together, waits for you. Two editions? It asks.</span></figcaption>
+        <figcaption><h3 class="title">It never guesses a match</h3><p class="facts">A book it cannot place by ISBN, or by title and author together, waits for you. Two editions? It asks.</p></figcaption>
       </figure>
       <div class="card ink">
         <h2>What it leaves alone</h2>
-        <ul class="marks">
+        <ul class="marks" role="list">
           <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>The Kobo. No add-on, no other reading software, no change to how you read.</span></li>
           <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Highlights, notes and ratings. It does not manage books either; it works with what is on the Kobo.</span></li>
           <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Your data. No account with this project and no cloud of its own: your computer or your own server, your own Hardcover token. Its page loads nothing from elsewhere.</span></li>
@@ -228,7 +225,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
     </div>
     <div class="card quiet tablewrap">
       <table>
-        <thead><tr><th scope="col"></th><th scope="col">What it needs</th><th scope="col">Choose it when</th></tr></thead>
+        <thead><tr><th scope="col"><span class="sr">Tool</span></th><th scope="col">What it needs</th><th scope="col">Choose it when</th></tr></thead>
         <tbody>
           <tr><th scope="row">Kobo Hardcover Sync</th><td data-label="What it needs">A computer to plug the Kobo into. Nothing on the Kobo.</td><td data-label="Choose it when">You read Kobo-store books on an unmodified Kobo, or your Kobo's software is too new for the tools below.</td></tr>
           <tr><th scope="row"><a href="https://codeberg.org/StrayRose/NickelHardcover">NickelHardcover</a></th><td data-label="What it needs">An add-on installed on the Kobo itself. Its README says firmware 5.x is not supported yet.</td><td data-label="Choose it when">Your Kobo's firmware is supported and you are happy to modify the device. It syncs over Wi-Fi without a computer, and also does highlights, notes and reviews.</td></tr>
@@ -249,6 +246,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
         <p class="lede">Open source under the MIT licence. Install it, plug in the Kobo, and read what the next sync will do before it does it.</p>
         <div class="get">
           <a class="primary" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a>
+          <p class="sure">Reads your Kobo and writes nothing to it unless you ask. Starts as a dry run. Beta; Mac and Linux only.</p>
           <p class="ways"><code>brew install merlijntishauser/tap/kobo-hardcover-sync</code> <code>uv tool install kobo-hardcover-sync</code></p>
         </div>
       </div>
@@ -258,6 +256,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
 
 <footer class="foot">
   <p>Kobo Hardcover Sync is an independent project. It is not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover. The photographs are from Unsplash, under the Unsplash License: <a href="https://unsplash.com/photos/woman-lying-on-chair-holding-tablet-computer-2gllPE42ouU">the park</a> and <a href="https://unsplash.com/photos/person-reading-story-in-amazon-kindle-tablet-3gC4gBnD3Xs">the hammock</a> by Perfecto Capucine, <a href="https://unsplash.com/photos/a-woman-laying-on-a-bed-with-a-teddy-bear-ypdO5AlNMgs">the bed</a> by Paige Cody, <a href="https://unsplash.com/photos/woman-covering-her-face-with-teal-book-HFeG2vERmWo">the teal book</a> by Sincerely Media, <a href="https://unsplash.com/photos/woman-in-black-jacket-and-blue-denim-jeans-sitting-on-brown-wooden-bench-reading-book-hQzBAtJoJQo">the quay</a> by Leon Seibert.</p>
+  <p>This page asks GitHub for the latest release and keeps your theme choice in your browser; it fetches and stores nothing else.</p>
   <nav aria-label="Elsewhere">
     <a href="https://github.com/merlijntishauser/kobo-hardcover-sync">GitHub</a>
     <a href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases">Releases</a>

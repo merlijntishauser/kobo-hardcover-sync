@@ -18,7 +18,7 @@ page from the same files.
 - **The first viewport** is the headline and the lede with the download
   card beside them, and under both the sheet: one row of the Books page
   drawn in the page's own markup (`figure.sheet`), with the marks' legend
-  and the red *Sync now* button in its rail, the head row, and *Middlemarch*
+  in its rail, the head row, and *Middlemarch*
   finished on the Kobo: the cover, the line gauge, the facts, the two
   switches drawn as fields, and the Hardcover column on its tint behind a
   double rule, where *Currently reading, 88%* is struck through and *Read,
@@ -26,15 +26,18 @@ page from the same files.
   motion at the tool's own timing. The sheet carries the tool's colours,
   scoped to it (`--sh-*`), by day and at night. Its caption says the shelf
   is made up, the marks are the page's own, and that it starts as a dry
-  run. Under it the story in three cards: a plum-to-coral card with the
-  count of books on the Kobo, a photograph of a Kobo being read in a park
-  with *Middlemarch, 100%, finished 21 Sep* on it, and a teal-to-lime card
-  with the everyday correction (*Moby-Dick*, 35% to 37%), standing still.
+  run, its *Sync now* button saying what it would send (the button itself
+  is not drawn: it looked like the page's action beside the download).
+  Under it the three the sync runs between, one card each with one fact
+  and no figures: the Kobo as it comes, on the photograph of a Kobo being
+  read in a park; your computer, plum to coral; Hardcover, teal to lime.
   The download card, the sheet and the cards rise into place once on load,
   60ms apart; under reduced motion nothing moves. Below 900px the claim is
   one column; below 720px the row stacks (the book, the two switches side
   by side, the margin under them) and the download card follows the lede,
-  so that the button is within the first screen on a 390x844 phone.
+  so that the button is within the first screen on a 390x844 phone. Under
+  both download buttons one line says it reads the Kobo and writes nothing
+  to it unless asked, starts as a dry run, and is beta, Mac and Linux only.
 - **The download** goes to the latest release on GitHub. With JavaScript the
   version, date, size and the disk image's own address are read from the
   GitHub API (`releases/latest`, no token, one request); without it the link
@@ -54,20 +57,24 @@ page from the same files.
   Unsplash License (`THIRD-PARTY-NOTICES.md` lists them; each file carries
   its origin in its JPEG comment, as does its smaller copy under
   `site/img/small/`, served to narrow screens through `srcset`): a Kobo in a
-  park on the story's card, a Kobo in a hammock and a reader in bed on the
+  park on the first of the three cards, a Kobo in a hammock and a reader in bed on the
   first two steps, a reader looking over a teal book beside *What it does*
   and *What it leaves alone* (*It never guesses a match*), and a reader on a
   quay as the close. They are bundled with the site; the page still loads
   nothing from elsewhere.
-- **The rest**: the four steps from the token to the shelf as four cards
-  with their figures, what it does and what it leaves alone as a teal and
+- **The rest**: the four steps from the sign-in to the shelf as four cards
+  with their figures (on a phone the cards are as tall as their words, the
+  Mac app shows its Overview alone and the Books page its day capture and
+  the phone's view, so the page is about twelve and a half screens long
+  instead of fifteen), what it does and what it leaves alone as a teal and
   an ink card, the comparison with the other tools (the README's table,
   with its date) in a quiet card, the independent-project sentence and the
   photographers' names linked to their pictures, the links, and a theme
   switch kept in the browser, shown only when the script runs.
 - **The link preview** (`og.png`, named by an absolute `og:image` with its
-  size, `og:url` and a Twitter card) is composed, not cropped: the headline,
-  the lede and the row, without the head or the download card.
+  size, `og:url` and a Twitter card) is composed, not cropped: the name,
+  the headline and the whole row, without the nav, the lede or the download
+  card.
 
 The direction is written down in `.impeccable/surfaces/site-index-html.md`;
 the tokens and rules in `DESIGN.md` under *The site*.
@@ -89,8 +96,8 @@ The site's own pictures, for a review and for the link preview:
 serves `site/` on a local port and captures the first viewport and the whole
 page at a desk, a laptop and a phone, light and dark, scrolling every lazy
 picture into view first (Chromium's full-page capture leaves them blank
-otherwise), and `site-og.png`, the link preview at 1200x630 (the headline,
-the lede and the row, composed by a style the script injects), which is
+otherwise), and `site-og.png`, the link preview at 1200x630 (the name, the
+headline and the row, composed by a style the script injects), which is
 `site/img/og.png`.
 
 `tests/test_site.py` checks that every file the page names exists (`srcset`

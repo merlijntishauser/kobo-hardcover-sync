@@ -1,7 +1,7 @@
 /* The site of kobo-hardcover-sync (DESIGN.md, the site). The first viewport
    is the claim, the download card, and one row of the tool's own Books page
-   at full size, with the proof mark drawn on it; the story follows as three
-   share cards. The ground is white by day and near-black at night; the two
+   at full size, with the proof mark drawn on it; under it the three the sync
+   runs between, the Kobo, your computer and Hardcover, one card each. The ground is white by day and near-black at night; the two
    faces are the project's own files; nothing is loaded from elsewhere. */
 
 @font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 900; font-display: swap; src: url(fonts/SchibstedGrotesk-latin.woff2) format("woff2"); }
@@ -15,12 +15,12 @@
   --flag: #17191c; --on-flag: #ffffff; --flag-quiet: #c9c7d2; --flag-code: #2b2d33;
   --link: #b0246f; --focus: #b0246f;
   --select: #fbd5e5;
-  /* The cards: the same in both lights. A share card does not change with the room. */
+  /* The cards: the same in both lights. A card does not change with the room. */
   --plum: linear-gradient(200deg, #ff6b6b 0%, #c23c8c 45%, #5b2a86 100%);
   --teal: linear-gradient(200deg, #c6f26b 0%, #22c1a0 22%, #0f766e 42%, #0b5c57 100%);
   --teal-list: linear-gradient(200deg, #c6f26b 0%, #22c1a0 5%, #0f766e 11%, #0b5c57 100%);  /* the lime a corner, so the white heading stands on the deep teal at every width */
   --cobalt: linear-gradient(200deg, #38bdf8 0%, #2563eb 25%, #1e3a8a 100%);
-  --on-card: #ffffff; --card-red: #ffd1cf;
+  --on-card: #ffffff;
   --scrim: linear-gradient(180deg, rgba(13, 12, 20, 0) 40%, rgba(13, 12, 20, 0.55) 62%, rgba(13, 12, 20, 0.92) 100%);
   --r-card: 18px; --r-ctl: 12px; --r-shot: 10px;
   --lift: 0 24px 48px -28px rgba(23, 25, 28, 0.45);
@@ -114,36 +114,26 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .card .lede, .card .caption { color: inherit; }
 .card .lede { opacity: 0.92; }
 .figure { font-size: clamp(6rem, 3rem + 7vw, 9rem); font-weight: 800; letter-spacing: -0.06em; line-height: 0.82; margin-bottom: 0.25rem; }
-.line { font-size: 1.125rem; font-weight: 600; line-height: 1.3; }
-.small { font-size: 0.9375rem; font-weight: 600; opacity: 0.9; }
+.line { font-size: 1.125rem; font-weight: 500; line-height: 1.3; max-width: 34ch; }
 .card.photo { padding: 0; justify-content: flex-end; margin: 0; background: #1a1926; }
 .card.photo > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .card.photo > figcaption, .card.photo > .over { position: relative; padding: 5rem 1.6rem 1.7rem; background: var(--scrim); display: grid; gap: 0.5rem; }
-.card.photo .title { font-family: var(--serif); font-weight: 600; font-size: 1.75rem; line-height: 1.1; letter-spacing: -0.005em; font-optical-sizing: auto; }
-.card.photo .facts { display: flex; flex-wrap: wrap; gap: 0.1rem 0.9rem; font-size: 1.0625rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-.card.photo .facts span { white-space: nowrap; }
+.card.photo .title { font-size: 1.75rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; }  /* a heading, not a book title: the Book Face Rule holds */
+.card.photo .facts { font-size: 1rem; line-height: 1.4; opacity: 0.94; }
 
 /* ---------- the first viewport ---------- */
 .hero { gap: 2rem; }
 .claim { display: grid; gap: 2rem 3rem; align-items: start; }
 @media (min-width: 900px) { .claim { grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 1fr); } }
 .claim > div:first-child { display: grid; gap: 1.25rem; align-content: end; padding-bottom: 0.3rem; }
-.story .card { min-height: 24rem; }
-@media (max-width: 639.98px) {  /* a phone: the claim with the download in it, the row, then the story */
+.story .card { min-height: 22rem; }
+.story .card h2 { font-size: 1.75rem; letter-spacing: -0.02em; }
+.story .card.photo > figcaption { padding-top: 9rem; background: linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.85) 50%, rgba(13, 12, 20, 0.94) 100%); }  /* the heading stands on the step card's scrim */
+@media (max-width: 639.98px) {  /* a phone: the claim with the download in it, the row, then the three, each as tall as its words */
   .story .card { min-height: 0; }
-  .story .card.plum, .story .card.teal { min-height: 20rem; }
-  .story .card.photo { min-height: 24rem; }
+  .story .card.photo { min-height: 17rem; }
+  .story .card.photo > figcaption { padding-top: 6rem; }
 }
-
-/* The teal story card: the everyday correction, standing still; the motion is the row's. */
-.corr { display: grid; gap: 0.35rem; }
-.corr .old { font-size: 1.25rem; font-weight: 600; }
-.corr s { position: relative; text-decoration: none; }
-.corr s::after { content: ""; position: absolute; left: 0; right: 0; top: 56%; height: 2px; background: var(--card-red); }
-.corr .new { font-size: clamp(2.6rem, 1.4rem + 2.6vw, 4rem); font-weight: 800; letter-spacing: -0.045em; line-height: 0.95; }
-.corr ins { text-decoration: none; }
-.corr ins svg { display: inline-block; width: 0.55em; height: 0.55em; margin-right: 0.04em; vertical-align: -0.02em; color: var(--card-red); }
-.corr .line { margin-top: 0.6rem; }
 
 /* The one authored entrance: the download card, the sheet and the three cards rise into place once. */
 @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
@@ -164,6 +154,8 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .card.flag .mini { width: 4rem; height: 4rem; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.3)); }
 .primary:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; }  /* seen on every fill, the link's own hover */
 .card.flag .ver { font-size: 0.875rem; color: var(--flag-quiet); }
+.sure { font-size: 0.9375rem; font-weight: 500; line-height: 1.4; }
+.card.flag .sure { color: var(--on-flag); }
 .card.flag .ways { font-size: 0.8125rem; color: var(--flag-quiet); margin-top: 0.35rem; }
 .card.flag code { display: block; color: var(--on-flag); background: var(--flag-code); border-radius: 8px; padding: 0.5rem 0.7rem; }
 :root[data-theme="dark"] .card.flag code { background: var(--flag-code); }
@@ -178,6 +170,7 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .shot.wide { grid-column: span 3; }
 .shot.tall { grid-column: span 2; }
 .shot.tall img { max-width: 20rem; }
+@media (max-width: 639.98px) { .shot.tall img { max-width: 14rem; } .shots .shot.wide:nth-child(2), .shots .shot.wider { display: none; } }  /* a phone: the Books page by day and the phone's own view; the night and Details captures are for a desk */
 .shot.wider { grid-column: span 4; }
 @media (max-width: 899.98px) { .shots { grid-template-columns: 1fr; } .shot.wide, .shot.tall, .shot.wider { grid-column: auto; } }
 
@@ -192,10 +185,12 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .appshots { grid-template-columns: 1fr 1fr; align-items: start; }
 .appshots .shot:last-child { grid-column: 1 / -1; }  /* Covers, the fullest window, at full width */
 @media (max-width: 899.98px) { .appshots { grid-template-columns: 1fr; } .appshots .shot:last-child { grid-column: auto; } }
+@media (max-width: 639.98px) { .appshots .shot:not(:first-child) { display: none; } }  /* a phone: the Overview alone; the window is unreadable at 358px */
 .appshots .shot img { aspect-ratio: 1800 / 1177; }
 
 /* The four steps: the figure, a heading, one paragraph. */
 .steps .card { min-height: 26rem; justify-content: flex-end; }
+@media (max-width: 639.98px) { .steps .card { min-height: 0; } .card.photo.step > .over { padding-top: 5.5rem; } .steps .card.photo { min-height: 16rem; } }
 .steps .step h3 { margin-top: 0.25rem; }
 .steps .step p:not(.figure) { font-size: 1rem; line-height: 1.4; opacity: 0.94; }
 .card.photo.step > .over { display: grid; gap: 0.5rem; padding-top: 11rem; background: linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.85) 50%, rgba(13, 12, 20, 0.94) 100%); }  /* as specific as the photo card's own rule, which it must beat; the top half stays photograph */
@@ -204,11 +199,10 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 
 /* What it does, what it leaves alone, and the one who never guesses. */
 .does .card { justify-content: flex-start; gap: 1.1rem; min-height: 28rem; }
+@media (max-width: 899.98px) { .does .card { min-height: 0; } .does .card.photo { min-height: 18rem; } .does .card.photo > figcaption { padding-top: 6.5rem; } }
 .does .card.teal { background: var(--teal-list); }
 .does .card.photo > figcaption { padding-top: 11rem; background: linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.85) 50%, rgba(13, 12, 20, 0.94) 100%); }  /* the heading wraps on a phone: the step card's scrim */
 .does .card.photo { justify-content: flex-end; }
-.does .card.photo .title { font-family: var(--sans); font-weight: 800; letter-spacing: -0.02em; }  /* not a book title: the Book Face Rule holds */
-.does .card.photo .facts { display: block; font-size: 1rem; font-weight: 400; font-variant-numeric: normal; }
 .marks { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
 .marks li { display: grid; grid-template-columns: 1.7rem minmax(0, 1fr); column-gap: 0.3rem; align-items: start; font-size: 1rem; line-height: 1.4; }
 .marks .mk { width: 20px; height: 20px; margin-top: 2px; }
@@ -271,15 +265,13 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
   --sh-sheet: #171a1e; --sh-margin: #1b1f24; --sh-ink: #e7e9e4; --sh-graphite: #aeb4bb; --sh-faint: #959ca4;
   --sh-rule: #30353c; --sh-edge: #6e757e; --sh-red: #ff8077; --sh-green: #86cf95; --sh-blue: #86c5ea; --sh-on-fill: #0f1114;
 }
-.sheet .rail { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem 1.5rem; padding: 0.9em 1.3em; border-bottom: 1px solid var(--sh-rule); }
+.sheet .rail { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.5rem; padding: 0.8em 1.3em; border-bottom: 1px solid var(--sh-rule); }
 .legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.3em 1.4em; font-size: 0.875em; color: var(--sh-graphite); }
 .legend li { display: inline-flex; align-items: center; gap: 0.45em; }
 .sheet .mk { flex: none; width: 20px; height: 20px; color: var(--sh-red); }
 .sheet .mk.ok { color: var(--sh-green); }
 .sheet .mk.warn { color: var(--sh-blue); }
 .sheet .mk.none { color: var(--sh-faint); }
-.syncnow { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1em; min-height: 2.75em; padding: 0.4em 1.2em; border-radius: 4px; background: var(--sh-red); color: var(--sh-on-fill); font-weight: 700; line-height: 1.2; }
-.syncnow small { font-size: 0.72em; font-weight: 500; }
 .sheet table { width: 100%; border-collapse: collapse; }
 .sheet th { text-align: left; font-size: 0.875em; font-weight: 700; padding: 0.85em 1.3em; border-bottom: 1px solid var(--sh-rule); }
 .sheet td { vertical-align: top; padding: 1.1em 1.3em 1.2em; }
@@ -324,5 +316,4 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
   .sheet td.sw { padding-top: 0; }
   .sheet td.sw::before { content: attr(data-label); display: block; font-size: 0.75em; font-weight: 700; color: var(--sh-graphite); margin-bottom: 0.25em; }
   .sheet td.hc { border-left: 0; border-top: 3px double var(--sh-rule); margin-top: 0.6em; }
-  .syncnow { width: 100%; }
 }

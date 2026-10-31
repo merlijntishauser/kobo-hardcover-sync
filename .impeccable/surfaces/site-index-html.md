@@ -29,10 +29,12 @@ THESIS: The site's proof is the tool's own proof: one row of the Books page
 at full size, drawn in the page's own markup with the proof mark on it, the
 old value struck through in red and the new one written in after a caret,
 under the claim and beside the download. The mechanism is shown as the
-product shows it, before a word of explanation. The year-in-review cards
-follow as the story, three of them, demoted from the opener they were on
-2026-10-30 after the critique of that day read the cards as a borrowed
-genre and the page's own list as the thing worth showing. It refuses the
+product shows it, before a word of explanation. Under it the three the
+sync runs between, one card each, the Kobo as it comes, your computer and
+Hardcover, with one fact apiece and no figures: the year-in-review cards
+that stood there until 2026-10-31 were read by the second critique as a
+repeat of the row in a borrowed genre, and the first critique had already
+demoted them from the opener. It refuses the
 headline-over-a-screenshot opener (the row is markup, not a picture) and
 the split hero with copy on one side and a device on the other.
 
@@ -40,7 +42,7 @@ OWN-WORLD: The ground is white by day (#fbfbfd) and near-black at night
 (#0d0c14). The sheet is the tool's row and carries the tool's own colours,
 scoped to it (`--sh-*`: sheet, margin tint, rule, edge, red, green, blue,
 in both lights), a 1px rule and 18px corners; it is the one place the
-site's palette and the tool's meet. Three gradient cards tell the story,
+site's palette and the tool's meet. Three gradient families carry the cards,
 each one hue family in three or four saturated stops with the dark end
 where the words are: plum to coral (#5b2a86 to #ff6b6b), teal to lime
 (#0b5c57 to #c6f26b), deep blue to sky (#1e3a8a to #38bdf8, no violet
@@ -61,32 +63,34 @@ starting higher where a figure or a heading sits on it.
 STORY: Reads the claim, sees the download beside it, and under both one
 row of the page: Middlemarch finished on the Kobo, and in the Hardcover
 column "Currently reading, 88%" struck through and "Read, finished 21 Sep
-2026" written in, the Sync now button saying what it would send. Understands
+2026" written in, the caption saying it starts as a dry run. Understands
 in one glance that what the Kobo knows goes to Hardcover, and that the page
-shows it first. Downloads the Mac app. Scrolls to the story in three cards
-(the Kobo's count, a Kobo read in a park, the everyday correction), the
-page's two lights, the Mac app's window, the four steps from the token to
-the shelf, what it does and leaves alone, the other tools, the close.
+shows it first. Reads under the download button that it reads the Kobo and
+writes nothing to it unless asked, that it starts as a dry run, and that it
+is beta. Downloads the Mac app. Scrolls to the three it runs between (the
+Kobo as it comes, on a photograph; your computer; Hardcover), the page's
+two lights, the Mac app's window, the four steps from the sign-in to the
+shelf, what it does and leaves alone, the other tools, the close.
 
 FIRST VIEWPORT: The head: the name with its caret, the page's places,
 GitHub. The claim in two columns at 1440: the headline (2.4rem to 3.8rem)
 and the lede on the left, the download card on the right (the app icon,
-Download for Mac as the one filled button, the live version line, brew and
-uv as code). Under them the sheet, 1360 wide: a rail with the four marks'
-legend and the red Sync now button ("sends 4 marked changes"), the head row
+Download for Mac as the one filled button, the live version line, one line
+of reassurance under it, brew and uv as code). Under them the sheet, 1360
+wide: a rail with the four marks' legend, the head row
 (Book, Sync, State, Hardcover status), the one row (cover, title, author,
 the line gauge, the facts; the two drawn switches; the margin on its tint
 behind a double rule with the caret, the correction, the edition line and
 Details), and a caption saying the shelf is made up, the marks are the
-page's own, and that it starts as a dry run. The three story cards begin at
-the foot of the viewport. Below 900px the claim is one column; below 720px
+page's own, and that it starts as a dry run and what its Sync now button
+would say. The three cards begin at the foot of the viewport. Below 900px the claim is one column; below 720px
 the row stacks (book, the two switches side by side, the margin under
 them) and the download card follows the lede, so that the button is within
 the first screen on a 390 by 844 phone. Signature interaction: the download
 card, the sheet and the three cards rise into place once on load, 60ms
 apart on the expo ease-out, and in the row the strike draws across and the
-new value writes in, the tool's own motion at the tool's own timing; the
-teal card's correction stands still. Static under reduced motion. Nothing
+new value writes in, the tool's own motion at the tool's own timing.
+Static under reduced motion. Nothing
 else moves.
 
 FORM: The real row as the hero, chosen by the owner on 2026-10-31 from the

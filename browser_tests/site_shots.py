@@ -19,14 +19,15 @@ from playwright.sync_api import sync_playwright
 OUT = os.environ.get("DEV_OUT", ".")
 SITE = pathlib.Path(__file__).resolve().parents[1] / "site"
 SIZES = {"desktop": (1440, 900), "laptop": (1280, 800), "mobile": (390, 844)}
-# The link preview is composed, not cropped: the headline, the lede and the row; no head, no download card.
+# The link preview is composed, not cropped: the name, the headline and the whole row; no nav, lede or download card.
 OG_STYLE = """
-.top, .card.flag, .story { display: none !important; }
-main { padding-top: 2.25rem !important; }
+.top nav, .lede, .card.flag, .story, .sheet figcaption { display: none !important; }
+.top { padding-block: 1.1rem !important; }
+main { padding-top: 0.75rem !important; }
 .hero { gap: 1.5rem !important; }
 .claim { grid-template-columns: 1fr !important; }
-h1 { font-size: 3.1rem !important; max-width: 20ch; }
-.sheet figcaption { display: none !important; }
+.claim > div:first-child { padding-bottom: 0 !important; }
+h1 { font-size: 3.4rem !important; max-width: 18ch; }
 """
 
 

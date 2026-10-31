@@ -26,6 +26,15 @@
         ],
         "createdAt": "2026-10-28T23:06:39.992Z",
         "reason": "The proof sheet is a table as on the Books page (DESIGN.md, the proof margin): its rows meet the sheet's rule, each row padded 1rem inside"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-10-31T13:04:02.625Z",
+        "reason": "The row's line gauge: a 1px tick every tenth on a 4px rule under role=img, a measurement scale, not a texture"
       }
     ]
   }

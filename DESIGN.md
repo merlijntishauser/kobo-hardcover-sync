@@ -57,7 +57,6 @@ colors:
   site-select: "#fbd5e5"
   site-caret: "#e8343f"
   site-on-card: "#ffffff"
-  site-card-red: "#ffd1cf"
   site-sheet: "#fbfbf8"
   site-sheet-margin: "#f4f5f1"
   site-sheet-ink: "#17191c"
@@ -202,21 +201,16 @@ typography:
     fontWeight: 800
     lineHeight: 0.82
     letterSpacing: "-0.06em"
-  site-corr:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    fontSize: "clamp(2.6rem, 1.4rem + 2.6vw, 4rem)"
-    fontWeight: 800
-    lineHeight: 0.95
-    letterSpacing: "-0.045em"
-  site-struck:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 600
   site-line:
     fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1.125rem"
-    fontWeight: 600
+    fontWeight: 500
     lineHeight: 1.3
+  site-sure:
+    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontSize: "0.9375rem"
+    fontWeight: 500
+    lineHeight: 1.4
   site-lede:
     fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1.125rem"
@@ -242,16 +236,16 @@ typography:
     fontSize: "0.9375rem"
     fontWeight: 600
   site-photo-title:
-    fontFamily: "'Source Serif 4', Georgia, 'Times New Roman', serif"
+    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1.75rem"
-    fontWeight: 600
-    lineHeight: 1.1
-    letterSpacing: "-0.005em"
+    fontWeight: 800
+    lineHeight: 1.05
+    letterSpacing: "-0.02em"
   site-facts:
     fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    fontSize: "1.0625rem"
-    fontWeight: 600
-    fontFeature: "\"tnum\""
+    fontSize: "1rem"
+    fontWeight: 400
+    lineHeight: 1.4
   site-button:
     fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1.125rem"
@@ -448,12 +442,6 @@ components:
     typography: "{typography.site-sheet}"
     rounded: "{rounded.site-card}"
     padding: "1.1em 1.3em 1.2em"
-  site-syncnow:
-    backgroundColor: "{colors.site-sheet-red}"
-    textColor: "{colors.site-sheet-on-fill}"
-    rounded: "{rounded.ctl}"
-    padding: "0.4em 1.2em"
-    height: "2.75em"
   site-sheet-field:
     backgroundColor: "{colors.site-sheet}"
     textColor: "{colors.site-sheet-ink}"
@@ -493,9 +481,9 @@ covers are the only pictures, and the tool fetches them itself.
 The site (`site/`) is a world of its own, kept apart from the tool's and
 the Mac app's: the claim and the download, then one row of the tool's
 Books page drawn at full size with the proof mark on it, on a white
-ground by day and a near-black one at night, and under it the made-up
-shelf told as the share cards of a year in review, with photographs of
-people reading as cards too. It keeps the page's two faces from its own
+ground by day and a near-black one at night, and under it the three the
+sync runs between, the Kobo, your computer and Hardcover, one card each,
+with photographs of people reading as cards too. It keeps the page's two faces from its own
 font files, the page's marks, its one motion and its theme switch, and
 the drawn row keeps the tool's own colours; nothing else of the galley.
 Its tokens carry the `site-` prefix, the `site-sheet-` set and the three
@@ -510,7 +498,7 @@ Components.
 - Square-cut: 2px to 4px corners, no pills; the round shapes are the ring around a Getting started step number and, in the Mac app's *Covers*, the disc under a cover's red caret.
 - Light and dark share every role; WCAG 2.2 AA in both.
 - One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts. The site has one of its own, once on load: the download card, the sheet and the story cards rise into place, and the strike and the write-in follow in the sheet's row.
-- The site is its own world: the tool's row drawn as the hero, then the year-in-review cards (plum, teal, cobalt, slate) the same in both lights, 18px corners, photographs under a scrim, no rules between cards; only the download card and the sheet change with the light, the card ink by day and white at night, the sheet in the tool's two lights.
+- The site is its own world: the tool's row drawn as the hero, then the gradient cards (plum, teal, cobalt, slate) the same in both lights, 18px corners, photographs under a scrim, no rules between cards; only the download card and the sheet change with the light, the card ink by day and white at night, the sheet in the tool's two lights.
 
 ## Colors
 
@@ -570,11 +558,11 @@ the quiet card, the download card and the sheet swap with the light.
 - **Site Flag** (`site-flag`, with `site-on-flag`, `site-flag-quiet`, `site-flag-code`): the download card and the pressed theme button, ink by day with white words and white at night with ink words; the version line in Flag Quiet (10.55:1), the install commands as code on Flag Code.
 - **Site Link** (`site-link`, night `site-link-dark`): links, the focus ring on the ground, in the quiet card and on the sheet, the text caret and form accents; a magenta, 6.11:1 on the day ground and 9.22:1 on the night. Its selection is `site-select` under ink words.
 - **Name Caret** (`site-caret`): the caret before the name in the head, one red in both lights (4.07:1 by day, 4.63:1 at night; a mark).
-- **The sheet's colours** (`site-sheet`, `site-sheet-margin`, `site-sheet-ink`, `site-sheet-graphite`, `site-sheet-faint`, `site-sheet-rule`, `site-sheet-edge`, `site-sheet-red`, `site-sheet-green`, `site-sheet-blue`, `site-sheet-on-fill`, each with a `-dark` value): the tool's Proof Sheet, Margin, Ink, Graphite, Faint, Rule, Edge, Red, Green, Blue and On Fill at the tool's own values in both lights, scoped to the sheet as `--sh-*` custom properties. The sheet stands on Sheet inside a 1px Rule border, the Hardcover cell on Margin behind the 3px double Rule; the caret, the strike, the write-in, the *Next sync* words and the *Sync now* fill are Red (5.8:1 on the day sheet, 7.15:1 at night; the day fill carries white at 6.01:1, the night fill On Fill at 7.75:1); the tick is Green, the circled query Blue, the dash Faint; the switches' edges, the gauge's rule and its ticks are Edge (3.54:1 by day, 3.75:1 at night). Graphite carries the author, the facts, the legend, the struck value, the edition line and the caption (7.53:1 on the day margin, 7.92:1 at night).
+- **The sheet's colours** (`site-sheet`, `site-sheet-margin`, `site-sheet-ink`, `site-sheet-graphite`, `site-sheet-faint`, `site-sheet-rule`, `site-sheet-edge`, `site-sheet-red`, `site-sheet-green`, `site-sheet-blue`, `site-sheet-on-fill`, each with a `-dark` value): the tool's Proof Sheet, Margin, Ink, Graphite, Faint, Rule, Edge, Red, Green, Blue and On Fill at the tool's own values in both lights, scoped to the sheet as `--sh-*` custom properties. The sheet stands on Sheet inside a 1px Rule border, the Hardcover cell on Margin behind the 3px double Rule; the caret, the strike, the write-in and the *Next sync* words are Red (5.8:1 on the day sheet, 7.15:1 at night); nothing on the sheet is filled red, so On Fill is declared with the set and unused; the tick is Green, the circled query Blue, the dash Faint; the switches' edges, the gauge's rule and its ticks are Edge (3.54:1 by day, 3.75:1 at night). Graphite carries the author, the facts, the legend, the struck value, the edition line and the caption (7.53:1 on the day margin, 7.92:1 at night).
 - **Plum** (`plum-coral`, `plum-magenta`, `plum-deep`), **Teal** (`teal-lime`, `teal-bright`, `teal-mid`, `teal-deep`) and **Cobalt** (`cobalt-sky`, `cobalt-blue`, `cobalt-deep`): the three gradient families, each a `linear-gradient(200deg)` from the bright stop at the top to the deep stop at the foot, where the words are: plum at 0, 45 and 100%; teal at 0, 22, 42 and 100%, and under *What it does* at 0, 5, 11 and 100% so that the lime is a corner at the head of the card and the white heading stands on the deep teal at every width; cobalt at 0, 25 and 100%. White on Plum Deep is 9.9:1, on Teal Deep 7.83:1, on Cobalt Deep 10.36:1.
 - **Slate** (`slate-top`, `slate-mid`, `slate-deep`): the fourth card, *What it leaves alone*, at 0, 55 and 100%, with Site Ink dark words in both lights (15.22:1 at the foot).
-- **On Card** (`site-on-card`): the words on every gradient and photo card, white, every card heading included. **Card Red** (`site-card-red`): the strike and the caret on a card, a pale red (5.69:1 on Teal Deep); in the sheet the strike and the caret are the sheet's Red instead.
-- **The scrim**: a photograph's words sit on `linear-gradient(180deg, rgba(13, 12, 20, 0) 40%, rgba(13, 12, 20, 0.55) 62%, rgba(13, 12, 20, 0.92) 100%)`, the night ground at 92% at the foot; a step card's scrim, and the photograph's under *What it does*, reaches 85% at half its height, and the close's 80% at 25%.
+- **On Card** (`site-on-card`): the words on every gradient and photo card, white, every card heading included. A strike or a caret is drawn on no card; in the sheet they are the sheet's Red.
+- **The scrim**: a photograph's words sit on `linear-gradient(180deg, rgba(13, 12, 20, 0) 40%, rgba(13, 12, 20, 0.55) 62%, rgba(13, 12, 20, 0.92) 100%)`, the night ground at 92% at the foot; a step card's scrim, the story photograph's and the photograph's under *What it does*, reaches 85% at half its height, and the close's 80% at 25%.
 
 ### Named Rules
 **The Two Pencils Rule.** Red fills only *Sync now* and *Go live*, and
@@ -582,7 +570,9 @@ marks only what a sync sends. Every other filled button is an ink fill
 (*Start using Kobo Hardcover Sync*, *Connect to Hardcover*, *I have approved it*, *Use*, a
 confirmation, *Check and save*). Blue is only for the reader's own choice
 or a question for them; a label that states a fact (*New*, *Admin*) is
-grey. A removing action is ink, never red.
+grey. A removing action is ink, never red. The site has no red fill at
+all: its one filled button is the card's reverse, and the sheet carries
+the tool's red as a mark only.
 
 **The Legend Rule.** Every mark the margin can hold is in the legend above
 the list, drawn and coloured the same, with the words of the page's
@@ -595,7 +585,7 @@ both.
 the same role. A colour that exists in one theme only is a mistake. In
 dark the red and blue are lighter and fills carry dark words
 (`on-fill-dark`). On the site the gradient and photo cards are the same
-in both lights, a share card does not change with the room; the ground,
+in both lights, a card does not change with the room; the ground,
 the words, the quiet card, the download card and the sheet swap, the
 download card from ink to white and the sheet in the tool's two lights,
 so that the action stays the strongest thing on the ground in each light.
@@ -647,26 +637,24 @@ page is small. Body is 1rem at 1.5 (`site-body`); the lede 1.125rem at
 800, -0.035em (`site-section`); a card's h3 1.375rem at 800
 (`site-card-heading`). On a card the figure, the count or a step's
 number, is 6rem to 9rem at 800, -0.06em, 0.82 (`site-figure`), and
-4.5rem to 6.5rem on a photograph (`site-step-figure`). The correction on
-the teal story card is the old value at 1.25rem, 600 (`site-struck`) and
-the new value from 2.6rem to 4rem at 800, -0.045em, 0.95 (`site-corr`),
-under a 0.9375rem line of 600; the line under a figure or a correction
-is 1.125rem at 600 (`site-line`). A photo card's book title is Source
-Serif 4 at 1.75rem, 600 (`site-photo-title`), with its facts at
-1.0625rem, 600, tabular (`site-facts`). The sheet has a base of its own,
-1.0625rem at 1.4 (`site-sheet`), and everything in it is set in em of
-that, so the row scales as one: the head row, the legend and the author
-0.875em, the facts, the edition line, the *Next sync* words and *Details*
-0.8125em, the switches and the correction 0.9375em, *Sync now* at 700
-with its small line at 0.72em, 500, the *Next sync* words and the write-in
-at 650, and the book's title Source Serif 4 at 1.0625em, 600, 1.25
-(`site-sheet-title`); the title in the sheet and the park card's are the
-Book Face Rule's two places on the site. The name in the head is
-1.125rem at 800 (`site-name`), the nav links 0.9375rem at 600
-(`site-nav`), the button 1.125rem at 800, -0.01em (`site-button`;
-1.25rem on the download card), code the monospace at 0.8125rem
-(`site-code`), the table 0.9375rem with 700 heads at 0.8125rem, the foot
-0.875rem. Headings are `text-wrap: balance`, the lede `pretty`. A heading
+4.5rem to 6.5rem on a photograph (`site-step-figure`). A story card's h2
+is 1.75rem at 800, -0.02em, and its one paragraph 1.125rem at 500, 1.3,
+held to 34ch (`site-line`). A photo card's heading is the sans at
+1.75rem, 800, -0.02em (`site-photo-title`), the park card's and *It never
+guesses a match*, with its paragraph at 1rem, 1.4, at 94% (`site-facts`).
+The reassurance line under *Download for Mac* is 0.9375rem at 500, 1.4
+(`site-sure`). The sheet has a base of its own, 1.0625rem at 1.4
+(`site-sheet`), and everything in it is set in em of that, so the row
+scales as one: the head row, the legend and the author 0.875em, the
+facts, the edition line, the *Next sync* words and *Details* 0.8125em,
+the switches and the correction 0.9375em, the *Next sync* words and the
+write-in at 650, and the book's title Source Serif 4 at 1.0625em, 600,
+1.25 (`site-sheet-title`): the Book Face Rule's one place on the site.
+The name in the head is 1.125rem at 800 (`site-name`), the nav links
+0.9375rem at 600 (`site-nav`), the button 1.125rem at 800, -0.01em
+(`site-button`; 1.25rem on the download card), code the monospace at
+0.8125rem (`site-code`), the table 0.9375rem with 700 heads at 0.8125rem,
+the foot 0.875rem. Headings are `text-wrap: balance`, the lede `pretty`. A heading
 is the first line of its card or block: no kicker or eyebrow above it.
 
 ### Named Rules
@@ -744,20 +732,27 @@ the right at 1fr (18rem at least), the words aligned to the card's foot;
 below 900px it is one column with the download card under the lede, so
 that the button is on the first screen of a 390 by 844 phone. The sheet
 spans the column and is sized in em of its 1.0625rem: the rail padded
-0.9em 1.3em, the cells 1.1em 1.3em 1.2em, the two switch columns 12.5em
+0.8em 1.3em, the cells 1.1em 1.3em 1.2em, the two switch columns 12.5em
 each, the Hardcover column 34%, the cover's column 48px, the gauge up to
 16em. Below 720px the sheet's head row goes and its row is a two-column
 grid: the book across both, the two switches side by side under it with
-their names above them (0.75em, 700), the margin across both under a
-double rule on its top, and *Sync now* full width. The story is three
-cards across, 24rem tall (one column below 900px; on a phone the plum
-and teal cards 20rem, the photograph 24rem). Lower down, cards sit in
-grids: four across (two by two below 1100px, one below 640px), three
-across (one below 900px), the screenshots on six columns in spans of two,
-three and four, each card as tall as its picture (one column below
-900px), the Mac app's three pictures on two columns with *Covers* across
-both. A step card is 26rem tall, a card under *What it does* 28rem, the
-close `clamp(24rem, 50vw, 34rem)`. The Mac app's words are one cobalt
+their names above them (0.75em, 700), and the margin across both under
+a double rule on its top. The story is three cards across, 22rem tall
+(one column below 900px; on a phone no floor, except the photograph at
+17rem, its words padded 6rem above instead of 9rem). Lower down, cards
+sit in grids: four across (two by two below 1100px, one below 640px),
+three across (one below 900px), the screenshots on six columns in spans
+of two, three and four, each card as tall as its picture (one column
+below 900px; the phone capture at most 20rem wide), the Mac app's three
+pictures on two columns with *Covers* across both. A step card is 26rem
+tall (on a phone no floor, a photo step 16rem with its words padded
+5.5rem above), a card under *What it does* 28rem (below 900px no floor,
+the photograph 18rem with its words padded 6.5rem above), the close
+`clamp(24rem, 50vw, 34rem)`. On a phone (below 640px) the page shows
+fewer pictures: the Books page's night capture and the Details capture
+are hidden, the phone capture is at most 14rem wide and comes from a
+400w copy, and of the Mac app's three pictures the Overview alone
+stays. The Mac app's words are one cobalt
 card, padded `clamp(1.6rem, 3vw, 2.5rem)`, with the icon (10rem) beside
 them from 720px. The other tools' table stacks below 720px, each cell
 under its column's name, and the head's in-page links go; the GitHub link
@@ -796,11 +791,11 @@ small inner parts (a tag, a theme-switch button, a cover's fore-edge) are
 3px; buttons, fields, selects, chips, *Details* and navigation items are
 4px. Covers are 1px at the spine and 3px at the fore-edge, the one 1px
 corner there is, kept because a book's spine is square. The focus ring
-has 2px corners. The site has the share card's own rounding instead:
+has 2px corners. The site has its cards' own rounding instead:
 18px on every card and on the sheet, 12px on the button and the theme
 switch (9px on its three buttons), 10px on a screenshot inside its card,
 8px on a code chip; inside the sheet the tool's own 4px on the drawn
-switches, *Details* and *Sync now*, and the cover's 1px spine and 3px
+switches and *Details*, and the cover's 1px spine and 3px
 fore-edge; its focus ring is 3px with 4px corners.
 
 Lines carry the structure. Borders are 1px. The one heavy line is a 3px
@@ -814,8 +809,8 @@ tool), and the line between the rows of the other tools' table.
 
 **The No Pills Rule.** No pill-shaped buttons, chips, tags or switches.
 The largest corner on anything you operate is 4px in the tool and the
-Mac app, and 12px on the site's one button and its theme switch, a share
-card's rounding, still far from a pill.
+Mac app, and 12px on the site's one button and its theme switch, a card's
+rounding, still far from a pill.
 
 ## Components
 
@@ -1067,24 +1062,25 @@ any picture; every other mark waits for the caption.
 One static page, `site/`, in a world of its own. Its proof is the
 tool's own: one row of the Books page at full size, drawn in the page's
 markup with the proof mark on it, under the claim and beside the
-download, before a word of explanation; the year-in-review cards follow
-as the story, three of them, and the rest of the page is cards on a
-white or near-black ground. It keeps the page's two faces from its own
+download, before a word of explanation; the three the sync runs between
+follow as the story, the Kobo, your computer and Hardcover, one card
+each, and the rest of the page is cards on a white or near-black
+ground. It keeps the page's two faces from its own
 font files, the page's marks, its one motion and its theme switch, and
 the sheet keeps the tool's colours; nothing else of the galley. Its
 tokens are the `site-` set, the `site-sheet-` set and the three gradient
 families.
 
-- **The sheet** (`site-sheet`): a `figure` on Sheet inside a 1px Rule border, 18px corners and the site lift, at 1.0625rem with everything inside in em. A rail (0.9em 1.3em, a Rule under it) holds the legend of the four marks drawn on the site, 20px each in the sheet's Red, Green, Blue and Faint beside 0.875em Graphite words, and *Sync now* (`site-syncnow`): a Red fill with On Fill words at 700, 4px corners, 2.75em tall, its small line (*sends 4 marked changes*) at 0.72em, 500. The table has a head row (0.875em, 700, a Rule under it) and one row. The book cell is a 48px cover grid: the cover 48 by 72 with the tool's cover shadow and 1px/3px corners, the title in Source Serif 4 (`site-sheet-title`), the author in Graphite, the line gauge (9px tall, up to 16em, a 1px Edge rule with a tick every tenth, the part read a 4px bar of Ink) and the facts at 0.8125em in Graphite. The two drawn switches (`site-sheet-field`) are 2.5em tall at 0.9375em, a 1px Edge border, 4px corners, the words and a 12 by 8 triangle, never wrapping. The Hardcover cell is 34% wide on Margin behind a 3px double Rule: the status line (a 20px caret in Red beside *Next sync* at 0.8125em, 650, Red), the correction (`.fix`, 0.9375em, 2.1em in: the old value in Graphite struck by 1.5px of Red at 58% of its height, the new value in Red at 650 after a 10px caret), the edition line at 0.8125em in Graphite, and *Details* (2em tall, 0.8125em, 600, an Edge border, 4px). The caption under a Rule, 0.875rem in Graphite, says the shelf is made up, the marks are the page's own and it starts as a dry run. What a reader cannot see (the switch's name, what the sync sends and what Hardcover has) is there for a screen reader; the drawn correction is `aria-hidden`.
+- **The sheet** (`site-sheet`): a `figure` on Sheet inside a 1px Rule border, 18px corners and the site lift, at 1.0625rem with everything inside in em. A rail (0.8em 1.3em, a Rule under it) holds the legend of the four marks drawn on the site alone, 20px each in the sheet's Red, Green, Blue and Faint beside 0.875em Graphite words (`role="list"`). The table has a caption for a screen reader, a head row (0.875em, 700, a Rule under it) and one row. The book cell is a 48px cover grid: the cover 48 by 72 with the tool's cover shadow and 1px/3px corners, the title in Source Serif 4 (`site-sheet-title`), the author in Graphite, the line gauge (9px tall, up to 16em, a 1px Edge rule with a tick every tenth, the part read a 4px bar of Ink) and the facts at 0.8125em in Graphite. The two drawn switches (`site-sheet-field`) are 2.5em tall at 0.9375em, a 1px Edge border, 4px corners, the words and a 12 by 8 triangle, never wrapping. The Hardcover cell is 34% wide on Margin behind a 3px double Rule: the status line (a 20px caret in Red beside *Next sync* at 0.8125em, 650, Red), the correction (`.fix`, 0.9375em, 2.1em in: the old value in Graphite struck by 1.5px of Red at 58% of its height, the new value in Red at 650 after a 10px caret), the edition line at 0.8125em in Graphite, and *Details* (2em tall, 0.8125em, 600, an Edge border, 4px). The caption under a Rule, 0.875rem in Graphite, says the shelf is made up, the marks are the page's own, and that it starts as a dry run whose *Sync now* button says what it would send. What a reader cannot see (the switch's name, what the sync sends and what Hardcover has) is there for a screen reader; the drawn correction is `aria-hidden`.
 - **The cards** (`site-card`): 18px corners, padded 1.6rem 1.6rem 1.7rem, the words aligned to the foot in On Card; the site lift by day and none at night. Four kinds: a gradient card (plum, teal, cobalt; slate for *What it leaves alone*, with Site Ink dark words), a photo card, the download card and a quiet card. The gradient runs at 200deg from the bright stop at the top to the deep stop at the foot, so that the words stand on the dark end; every card heading is white, *What it does* included, which stands on its own tighter teal (0, 5, 11, 100%). The cards are the same in both lights, the download card excepted.
-- **The story:** three cards under the sheet, 24rem tall. The plum card: the figure (34) and one `site-line`. The park photograph: a book title in Source Serif 4 with its facts on the scrim. The teal card: the everyday correction (`.corr`), a 0.9375rem line of 600 above, the old value at `site-struck` with its number struck by a 2px line of Card Red at 56% of its height, the new value after a caret of Card Red at 0.55em, at `site-corr`, and one `site-line` 0.6rem under it. It stands still; the motion is the sheet's.
-- **The photographs:** five Unsplash pictures of people reading, bundled as `site/img/photo-*.jpg` with a smaller copy of each in `site/img/small/` served through `srcset`, each with its source in its JPEG comment, listed with their photographers in THIRD-PARTY-NOTICES.md and credited in the foot. A photograph is a card too: full-bleed, `object-fit: cover`, on a `site-quiet-dark` fallback, its words on the scrim at the foot, padded 5rem above. A photo card carries a book title in Source Serif 4 with its facts (the park card), or a step's figure (`site-step-figure`), heading and paragraph on the step card's taller scrim (padded 11rem above), or *It never guesses a match* under *What it does*, a sans heading at 800 on that same scrim, or the close with the download.
-- **The download card** (`site-card-flag`): the one card that changes with the light, ink by day with white words and white at night with ink words, so that it stays the strongest thing on the ground. The app icon (4rem) at its head, *Download for Mac* as the one filled button, the version line in Flag Quiet (read from the latest GitHub release with JavaScript; without it the line names the release page), *brew* and *uv* as code blocks on Flag Code with 8px corners (`site-code-on-flag`). Beside the claim from 900px; below that it follows the lede, before the sheet.
-- **The one filled button** (`site-primary`): 3.25rem, 0.6rem 1.5rem, 800 at 1.125rem, 12px, the card's reverse: `site-on-flag` on `site-flag`; on the download card full width and 3.75rem at 1.25rem (`site-primary-download`); on the cobalt card Cobalt Deep on white; on the close ink on white. Hover underlines its words (2px, 4px off), the link's own hover; nothing brightens. No red fill on the site outside the sheet, where *Sync now* is the tool's; the Two Pencils Rule is the tool's.
+- **The story:** three cards under the sheet, 22rem tall, one for each of the three the sync runs between, each an h2 at 1.75rem over one paragraph (`site-line`, 500, 34ch). The park photograph: *The Kobo, as it comes*, its words on the step card's scrim padded 9rem above. The plum card: *Your computer*. The teal card: *Hardcover*. No figure, no struck value, no correction on a card; the cards stand still, and the motion is the sheet's.
+- **The photographs:** five Unsplash pictures of people reading, bundled as `site/img/photo-*.jpg` with a smaller copy of each in `site/img/small/` served through `srcset`, each with its source in its JPEG comment, listed with their photographers in THIRD-PARTY-NOTICES.md and credited in the foot. A photograph is a card too: full-bleed, `object-fit: cover`, on a `site-quiet-dark` fallback, its words on the scrim at the foot, padded 5rem above. A photo card carries a heading in the sans at 800 (`site-photo-title`) over a paragraph (`site-facts`): the park card in the story and *It never guesses a match* under *What it does*, both on the step card's taller scrim (padded 9rem and 11rem above); or a step's figure (`site-step-figure`), heading and paragraph on that scrim (padded 11rem above); or the close with the download. No book title is set on a photograph.
+- **The download card** (`site-card-flag`): the one card that changes with the light, ink by day with white words and white at night with ink words, so that it stays the strongest thing on the ground. The app icon (4rem) at its head, *Download for Mac* as the one filled button, the version line in Flag Quiet (read from the latest GitHub release with JavaScript and announced politely when it changes; without it the line names the release page), the reassurance line (`site-sure`) in On Flag under it, *brew* and *uv* as code blocks on Flag Code with 8px corners (`site-code-on-flag`). Beside the claim from 900px; below that it follows the lede, before the sheet.
+- **The one filled button** (`site-primary`): 3.25rem, 0.6rem 1.5rem, 800 at 1.125rem, 12px, the card's reverse: `site-on-flag` on `site-flag`; on the download card full width and 3.75rem at 1.25rem (`site-primary-download`); on the cobalt card Cobalt Deep on white; on the close ink on white, with the reassurance line (`site-sure`) white on the scrim under it, as on the download card. Hover underlines its words (2px, 4px off), the link's own hover; nothing brightens. There is no red fill anywhere on the site; the sheet carries the tool's red as a mark only, and the Two Pencils Rule is the tool's.
 - **The marks:** the page's caret, tick, circled query and dash as inline SVG at 20px: on a card in `currentColor`, the words' colour; in the sheet in the sheet's Red, Green, Blue and Faint; the caret at 1rem before the name in Name Caret, and at 10px in the sheet's correction. A list of marks (`.marks`) is a 1.7rem mark column beside 1rem words, 0.9rem apart.
-- **The screenshots** (`site-shot`): a quiet card padded 0.9rem holding one picture at 10px corners with a graphite caption at 0.875rem, each with a smaller copy in `srcset` (the Books page gets a crop of its margin on a phone); the Mac app's pictures follow the theme switch, and the system's theme without JavaScript, and *Covers* spans the full width. The link preview (`img/og.png`) is composed from the page by `browser_tests/site_shots.py`.
-- **The quiet card** (`site-card-quiet`) also holds the other tools' table: 0.9rem 1rem cells parted by Quiet Edge, the row names at 700 in ink.
-- **The head and the foot:** the name with its caret, the page's places at `site-nav` in graphite (ink and underlined on hover), GitHub; the foot the independent-project sentence and the photographers, the links, and the theme switch, *Light*, *Auto*, *Dark*, 9px buttons in a 12px frame on Quiet, the pressed one in Site Flag (`site-theme-pressed`), shown only once the inline script has set `html.js`.
+- **The screenshots** (`site-shot`): a quiet card padded 0.9rem holding one picture at 10px corners with a graphite caption at 0.875rem, each with a smaller copy in `srcset` (the Books page gets a crop of its margin on a phone, the phone capture a 400w copy); the Mac app's pictures follow the theme switch, and the system's theme without JavaScript, and *Covers* spans the full width. On a phone the Books page's night capture and the Details capture are hidden and the Mac app shows the Overview alone. The link preview (`img/og.png`) is composed from the page by `browser_tests/site_shots.py`: the name line, the headline and the whole row, with no nav, lede or download card.
+- **The quiet card** (`site-card-quiet`) also holds the other tools' table: 0.9rem 1rem cells parted by Quiet Edge, the row names at 700 in ink under a first column header kept for a screen reader (*Tool*).
+- **The head and the foot:** the name with its caret, the page's places at `site-nav` in graphite (ink and underlined on hover), GitHub; the foot the independent-project sentence and the photographers, the sentence that says the page asks GitHub for the latest release and keeps the theme in the browser and nothing else, the links, and the theme switch, *Light*, *Auto*, *Dark*, 9px buttons in a 12px frame on Quiet, the pressed one in Site Flag (`site-theme-pressed`), shown only once the inline script has set `html.js`.
 - **Focus and selection:** a 3px outline, 3px off, 4px corners: Site Link on the ground, in the quiet card and on the sheet; white on a plum, teal, cobalt, slate or photo card; On Flag on the download card. Selection is `site-select` under ink words, white at 35% on a card.
 - **No kicker, no eyebrow:** a heading is the first line of its card or block, with a figure above it or a lede under it, never a small label.
 
@@ -1121,8 +1117,8 @@ and the three story cards rise into place, 18px up from transparent, in
 0.7s on the expo ease-out, 60ms apart in page order; then in the sheet's
 row the strike draws across the old value in 0.5s at 0.9s and the new
 value writes in from the left in 0.6s at 1.1s, the tool's own motion at
-the tool's own timing, after the sheet has landed. The teal story card's
-correction stands still. Hover thickens a link's underline and underlines
+the tool's own timing, after the sheet has landed. The three story cards
+stand still once landed. Hover thickens a link's underline and underlines
 the button; nothing else moves. Under `prefers-reduced-motion` the cards
 and the sheet stand in place, the strike and write-in are off, and the
 smooth scroll to an in-page link is off too.
