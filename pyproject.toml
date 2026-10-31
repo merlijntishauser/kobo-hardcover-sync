@@ -31,7 +31,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/merlijntishauser/kobo-hardcover-sync"
+Homepage = "https://lastread.app/"
+Repository = "https://github.com/merlijntishauser/kobo-hardcover-sync"
 Documentation = "https://github.com/merlijntishauser/kobo-hardcover-sync#readme"
 Changelog = "https://github.com/merlijntishauser/kobo-hardcover-sync/blob/main/CHANGELOG.md"
 Issues = "https://github.com/merlijntishauser/kobo-hardcover-sync/issues"

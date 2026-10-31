@@ -9,9 +9,10 @@ minor version may change behaviour; the notes will say so.
 
 ### Added
 
-- Mac app: About shows a link to the tool's site,
-  merlijntishauser.github.io/kobo-hardcover-sync, with the
+- Mac app: About shows a link to the tool's site, lastread.app, with the
   independent-project sentence.
+- The site has an address of its own, <https://lastread.app/>; the GitHub
+  Pages address still works and sends you there.
 
 ### Changed
 

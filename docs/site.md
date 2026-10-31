@@ -1,6 +1,7 @@
 # The site
 
-One static page at <https://merlijntishauser.github.io/kobo-hardcover-sync/>,
+One static page at <https://lastread.app/> (GitHub Pages, with
+the repository's own address redirecting there),
 for a Kobo reader who heard of the tool and wants to know in a minute whether
 it is for them. It lives in `site/` on `main` and is published by the `pages`
 workflow (`.github/workflows/pages.yml`), which uploads the folder as it is;

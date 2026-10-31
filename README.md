@@ -8,7 +8,7 @@ works with the Kobo as it comes, with books bought in the **Kobo store**.
 
 Plug the Kobo into your computer and it syncs. Nothing is installed on the
 Kobo, and nothing about how you read changes. The short version is at
-<https://merlijntishauser.github.io/kobo-hardcover-sync/>.
+<https://lastread.app/>.
 
 ![A terminal running kobo-hardcover-sync sync on a made-up shelf: the Kobo is read, three books go to Hardcover, each shown with a line for how far it is read](docs/img/sync.svg)
 

@@ -20,7 +20,7 @@ import SwiftUI
 import UserNotifications
 
 let name = "Kobo Hardcover Sync"
-let site = URL(string: "https://merlijntishauser.github.io/kobo-hardcover-sync/")!  // the tool's own page, in About
+let site = URL(string: "https://lastread.app/")!  // the tool's site, in About
 let agentPlist = "org.gargleblaster.kobo-hardcover-sync.app.agent.plist"
 let releases = "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v"
 let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=" + (Bundle.main.bundleIdentifier ?? "")
@@ -506,7 +506,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         let para = NSMutableParagraphStyle()
         para.alignment = .center
         let plain: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.labelColor, .paragraphStyle: para]
-        credits.append(NSAttributedString(string: "merlijntishauser.github.io/kobo-hardcover-sync\n", attributes: plain.merging([.link: site], uniquingKeysWith: { $1 })))
+        credits.append(NSAttributedString(string: "lastread.app\n", attributes: plain.merging([.link: site], uniquingKeysWith: { $1 })))
         credits.append(NSAttributedString(string: "\nAn independent project: not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover.", attributes: plain))
         NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
     }

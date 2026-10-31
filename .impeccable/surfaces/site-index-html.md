@@ -7,7 +7,7 @@ related_targets: []
 
 # The promotional site (site/index.html, GitHub Pages)
 
-Mode: Persuade. One static page at merlijntishauser.github.io/kobo-hardcover-sync,
+Mode: Persuade. One static page at lastread.app (GitHub Pages),
 deployed from `site/` on `main` by a Pages workflow. Visitor: a Kobo reader who
 heard of the tool (Reddit, the Hardcover community, a search). They should leave
 believing it works with their Kobo as it is, Kobo-store books included, and that

@@ -255,7 +255,7 @@ started in three ways:
   the full Edit menu (the text fields' keys, ⌘V among them, go through it)
   and a *Sync* menu: *Sync Now* (⌘R), *Check Again* (⇧⌘R) and *Show the
   Log*; *About* is the standard panel with the site
-  (merlijntishauser.github.io/kobo-hardcover-sync) and the independent-project
+  (lastread.app) and the independent-project
   sentence as its credits; *View* has the four panes (⌘1 to ⌘4), the sidebar (⌃⌘S) and full
   screen (⌃⌘F), and *Help* (⌘?) opens the app's guide in a window of
   its own (`Help.swift`): how it works, each pane, the marks drawn as the
