@@ -5,8 +5,8 @@ settings, and the versions it says were tested."""
 import pathlib
 import re
 
-from kobo_hardcover_sync import cli
-from kobo_hardcover_sync.engine import collection, hardcover
+from lastread import cli
+from lastread.engine import collection, hardcover
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PAGES = ("README.md", "CONTRIBUTING.md", "SECURITY.md", "CHANGELOG.md")
@@ -40,11 +40,11 @@ def test_every_command_and_option_in_the_text_is_real(capsys):
 
     for page in PAGES:
         text = (ROOT / page).read_text()
-        for command, rest in re.findall(r"kobo-hardcover-sync ([a-z]+)((?: --[a-z-]+)*)", text):
+        for command, rest in re.findall(r"lastread ([a-z]+)((?: --[a-z-]+)*)", text):
             if command in ("is", "does", "reads", "on", "s"):  # the name in a sentence, not a command
                 continue
             usage = help_of(command)
-            assert usage, f"{page}: `kobo-hardcover-sync {command}` is not a command the tool knows"
+            assert usage, f"{page}: `lastread {command}` is not a command the tool knows"
             for option in rest.split():
                 assert f"{option} " in usage or f"{option}]" in usage, f"{page}: `{command}` has no {option}"
         for option in re.findall(r"`(--[a-z-]+)`", text):  # options named on their own, as in "`--purge` also removes ..."
@@ -70,7 +70,7 @@ def test_it_does_not_promise_what_is_not_there():
     assert "never writes to the device" not in README  # it writes one thing, and says exactly what
     assert "the only thing this tool\never writes to your Kobo" in README
     # Published: the two ways to install are the ones that exist.
-    assert "uv tool install kobo-hardcover-sync\n" in README and "brew install merlijntishauser/tap/kobo-hardcover-sync\n" in README
+    assert "uv tool install lastread\n" in README and "brew install merlijntishauser/tap/lastread\n" in README
     assert "not affiliated with, endorsed by or sponsored by" in README
     for claim in ("the first tool", "the only tool", "the only way", "the best"):  # no claims about being first or only
         assert claim not in README.lower()

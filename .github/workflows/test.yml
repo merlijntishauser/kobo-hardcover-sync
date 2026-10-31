@@ -54,17 +54,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: docker build -t kobo-hardcover-sync .
+      - run: docker build -t lastread .
       - name: It starts and answers
         run: |
-          docker run -d --name khs -e KHS_TRUSTED_PROXIES=127.0.0.1 -e KHS_DATA=/tmp -p 127.0.0.1:3012:3012 kobo-hardcover-sync
+          docker run -d --name khs -e KHS_TRUSTED_PROXIES=127.0.0.1 -e KHS_DATA=/tmp -p 127.0.0.1:3012:3012 lastread
           for _ in $(seq 30); do curl -sf http://127.0.0.1:3012/healthz && break; sleep 1; done
           curl -sf http://127.0.0.1:3012/healthz
-          docker exec khs kobo-hardcover-sync --version
+          docker exec khs lastread --version
           test "$(docker exec khs id -u)" != 0
       - name: Without the address of a sign-in proxy it does not start
         run: |
-          if docker run --rm kobo-hardcover-sync; then echo "::error::it started half open"; exit 1; fi
+          if docker run --rm lastread; then echo "::error::it started half open"; exit 1; fi
 
   # The Mac app (packaging/macos), built and started on every push. Signed
   # ad hoc, so without the hardened runtime: that needs the Developer ID,
@@ -79,14 +79,14 @@ jobs:
       - run: packaging/macos/build.sh "$RUNNER_TEMP"/dist/*.whl build/macos
       - name: The tool in it answers, and writes nothing into it
         run: |
-          app="$PWD/build/macos/Kobo Hardcover Sync.app"
-          file "$app/Contents/MacOS/Kobo Hardcover Sync" | grep -q "Mach-O 64-bit executable arm64"
+          app="$PWD/build/macos/Lastread.app"
+          file "$app/Contents/MacOS/Lastread" | grep -q "Mach-O 64-bit executable arm64"
           plutil -extract CFBundleShortVersionString raw "$app/Contents/Info.plist"
           touch "$RUNNER_TEMP/before"
           sleep 1
           py="$app/Contents/Resources/python/bin/python3"
-          "$py" -I -B -m kobo_hardcover_sync --version
-          KHS_HOME="$RUNNER_TEMP/khs" KHS_APP="$app" "$py" -I -B -m kobo_hardcover_sync status
+          "$py" -I -B -m lastread --version
+          KHS_HOME="$RUNNER_TEMP/khs" KHS_APP="$app" "$py" -I -B -m lastread status
           test -z "$(find "$app" -newer "$RUNNER_TEMP/before")"
           ls "$app/Contents/Resources/python-licenses"
       - name: The app reads the tool's answers as the tool writes them

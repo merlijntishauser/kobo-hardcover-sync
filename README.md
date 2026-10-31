@@ -1,6 +1,6 @@
-# kobo-hardcover-sync
+# Lastread
 
-<img src="src/kobo_hardcover_sync/web/static/favicon.svg" width="48" alt="" align="right">
+<img src="src/lastread/web/static/favicon.svg" width="48" alt="" align="right">
 
 Keeps your shelf on [Hardcover](https://hardcover.app) in step with what
 you read on a **Kobo e-reader**: which books, how far, finished when. It
@@ -10,7 +10,7 @@ Plug the Kobo into your computer and it syncs. Nothing is installed on the
 Kobo, and nothing about how you read changes. The short version is at
 <https://lastread.app/>.
 
-![A terminal running kobo-hardcover-sync sync on a made-up shelf: the Kobo is read, three books go to Hardcover, each shown with a line for how far it is read](docs/img/sync.svg)
+![A terminal running lastread sync on a made-up shelf: the Kobo is read, three books go to Hardcover, each shown with a line for how far it is read](docs/img/sync.svg)
 
 ![The Books page: a list of books, each with how far it is read, a Sync switch, and in the margin what the next sync changes on Hardcover, marked like a proof](docs/img/books.png)
 
@@ -67,7 +67,7 @@ as their own documentation said on 2 October 2026:
 
 | | What it needs | Choose it when |
 |---|---|---|
-| **kobo-hardcover-sync** | A computer to plug the Kobo into. Nothing on the Kobo. | You read Kobo-store books on an unmodified Kobo, or your Kobo's software is too new for the tools below. |
+| **lastread** | A computer to plug the Kobo into. Nothing on the Kobo. | You read Kobo-store books on an unmodified Kobo, or your Kobo's software is too new for the tools below. |
 | [NickelHardcover](https://codeberg.org/StrayRose/NickelHardcover) | An add-on installed on the Kobo itself. Its README says firmware 5.x is not supported yet. | Your Kobo's firmware is supported and you are happy to modify the device. It syncs over Wi-Fi without a computer, and also does highlights, notes and reviews. |
 | [KOReader with the Hardcover plugin](https://github.com/Billiam/hardcoverapp.koplugin) | KOReader on the device. KOReader cannot open the store's DRM books. | You read your own, DRM-free books in KOReader. |
 | [Calibre-Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated) | A Calibre library on a server that the Kobo syncs with. | Your books live in Calibre and reach the Kobo from there. |
@@ -99,7 +99,7 @@ an issue, with the model and the software version.
 On a Mac, with Homebrew:
 
 ```
-brew install merlijntishauser/tap/kobo-hardcover-sync
+brew install merlijntishauser/tap/lastread
 ```
 
 On a Mac with Apple silicon and macOS 15 or newer that takes seconds:
@@ -108,15 +108,15 @@ which takes several minutes. On any computer, with uv, which brings the
 Python it needs:
 
 ```
-uv tool install kobo-hardcover-sync
+uv tool install lastread
 ```
 
 Then, either way:
 
 ```
-kobo-hardcover-sync setup
-kobo-hardcover-sync token
-kobo-hardcover-sync open
+lastread setup
+lastread token
+lastread open
 ```
 
 1. **`setup`** makes the trigger that runs a sync when the Kobo is plugged
@@ -141,7 +141,7 @@ kobo-hardcover-sync open
    `token --remove`, or on Hardcover under your authorised apps.
 
    Would you rather hand it a token you made on Hardcover yourself?
-   `kobo-hardcover-sync token --paste` asks for one and prints a link to
+   `lastread token --paste` asks for one and prints a link to
    Hardcover's page for making it, with the four permissions already
    ticked. Such a token stops working on the date you choose there.
 
@@ -176,7 +176,7 @@ Plug in the Kobo. A notification says what happened, for example:
 
 That is all. Nothing runs in between: the sync starts when the Kobo is
 mounted and exits when it is done. Run by hand in a terminal
-(`kobo-hardcover-sync sync`), the same sync says what it did, as in the
+(`lastread sync`), the same sync says what it did, as in the
 picture at the top.
 
 Open the page when you want to switch a book on or off, fix a match, set a
@@ -186,19 +186,19 @@ Other commands:
 
 | | |
 |---|---|
-| `kobo-hardcover-sync sync` | One sync now, from a terminal: it says each step, then names the books that went to Hardcover. Without a Kobo it still exchanges changes with Hardcover (local mode). `--verbose` also shows the log as it runs. |
-| `kobo-hardcover-sync status` | What is set up, the Kobo it sees, its model and software, the last message. Quick, and never uses the network. |
-| `kobo-hardcover-sync doctor` | Checks everything a sync depends on and says what to do about what is wrong. Changes nothing. |
-| `kobo-hardcover-sync history` | The last syncs on this computer, newest first: when, what started it, and what it said. The last hundred are kept, without book titles. |
-| `kobo-hardcover-sync settings` | This computer's settings. `--set eject_after_sync=true` changes one that is true or false (`eject_after_sync`, `verbose_log`, `allow_untested_kobo`, `check_for_updates`). |
-| `kobo-hardcover-sync update` | Asks GitHub now whether there is a newer version. It only says so. |
-| `kobo-hardcover-sync open` | The page. |
-| `kobo-hardcover-sync token --code` | Connect to Hardcover with a short code to approve, instead of in this computer's browser. |
-| `kobo-hardcover-sync token --remove` | End the connection to Hardcover and go back to dry run. |
-| `kobo-hardcover-sync token --start-over` | You moved to another Hardcover account on purpose: forget what was put on the old account's shelf, so the next sync fills the new one. |
-| `kobo-hardcover-sync export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `kobo-hardcover-sync export --output reading.json` writes a file only you can read; add `--every-sync` and that file is written again after every sync, for a dashboard to read. `kobo-hardcover-sync export --stop` ends that. The page has the same file under Settings, *Your reading as a file*. |
-| `kobo-hardcover-sync webhook` | After every sync that read something new from the Kobo, a POST with JSON to an address of your own: a reading tracker, a database, an automation. https, an optional Bearer token kept in the Keychain, and a test before anything is stored. See [docs/webhook.md](docs/webhook.md). |
-| `kobo-hardcover-sync uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
+| `lastread sync` | One sync now, from a terminal: it says each step, then names the books that went to Hardcover. Without a Kobo it still exchanges changes with Hardcover (local mode). `--verbose` also shows the log as it runs. |
+| `lastread status` | What is set up, the Kobo it sees, its model and software, the last message. Quick, and never uses the network. |
+| `lastread doctor` | Checks everything a sync depends on and says what to do about what is wrong. Changes nothing. |
+| `lastread history` | The last syncs on this computer, newest first: when, what started it, and what it said. The last hundred are kept, without book titles. |
+| `lastread settings` | This computer's settings. `--set eject_after_sync=true` changes one that is true or false (`eject_after_sync`, `verbose_log`, `allow_untested_kobo`, `check_for_updates`). |
+| `lastread update` | Asks GitHub now whether there is a newer version. It only says so. |
+| `lastread open` | The page. |
+| `lastread token --code` | Connect to Hardcover with a short code to approve, instead of in this computer's browser. |
+| `lastread token --remove` | End the connection to Hardcover and go back to dry run. |
+| `lastread token --start-over` | You moved to another Hardcover account on purpose: forget what was put on the old account's shelf, so the next sync fills the new one. |
+| `lastread export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `lastread export --output reading.json` writes a file only you can read; add `--every-sync` and that file is written again after every sync, for a dashboard to read. `lastread export --stop` ends that. The page has the same file under Settings, *Your reading as a file*. |
+| `lastread webhook` | After every sync that read something new from the Kobo, a POST with JSON to an address of your own: a reading tracker, a database, an automation. https, an optional Bearer token kept in the Keychain, and a test before anything is stored. See [docs/webhook.md](docs/webhook.md). |
+| `lastread uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
 
 <img src="docs/img/phone-night.png" alt="The same page on a phone, at night" width="300">
 
@@ -246,7 +246,7 @@ changed.
    then on a Mac:
 
    ```
-   cd ~/Library/Application\ Support/kobo-hardcover-sync/collection/backups
+   cd ~/Library/Application\ Support/lastread/collection/backups
    gunzip -c KoboReader-<date>.sqlite.gz > /Volumes/KOBOeReader/.kobo/KoboReader.sqlite
    ```
 
@@ -262,7 +262,7 @@ a sign-in proxy you already run (forward authentication) and believes the
 `Remote-User` header only from that proxy's address.
 
 ```
-mkdir kobo-hardcover-sync && cd kobo-hardcover-sync
+mkdir lastread && cd lastread
 curl -fsSLo docker-compose.yml https://raw.githubusercontent.com/merlijntishauser/kobo-hardcover-sync/main/examples/docker-compose.example.yml
 python3 -c "import base64,os;print('KHS_SECRET_KEY='+base64.urlsafe_b64encode(os.urandom(32)).decode())" > .env
 chmod 600 .env && mkdir -p data
@@ -293,13 +293,13 @@ line.
   under Settings ends it. `/api/stats/<reader>` gives reading minutes and the current book to
   a dashboard, once that reader made a stats token under Settings.
   Each reader can download their whole shelf as JSON under Settings, *Your
-  reading as a file*, behind the sign-in; `kobo-hardcover-sync export
+  reading as a file*, behind the sign-in; `lastread export
   --reader NAME`, run on the server, gives the same.
 
 On the computer the Kobo is plugged into:
 
 ```
-kobo-hardcover-sync setup --server https://kobo.example.org
+lastread setup --server https://kobo.example.org
 ```
 
 `setup` makes an upload token, keeps it in the secret store and prints its
@@ -379,7 +379,7 @@ The full list is at the end of [docs/sync-rules.md](docs/sync-rules.md).
 
 ## When something does not work
 
-Start with `kobo-hardcover-sync doctor`. It looks at everything a sync
+Start with `lastread doctor`. It looks at everything a sync
 depends on (the setup, the trigger, the Kobo and its database, your
 Hardcover token, the collection, the backups), changes nothing, and says
 per item what it found and what to do:
@@ -416,25 +416,25 @@ The log is `agent.log` in the tool's folder:
 `~/Library/Application Support/kobo-hardcover-sync/` on a Mac,
 `~/.local/share/kobo-hardcover-sync/` on Linux. It holds what happened in
 counts and messages, and no book titles. For a line per book, run
-`kobo-hardcover-sync sync --verbose` once, or put `verbose_log = true` in
+`lastread sync --verbose` once, or put `verbose_log = true` in
 `config.toml` in that folder to have it for every sync. **A verbose log
 contains your book titles**: read it before you share it. Neither log ever
 holds a token.
 
 | You see | What to do |
 |---|---|
-| Nothing happens when the Kobo is plugged in | Tap *Connect* on the Kobo. On a Mac, check that `KoboHardcoverSync.app` has Full Disk Access. Run `kobo-hardcover-sync sync` in a terminal to see the message. |
+| Nothing happens when the Kobo is plugged in | Tap *Connect* on the Kobo. On a Mac, check that `KoboHardcoverSync.app` has Full Disk Access. Run `lastread sync` in a terminal to see the message. |
 | "macOS does not let the tool read the Kobo. Give KoboHardcoverSync.app Full Disk Access ..." | Give the app the permission (step 1 above). If you rebuilt the app, remove its old entry there first and add it again. |
 | "The Kobo was unplugged during the sync" | Plug it in again. Nothing on the Kobo was changed; what was already sent to Hardcover stays sent. |
 | "The Kobo's database is in use by another program" | Close Calibre, the Kobo desktop app or anything else that reads the Kobo, and plug it in again. |
 | "Nothing new." | The Kobo is as it was at the last sync. Read a page and plug it in again. |
-| "Hardcover no longer accepts this connection. Connect again under Settings" | The connection was ended on Hardcover, or went unused for six months. Connect again: `kobo-hardcover-sync token`, or Settings on a server. |
-| "Hardcover does not accept your token" | A pasted token expired or was removed. Connect instead (`kobo-hardcover-sync token`, or Settings), or paste a new one. |
+| "Hardcover no longer accepts this connection. Connect again under Settings" | The connection was ended on Hardcover, or went unused for six months. Connect again: `lastread token`, or Settings on a server. |
+| "Hardcover does not accept your token" | A pasted token expired or was removed. Connect instead (`lastread token`, or Settings), or paste a new one. |
 | "Your Hardcover token may not do this (it lacks: ...)" | The token was made without one of the four permissions. Make a new one with the link the tool gives. |
 | *Needs a Hardcover match* on a book | Open its Details and choose the right book, or search for it there. |
 | "Collection not updated: This Kobo's software has not been tested ..." | Your Kobo's software has not been tried yet. Syncing to Hardcover still works. See [the collection](#the-collection-on-the-kobo). |
 | "Something went wrong that this tool did not expect" | A bug. The details are in `agent.log`; please [report it](https://github.com/merlijntishauser/kobo-hardcover-sync/issues) with the output of `doctor`. |
-| "The Hardcover connection is for @new, and your books were put on the shelf of @old" | You connected another Hardcover account than the one your books went to. Nothing was sent or switched off. Connect the old account again; or, if you are moving on purpose, start over on the new one (Settings, or `kobo-hardcover-sync token --start-over`). |
+| "The Hardcover connection is for @new, and your books were put on the shelf of @old" | You connected another Hardcover account than the one your books went to. Nothing was sent or switched off. Connect the old account again; or, if you are moving on purpose, start over on the new one (Settings, or `lastread token --start-over`). |
 | "None of the N books this tool put on your Hardcover shelf are on the shelf ..." | The token belongs to another Hardcover account, or you emptied the shelf yourself. Nothing was switched off. Fix the token, or switch those books off on the page. |
 | "Hardcover could not be reached" or "Today's number of requests ... is used up" | Nothing is lost. The next sync carries on. |
 | The server answers 403 to everything, or does not start | `KHS_TRUSTED_PROXIES` does not name the address your proxy connects from. |
@@ -446,8 +446,8 @@ a file only you can read; `status` says which.
 ## Uninstall
 
 ```
-kobo-hardcover-sync uninstall --purge
-brew uninstall kobo-hardcover-sync        # or: uv tool uninstall kobo-hardcover-sync
+lastread uninstall --purge
+brew uninstall lastread        # or: uv tool uninstall lastread
 ```
 
 Run the first line first: it removes the trigger, and with `--purge` your

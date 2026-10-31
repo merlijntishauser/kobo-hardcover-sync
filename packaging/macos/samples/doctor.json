@@ -4,7 +4,7 @@
   "summary": "1 problem: its line says what to do.",
   "problems": 1,
   "checks": [
-    {"group": "This computer", "what": "Trigger", "state": "ok", "found": "Plugging in the Kobo starts a sync in Kobo Hardcover Sync.app (its launch agent is loaded).", "todo": ""},
+    {"group": "This computer", "what": "Trigger", "state": "ok", "found": "Plugging in the Kobo starts a sync in Lastread.app (its launch agent is loaded).", "todo": ""},
     {"group": "This computer", "what": "Server", "state": "fail", "found": "kobo.example.org did not answer.", "todo": "Check that the server is running, and this Mac's network."}
   ]
 }

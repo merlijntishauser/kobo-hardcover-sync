@@ -53,14 +53,14 @@ proper prompt.
 - **A disk image** with the app and a link to Applications. The app and
   the disk image are both notarised and stapled, so the first start works
   offline as well.
-- **Name and identity.** `Kobo Hardcover Sync.app`, bundle id
+- **Name and identity.** `Lastread.app`, bundle id
   `org.gargleblaster.kobo-hardcover-sync.app`, launch agent
   `org.gargleblaster.kobo-hardcover-sync.app.agent`. Both differ from the
   AppleScript app's (`org.gargleblaster.kobo-hardcover-sync`), so the two
   never share a permission entry, and one can replace the other cleanly.
 - **The same folder and the same Keychain items** as a Homebrew install
   (`~/Library/Application Support/kobo-hardcover-sync`, Keychain service
-  `kobo-hardcover-sync`). Someone who moves from Homebrew to the app keeps
+  `lastread`). Someone who moves from Homebrew to the app keeps
   their books, their settings and their connection.
 - **One trigger per Mac.** Setting up the app removes the AppleScript app
   and its launch agent, if there are any. `setup` run from Homebrew on a
@@ -85,9 +85,9 @@ proper prompt.
 ## The bundle
 
 ```
-Kobo Hardcover Sync.app/Contents/
+Lastread.app/Contents/
   Info.plist
-  MacOS/Kobo Hardcover Sync              the wrapper (Swift)
+  MacOS/Lastread              the wrapper (Swift)
   Library/LaunchAgents/org.gargleblaster.kobo-hardcover-sync.app.agent.plist
   Resources/
     python/                              a standalone CPython, with the tool
@@ -234,7 +234,7 @@ started in three ways:
   after a plug-in sync, the app leaves them in the app group's folder
   (`Shelf.swift`: `shelf.json` and the two covers, written only when they
   changed) and has the widget drawn again. A click opens Covers at that
-  book (`kobo-hardcover-sync://book/<id>`). Covers are drawn in full
+  book (`lastread://book/<id>`). Covers are drawn in full
   colour also where the desktop tints widgets, which would otherwise
   make them flat grey blocks. *Remove…* empties the shelf.
   In server mode Books is the same, with the
@@ -286,7 +286,7 @@ started in three ways:
   update check).
 
 It runs the tool as `Resources/python/bin/python3 -I -m
-kobo_hardcover_sync ...`, with two variables:
+lastread ...`, with two variables:
 
 - `KHS_APP`: the path of the app. The tool then knows that the app owns
   the trigger, words its messages for someone without a terminal, and
@@ -333,7 +333,7 @@ check above never does.
   own signature (`SecCodeCopySelf`) is what the new one is held to; a
   preview or a build signed ad hoc has none, and says to update by hand.
 - **The link is built from the version**, which must read three numbers:
-  `releases/download/v<version>/Kobo-Hardcover-Sync-<version>.dmg`, the
+  `releases/download/v<version>/Lastread-<version>.dmg`, the
   name the release workflow gives it. Nothing from GitHub's answer is
   used but that version.
 - **The app on the disk image is checked twice**: on the image, and again
@@ -446,7 +446,7 @@ Drawn in the page's Galley Proof (`DESIGN.md`) by
   does not come along in a download.
 - **The disk's window** (`dmg-background.png` and its `@2x`) is the app's
   icon printed in non-repro blue, which stays behind Finder's icons and
-  names, under one sentence, *Drag Kobo Hardcover Sync onto Applications.*,
+  names, under one sentence, *Drag Lastread onto Applications.*,
   and the proofreader's move mark in blue pencil: a loop round the app and
   a line to Applications. The picture is the same in dark mode; Finder is
   said to keep the names black on a window with a picture (not yet seen

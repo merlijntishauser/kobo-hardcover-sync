@@ -3,8 +3,8 @@ list of all rules; each one there names the test that pins it."""
 
 import pytest
 
-from kobo_hardcover_sync.engine import hardcover, job, kobo_db, plan, state
-from kobo_hardcover_sync.engine.plan import action
+from lastread.engine import hardcover, job, kobo_db, plan, state
+from lastread.engine.plan import action
 from tests.test_core import MINE, OLD, UNTOUCHED, make_kobo
 from tests.test_hardcover import BLIND, OLD_ED, READING, FakeHC, row, run, sent, setup
 

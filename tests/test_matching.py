@@ -4,8 +4,8 @@ shapes that turned up on a real shelf."""
 
 import json
 
-from kobo_hardcover_sync.engine import hardcover
-from kobo_hardcover_sync.engine.hardcover import EXACT, PART, PREFIX, agreement, choose
+from lastread.engine import hardcover
+from lastread.engine.hardcover import EXACT, PART, PREFIX, agreement, choose
 from tests.test_hardcover import READING, FakeHC, row, run, setup
 
 

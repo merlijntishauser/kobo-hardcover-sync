@@ -16,12 +16,12 @@ here=$(cd "$(dirname "$0")" && pwd)
 work=$(mktemp -d)
 trap 'hdiutil detach "$work/m" >/dev/null 2>&1 || true; rm -rf "$work"' EXIT
 
-mkdir "$work/Kobo Hardcover Sync.app" # the positions go by name; an empty folder will do
+mkdir "$work/Lastread.app" # the positions go by name; an empty folder will do
 tiffutil -cathidpicheck "$here/dmg-background.png" "$here/dmg-background@2x.png" -out "$work/background.tiff" >/dev/null 2>&1
 cat >"$work/settings.py" <<EOF
-volume_name = "Kobo Hardcover Sync"
+volume_name = "Lastread"
 format = "UDRO"
-files = ["$work/Kobo Hardcover Sync.app"]
+files = ["$work/Lastread.app"]
 symlinks = {"Applications": "/Applications"}
 background = "$work/background.tiff"
 window_rect = ((200, 140), (640, 400))
@@ -29,9 +29,9 @@ default_view = "icon-view"
 show_status_bar = show_tab_view = show_toolbar = show_pathbar = show_sidebar = False
 icon_size = 128
 text_size = 13
-icon_locations = {"Kobo Hardcover Sync.app": (170, 190), "Applications": (470, 190)}
+icon_locations = {"Lastread.app": (170, 190), "Applications": (470, 190)}
 EOF
-uvx --from dmgbuild==1.6.7 dmgbuild -s "$work/settings.py" "Kobo Hardcover Sync" "$work/layout.dmg" >/dev/null
+uvx --from dmgbuild==1.6.7 dmgbuild -s "$work/settings.py" "Lastread" "$work/layout.dmg" >/dev/null
 hdiutil attach -nobrowse -readonly -mountpoint "$work/m" "$work/layout.dmg" >/dev/null
 cp "$work/m/.DS_Store" "$here/dmg.DS_Store"
 echo "Written: $here/dmg.DS_Store"

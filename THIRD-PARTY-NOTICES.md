@@ -1,6 +1,6 @@
 # Third-party notices
 
-kobo-hardcover-sync's own code, documentation and artwork (the icon
+lastread's own code, documentation and artwork (the icon
 included) are under the MIT licence: see [LICENSE](LICENSE). This file is
 about everything else: what is in this repository under another licence,
 what is installed next to it, and what it fetches while it runs.
@@ -11,7 +11,7 @@ what is installed next to it, and what it fetches while it runs.
 
 Both under the **SIL Open Font License 1.1**. The full licence text, with
 each font's copyright notice, is in the folder with the font files,
-`src/kobo_hardcover_sync/web/static/fonts/`.
+`src/lastread/web/static/fonts/`.
 
 | Font | Files | Copyright | Licence text |
 |---|---|---|---|

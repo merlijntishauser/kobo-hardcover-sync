@@ -1,7 +1,7 @@
 #!/bin/sh
-# Builds "Kobo Hardcover Sync.app" from a wheel of the tool (docs/macos-app.md):
+# Builds "Lastread.app" from a wheel of the tool (docs/macos-app.md):
 #
-#   packaging/macos/build.sh dist/kobo_hardcover_sync-0.11.0-py3-none-any.whl [folder]
+#   packaging/macos/build.sh dist/lastread-0.11.0-py3-none-any.whl [folder]
 #
 # The app lands in folder (build/macos by default), signed ad hoc so that it
 # runs on this Mac; sign.sh signs it with a Developer ID. Needs a Mac with
@@ -40,18 +40,18 @@ x86_64-unknown-linux-gnu) # only for KHS_PYTHON_ONLY
 	;;
 esac
 RELEASE=https://github.com/astral-sh/python-build-standalone/releases/download/$PYTHON_BUILD
-NAME="Kobo Hardcover Sync"
+NAME="Lastread"
 
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/../.." && pwd)
-wheel=${1:?"build.sh: give the wheel, e.g. dist/kobo_hardcover_sync-0.11.0-py3-none-any.whl"}
+wheel=${1:?"build.sh: give the wheel, e.g. dist/lastread-0.11.0-py3-none-any.whl"}
 case $wheel in /*) ;; *) wheel=$(pwd)/$wheel ;; esac
 out=${2:-$root/build/macos}
 mkdir -p "$out/cache"
 out=$(cd "$out" && pwd)
 
-# 0.11.0 from kobo_hardcover_sync-0.11.0-py3-none-any.whl; macOS wants three numbers.
-version=$(basename "$wheel" | sed -E 's/^kobo_hardcover_sync-([^-]+)-.*$/\1/')
+# 0.11.0 from lastread-0.11.0-py3-none-any.whl; macOS wants three numbers.
+version=$(basename "$wheel" | sed -E 's/^lastread-([^-]+)-.*$/\1/')
 short=$(printf '%s' "$version" | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*$/\1/')
 printf '%s' "$short" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || {
 	echo "build.sh: cannot read a version from $wheel" >&2
@@ -102,7 +102,7 @@ find "$resources/python/bin" ! -type d ! -name python3 ! -name "python${PYTHON%.
 # Bytecode for everything, now: nothing is written into the bundle while
 # it runs. Unchecked hashes, because a copied file's time means nothing.
 "$py" -I -m compileall -q -f -j 0 --invalidation-mode unchecked-hash "$resources/python/lib" >/dev/null
-"$py" -I -B -c "import kobo_hardcover_sync.cli, kobo_hardcover_sync.web.app, cryptography.fernet, yaml" # it is all there
+"$py" -I -B -c "import lastread.cli, lastread.web.app, cryptography.fernet, yaml" # it is all there
 
 # Licences: this tool's, Python's, and those of what Python is built with.
 cp "$root/LICENSE" "$root/THIRD-PARTY-NOTICES.md" "$resources/"
@@ -124,7 +124,7 @@ cp -R "$out/full/python/licenses" "$resources/python-licenses"
 
 # ---------- the wrapper, its agent and its icon ----------
 swiftc -O -swift-version 5 -target arm64-apple-macos13.0 -parse-as-library -o "$contents/MacOS/$NAME" \
-	"$here/KoboHardcoverSync.swift" "$here/Window.swift" "$here/Setup.swift" "$here/Paper.swift" "$here/Chain.swift" "$here/Books.swift" "$here/Covers.swift" \
+	"$here/Lastread.swift" "$here/Window.swift" "$here/Setup.swift" "$here/Paper.swift" "$here/Chain.swift" "$here/Books.swift" "$here/Covers.swift" \
 	"$here/Shelf.swift" "$here/Spotlight.swift" "$here/Hardcover.swift" "$here/Settings.swift" "$here/Model.swift" "$here/Update.swift" "$here/Help.swift"
 sed "s/__VERSION__/$short/g" "$here/Info.plist" >"$contents/Info.plist"
 if [ -n "${KHS_PREVIEW:-}" ]; then
@@ -151,9 +151,9 @@ if [ -n "${KHS_PREVIEW:-}" ]; then
 	plutil -replace CFBundleDisplayName -string "$NAME Preview" "$widget/Info.plist"
 fi
 plutil -lint "$widget/Info.plist" >/dev/null
-cp "$lib/site-packages/kobo_hardcover_sync/web/static/fonts/SourceSerif4-latin.woff2" \
-	"$lib/site-packages/kobo_hardcover_sync/web/static/fonts/SourceSerif4-latin-ext.woff2" \
-	"$lib/site-packages/kobo_hardcover_sync/web/static/fonts/SourceSerif4-LICENSE.txt" "$widget/Resources/fonts/"
+cp "$lib/site-packages/lastread/web/static/fonts/SourceSerif4-latin.woff2" \
+	"$lib/site-packages/lastread/web/static/fonts/SourceSerif4-latin-ext.woff2" \
+	"$lib/site-packages/lastread/web/static/fonts/SourceSerif4-LICENSE.txt" "$widget/Resources/fonts/"
 cp "$here/org.gargleblaster.kobo-hardcover-sync.app.agent.plist" "$contents/Library/LaunchAgents/"
 iconset="$out/AppIcon.iconset"
 rm -rf "$iconset"

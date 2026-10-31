@@ -10,4 +10,4 @@ USER 1000:1000
 # 0.0.0.0 inside the container; publish the port only where the sign-in
 # proxy can reach it, and set KHS_TRUSTED_PROXIES to the proxy's address:
 # without it the server does not start.
-CMD ["kobo-hardcover-sync", "serve", "--host", "0.0.0.0", "--port", "3012"]
+CMD ["lastread", "serve", "--host", "0.0.0.0", "--port", "3012"]

@@ -25,7 +25,7 @@ def test_the_download_goes_to_the_latest_release_and_the_page_says_who_it_is():
     assert "made-up shelf" in PAGE  # the proof is real, the shelf is not
     assert 'property="og:image" content="https://lastread.app/img/og.png"' in PAGE  # absolute: a link card needs it
     assert 'property="og:url" content="https://lastread.app/"' in PAGE  # the site's own address since 2026-10-31
-    assert "brew install merlijntishauser/tap/kobo-hardcover-sync" in PAGE
+    assert "brew install merlijntishauser/tap/lastread" in PAGE
 
 
 def test_the_page_loads_nothing_from_elsewhere():

@@ -105,7 +105,7 @@ struct SetupGalley: View {
         ProofSheet {
             choice("local", "On this computer", "This Mac reads the Kobo when you plug it in, and keeps your shelf on Hardcover in step itself.")
             SoftRule()
-            choice("server", "With a server", "Only if someone in your household runs one. This Mac sends what the Kobo knows to that Kobo Hardcover Sync server.")
+            choice("server", "With a server", "Only if someone in your household runs one. This Mac sends what the Kobo knows to that Lastread server.")
             if server {
                 TextField("The server's address", text: $address, prompt: Text("https://kobo.example.org"))
                     .textFieldStyle(.roundedBorder)

@@ -12,7 +12,7 @@ import textwrap
 
 import pytest
 
-from kobo_hardcover_sync.engine import collection
+from lastread.engine import collection
 from tests.kobo_fixture import BOOKS, SIDELOADED, make
 
 NAME = "On Hardcover"
@@ -217,7 +217,7 @@ def refused(db, state, match, **kw):
 def test_an_untested_database_version_is_refused_unless_asked_for(tmp_path):
     state = str(tmp_path / "state")
     db = altered(tmp_path, version=223)
-    ex = refused(db, state, "software has not been tested with kobo-hardcover-sync yet .its database is version 223")
+    ex = refused(db, state, "software has not been tested with lastread yet .its database is version 223")
     assert ex.version == 223 and "tested: 222, Kobo software 6.0.274403" in str(ex)
     assert "syncing to Hardcover is not affected" in str(ex) and str(ex).endswith(collection.UNTESTED_HOW)  # and what to do
     assert collection.status(db, NAME, state)["tested"] is False
@@ -305,7 +305,7 @@ def test_a_process_that_dies_in_the_middle_of_the_write_changes_nothing(kobo):
     before = everything(db)
     script = textwrap.dedent(f"""
         import os
-        from kobo_hardcover_sync.engine import collection
+        from lastread.engine import collection
         from tests.kobo_fixture import BOOKS
         collection._before_commit = lambda: os._exit(9)      # no rollback, no close: the process is simply gone
         collection.apply({db!r}, {NAME!r}, BOOKS[:6], {state!r})

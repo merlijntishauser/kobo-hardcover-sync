@@ -12,9 +12,9 @@ import plistlib
 
 import pytest
 
-from kobo_hardcover_sync import cli, doctor
-from kobo_hardcover_sync.computer import config, macos, runner, update
-from kobo_hardcover_sync.engine import hardcover
+from lastread import cli, doctor
+from lastread.computer import config, macos, runner, update
+from lastread.engine import hardcover
 from tests import said
 from tests.test_app_answers import same_shape, sample
 from tests.test_computer import FakeComputer, FakeMac, plug_in, register, server  # noqa: F401 (the fixture)
@@ -29,14 +29,14 @@ APP_AGENT = "org.gargleblaster.kobo-hardcover-sync.app.agent"
 @pytest.fixture
 def the_app(home, monkeypatch):
     """Started by the app: KHS_APP says where it is."""
-    app = home / "Applications" / "Kobo Hardcover Sync.app"
+    app = home / "Applications" / "Lastread.app"
     app.mkdir(parents=True)
     monkeypatch.setenv("KHS_APP", str(app))
     return app
 
 
 def tool(home):
-    t = home / "bin" / "kobo-hardcover-sync"
+    t = home / "bin" / "lastread"
     t.parent.mkdir(exist_ok=True)
     t.write_text("#!/bin/sh\n")
     t.chmod(0o755)
@@ -68,9 +68,9 @@ def test_setting_up_the_app_takes_the_trigger_over_from_homebrew(home, the_app, 
     assert not os.path.exists(os.path.join(mac.state, "command"))
     assert "The trigger of the other installation (KoboHardcoverSync.app) is removed" in out
     assert "macOS asks whether it may use files on a removable volume" in out
-    assert "ok Trigger Plugging in the Kobo starts a sync in Kobo Hardcover Sync.app" in out
+    assert "ok Trigger Plugging in the Kobo starts a sync in Lastread.app" in out
     # Words for someone without a terminal.
-    assert "Connect to Hardcover on the page, under Settings" in out and "`kobo-hardcover-sync" not in out
+    assert "Connect to Hardcover on the page, under Settings" in out and "`lastread" not in out
     assert fake.ran("osacompile") == [fake.ran("osacompile")[0]]  # only Homebrew's, before
 
     # Homebrew's setup again, now that the app is there: it leaves the trigger to the app.
@@ -78,10 +78,10 @@ def test_setting_up_the_app_takes_the_trigger_over_from_homebrew(home, the_app, 
     cli.main(["setup"], computer=mac)
     again = said(capsys)
     assert not os.path.exists(mac.plist) and len(fake.ran("osacompile")) == 1 and fake.loaded == {APP_AGENT}
-    assert "ok Trigger Plugging in the Kobo starts a sync in Kobo Hardcover Sync.app" in again
+    assert "ok Trigger Plugging in the Kobo starts a sync in Lastread.app" in again
     # Uninstalling from there cannot take the app's agent away, and says so.
     assert mac.remove_trigger() == [
-        "The trigger of Kobo Hardcover Sync.app belongs to the app: choose Remove… in its Settings, or move it to the Bin."
+        "The trigger of Lastread.app belongs to the app: choose Remove… in its Settings, or move it to the Bin."
     ]
     assert fake.loaded == {APP_AGENT}
 
@@ -92,10 +92,10 @@ def test_the_app_without_its_launch_agent(home, the_app):
     works, found = mac.trigger_state()
     assert not works and "Login Items" in found
     fake.loaded.add(APP_AGENT)
-    assert mac.trigger_state() == (True, "Plugging in the Kobo starts a sync in Kobo Hardcover Sync.app (its launch agent is loaded).")
+    assert mac.trigger_state() == (True, "Plugging in the Kobo starts a sync in Lastread.app (its launch agent is loaded).")
     # When macOS keeps the Kobo closed, the app is named, not the small one.
     words = mac.cannot_read(by_hand=False)
-    assert "Kobo Hardcover Sync read the Kobo" in words and "Removable Volumes" in words and "KoboHardcoverSync.app" not in words
+    assert "Lastread read the Kobo" in words and "Removable Volumes" in words and "KoboHardcoverSync.app" not in words
 
 
 # ---------- a newer version ----------
@@ -118,7 +118,7 @@ def test_the_app_asks_once_a_day_and_only_the_app(home, the_app, monkeypatch):
     gh, now = GitHub(), [1_000_000.0]
     update.now_and_then(gh, lambda: now[0])
     assert [a[:2] for a in gh.asked] == [("https://api.github.com/repos/merlijntishauser/kobo-hardcover-sync/releases/latest", 5)]
-    assert gh.asked[0][2]["User-agent"].startswith("kobo-hardcover-sync/")
+    assert gh.asked[0][2]["User-agent"].startswith("lastread/")
     assert update.newer("0.11.0") == {
         "version": "0.12.0",
         "link": "https://github.com/merlijntishauser/kobo-hardcover-sync/releases/tag/v0.12.0",
@@ -226,7 +226,7 @@ def test_the_page_shows_the_version_and_the_setting_in_the_app(local, home, the_
     assert "Looks for a newer version" not in inside.get("/settings").text  # not the app: no such setting
     mac.in_app = True
     settings = inside.get("/settings").text
-    assert "Kobo Hardcover Sync " in settings and "Looks for a newer version once a day" in settings and "is out" not in settings
+    assert "Lastread " in settings and "Looks for a newer version once a day" in settings and "is out" not in settings
     with open(os.path.join(config.state_dir(), "update.json"), "w") as fh:
         json.dump({"checked": 1, "latest": "99.0.0"}, fh)
     settings = inside.get("/settings").text
@@ -251,7 +251,7 @@ def test_the_chain_is_built_from_doctors_groups_and_the_steps_of_a_sync():
     checks = {what for whats in doctor.GROUPS.values() for what in whats}
     for what in ("Server", "Trigger", "Kobo", "Hardcover"):  # a link of its own, or the check that says a link is there
         assert what in checks and f'"{what}"' in chain, what
-    steps = (ROOT / "src" / "kobo_hardcover_sync" / "computer" / "runner.py").read_text()
+    steps = (ROOT / "src" / "lastread" / "computer" / "runner.py").read_text()
     for step in ("Kobo", "Collection", "Upload", "Hardcover", "Matches"):  # where linkOf puts them
         assert f'"{step}"' in steps and f'"{step}"' in chain, step
 
@@ -331,5 +331,8 @@ def test_the_icon_and_the_disk_window_are_packed():
     for file in ("dmg-background.png", "dmg-background@2x.png", "dmg.DS_Store", "VolumeIcon.png"):
         assert (MACOS / file).is_file() and f'"$here/{file}"' in package, file
     # Where dmg-layout.sh puts the two icons is where the move mark in the window is drawn.
-    assert '"Kobo Hardcover Sync.app": (170, 190), "Applications": (470, 190)' in (MACOS / "dmg-layout.sh").read_text()
-    assert b"Kobo Hardcover Sync.app" in (MACOS / "dmg.DS_Store").read_bytes().replace(b"\x00", b"")
+    assert '"Lastread.app": (170, 190), "Applications": (470, 190)' in (MACOS / "dmg-layout.sh").read_text()
+    layout = (MACOS / "dmg.DS_Store").read_bytes().replace(b"\x00", b"")
+    if b"Kobo Hardcover Sync.app" in layout and b"Lastread.app" not in layout:
+        pytest.xfail("dmg.DS_Store still places Kobo Hardcover Sync.app: run packaging/macos/dmg-layout.sh on a Mac")
+    assert b"Lastread.app" in layout

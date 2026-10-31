@@ -8,7 +8,7 @@ import urllib.error
 
 import pytest
 
-from kobo_hardcover_sync.engine import hardcover
+from lastread.engine import hardcover
 
 TOKEN = "hc_pat_made_up_for_the_tests"
 
@@ -71,9 +71,7 @@ def test_every_request_says_who_asks_and_never_waits_for_ever():
     line = Line(ME)
     assert line.client().whoami() == {"id": 7, "username": "sam"}
     h = {k.lower(): v for k, v in line.requests[0]["headers"].items()}
-    assert (
-        h["authorization"] == "Bearer " + TOKEN and h["user-agent"].startswith("kobo-hardcover-sync") and line.requests[0]["timeout"] == 30
-    )
+    assert h["authorization"] == "Bearer " + TOKEN and h["user-agent"].startswith("lastread") and line.requests[0]["timeout"] == 30
     assert hardcover.Client("Bearer  " + TOKEN + " ").token == "Bearer " + TOKEN
     with pytest.raises(hardcover.HardcoverError) as ex:
         hardcover.Client("  ")

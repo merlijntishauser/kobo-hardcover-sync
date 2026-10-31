@@ -1,8 +1,8 @@
 import os
 import time
 
-from kobo_hardcover_sync.engine import kobo_db, state
-from kobo_hardcover_sync.web import covers
+from lastread.engine import kobo_db, state
+from lastread.web import covers
 from tests.test_core import make_kobo
 from tests.test_web import client
 

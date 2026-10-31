@@ -38,7 +38,7 @@ jobs:
       - run: uv build --wheel --out-dir "$RUNNER_TEMP/dist"
       - run: packaging/macos/build.sh "$RUNNER_TEMP"/dist/*.whl build/macos
       - name: Kept as an archive, so that links and permissions survive
-        run: ditto -c -k --keepParent "build/macos/Kobo Hardcover Sync.app" app.zip
+        run: ditto -c -k --keepParent "build/macos/Lastread.app" app.zip
       - uses: actions/upload-artifact@v7
         with:
           name: macos-app
@@ -108,9 +108,9 @@ jobs:
           mkdir -p build/macos
           ditto -x -k app.zip build/macos
           (umask 077 && printf '%s' "$NOTARY_KEY_P8" | base64 --decode >"$RUNNER_TEMP/notary.p8")
-          packaging/macos/sign.sh "$IDENTITY" "build/macos/Kobo Hardcover Sync.app"
+          packaging/macos/sign.sh "$IDENTITY" "build/macos/Lastread.app"
           NOTARY_KEY="$RUNNER_TEMP/notary.p8" packaging/macos/package.sh \
-            "$IDENTITY" "build/macos/Kobo Hardcover Sync.app" "Kobo-Hardcover-Sync-${TAG#v}.dmg"
+            "$IDENTITY" "build/macos/Lastread.app" "Lastread-${TAG#v}.dmg"
       - name: The keychain and the key go
         if: always()
         run: |
@@ -119,13 +119,13 @@ jobs:
       # After the keychain is gone: the first run under the hardened runtime.
       - name: Signed, the tool in it answers
         run: |
-          app="$PWD/build/macos/Kobo Hardcover Sync.app"
+          app="$PWD/build/macos/Lastread.app"
           py="$app/Contents/Resources/python/bin/python3"
-          "$py" -I -B -m kobo_hardcover_sync --version
-          KHS_HOME="$RUNNER_TEMP/khs" KHS_APP="$app" "$py" -I -B -m kobo_hardcover_sync status
+          "$py" -I -B -m lastread --version
+          KHS_HOME="$RUNNER_TEMP/khs" KHS_APP="$app" "$py" -I -B -m lastread status
           "$py" -I -B -c "import cryptography.fernet as f; f.Fernet(f.Fernet.generate_key()).encrypt(b'x')"
           codesign --display --verbose=2 "$app" 2>&1 | grep -E "^(Authority|TeamIdentifier|Runtime)"
       - name: On the release
-        run: gh release upload "$TAG" "Kobo-Hardcover-Sync-${TAG#v}.dmg" --clobber --repo "$GITHUB_REPOSITORY"
+        run: gh release upload "$TAG" "Lastread-${TAG#v}.dmg" --clobber --repo "$GITHUB_REPOSITORY"
         env:
           GH_TOKEN: ${{ github.token }}

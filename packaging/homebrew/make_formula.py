@@ -2,7 +2,7 @@
 """Write the Homebrew formula for a release.
 
     python packaging/homebrew/make_formula.py --url URL --sha256 HEX
-    python packaging/homebrew/make_formula.py --sdist dist/kobo_hardcover_sync-0.1.0.tar.gz
+    python packaging/homebrew/make_formula.py --sdist dist/lastread-0.1.0.tar.gz
 
 The formula builds everything from source, the Homebrew way: the tool's own
 source package, and one `resource` for each Python package it needs, with
@@ -32,15 +32,15 @@ PYTHON = "python@3.13"  # the version the tests run on
 
 CAVEATS = """\
 To finish, run:
-  kobo-hardcover-sync setup
+  lastread setup
 It makes the trigger that syncs when the Kobo is plugged in, and says
 which permission to give (on a Mac: Full Disk Access, once; it stays
 through upgrades).
 
-Before `brew uninstall kobo-hardcover-sync`, run:
-  kobo-hardcover-sync uninstall
+Before `brew uninstall lastread`, run:
+  lastread uninstall
 or the trigger stays behind. Your books, settings and tokens are kept
-either way; `kobo-hardcover-sync uninstall --purge` removes them."""
+either way; `lastread uninstall --purge` removes them."""
 
 
 def resources(lock: dict) -> list[tuple[str, str, str]]:
@@ -48,7 +48,7 @@ def resources(lock: dict) -> list[tuple[str, str, str]]:
     needs when installed for use, from uv.lock, in alphabetical order."""
     packages = {p["name"]: p for p in lock["package"]}
     needed: dict[str, dict] = {}
-    todo = [d["name"] for d in packages["kobo-hardcover-sync"].get("dependencies", [])]
+    todo = [d["name"] for d in packages["lastread"].get("dependencies", [])]
     while todo:
         name = todo.pop()
         if name not in needed:
@@ -74,7 +74,7 @@ def formula(url: str, sha256: str, project: dict, lock: dict) -> str:
     return f'''\
 # Written by packaging/homebrew/make_formula.py from uv.lock. Do not edit by
 # hand: change the lock file and write it again.
-class KoboHardcoverSync < Formula
+class Lastread < Formula
   include Language::Python::Virtualenv
 
   desc "{description(project)}"
@@ -108,10 +108,10 @@ class KoboHardcoverSync < Formula
   end
 
   test do
-    assert_match "kobo-hardcover-sync", shell_output("#{{bin}}/kobo-hardcover-sync --version")
+    assert_match "lastread", shell_output("#{{bin}}/lastread --version")
     # A folder of its own: nothing is set up there, and it says so.
     ENV["KHS_HOME"] = testpath.to_s
-    assert_match(/not set up/i, shell_output("#{{bin}}/kobo-hardcover-sync status"))
+    assert_match(/not set up/i, shell_output("#{{bin}}/lastread status"))
   end
 end
 '''
@@ -120,7 +120,7 @@ end
 def version_line(version: str) -> str:
     """Homebrew reads the version from the file's name, and gets a plain
     release right (0.1.0). A development version it does not: for
-    kobo_hardcover_sync-0.1.0.dev0.tar.gz it found "0" (seen 2026-10-02).
+    lastread-0.1.0.dev0.tar.gz it found "0" (seen 2026-10-02).
     So such a version is written out; a plain one is left to Homebrew,
     whose audit objects to saying it twice."""
     return "" if re.fullmatch(r"\d+(\.\d+)*", version) else f'  version "{version}"\n'
@@ -148,7 +148,7 @@ def main(argv: list[str] | None = None) -> None:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
     # The version is the package's, as its file name has it. This checkout may be on the next one
     # already: the formula for a release is written after the release.
-    if named := re.search(r"kobo_hardcover_sync-(.+?)\.tar\.gz$", url):
+    if named := re.search(r"lastread-(.+?)\.tar\.gz$", url):
         project = {**project, "version": named.group(1)}
     lock = tomllib.loads((ROOT / "uv.lock").read_text())
     sys.stdout.write(formula(url, sha256, project, lock))

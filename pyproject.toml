@@ -1,5 +1,5 @@
 [project]
-name = "kobo-hardcover-sync"
+name = "lastread"
 version = "0.20.0.dev0"
 description = "Reading progress from a stock Kobo e-reader to Hardcover, on your own computer or your own server"
 dynamic = ["readme"]
@@ -38,7 +38,8 @@ Changelog = "https://github.com/merlijntishauser/kobo-hardcover-sync/blob/main/C
 Issues = "https://github.com/merlijntishauser/kobo-hardcover-sync/issues"
 
 [project.scripts]
-kobo-hardcover-sync = "kobo_hardcover_sync.cli:main"
+lastread = "lastread.cli:main"
+kobo-hardcover-sync = "lastread.cli:main"  # the name until 0.20: existing triggers and habits
 
 [dependency-groups]
 dev = ["pytest", "httpx", "ruff"]
@@ -70,7 +71,7 @@ pattern = '(?<!!)(\]\()(?!https?://|#)([^)]+\))'
 replacement = '\1https://github.com/merlijntishauser/kobo-hardcover-sync/blob/v$HFPR_VERSION/\2'
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/kobo_hardcover_sync"]
+packages = ["src/lastread"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src", "tests", "docs", "examples", "README.md", "CHANGELOG.md", "LICENSE", "THIRD-PARTY-NOTICES.md", "pyproject.toml"]

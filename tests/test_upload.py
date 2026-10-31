@@ -20,8 +20,8 @@ def setup(tmp_path, monkeypatch, max_mb=None):
     monkeypatch.setenv("KHS_CONFIG", str(cfg / "readers.yaml"))
     if max_mb is not None:
         monkeypatch.setenv("KHS_MAX_UPLOAD_MB", str(max_mb))
-    import kobo_hardcover_sync.server.upload as up
-    import kobo_hardcover_sync.web.app as web
+    import lastread.server.upload as up
+    import lastread.web.app as web
 
     importlib.reload(up)
     importlib.reload(web)
@@ -74,13 +74,13 @@ def test_upload_size_limit(tmp_path, monkeypatch):
 
 def test_collection_endpoint_lists_the_syncing_books(tmp_path, monkeypatch):
     c = setup(tmp_path, monkeypatch)
-    from kobo_hardcover_sync.engine import state
+    from lastread.engine import state
 
     put(c, body(tmp_path, [OLD, MINE]))
     st = state.connect(str(tmp_path / "state.db"))
     r = c.get("/collection", headers={"Authorization": f"Bearer {TOKEN}"})
     assert r.status_code == 204  # no kobo_collection configured
-    from kobo_hardcover_sync.server import accounts
+    from lastread.server import accounts
 
     accounts.set_collection(st, "alice", "Alice")
     assert c.get("/collection", headers={"Authorization": f"Bearer {TOKEN}"}).text == "Alice\n"  # nothing switched on
@@ -100,7 +100,7 @@ def test_an_upload_with_more_than_the_server_reads_is_refused(tmp_path, monkeypa
     make(str(whole), wal=False)  # content and Event, but also DbVersion, Shelf, ShelfContent
     r = put(c, gzip.compress(whole.read_bytes()))
     assert r.status_code == 422 and "more than the server reads (DbVersion, Shelf, ShelfContent)" in r.json()["error"]
-    assert "update kobo-hardcover-sync" in r.json()["error"]
+    assert "update lastread" in r.json()["error"]
     one = tmp_path / "one.sqlite"
     make_kobo(one, [OLD], [])
     con = sqlite3.connect(one)

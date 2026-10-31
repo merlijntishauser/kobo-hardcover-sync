@@ -5,7 +5,7 @@ Read from the stylesheet, so a changed token is checked without a browser."""
 import pathlib
 import re
 
-CSS = (pathlib.Path(__file__).resolve().parents[1] / "src" / "kobo_hardcover_sync" / "web" / "static" / "kobo.css").read_text()
+CSS = (pathlib.Path(__file__).resolve().parents[1] / "src" / "lastread" / "web" / "static" / "kobo.css").read_text()
 
 
 def tokens(block: str) -> dict:

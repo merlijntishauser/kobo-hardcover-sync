@@ -11,7 +11,7 @@ This is local mode only: the computer the Kobo is plugged into sends it.
 ## Set up
 
 ```
-kobo-hardcover-sync webhook https://tracker.example.org/api/kobo --token
+lastread webhook https://tracker.example.org/api/kobo --token
 ```
 
 `--token` asks for a token, which is sent as `Authorization: Bearer
@@ -24,10 +24,10 @@ found at once.
 
 | | |
 |---|---|
-| `kobo-hardcover-sync webhook` | Where it goes now, and whether with a token. |
-| `kobo-hardcover-sync webhook --test` | Send a test now. |
-| `kobo-hardcover-sync webhook --token` | Give the same address a new token. |
-| `kobo-hardcover-sync webhook --remove` | Stop, and forget the address and the token. |
+| `lastread webhook` | Where it goes now, and whether with a token. |
+| `lastread webhook --test` | Send a test now. |
+| `lastread webhook --token` | Give the same address a new token. |
+| `lastread webhook --remove` | Stop, and forget the address and the token. |
 
 The rules it keeps:
 
@@ -53,7 +53,7 @@ The rules it keeps:
 {
   "event": "sync",
   "format": 1,
-  "tool": "kobo-hardcover-sync 0.9.0",
+  "tool": "lastread 0.9.0",
   "made": "2026-10-06T08:15:02Z",
   "reader": "me",
   "device": "kobo-3f9a1c2b",
@@ -108,11 +108,11 @@ date the tool first saw the book being read; the Kobo keeps no start date
 of its own. On a Kobo account shared with others, their books can change
 too: `opened_on_this_kobo` is `false` for those.
 
-`kobo-hardcover-sync export` gives the same per-book fields for the whole
+`lastread export` gives the same per-book fields for the whole
 shelf, when your side wants to start from everything.
 
 ## On your side
 
 Anything that takes a POST with JSON will do. Answer with a 2xx status;
 the body of the answer is not read. The request carries
-`User-Agent: kobo-hardcover-sync/<version>`.
+`User-Agent: lastread/<version>`.

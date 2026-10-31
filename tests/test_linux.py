@@ -13,9 +13,9 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from kobo_hardcover_sync import cli
-from kobo_hardcover_sync.computer import config, linux, page, platform
-from kobo_hardcover_sync.computer.platform import HARDCOVER, UPLOAD
+from lastread import cli
+from lastread.computer import config, linux, page, platform
+from lastread.computer.platform import HARDCOVER, UPLOAD
 from tests import said
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import plug_in
@@ -41,7 +41,7 @@ class Desk:
         self.calls.append((args, input))
         rc, out, err = 0, "", ""
         if args[0] == "secret-tool":
-            key = tuple(a for a in args[2:] if a not in ("--label",) and not a.startswith("Kobo Hardcover Sync"))
+            key = tuple(a for a in args[2:] if a not in ("--label",) and not a.startswith("Lastread"))
             if not self.keyring_works:
                 rc, err = 1, "secret-tool: Cannot autolaunch D-Bus without X11 $DISPLAY"
             elif args[1] == "store":
@@ -137,30 +137,27 @@ def test_the_trigger_is_a_user_service_the_kobos_mount_wants(home, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(home / "cfg"))
     pc, desk = desk_computer(home, tools=("systemctl",))
     assert pc.mount_units() == ["run-media-sam-KOBOeReader.mount", "media-sam-KOBOeReader.mount"]
-    said = pc.install_trigger("/home/sam/.local/bin/kobo-hardcover-sync")
-    unit = (home / "cfg" / "systemd" / "user" / "kobo-hardcover-sync.service").read_text()
-    assert 'ExecStart="/home/sam/.local/bin/kobo-hardcover-sync" sync --trigger mount' in unit and "Type=oneshot" in unit
+    said = pc.install_trigger("/home/sam/.local/bin/lastread")
+    unit = (home / "cfg" / "systemd" / "user" / "lastread.service").read_text()
+    assert 'ExecStart="/home/sam/.local/bin/lastread" sync --trigger mount' in unit and "Type=oneshot" in unit
     assert "WantedBy=run-media-sam-KOBOeReader.mount media-sam-KOBOeReader.mount" in unit and "Environment" not in unit
-    assert desk.ran("systemctl") == [["systemctl", "--user", "daemon-reload"], ["systemctl", "--user", "disable", "kobo-hardcover-sync.service"],
-                                     ["systemctl", "--user", "enable", "kobo-hardcover-sync.service"]]  # fmt: skip
+    assert desk.ran("systemctl") == [["systemctl", "--user", "daemon-reload"], ["systemctl", "--user", "disable", "lastread.service"],
+                                     ["systemctl", "--user", "enable", "lastread.service"]]  # fmt: skip
     assert "no administrator rights" in said[0] and all("sudo" not in " ".join(a) for a, _ in desk.calls)
     # A user name systemd has to escape, and a state folder that is not the default one.
     monkeypatch.setenv("KHS_HOME", "/srv/khs state")
     odd = linux.Linux(run=desk, which=desk.which, home=str(home), user="stim-py")
-    odd.install_trigger("/usr/bin/kobo-hardcover-sync")
-    unit = (home / "cfg" / "systemd" / "user" / "kobo-hardcover-sync.service").read_text()
+    odd.install_trigger("/usr/bin/lastread")
+    unit = (home / "cfg" / "systemd" / "user" / "lastread.service").read_text()
     assert "WantedBy=run-media-stim\\x2dpy-KOBOeReader.mount media-stim\\x2dpy-KOBOeReader.mount" in unit
     assert 'Environment="KHS_HOME=/srv/khs state"' in unit
-    assert (
-        pc.remove_trigger() == ["User service removed."]
-        and not (home / "cfg" / "systemd" / "user" / "kobo-hardcover-sync.service").exists()
-    )
+    assert pc.remove_trigger() == ["User service removed."] and not (home / "cfg" / "systemd" / "user" / "lastread.service").exists()
     # No user session to enable it in (ssh without lingering, a container): it says so, and what to do.
     headless, _ = desk_computer(home, tools=("systemctl",), systemd_works=False)
-    said = headless.install_trigger("/usr/bin/kobo-hardcover-sync")
+    said = headless.install_trigger("/usr/bin/lastread")
     assert "could not be enabled" in said[0] and "no medium found" in said[0] and "by hand" in said[1]
     bare, _ = desk_computer(home)
-    assert "No systemd here" in bare.install_trigger("/usr/bin/kobo-hardcover-sync")[0]
+    assert "No systemd here" in bare.install_trigger("/usr/bin/lastread")[0]
 
 
 def test_whether_plugging_in_starts_a_sync(home, monkeypatch):
@@ -168,15 +165,13 @@ def test_whether_plugging_in_starts_a_sync(home, monkeypatch):
     pc, desk = desk_computer(home, tools=("systemctl",))
     works, said = pc.trigger_state()
     assert not works and said.startswith("No trigger on this computer: plugging in the Kobo does nothing by itself.")
-    tool = home / "kobo-hardcover-sync"
+    tool = home / "lastread"
     tool.write_text("#!/bin/sh\n")
     tool.chmod(0o755)
     pc.install_trigger(str(tool))
     calls = len(desk.calls)
     assert pc.trigger_state() == (True, f"Plugging in the Kobo starts a sync (user service enabled; it runs {tool}).")
-    assert [a for a, _ in desk.calls[calls:]] == [
-        ["systemctl", "--user", "is-enabled", "kobo-hardcover-sync.service"]
-    ]  # asked, nothing changed
+    assert [a for a, _ in desk.calls[calls:]] == [["systemctl", "--user", "is-enabled", "lastread.service"]]  # asked, nothing changed
     bare = linux.Linux(run=desk, which=lambda name: None, home=str(home), user="sam")
     assert bare.trigger_state()[1].startswith("The user service is written but not enabled")
     tool.unlink()

@@ -15,11 +15,11 @@ import time
 import httpx
 import pytest
 
-from kobo_hardcover_sync import cli
-from kobo_hardcover_sync.computer import config, macos, page, runner
-from kobo_hardcover_sync.computer.platform import HARDCOVER, UPLOAD
-from kobo_hardcover_sync.engine import hardcover, job, kobo_db, state
-from kobo_hardcover_sync.server import accounts
+from lastread import cli
+from lastread.computer import config, macos, page, runner
+from lastread.computer.platform import HARDCOVER, UPLOAD
+from lastread.engine import hardcover, job, kobo_db, state
+from lastread.server import accounts
 from tests import client_at, said
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer, FakeMac, members, plug_in
@@ -125,7 +125,7 @@ def test_plug_in_dry_run_live_collection_and_then_nothing(home):
 
 
 def test_a_book_marked_read_gets_a_notification_of_its_own_with_its_cover(home, monkeypatch, capsys):
-    from kobo_hardcover_sync.web import covers
+    from lastread.web import covers
 
     kobo(home)
     mac = FakeComputer(home / "Volumes")
@@ -193,7 +193,7 @@ def test_without_a_kobo_only_the_hardcover_half_runs(home):
     assert out.message == "1 sent to Hardcover." and len(hc.books) == 1
     clicked = runner.sync(mac, LOCAL, hardcover_client=hc, trigger="app")  # Sync now in the Mac app: an answer all the same
     assert (clicked.ok, clicked.message) == (True, "No Kobo plugged in, and nothing else to do.")
-    assert runner.sync(mac, config.Config()).message == "Not set up yet: run `kobo-hardcover-sync setup`."
+    assert runner.sync(mac, config.Config()).message == "Not set up yet: run `lastread setup`."
 
 
 def test_a_kobo_unplugged_halfway(home, monkeypatch):
@@ -261,7 +261,7 @@ def local(home, monkeypatch):
     monkeypatch.delenv("KHS_TRUSTED_PROXIES")
     os.makedirs(home / "state")
     config.save(config.Config())
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     importlib.reload(web)
     mac = FakeComputer(home / "Volumes")
@@ -283,7 +283,7 @@ def test_the_page_wants_the_key_from_open(local):
     stranger = visitor(web)  # another program on this computer: it can reach the port, and nothing more
     for path in ("/", "/settings", "/static/kobo.css", "/cover/x"):
         r = stranger.get(path)
-        assert (r.status_code, "kobo-hardcover-sync open" in r.text) == (403, True), path
+        assert (r.status_code, "lastread open" in r.text) == (403, True), path
     assert stranger.get("/?k=guessed").status_code == 403
     assert stranger.get("/healthz").text == "ok"
 
@@ -403,7 +403,7 @@ def test_the_check_card_in_local_mode_looks_at_the_kobo_too(local, monkeypatch):
         "<b>Database</b> The Kobo&#x27;s database can be read: 9 books on it.",
         "<b>Kobo software</b> Database version 222 is one this tool was tested with (Kobo software 6.0.274403).",
         "<b>Trigger</b> No trigger on this computer.",
-        "run <code>kobo-hardcover-sync sync</code> with the Kobo plugged in",
+        "run <code>lastread sync</code> with the Kobo plugged in",
     ):
         assert line in r.text, line
     assert inside.post("/settings/check").status_code == 403  # not without the page's own Origin
@@ -453,10 +453,10 @@ def test_local_mode_cannot_be_started_half_open(home, monkeypatch):
     monkeypatch.setenv("KHS_MODE", "local")
     monkeypatch.setenv("KHS_DATA", str(home / "state"))
     monkeypatch.delenv("KHS_PAGE_PORT", raising=False)
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     importlib.reload(web)
-    with pytest.raises(RuntimeError, match="kobo-hardcover-sync open"), client_at(web.app):
+    with pytest.raises(RuntimeError, match="lastread open"), client_at(web.app):
         pass
     accounts.token_store = None
     # And the server mode of the same code is untouched by all this.
@@ -472,9 +472,7 @@ def test_the_real_page_process(home):
     env.pop("KHS_TRUSTED_PROXIES", None)
     os.makedirs(home / "state")
     config.save(config.Config())
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "kobo_hardcover_sync", "page"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE
-    )
+    proc = subprocess.Popen([sys.executable, "-m", "lastread", "page"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     try:
         info = None
         for _ in range(150):
@@ -491,7 +489,7 @@ def test_the_real_page_process(home):
         assert httpx.get(url + "/healthz").text == "ok" and httpx.get(url + "/").status_code == 403
         with httpx.Client(follow_redirects=True) as browser:
             r = browser.get(f"{url}/?k={page.new_key()}")
-            assert r.status_code == 200 and "Kobo Hardcover Sync" in r.text and str(r.url) == url + "/"
+            assert r.status_code == 200 and "Lastread" in r.text and str(r.url) == url + "/"
             assert browser.get(url + "/static/kobo.css").status_code == 200
     finally:
         proc.terminate()
@@ -503,9 +501,7 @@ def test_the_page_stops_by_itself_when_nobody_uses_it(home):
     env = {**os.environ, "KHS_HOME": str(home / "state"), "KHS_PAGE_IDLE_SECONDS": "1"}
     os.makedirs(home / "state")
     config.save(config.Config())
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "kobo_hardcover_sync", "page"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-    )
+    proc = subprocess.Popen([sys.executable, "-m", "lastread", "page"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         for _ in range(150):
             if page.running():
@@ -545,7 +541,7 @@ def test_setup_token_status_open_in_local_mode(home, monkeypatch, capsys):
     cli.main(["setup"], computer=mac)  # no server anywhere: local mode
     out = said(capsys)
     assert "ok Mode Local mode: everything happens on this computer." in out and mac.triggers and UPLOAD not in mac.secrets
-    assert "ok Trigger Plugging in the Kobo starts a sync." in out and "Next 1. `kobo-hardcover-sync token` connects to Hardcover." in out
+    assert "ok Trigger Plugging in the Kobo starts a sync." in out and "Next 1. `lastread token` connects to Hardcover." in out
     assert config.load().mode == "local"
 
     class Stub(FakeHC):
@@ -611,7 +607,7 @@ def test_setup_in_local_mode_on_a_mac_makes_no_upload_token(home, capsys):
     assert fake.keychain == {} and len(fake.ran("osacompile")) == 1 and "Local mode" in capsys.readouterr().out
     assert os.path.exists(home / "Library/LaunchAgents/org.gargleblaster.kobo-hardcover-sync.agent.plist")
     mac.set_secret(HARDCOVER, TOKEN)  # a Hardcover token is made of characters the Keychain helper takes
-    assert fake.keychain == {("kobo-hardcover-sync", "hardcover"): TOKEN}
+    assert fake.keychain == {("kobo-hardcover-sync", "hardcover"): TOKEN}  # the keychain item keeps its name
 
 
 def test_the_state_database_never_holds_the_token(home):

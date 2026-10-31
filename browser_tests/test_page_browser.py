@@ -86,7 +86,7 @@ def pretend_hardcover():
 def base_url(tmp_path_factory, pretend_hardcover):
     d = tmp_path_factory.mktemp("kobo")
     (d / "readers.yaml").write_text("readers:\n  sam:\n    identities: [sam]\n")
-    from kobo_hardcover_sync.engine import state
+    from lastread.engine import state
 
     st = state.connect(str(d / "state.db"))
     st.execute(
@@ -124,7 +124,7 @@ def base_url(tmp_path_factory, pretend_hardcover):
         HARDCOVER_API=pretend_hardcover + "/graphql",
     )
     proc = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "kobo_hardcover_sync.web.app:app", "--host", "127.0.0.1", "--port", str(port)],
+        [sys.executable, "-m", "uvicorn", "lastread.web.app:app", "--host", "127.0.0.1", "--port", str(port)],
         env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -340,7 +340,7 @@ def test_help_dialog(browser, base_url):
     page.click("button.helpbtn")
     box = page.locator("#help")
     box.wait_for(state="visible")
-    assert "How Kobo Hardcover Sync works" in box.inner_text() and "Circled question mark" in box.inner_text()
+    assert "How Lastread works" in box.inner_text() and "Circled question mark" in box.inner_text()
     shot(page, "kobo-help.png")
     page.keyboard.press("Escape")
     box.wait_for(state="hidden")
@@ -432,7 +432,7 @@ def test_the_check_card_says_what_it_found_and_fits_a_phone(browser, base_url):
     assert page.url == base_url + "/settings/check#check"
     assert page.evaluate("document.querySelector('#check').getBoundingClientRect().top") < 300  # the page lands on the card
     found = page.inner_text(".checks")
-    assert "Not connected to Hardcover yet" in found and "kobo-hardcover-sync doctor" in found
+    assert "Not connected to Hardcover yet" in found and "lastread doctor" in found
     assert page.inner_text("#check button") == "Check again" and page.locator("#check [role=status]").count() == 1
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
     page.screenshot(path=os.path.join(OUT, "kobo-check-phone-dark.png"), full_page=True) if OUT else None
@@ -464,7 +464,7 @@ def test_the_check_card_says_what_it_found_and_fits_a_phone(browser, base_url):
 
 def test_a_new_login_signs_up_and_sees_what_to_do(browser, base_url):
     ctx, page = new_page(browser, base_url, user="kim")
-    assert "Welcome to Kobo Hardcover Sync" in page.inner_text("main") and page.locator(".nav").count() == 0
+    assert "Welcome to Lastread" in page.inner_text("main") and page.locator(".nav").count() == 0
     shot(page, "kobo-signup.png")
     page.click("form[action='/signup'] button")
     page.wait_for_url("**/#start")  # on to Getting started, above the books
@@ -730,9 +730,9 @@ def test_on_your_own_computer_connecting_goes_through_the_browser_and_comes_back
     threading.Thread(target=server.serve_forever, daemon=True).start()
     hc = f"http://127.0.0.1:{server.server_address[1]}"
     monkeypatch.setenv("KHS_HOME", str(tmp_path))
-    from kobo_hardcover_sync.computer import config, page
-    from kobo_hardcover_sync.engine import state
-    from kobo_hardcover_sync.server import accounts
+    from lastread.computer import config, page
+    from lastread.engine import state
+    from lastread.server import accounts
 
     con = state.connect(str(tmp_path / "state.db"))
     accounts.local_reader(con, "anna")
@@ -746,9 +746,7 @@ def test_on_your_own_computer_connecting_goes_through_the_browser_and_comes_back
         HARDCOVER_OAUTH_TOKEN=hc + "/token",
         HARDCOVER_API=hc + "/graphql",
     )
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "kobo_hardcover_sync", "page"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-    )
+    proc = subprocess.Popen([sys.executable, "-m", "lastread", "page"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         for _ in range(150):
             if page.running():
@@ -771,7 +769,7 @@ def long_url(tmp_path_factory):
     """A shelf of 130 books: more than the 100 the list shows at first."""
     d = tmp_path_factory.mktemp("long")
     (d / "readers.yaml").write_text("readers:\n  sam:\n    identities: [sam]\n")
-    from kobo_hardcover_sync.engine import state
+    from lastread.engine import state
 
     st = state.connect(str(d / "state.db"))
     for i in range(130):
@@ -797,7 +795,7 @@ def long_url(tmp_path_factory):
         KHS_INTERVAL="0",
     )
     proc = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "kobo_hardcover_sync.web.app:app", "--host", "127.0.0.1", "--port", str(port)],
+        [sys.executable, "-m", "uvicorn", "lastread.web.app:app", "--host", "127.0.0.1", "--port", str(port)],
         env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,

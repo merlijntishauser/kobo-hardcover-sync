@@ -12,9 +12,9 @@ import urllib.error
 import pytest
 from cryptography.fernet import Fernet
 
-from kobo_hardcover_sync import doctor
-from kobo_hardcover_sync.engine import hardcover, kobo_db, state
-from kobo_hardcover_sync.server import accounts
+from lastread import doctor
+from lastread.engine import hardcover, kobo_db, state
+from lastread.server import accounts
 from tests import ELSEWHERE, client_at
 from tests.test_core import MINE, OLD, make_kobo
 
@@ -44,7 +44,7 @@ def client(tmp_path, monkeypatch, key=True, env_token=""):
         monkeypatch.setenv("HARDCOVER_TOKEN_ROBIN", env_token)
     else:
         monkeypatch.delenv("HARDCOVER_TOKEN_ROBIN", raising=False)
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     importlib.reload(web)
     k = tmp_path / "k.sqlite"
@@ -79,11 +79,11 @@ def test_yaml_is_taken_over_once_and_first_reader_is_admin(tmp_path, monkeypatch
     assert [d["device"] for d in accounts.devices(st, "robin")] == ["kobo-robin"]
     # The files are not read again: a later edit changes nothing.
     (tmp_path / "readers.yaml").write_text("readers:\n  intruder:\n    admin: true\n    identities: [intruder]\n")
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     importlib.reload(web)
     c = client_at(web.app)
-    assert "Welcome to Kobo Hardcover Sync" in c.get("/", headers={"Remote-User": "intruder"}).text
+    assert "Welcome to Lastread" in c.get("/", headers={"Remote-User": "intruder"}).text
     assert accounts.get(st, "intruder") is None
 
 
@@ -106,7 +106,7 @@ def test_header_shows_who_is_signed_in_and_admin_link_only_for_admins(tmp_path, 
 def test_sign_up_creates_a_reader_in_dry_run(tmp_path, monkeypatch):
     c, st = client(tmp_path, monkeypatch)
     r = c.get("/", headers=ANNA)
-    assert r.status_code == 200 and "Welcome to Kobo Hardcover Sync" in r.text and "signed in as Anna" in r.text
+    assert r.status_code == 200 and "Welcome to Lastread" in r.text and "signed in as Anna" in r.text
     assert "Old Finished" not in r.text and accounts.get(st, "anna") is None  # looking creates nothing
     assert c.post("/signup", headers={**ANNA, "Origin": "https://evil.example"}).status_code == 403
     r = c.post("/signup", headers=ANNA, follow_redirects=False)
@@ -248,8 +248,8 @@ def test_the_check_card_on_the_server(tmp_path, monkeypatch):
     assert "<b>Hardcover</b> Not connected to Hardcover yet, so nothing is sent to it." in r.text
     assert "To do: Add one under Hardcover, above." in r.text
     assert "<b>Computers</b> No computer uploads your Kobo yet." in r.text
-    assert "Run <code>kobo-hardcover-sync setup --server &lt;this address&gt;</code> on the computer" in r.text
-    assert "run <code>kobo-hardcover-sync doctor</code> there" in r.text  # the Kobo's half is on the computer
+    assert "Run <code>lastread setup --server &lt;this address&gt;</code> on the computer" in r.text
+    assert "run <code>lastread doctor</code> there" in r.text  # the Kobo's half is on the computer
     assert '<span class="sr">warning: </span>' in r.text and "1 warning: its line says what to do." in r.text
     assert Hardcover.seen == []
 
@@ -312,8 +312,8 @@ def test_env_token_moves_into_the_database_once(tmp_path, monkeypatch):
 
 
 def test_admin_says_the_servers_version_and_which_version_uploaded_last(tmp_path, monkeypatch):
-    from kobo_hardcover_sync import __version__
-    from kobo_hardcover_sync.computer import remote
+    from lastread import __version__
+    from lastread.computer import remote
 
     c, st = client(tmp_path, monkeypatch)
     c.post("/signup", headers=ANNA)
@@ -329,11 +329,11 @@ def test_admin_says_the_servers_version_and_which_version_uploaded_last(tmp_path
         h = {"Authorization": "Bearer anna-token", "Content-Type": "application/gzip", "User-Agent": agent}
         assert c.put("/upload", content=body, headers=h).status_code == 200
 
-    upload("kobo-hardcover-sync")  # a computer from before 0.7.1 says no version
+    upload("lastread")  # a computer from before 0.7.1 says no version
     assert "Last upload from a version before 0.7.1, which does not say its version" in c.get("/admin", headers=ROBIN).text
-    upload("kobo-hardcover-sync/0.7.9")
+    upload("lastread/0.7.9")
     assert f"Last upload from version 0.7.9; this server runs {__version__}" in c.get("/admin", headers=ROBIN).text
-    upload(f"kobo-hardcover-sync/{__version__}")
+    upload(f"lastread/{__version__}")
     assert f"Last upload from version {__version__}, the same as this server" in c.get("/admin", headers=ROBIN).text
     # And a computer of this version does say it.
     seen = []
@@ -344,7 +344,7 @@ def test_admin_says_the_servers_version_and_which_version_uploaded_last(tmp_path
 
     with pytest.raises(remote.ServerError):
         remote.Server("https://kobo.example.org", "t", opener=network).upload(str(k))
-    assert seen == [f"kobo-hardcover-sync/{__version__}"]
+    assert seen == [f"lastread/{__version__}"]
 
 
 def test_admin_page_is_for_admins_and_shows_counts_only(tmp_path, monkeypatch):
@@ -406,7 +406,7 @@ def test_removing_a_reader_deletes_their_data_only(tmp_path, monkeypatch):
     assert not os.path.exists(tmp_path / "snapshots" / "anna")
     assert con.execute("select count(*) from book where reader='robin'").fetchone()[0] == 2
     assert c.put("/upload", content=b"x", headers={"Authorization": "Bearer anna-token"}).status_code == 401
-    assert "Welcome to Kobo Hardcover Sync" in c.get("/", headers=ANNA).text  # she can start again, empty
+    assert "Welcome to Lastread" in c.get("/", headers=ANNA).text  # she can start again, empty
 
 
 def test_stats_and_collection_follow_the_reader_table(tmp_path, monkeypatch):
@@ -470,7 +470,7 @@ def test_each_reader_downloads_their_own_reading_and_nobody_else_does(tmp_path, 
     c.post("/signup", headers={**ANNA, **ORIGIN})
     assert c.get("/settings/export", headers=ANNA).json()["books"] == []  # her own, still empty
     assert c.get("/settings/export", headers={"Remote-User": "stranger"}).status_code == 403
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     around = client_at(web.app, ELSEWHERE).get("/settings/export", headers=ROBIN)  # past the proxy: the header is not believed
     assert around.status_code == 403 and "mine" not in around.text

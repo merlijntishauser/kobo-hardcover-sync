@@ -25,7 +25,7 @@ case. There is no default winner.
 
 ## Product Purpose
 
-kobo-hardcover-sync reads what a Kobo e-reader knows about your reading
+lastread reads what a Kobo e-reader knows about your reading
 (which books, how far, finished when) from the device's own database when
 the Kobo is plugged in, and keeps your shelf on Hardcover (hardcover.app)
 in step with it: status, progress and dates. It also keeps reading minutes
@@ -68,7 +68,7 @@ Supporting, true and worth showing, but not what sets it apart:
 - **The page is opened for a reason:** the first run (choosing which of
   hundreds of already-read books sync), a book that needs a match, a wrong
   finish date, an error, a setting.
-- **Local mode:** the page is started on request (`kobo-hardcover-sync
+- **Local mode:** the page is started on request (`lastread
   open`) on the computer's own loopback address and stops when unused.
   Setup is done in a terminal.
 - **Server mode:** the page is always there, behind the household's
@@ -113,7 +113,7 @@ Supporting, true and worth showing, but not what sets it apart:
 
 ## Brand Commitments
 
-- The name is **kobo-hardcover-sync**; on the page it reads *Kobo
+- The name is **lastread**; on the page it reads *Kobo
   Hardcover Sync*.
 - Independent: not affiliated with, endorsed by or sponsored by Rakuten
   Kobo or Hardcover. That sentence stays wherever the project introduces

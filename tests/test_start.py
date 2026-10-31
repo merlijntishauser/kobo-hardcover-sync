@@ -1,6 +1,6 @@
 """Getting started and Needs you (start.py): the steps the page and the Mac app both show."""
 
-from kobo_hardcover_sync import start
+from lastread import start
 
 
 def states(found):

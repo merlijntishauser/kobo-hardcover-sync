@@ -12,9 +12,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from kobo_hardcover_sync import cli
-from kobo_hardcover_sync.computer import config, runner, webhook
-from kobo_hardcover_sync.computer.platform import WEBHOOK
+from lastread import cli
+from lastread.computer import config, runner, webhook
+from lastread.computer.platform import WEBHOOK
 from tests import said
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer
@@ -100,7 +100,7 @@ def test_set_up_tested_then_every_sync_that_reads_the_kobo(home, api, monkeypatc
     assert "ok Test 127.0.0.1 answered 200" in said(capsys)
     path, headers, test = api.got[0]
     assert path == "/kobo" and headers["Authorization"] == f"Bearer {HOOK_TOKEN}" and headers["Content-Type"] == "application/json"
-    assert headers["User-Agent"].startswith("kobo-hardcover-sync/")
+    assert headers["User-Agent"].startswith("lastread/")
     assert (test["event"], test["format"], test["first_sync"], test["changed"]) == ("test", 1, False, [])
     assert config.load().webhook_url == api.url + "/kobo" and mac.secrets[WEBHOOK] == HOOK_TOKEN
     assert HOOK_TOKEN not in open(config.load().path).read()

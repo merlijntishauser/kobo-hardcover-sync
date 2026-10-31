@@ -1,5 +1,5 @@
 ---
-name: Kobo Hardcover Sync
+name: Lastread
 description: A galley proof of your Hardcover shelf, with what the next sync changes marked in the margin, by day and at night.
 colors:
   ground: "#edefea"
@@ -451,7 +451,7 @@ components:
     width: "100%"
 ---
 
-# Design System: Kobo Hardcover Sync
+# Design System: Lastread
 
 ## Overview
 
@@ -567,7 +567,7 @@ the quiet card, the download card and the sheet swap with the light.
 ### Named Rules
 **The Two Pencils Rule.** Red fills only *Sync now* and *Go live*, and
 marks only what a sync sends. Every other filled button is an ink fill
-(*Start using Kobo Hardcover Sync*, *Connect to Hardcover*, *I have approved it*, *Use*, a
+(*Start using Lastread*, *Connect to Hardcover*, *I have approved it*, *Use*, a
 confirmation, *Check and save*). Blue is only for the reader's own choice
 or a question for them; a label that states a fact (*New*, *Admin*) is
 grey. A removing action is ink, never red. The site has no red fill at

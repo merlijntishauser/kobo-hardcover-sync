@@ -18,10 +18,10 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from kobo_hardcover_sync import cli, doctor
-from kobo_hardcover_sync.computer import config, macos, remote, runner
-from kobo_hardcover_sync.computer.platform import UPLOAD, Computer
-from kobo_hardcover_sync.engine import collection, kobo_db
+from lastread import cli, doctor
+from lastread.computer import config, macos, remote, runner
+from lastread.computer.platform import UPLOAD, Computer
+from lastread.engine import collection, kobo_db
 from tests import said
 from tests.kobo_fixture import BOOKS, make
 
@@ -112,7 +112,7 @@ def server(tmp_path, monkeypatch):
     monkeypatch.setenv("KHS_HOST", "127.0.0.1")
     monkeypatch.setenv("KHS_INTERVAL", "0")
     monkeypatch.setenv("KHS_TRUSTED_PROXIES", "127.0.0.1")
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     importlib.reload(web)
     with socket.socket() as s:
@@ -290,7 +290,7 @@ def test_no_kobo_no_server_no_setup(home):
     mac.set_secret(UPLOAD, "t" * 64)
     out = runner.sync(mac, nowhere)
     assert not out.ok and out.message.startswith("Could not reach 127.0.0.1")
-    assert runner.sync(mac, config.Config()).message == "Not set up yet: run `kobo-hardcover-sync setup`."
+    assert runner.sync(mac, config.Config()).message == "Not set up yet: run `lastread setup`."
 
 
 def test_a_second_sync_at_the_same_time_leaves_quietly(home, server):
@@ -314,7 +314,7 @@ def test_an_untested_kobo_still_syncs_but_its_collection_is_left_alone(home, ser
     server.page.post("/settings/collection", data={"collection": COLLECTION})
     out = runner.sync(mac, config.Config(server=server.url))
     assert out.ok and out.message == (
-        "9 books updated. Collection not updated: This Kobo's software has not been tested with kobo-hardcover-sync yet "
+        "9 books updated. Collection not updated: This Kobo's software has not been tested with lastread yet "
         "(its database is version 300; tested: 222, Kobo software 6.0.274403)."
     )
     assert "Eject" not in out.message and members(db) == set()
@@ -344,7 +344,7 @@ def test_doctor_on_a_computer_that_uploads_to_a_server(home, server, capsys):
     assert next(c for c in checks if c.what == "Collection").found == "Which collection is wanted is not known: the server did not say."
     # Known to the server, synced, a collection on the Kobo.
     register(server, mac)
-    mac.install_trigger("kobo-hardcover-sync")
+    mac.install_trigger("lastread")
     runner.sync(mac, cfg)
     server.page.post("/settings/collection", data={"collection": COLLECTION})
     server.page.post("/mode", data={"ids": BOOKS[0], "mode": "on"})
@@ -373,9 +373,9 @@ def test_whether_plugging_in_starts_a_sync_on_a_mac(home):
     mac = macos.MacOS(run=fake, home=str(home), volumes=str(home / "Volumes"))
     assert mac.trigger_state() == (
         False,
-        "No trigger on this Mac: plugging in the Kobo does nothing by itself. Run `kobo-hardcover-sync setup` again.",
+        "No trigger on this Mac: plugging in the Kobo does nothing by itself. Run `lastread setup` again.",
     )
-    tool = home / "bin" / "kobo-hardcover-sync"
+    tool = home / "bin" / "lastread"
     tool.parent.mkdir()
     tool.write_text("#!/bin/sh\n")
     tool.chmod(0o755)
@@ -387,7 +387,7 @@ def test_whether_plugging_in_starts_a_sync_on_a_mac(home):
     # The tool was uninstalled (or moved) after setup: the trigger starts nothing.
     tool.unlink()
     works, said = mac.trigger_state()
-    assert not works and said == f"The trigger starts {tool} that is not there any more. Run `kobo-hardcover-sync setup` again."
+    assert not works and said == f"The trigger starts {tool} that is not there any more. Run `lastread setup` again."
     # What to do when macOS keeps the Kobo closed depends on who asked.
     assert "Give KoboHardcoverSync.app Full Disk Access" in mac.cannot_read(by_hand=False)
     assert "this terminal" in mac.cannot_read(by_hand=True) and "Removable Volumes" in mac.cannot_read(by_hand=True)
@@ -416,7 +416,7 @@ def test_the_server_client_says_what_a_person_can_act_on():
     s = remote.Server("https://kobo.example.org/", "tok", opener)
     assert s.collection() == ("Shelf", ["id-1", "id-2"])
     assert seen[0][2]["Authorization"] == "Bearer tok" and seen[0][1] == "https://kobo.example.org/collection"
-    with pytest.raises(remote.ServerError, match="not from kobo-hardcover-sync"):
+    with pytest.raises(remote.ServerError, match="not from lastread"):
         s.upload(__file__)
     assert remote.Server("https://x.example", "t", lambda req, timeout: Answer(204, b"")).collection() is None
     # The app's questions (/api/app/): a sign-in page means the proxy does not let them through.
@@ -476,7 +476,8 @@ def test_a_secret_never_appears_on_a_command_line(home):
     assert mac.secret(UPLOAD) == secret
     for args, _ in fake.calls:
         assert not any(secret in a for a in args), args
-    assert [i for _, i in fake.calls if i] == [f"add-generic-password -U -s kobo-hardcover-sync -a upload -w {secret}\n"]
+    keychain = "kobo-hardcover-sync"  # the keychain item keeps its name from before 0.20
+    assert [i for _, i in fake.calls if i] == [f"add-generic-password -U -s {keychain} -a upload -w {secret}\n"]
     for bad in ("two words", 'quo"te', "semi;colon", "new\nline", "", "back\\slash"):
         with pytest.raises(ValueError):
             mac.set_secret(UPLOAD, bad)
@@ -496,7 +497,7 @@ def test_setup_on_a_mac_builds_the_app_once_and_loads_the_trigger(home, capsys):
     assert config.load().server == "https://kobo.example.org"
     script = open(state / "KoboHardcoverSync.applescript").read()
     assert f'property stateDir : "{state}/"' in script and 'toolLine("sync --trigger mount")' in script and "KHS_HOME='" in script
-    assert open(state / "command").read().strip().endswith("kobo-hardcover-sync") or os.path.isabs(open(state / "command").read().strip())
+    assert open(state / "command").read().strip().endswith("lastread") or os.path.isabs(open(state / "command").read().strip())
     assert len(fake.ran("osacompile")) == 1 and fake.ran("codesign")[0][1:5] == ["--force", "--deep", "--sign", "-"]
     assert [
         "/usr/libexec/PlistBuddy",

@@ -54,7 +54,7 @@ struct ShelfView: View {
                     small(book, tip: shelf.reading == nil ? shelf.tip?.text : nil).widgetURL(opening(book))
                 }
             } else {
-                Text(entry.shelf?.empty == true ? "No books yet. Plug in your Kobo." : "Open Kobo Hardcover Sync to see your books here.")
+                Text(entry.shelf?.empty == true ? "No books yet. Plug in your Kobo." : "Open Lastread to see your books here.")
                     .font(.callout).foregroundStyle(Pencil.graphite)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }

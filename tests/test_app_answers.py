@@ -11,10 +11,10 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from kobo_hardcover_sync import cli
-from kobo_hardcover_sync.computer import config, history, runner
-from kobo_hardcover_sync.computer.platform import UPLOAD
-from kobo_hardcover_sync.engine import state
+from lastread import cli
+from lastread.computer import config, history, runner
+from lastread.computer.platform import UPLOAD
+from lastread.engine import state
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer, plug_in, register, server  # noqa: F401 (the fixture)
 from tests.test_local import LOCAL, kobo
@@ -146,7 +146,7 @@ def test_status_in_local_mode_counts_the_books_for_the_overview(home, capsys):
 
 
 def test_books_answers_every_book_with_its_row_and_details(home, capsys, monkeypatch):
-    from kobo_hardcover_sync.web import covers
+    from lastread.web import covers
 
     computer = FakeComputer(home / "Volumes")
     config.save(LOCAL)
@@ -196,8 +196,8 @@ def test_books_answers_every_book_with_its_row_and_details(home, capsys, monkeyp
 
 
 def test_book_changes_what_the_page_changes_and_answers_the_book(home, capsys, monkeypatch):
-    from kobo_hardcover_sync.computer.platform import HARDCOVER
-    from kobo_hardcover_sync.engine import hardcover
+    from lastread.computer.platform import HARDCOVER
+    from lastread.engine import hardcover
     from tests.test_hardcover import FakeHC
     from tests.test_local import TOKEN
 
@@ -263,7 +263,7 @@ def test_book_changes_what_the_page_changes_and_answers_the_book(home, capsys, m
 
 
 def test_the_first_run_and_going_live_in_local_mode(home, capsys):
-    from kobo_hardcover_sync.computer.platform import HARDCOVER
+    from lastread.computer.platform import HARDCOVER
     from tests.test_local import TOKEN
 
     computer = FakeComputer(home / "Volumes")
@@ -305,9 +305,9 @@ def test_the_first_run_and_going_live_in_local_mode(home, capsys):
 def test_in_server_mode_the_books_come_from_the_server_for_this_computers_reader(mac, home, server, capsys, monkeypatch):  # noqa: F811
     from cryptography.fernet import Fernet
 
-    from kobo_hardcover_sync.engine import hardcover
-    from kobo_hardcover_sync.server import accounts
-    from kobo_hardcover_sync.web import covers
+    from lastread.engine import hardcover
+    from lastread.server import accounts
+    from lastread.web import covers
     from tests.test_hardcover import FakeHC
 
     runner.sync(mac, config.load())  # the Kobo's books, sent to the server for sam
@@ -384,7 +384,7 @@ def test_in_server_mode_the_books_come_from_the_server_for_this_computers_reader
 
 
 def test_open_at_a_book_lands_on_its_row(home, monkeypatch):
-    from kobo_hardcover_sync.computer import page
+    from lastread.computer import page
 
     computer = FakeComputer(home / "Volumes")
     config.save(LOCAL)

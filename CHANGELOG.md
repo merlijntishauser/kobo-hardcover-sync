@@ -7,6 +7,23 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Changed
+
+- **The tool is called Lastread now.** The command is `lastread`; the
+  package on PyPI, the Homebrew formula, the container image and the Mac
+  app carry the name, and the site is at <https://lastread.app/>. It does
+  the same thing, and it says so under the name: your Kobo's reading, on
+  Hardcover. What stays as it was: the state folder (`~/Library/Application
+  Support/kobo-hardcover-sync`, `~/.local/share/kobo-hardcover-sync`), the
+  `KHS_` settings, the keychain and keyring entries, the Mac app's bundle
+  id and launch agent, and its `kobo-hardcover-sync://` links, so an
+  existing install keeps its settings, its token and its trigger. The old
+  command name `kobo-hardcover-sync` still works. The Mac app of 0.19 cannot
+  fetch this version by itself, because the disk image and the app inside
+  it have the new name: download it once from the site and drag it over
+  the old one. The repository, the container image and the Pages address
+  under the old name redirect.
+
 ### Added
 
 - Mac app: About shows a link to the tool's site, lastread.app, with the

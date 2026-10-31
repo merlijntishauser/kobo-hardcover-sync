@@ -36,10 +36,10 @@ packages.
 
 ```
 git clone https://github.com/merlijntishauser/kobo-hardcover-sync
-cd kobo-hardcover-sync
+cd lastread
 uv run pytest -q tests                              # the unit tests
 uv run ruff check . && uv run ruff format --check . # style
-uv run kobo-hardcover-sync serve                    # the server, on 127.0.0.1:3012
+uv run lastread serve                    # the server, on 127.0.0.1:3012
 ```
 
 `serve` needs `KHS_TRUSTED_PROXIES` (for trying it: `127.0.0.1`) and then
@@ -48,8 +48,8 @@ tests sign in. A browser cannot send that header by itself, so to look at
 the pages local mode is the easy way, in a folder of its own:
 
 ```
-KHS_HOME=/tmp/khs-dev uv run kobo-hardcover-sync setup --local --no-trigger
-KHS_HOME=/tmp/khs-dev uv run kobo-hardcover-sync open
+KHS_HOME=/tmp/khs-dev uv run lastread setup --local --no-trigger
+KHS_HOME=/tmp/khs-dev uv run lastread open
 ```
 
 The browser tests drive a real Chromium through the pages with a made-up
@@ -65,7 +65,7 @@ have, and `DEV_OUT` for where the screenshots go.
 
 ## Where things are
 
-One package, `kobo_hardcover_sync`, under `src/`:
+One package, `lastread`, under `src/`:
 
 | | |
 |---|---|

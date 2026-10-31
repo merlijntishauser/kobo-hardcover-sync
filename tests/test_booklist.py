@@ -5,10 +5,10 @@ looks; these hold that the list says it without markup."""
 import html
 import re
 
-from kobo_hardcover_sync import booklist
-from kobo_hardcover_sync.engine import kobo_db, state
-from kobo_hardcover_sync.engine.plan import quiet_for
-from kobo_hardcover_sync.web import app
+from lastread import booklist
+from lastread.engine import kobo_db, state
+from lastread.engine.plan import quiet_for
+from lastread.web import app
 from tests.test_core import FAMILY, MINE, OLD, UNTOUCHED, make_kobo, matched
 
 

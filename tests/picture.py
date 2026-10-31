@@ -2,7 +2,7 @@
 
 It is what the tool prints. A made-up shelf is synced for real (a folder
 plays the Kobo, an in-memory Hardcover plays Hardcover), what
-`kobo-hardcover-sync sync` writes to a terminal is caught with its
+`lastread sync` writes to a terminal is caught with its
 colours, and that is set as an SVG whose lines appear one after another.
 A test makes the picture again and compares, so it cannot drift from the
 tool.
@@ -20,7 +20,7 @@ import tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PICTURE = ROOT / "docs" / "img" / "sync.svg"
-COMMAND = "kobo-hardcover-sync sync"
+COMMAND = "lastread sync"
 # Three books of a made-up reader: title, author, how far before, how far now (100: finished).
 SHELF = (
     ("Moby-Dick; or, The Whale", "Herman Melville", 35, 37),
@@ -43,11 +43,11 @@ class Terminal(io.StringIO):
 
 def printed() -> str:
     """What `sync` prints for the made-up shelf, colours included."""
-    from kobo_hardcover_sync import cli, logs
-    from kobo_hardcover_sync.computer import config, runner
-    from kobo_hardcover_sync.computer.platform import HARDCOVER
-    from kobo_hardcover_sync.engine import hardcover, state
-    from kobo_hardcover_sync.server import accounts
+    from lastread import cli, logs
+    from lastread.computer import config, runner
+    from lastread.computer.platform import HARDCOVER
+    from lastread.engine import hardcover, state
+    from lastread.server import accounts
     from tests.kobo_fixture import BOOKS, make
     from tests.test_computer import FakeComputer
     from tests.test_hardcover import FakeHC
@@ -76,7 +76,7 @@ def printed() -> str:
                 kobo.close()
 
             mac = FakeComputer(home / "Volumes")
-            mac.install_trigger("kobo-hardcover-sync")
+            mac.install_trigger("lastread")
             mac.set_secret(HARDCOVER, "a-made-up-token")
             fake = FakeHC(
                 isbn={

@@ -6,8 +6,8 @@ import importlib
 import pytest
 from fastapi.routing import APIRoute
 
-from kobo_hardcover_sync import cli
-from kobo_hardcover_sync.server import proxy
+from lastread import cli
+from lastread.server import proxy
 from tests import ELSEWHERE, PROXY, client_at
 from tests.test_web import client
 
@@ -38,7 +38,7 @@ def test_parse_and_trusted():
 
 def test_a_forged_login_from_anywhere_but_the_proxy_gets_403_on_every_route(tmp_path, monkeypatch):
     through = client(tmp_path, monkeypatch)
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     outside = client_at(web.app, ELSEWHERE)
     checked, left_open = [], set()
@@ -78,7 +78,7 @@ def test_a_forged_login_from_anywhere_but_the_proxy_gets_403_on_every_route(tmp_
 
 def test_what_anyone_may_reach_gives_nothing_away(tmp_path, monkeypatch):
     client(tmp_path, monkeypatch)
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     outside = client_at(web.app, ELSEWHERE)
     assert outside.get("/healthz").text == "ok"
@@ -96,7 +96,7 @@ def test_what_anyone_may_reach_gives_nothing_away(tmp_path, monkeypatch):
 def test_without_a_proxy_address_nothing_is_served_and_the_server_does_not_start(tmp_path, monkeypatch, capsys):
     c = client(tmp_path, monkeypatch)
     monkeypatch.delenv("KHS_TRUSTED_PROXIES")
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     importlib.reload(web)
     for address in (PROXY, ELSEWHERE, ("127.0.0.1", 1)):

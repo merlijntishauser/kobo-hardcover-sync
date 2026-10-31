@@ -13,7 +13,7 @@ func registerTitleFont() {
     let lib = Bundle.main.resourceURL?.appendingPathComponent("python/lib")
     let python = (try? FileManager.default.contentsOfDirectory(atPath: lib?.path ?? ""))?.first { $0.hasPrefix("python3.") }
     guard let lib, let python else { return }
-    registerTitleFont(in: lib.appendingPathComponent(python).appendingPathComponent("site-packages/kobo_hardcover_sync/web/static/fonts"))
+    registerTitleFont(in: lib.appendingPathComponent(python).appendingPathComponent("site-packages/lastread/web/static/fonts"))
 }
 
 extension WindowModel {
@@ -492,7 +492,7 @@ struct Correction: View {
 /// What the tool said when it changed nothing, without its name in front.
 func said(_ why: NoAnswer) -> String {
     let text = why.said.split(separator: "\n").last.map(String.init) ?? why.said
-    return text.hasPrefix("kobo-hardcover-sync: ") ? String(text.dropFirst("kobo-hardcover-sync: ".count)) : text
+    return text.hasPrefix("lastread: ") ? String(text.dropFirst("lastread: ".count)) : text
 }
 
 /// Everything known of one book, as the page's Details has it, with the changes the page makes.

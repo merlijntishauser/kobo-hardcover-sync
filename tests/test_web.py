@@ -2,8 +2,8 @@ import importlib
 import json
 import re
 
-from kobo_hardcover_sync.engine import kobo_db, state
-from kobo_hardcover_sync.server import accounts
+from lastread.engine import kobo_db, state
+from lastread.server import accounts
 from tests import client_at
 from tests.test_core import MINE, OLD, make_kobo, matched
 
@@ -13,7 +13,7 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("KHS_DATA", str(tmp_path))
     monkeypatch.setenv("KHS_CONFIG", str(tmp_path / "readers.yaml"))
     monkeypatch.setenv("KHS_HOST", "kobo.example.org")
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     importlib.reload(web)
     k = tmp_path / "k.sqlite"
@@ -69,7 +69,7 @@ def test_getting_started_says_the_four_steps_until_the_reader_goes_live(tmp_path
     assert "/settings#hardcover" not in card  # never sent to Settings for it
     # 2: done, the Kobo sent its books. 3: later, with the tally. 4: Go live, waiting for the connection.
     assert '<b>Plug in your Kobo</b><span class="s">2 books from your Kobo.</span>' in card
-    assert "Books read before Kobo Hardcover Sync started begin as Off" in card
+    assert "Books read before Lastread started begin as Off" in card
     assert '<button class="primary" disabled>Go live</button><span class="hint">Connect to Hardcover first.</span>' in card
     assert '<p class="intro">' not in page  # the line under Books would say the same
     before = int(re.search(r'<span class="count"><b>(\d+)</b>', card).group(1))
@@ -84,7 +84,7 @@ def test_getting_started_says_the_four_steps_until_the_reader_goes_live(tmp_path
     card = card_of(c.get("/", headers=h).text)
     assert card.count('<li class="done">') == 3 and '<span class="n">4</span><b>Go live</b>' in card
     assert (
-        '<form method="post" action="/settings/live" data-confirm="Go live? From the next sync Kobo Hardcover Sync writes to your Hardcover shelf.">'
+        '<form method="post" action="/settings/live" data-confirm="Go live? From the next sync Lastread writes to your Hardcover shelf.">'
         '<input type="hidden" name="back" value="/"><input type="hidden" name="live" value="1"><button class="primary">Go live</button></form>'
         in card
     )
@@ -110,7 +110,7 @@ def test_getting_started_on_a_server_adds_the_first_computer_in_its_step(tmp_pat
     assert '<div class="sheet alone"><section class="firstrun" id="start"' in page and "<table" not in page and 'class="legend"' not in page
     card = card_of(page)
     assert "Tokens cannot be stored yet" in card  # this server has no key: the step says so instead of a button that would fail
-    assert "On the computer you plug the Kobo into, the Kobo Hardcover Sync app sends your books here." in card
+    assert "On the computer you plug the Kobo into, the Lastread app sends your books here." in card
     assert '<li class="wide"><span class="n">2</span><b>Plug in your Kobo</b>' in card  # later: connecting comes first
     assert 'action="/settings/devices/add"' in card  # but the computer can be added already: the two do not wait for each other
     monkeypatch.setattr(accounts, "has_token", lambda con, name: True)  # connected
@@ -179,7 +179,7 @@ def test_the_browser_sign_ins_way_back_is_not_there_on_a_server(tmp_path, monkey
 def test_sync_now_shows_the_sync_running_and_then_what_it_did(tmp_path, monkeypatch):
     c = client(tmp_path, monkeypatch)
     h = {"Remote-User": "robin"}
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     # While it runs: Syncing, what it is doing, a gauge that is that far; the page looks again by itself without JS.
     web.job.progress["robin"] = {"phase": "send", "done": 1, "total": 4}
@@ -341,7 +341,7 @@ def test_hardcover_column_and_details(tmp_path, monkeypatch):
 
 
 def test_dialog_forms_answer_with_refreshed_details_and_row(tmp_path, monkeypatch):
-    from kobo_hardcover_sync.engine import hardcover
+    from lastread.engine import hardcover
 
     c = client(tmp_path, monkeypatch)
     st = state.connect(str(tmp_path / "state.db"))
@@ -394,14 +394,14 @@ def test_help_dialog_and_unread_wording(tmp_path, monkeypatch):
     st.execute("update book set mode='on', status=0, percent=0, finished_at='' where content_id='mine'")
     st.commit()
     page = c.get("/", headers={"Remote-User": "robin"}).text
-    assert 'data-open="help"' in page and '<dialog id="help"' in page and "How Kobo Hardcover Sync works" in page
+    assert 'data-open="help"' in page and '<dialog id="help"' in page and "How Lastread works" in page
     assert "Unread on the Kobo, nothing to send yet" in page
 
 
 def test_sync_now_and_refresh_keep_the_filtered_view(tmp_path, monkeypatch):
     c = client(tmp_path, monkeypatch)
     h = {"Remote-User": "robin", "Origin": "https://kobo.example.org"}
-    import kobo_hardcover_sync.web.app as web
+    import lastread.web.app as web
 
     started = []
     monkeypatch.setattr(web.job, "start", lambda *a: started.append(a))
@@ -441,7 +441,7 @@ def test_the_same_book_on_two_kobos_is_one_book_on_the_page(tmp_path, monkeypatc
     state.import_books(st, "robin", "kobo2", kobo_db.read_books(kobo_db.open_db(str(k))))
     page = c.get("/", headers=h).text
     assert page.count('id="b-mine"') == 1 and "60%" in page and "10%" not in page  # the Kobo it was read on last
-    from kobo_hardcover_sync.booklist import filter_counts
+    from lastread.booklist import filter_counts
 
     assert filter_counts(st, "robin", "")["all"] == 2  # old and mine, each once
     assert "60%" in c.get("/details/mine", headers=h).text
@@ -604,7 +604,7 @@ def test_the_list_says_what_it_is_to_someone_who_cannot_see_it(tmp_path, monkeyp
     )  # laid out as cards on a phone, a table all the same
     assert '<meta name="theme-color" content="#c3e2ef" media="(prefers-color-scheme: light)">' in page
     alone = c.get("/details/old", headers=h).text
-    assert '<main class="dpage"><h1 class="sr">Kobo Hardcover Sync</h1>' in alone
+    assert '<main class="dpage"><h1 class="sr">Lastread</h1>' in alone
 
 
 def test_pages_are_compressed_and_what_does_not_change_is_kept(tmp_path, monkeypatch):
@@ -625,9 +625,9 @@ def test_every_text_the_page_asks_for_exists():
     import pathlib
     import re
 
-    from kobo_hardcover_sync.web.strings import T
+    from lastread.web.strings import T
 
-    src = pathlib.Path(__file__).resolve().parents[1] / "src" / "kobo_hardcover_sync"
+    src = pathlib.Path(__file__).resolve().parents[1] / "src" / "lastread"
     asked = set()
     for path in src.rglob("*.py"):
         text = path.read_text()

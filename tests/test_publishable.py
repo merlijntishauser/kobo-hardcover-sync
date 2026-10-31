@@ -65,6 +65,7 @@ ALLOWED = (
     "mer" + "lijntishauser/homebrew-tap",
     "mer" + "lijntishauser.github.io/kobo-hardcover-sync",  # the site
     "mer" + "lijntishauser/kobo-hardcover-sync",  # the repository, as the site's script and the test of it name it
+    "mer" + "lijntishauser/lastread",  # the repository's name after the rename, in docs/releasing.md
 )
 
 
@@ -93,8 +94,8 @@ def test_the_check_looks_at_the_files_that_matter():
     for must in (
         "README.md",
         "docs/how-it-works.md",
-        "src/kobo_hardcover_sync/web/strings.py",
-        "src/kobo_hardcover_sync/web/static/kobo.css",
+        "src/lastread/web/strings.py",
+        "src/lastread/web/static/kobo.css",
     ):
         assert must in seen, must
     assert PRIVATE.search("see (#" + "378)") and PRIVATE.search("Home" + "Lab") and not PRIVATE.search("rule F13, 131 books, #1")

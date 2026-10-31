@@ -16,7 +16,7 @@ spec.loader.exec_module(make_formula)
 
 LOCK = tomllib.loads((ROOT / "uv.lock").read_text())
 PROJECT = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
-URL, SHA = "https://example.org/kobo_hardcover_sync-0.1.0.tar.gz", "ab" * 32
+URL, SHA = "https://example.org/lastread-0.1.0.tar.gz", "ab" * 32
 FORMULA = make_formula.formula(URL, SHA, PROJECT, LOCK)
 
 
@@ -31,7 +31,7 @@ def test_every_package_a_user_gets_is_a_resource_pinned_as_the_lock_pins_it():
 
 
 def test_the_formula_is_one_homebrew_can_read():
-    assert FORMULA.splitlines()[2] == "class KoboHardcoverSync < Formula"
+    assert FORMULA.splitlines()[2] == "class Lastread < Formula"
     assert f'  sha256 "{SHA}"\n  license "MIT"' in FORMULA and f'  url "{URL}"\n' in FORMULA
     assert "include Language::Python::Virtualenv" in FORMULA and "virtualenv_install_with_resources" in FORMULA
     for needs in ('depends_on "rust" => :build', 'depends_on "python@3.13"', 'depends_on "openssl@3"', 'depends_on "libyaml"'):
@@ -47,8 +47,8 @@ def test_the_formula_is_one_homebrew_can_read():
 
 def test_it_says_what_to_do_after_installing_and_before_removing():
     caveats = FORMULA[FORMULA.index("def caveats") : FORMULA.index("test do")]
-    assert "kobo-hardcover-sync setup" in caveats and "Full Disk Access" in caveats
-    assert "Before `brew uninstall kobo-hardcover-sync`" in caveats and "kobo-hardcover-sync uninstall" in caveats and "--purge" in caveats
+    assert "lastread setup" in caveats and "Full Disk Access" in caveats
+    assert "Before `brew uninstall lastread`" in caveats and "lastread uninstall" in caveats and "--purge" in caveats
     test = FORMULA[FORMULA.index("test do") :]
     assert "--version" in test and 'ENV["KHS_HOME"] = testpath.to_s' in test  # the test never touches a real installation
 
@@ -57,18 +57,18 @@ def test_what_the_formula_tests_for_is_what_the_tool_prints(home, capsys):
     """Homebrew runs the formula's test when it builds a bottle. It looks
     for words in the tool's output, so those words have to be the tool's:
     a reworded `status` once left a release without bottles."""
-    from kobo_hardcover_sync import cli
+    from lastread import cli
     from tests.test_computer import FakeComputer
 
     test = FORMULA[FORMULA.index("test do") :]
-    looked_for, flags, command = re.findall(r"assert_match\(/(.+?)/(i?), shell_output\(\"#\{bin\}/kobo-hardcover-sync (\w+)\"\)\)", test)[0]
+    looked_for, flags, command = re.findall(r"assert_match\(/(.+?)/(i?), shell_output\(\"#\{bin\}/lastread (\w+)\"\)\)", test)[0]
     cli.main([command], computer=FakeComputer(home / "Volumes"))  # a folder of its own, nothing set up: as in the formula's test
     printed = capsys.readouterr().out
     assert re.search(looked_for, printed, re.I if flags else 0), printed
 
 
 def test_a_formula_for_trying_points_at_the_file_on_this_computer(tmp_path, capsys):
-    sdist = tmp_path / "kobo_hardcover_sync-0.1.0.tar.gz"
+    sdist = tmp_path / "lastread-0.1.0.tar.gz"
     sdist.write_bytes(b"not really a tarball")
     make_formula.main(["--sdist", str(sdist)])
     out = capsys.readouterr().out
@@ -78,29 +78,29 @@ def test_a_formula_for_trying_points_at_the_file_on_this_computer(tmp_path, caps
 def test_the_version_is_the_packages_not_the_checkouts(capsys):
     """The formula for a release is written after it, when this checkout is
     on the next development version already."""
-    make_formula.main(["--url", "https://files.pythonhosted.org/packages/ab/cd/kobo_hardcover_sync-9.8.7.tar.gz", "--sha256", "0" * 64])
+    make_formula.main(["--url", "https://files.pythonhosted.org/packages/ab/cd/lastread-9.8.7.tar.gz", "--sha256", "0" * 64])
     released = capsys.readouterr().out
-    assert "kobo_hardcover_sync-9.8.7.tar.gz" in released and "  version " not in released  # Homebrew reads 9.8.7 from the name
-    make_formula.main(["--url", "https://example.org/kobo_hardcover_sync-9.8.7.dev0.tar.gz", "--sha256", "0" * 64])
+    assert "lastread-9.8.7.tar.gz" in released and "  version " not in released  # Homebrew reads 9.8.7 from the name
+    make_formula.main(["--url", "https://example.org/lastread-9.8.7.dev0.tar.gz", "--sha256", "0" * 64])
     assert '  version "9.8.7.dev0"\n' in capsys.readouterr().out  # a development version it cannot read: written out
 
 
 def test_setup_points_the_trigger_at_the_tool_it_was_run_from(tmp_path, monkeypatch):
-    from kobo_hardcover_sync import cli
+    from lastread import cli
 
-    brewed = tmp_path / "homebrew" / "bin" / "kobo-hardcover-sync"
+    brewed = tmp_path / "homebrew" / "bin" / "lastread"
     brewed.parent.mkdir(parents=True)
     brewed.write_text("#!/bin/sh\n")
     brewed.chmod(0o755)
-    monkeypatch.setattr(cli.shutil, "which", lambda name: "/somewhere/else/first/on/the/path/kobo-hardcover-sync")
+    monkeypatch.setattr(cli.shutil, "which", lambda name: "/somewhere/else/first/on/the/path/lastread")
     monkeypatch.setattr(cli.sys, "argv", [str(brewed), "setup"])
     assert cli._own_path() == str(brewed)  # the one that was started, also when another is first on the PATH
     monkeypatch.setattr(cli.sys, "argv", ["-c", "setup"])  # not started by its own name: fall back to the PATH
-    assert cli._own_path() == "/somewhere/else/first/on/the/path/kobo-hardcover-sync"
+    assert cli._own_path() == "/somewhere/else/first/on/the/path/lastread"
 
 
 def test_a_development_version_is_written_out_and_a_release_is_left_to_homebrew():
-    # Homebrew took "0" from kobo_hardcover_sync-0.1.0.dev0.tar.gz: the keg landed in Cellar/kobo-hardcover-sync/0.
+    # Homebrew took "0" from lastread-0.1.0.dev0.tar.gz: the keg landed in Cellar/lastread/0.
     dev = make_formula.formula(URL, SHA, {**PROJECT, "version": "0.1.0.dev0"}, LOCK)
     assert f'  url "{URL}"\n  version "0.1.0.dev0"\n  sha256 "{SHA}"' in dev
     release = make_formula.formula(URL, SHA, {**PROJECT, "version": "0.1.0"}, LOCK)

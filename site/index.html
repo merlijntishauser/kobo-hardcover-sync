@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kobo Hardcover Sync</title>
+<title>Lastread: your Kobo's reading, on Hardcover</title>
 <meta name="description" content="Keeps your Hardcover shelf in step with what you read on a Kobo e-reader: which books, how far, finished when. Works with the Kobo as it comes, Kobo-store books included, on your own computer.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d0c14" media="(prefers-color-scheme: dark)">
-<meta property="og:title" content="Kobo Hardcover Sync">
+<meta property="og:title" content="Lastread: your Kobo's reading, on Hardcover">
 <meta property="og:description" content="Your Kobo knows what you read. Now Hardcover does too. Plug in the Kobo; its own page shows what the next sync changes before it is sent.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://lastread.app/">
@@ -30,9 +30,9 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
 <a class="skip" href="#download">Skip to the download</a>
 
 <header class="top">
-  <a class="name" href="./" aria-label="Kobo Hardcover Sync, the start of this page">
+  <a class="name" href="./" aria-label="Lastread, the start of this page">
     <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg>
-    Kobo Hardcover Sync
+    Lastread
   </a>
   <nav aria-label="On this page">
     <a class="inpage" href="#page">Its page</a>
@@ -57,8 +57,8 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
         <p class="ver" id="ver" aria-live="polite">The latest release's disk image, on GitHub. Signed and notarised; macOS 13 or later.</p>
         <p class="sure">Reads your Kobo and writes nothing to it unless you ask. Starts as a dry run. Beta; Mac and Linux only.</p>
         <p class="ways">Or in a terminal, on a Mac or Linux:</p>
-        <code>brew install merlijntishauser/tap/kobo-hardcover-sync</code>
-        <code>uv tool install kobo-hardcover-sync</code>
+        <code>brew install merlijntishauser/tap/lastread</code>
+        <code>uv tool install lastread</code>
       </div>
     </div>
 
@@ -229,7 +229,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
       <table>
         <thead><tr><th scope="col"><span class="sr">Tool</span></th><th scope="col">What it needs</th><th scope="col">Choose it when</th></tr></thead>
         <tbody>
-          <tr><th scope="row">Kobo Hardcover Sync</th><td data-label="What it needs">A computer to plug the Kobo into. Nothing on the Kobo.</td><td data-label="Choose it when">You read Kobo-store books on an unmodified Kobo, or your Kobo's software is too new for the tools below.</td></tr>
+          <tr><th scope="row">Lastread</th><td data-label="What it needs">A computer to plug the Kobo into. Nothing on the Kobo.</td><td data-label="Choose it when">You read Kobo-store books on an unmodified Kobo, or your Kobo's software is too new for the tools below.</td></tr>
           <tr><th scope="row"><a href="https://codeberg.org/StrayRose/NickelHardcover">NickelHardcover</a></th><td data-label="What it needs">An add-on installed on the Kobo itself. Its README says firmware 5.x is not supported yet.</td><td data-label="Choose it when">Your Kobo's firmware is supported and you are happy to modify the device. It syncs over Wi-Fi without a computer, and also does highlights, notes and reviews.</td></tr>
           <tr><th scope="row"><a href="https://github.com/Billiam/hardcoverapp.koplugin">KOReader with the Hardcover plugin</a></th><td data-label="What it needs">KOReader on the device. KOReader cannot open the store's DRM books.</td><td data-label="Choose it when">You read your own, DRM-free books in KOReader.</td></tr>
           <tr><th scope="row"><a href="https://github.com/crocodilestick/Calibre-Web-Automated">Calibre-Web Automated</a></th><td data-label="What it needs">A Calibre library on a server that the Kobo syncs with.</td><td data-label="Choose it when">Your books live in Calibre and reach the Kobo from there.</td></tr>
@@ -249,7 +249,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
         <div class="get">
           <a class="primary" href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases/latest">Download for Mac</a>
           <p class="sure">Reads your Kobo and writes nothing to it unless you ask. Starts as a dry run. Beta; Mac and Linux only.</p>
-          <p class="ways"><code>brew install merlijntishauser/tap/kobo-hardcover-sync</code> <code>uv tool install kobo-hardcover-sync</code></p>
+          <p class="ways"><code>brew install merlijntishauser/tap/lastread</code> <code>uv tool install lastread</code></p>
         </div>
       </div>
     </div>
@@ -257,13 +257,13 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
 </main>
 
 <footer class="foot">
-  <p>Kobo Hardcover Sync is an independent project. It is not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover. The photographs are from Unsplash, under the Unsplash License: <a href="https://unsplash.com/photos/woman-lying-on-chair-holding-tablet-computer-2gllPE42ouU">the park</a> and <a href="https://unsplash.com/photos/person-reading-story-in-amazon-kindle-tablet-3gC4gBnD3Xs">the hammock</a> by Perfecto Capucine, <a href="https://unsplash.com/photos/woman-covering-her-face-with-teal-book-HFeG2vERmWo">the teal book</a> by Sincerely Media, <a href="https://unsplash.com/photos/woman-in-black-jacket-and-blue-denim-jeans-sitting-on-brown-wooden-bench-reading-book-hQzBAtJoJQo">the quay</a> by Leon Seibert.</p>
+  <p>Lastread is an independent project. It is not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover. The photographs are from Unsplash, under the Unsplash License: <a href="https://unsplash.com/photos/woman-lying-on-chair-holding-tablet-computer-2gllPE42ouU">the park</a> and <a href="https://unsplash.com/photos/person-reading-story-in-amazon-kindle-tablet-3gC4gBnD3Xs">the hammock</a> by Perfecto Capucine, <a href="https://unsplash.com/photos/woman-covering-her-face-with-teal-book-HFeG2vERmWo">the teal book</a> by Sincerely Media, <a href="https://unsplash.com/photos/woman-in-black-jacket-and-blue-denim-jeans-sitting-on-brown-wooden-bench-reading-book-hQzBAtJoJQo">the quay</a> by Leon Seibert.</p>
   <p>This page asks GitHub for the latest release and keeps your theme choice in your browser; it fetches and stores nothing else.</p>
   <nav aria-label="Elsewhere">
     <a href="https://github.com/merlijntishauser/kobo-hardcover-sync">GitHub</a>
     <a href="https://github.com/merlijntishauser/kobo-hardcover-sync/releases">Releases</a>
     <a href="https://github.com/merlijntishauser/kobo-hardcover-sync/blob/main/CHANGELOG.md">Changelog</a>
-    <a href="https://pypi.org/project/kobo-hardcover-sync/">PyPI</a>
+    <a href="https://pypi.org/project/lastread/">PyPI</a>
     <a href="https://github.com/merlijntishauser/homebrew-tap">Homebrew tap</a>
     <a href="https://github.com/merlijntishauser/kobo-hardcover-sync/blob/main/docs/how-it-works.md">How it works</a>
   </nav>

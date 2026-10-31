@@ -78,7 +78,7 @@ cp "$here/VolumeIcon-32.png" "$work/VolumeIcon.iconset/icon_32x32.png"
 iconutil -c icns -o "$work/image/.VolumeIcon.icns" "$work/VolumeIcon.iconset"
 # Made writable first: the flags that show the disk's icon and hide ".app" are
 # set on the mounted image, where they last (on the folder they are not copied).
-hdiutil create -volname "Kobo Hardcover Sync" -srcfolder "$work/image" -fs HFS+ -format UDRW -ov "$work/rw.dmg" >/dev/null
+hdiutil create -volname "Lastread" -srcfolder "$work/image" -fs HFS+ -format UDRW -ov "$work/rw.dmg" >/dev/null
 hdiutil attach -nobrowse -readwrite -noverify -mountpoint "$work/volume" "$work/rw.dmg" >/dev/null
 xattr -wx com.apple.FinderInfo 0000000000000000040000000000000000000000000000000000000000000000 "$work/volume"
 xattr -wx com.apple.FinderInfo 0000000000000000001000000000000000000000000000000000000000000000 "$work/volume/$(basename "$app")"

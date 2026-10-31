@@ -1,5 +1,5 @@
-from kobo_hardcover_sync.engine import kobo_db, state
-from kobo_hardcover_sync.server.stats import stats
+from lastread.engine import kobo_db, state
+from lastread.server.stats import stats
 from tests.test_core import make_kobo
 
 

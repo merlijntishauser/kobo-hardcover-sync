@@ -4,17 +4,17 @@ import os
 import pathlib
 import re
 
-import kobo_hardcover_sync
-from kobo_hardcover_sync import cli
-from kobo_hardcover_sync.engine import job, state
+import lastread
+from lastread import cli
+from lastread.engine import job, state
 
-PKG = pathlib.Path(kobo_hardcover_sync.__file__).parent
+PKG = pathlib.Path(lastread.__file__).parent
 
 
 def test_the_engine_imports_nothing_from_the_page_the_server_or_the_command():
     for f in (PKG / "engine").glob("*.py"):
         src = f.read_text()
-        assert not re.search(r"^\s*from \.\.|^\s*(from|import) kobo_hardcover_sync", src, re.M), f.name
+        assert not re.search(r"^\s*from \.\.|^\s*(from|import) lastread", src, re.M), f.name
 
 
 def test_the_page_files_are_part_of_the_package():
@@ -30,7 +30,7 @@ def test_version_and_help(capsys):
         except SystemExit as ex:
             assert ex.code == 0
     out = capsys.readouterr().out
-    assert "kobo-hardcover-sync" in out and "serve" in out and "import" in out
+    assert "lastread" in out and "serve" in out and "import" in out
 
 
 def test_serve_listens_on_loopback_unless_told_otherwise(monkeypatch):
@@ -41,7 +41,7 @@ def test_serve_listens_on_loopback_unless_told_otherwise(monkeypatch):
     cli.main(["serve"])
     cli.main(["serve", "--host", "0.0.0.0", "--port", "3012"])
     # proxy_headers off: the address the app checks is the one that really connected.
-    assert calls[0] == ("kobo_hardcover_sync.web.app:app", {"host": "127.0.0.1", "port": 3012, "proxy_headers": False})
+    assert calls[0] == ("lastread.web.app:app", {"host": "127.0.0.1", "port": 3012, "proxy_headers": False})
     assert calls[1][1]["host"] == "0.0.0.0"
 
 

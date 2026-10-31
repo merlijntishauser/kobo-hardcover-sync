@@ -35,7 +35,7 @@ Once the GitHub release is there, `release.yml` starts the Mac app's
 own run (`macos-app.yml`, under Actions). Its signing job waits in the
 `macos-signing` environment until the maintainer approves it under the
 run's *Review deployments*. It then signs and notarises the app and adds
-`Kobo-Hardcover-Sync-<version>.dmg` to the release. Notarisation usually
+`Lastread-<version>.dmg` to the release. Notarisation usually
 takes a few minutes, sometimes an hour. If it fails, start `macos-app` by
 hand from the tag ("Use workflow from": the tag) with the tag as input:
 it replaces the disk image on the release.
@@ -52,8 +52,20 @@ it replaces the disk image on the release.
 
 ## Once, before the very first release
 
+- The first release as Lastread (0.20.0) needs, once: a pending trusted
+  publisher on pypi.org for the project `lastread` (the same repository,
+  workflow and environment), and a last release of the old project
+  `kobo-hardcover-sync` whose only dependency is `lastread` and whose
+  description says where it went, so that `uv tool install
+  kobo-hardcover-sync` and `pip install -U` land on the new name. In the
+  tap: the new formula `lastread.rb` from `make_formula.py`, and
+  `Aliases/kobo-hardcover-sync` pointing at it, so that `brew upgrade`
+  follows. The repository is renamed on GitHub first (Settings, General),
+  and the old name redirects; then the addresses in the tree move to
+  `merlijntishauser/lastread`. `packaging/macos/dmg-layout.sh` is run on a
+  Mac once, so that the disk image's window places `Lastread.app`.
 - On pypi.org, under *Publishing*, add a pending trusted publisher:
-  owner `merlijntishauser`, repository `kobo-hardcover-sync`, workflow
+  owner `merlijntishauser`, repository `lastread`, workflow
   `release.yml`, environment `pypi`.
 - In the repository's settings: an environment named `pypi`; private
   vulnerability reporting switched on (SECURITY.md points at it).

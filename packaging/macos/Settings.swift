@@ -100,7 +100,7 @@ final class SettingsModel: ObservableObject {
                 if ok {
                     self.sheet(done, output, buttons, then)
                 } else {
-                    self.sheet("Nothing was changed", output.replacingOccurrences(of: "kobo-hardcover-sync: ", with: ""), ["OK"]) { _ in }
+                    self.sheet("Nothing was changed", output.replacingOccurrences(of: "lastread: ", with: ""), ["OK"]) { _ in }
                 }
             }
         }

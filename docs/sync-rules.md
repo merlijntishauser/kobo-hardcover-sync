@@ -1,6 +1,6 @@
 # The sync rules
 
-What kobo-hardcover-sync does with your books, as rules. Each rule has a
+What lastread does with your books, as rules. Each rule has a
 name (B1, H5, ...) and the tests that hold it in place; a test
 (`tests/test_rules_document.py`) fails when a rule here names no test, or a
 test that does not exist. So this page cannot promise something the code is

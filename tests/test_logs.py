@@ -6,10 +6,10 @@ import os
 
 import pytest
 
-from kobo_hardcover_sync import cli, logs
-from kobo_hardcover_sync.computer import config, runner
-from kobo_hardcover_sync.computer.platform import HARDCOVER
-from kobo_hardcover_sync.engine import hardcover, state
+from lastread import cli, logs
+from lastread.computer import config, runner
+from lastread.computer.platform import HARDCOVER
+from lastread.engine import hardcover, state
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer
 from tests.test_hardcover import FakeHC
@@ -80,11 +80,11 @@ def test_verbose_for_every_run_is_a_setting(home, capsys, monkeypatch):
     # And the switch that works everywhere, the server included.
     monkeypatch.setenv("KHS_LOG", "verbose")
     logs.to_stderr()
-    logging.getLogger("kobo_hardcover_sync.engine.job").debug("a line per book")
+    logging.getLogger("lastread.engine.job").debug("a line per book")
     assert capsys.readouterr().err.endswith(" detail a line per book\n")
     monkeypatch.delenv("KHS_LOG")
     logs.to_stderr()
-    logging.getLogger("kobo_hardcover_sync.engine.job").debug("a line per book")
+    logging.getLogger("lastread.engine.job").debug("a line per book")
     assert capsys.readouterr().err == ""
 
 
@@ -124,7 +124,7 @@ def test_the_log_does_not_grow_without_end(home, monkeypatch):
     path = str(home / "state" / "agent.log")
     logs.to_file(path)
     for n in range(200):
-        logging.getLogger("kobo_hardcover_sync.computer.runner").info("line %s of a long life", n)
+        logging.getLogger("lastread.computer.runner").info("line %s of a long life", n)
     assert sorted(os.listdir(home / "state")) == ["agent.log", "agent.log.1"]
     assert os.path.getsize(path) <= 2000 and "line 199 of a long life" in open(path).read()
 
@@ -140,6 +140,7 @@ def test_something_nobody_expected_is_said_and_written_down(home, monkeypatch, c
     out = runner.sync(mac, LOCAL)
     assert (out.ok, out.title) == (False, "Kobo sync failed")
     assert out.message.startswith("Something went wrong that this tool did not expect (RuntimeError). The details are in ")
+    # The repository's name, until it is renamed on GitHub.
     assert str(home / "state" / "agent.log") in out.message and out.message.endswith("/kobo-hardcover-sync/issues")
     log = log_of(home)
     assert " error sync stopped by something unexpected" in log and "Traceback" in log and "RuntimeError: a bug" in log

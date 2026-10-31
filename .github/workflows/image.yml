@@ -1,6 +1,6 @@
 name: image
 # The container image for a household's own server:
-# ghcr.io/<owner>/kobo-hardcover-sync, for amd64 and arm64, built from the
+# ghcr.io/<owner>/lastread, for amd64 and arm64, built from the
 # Dockerfile as it is at a release tag. The release workflow calls this once
 # the release is out; it can also be run by hand for a tag that exists.
 # Nothing secret is stored: the registry takes this workflow's own token.
@@ -57,7 +57,7 @@ jobs:
             ghcr.io/${{ github.repository }}:${{ steps.v.outputs.version }}
             ${{ steps.v.outputs.latest == 'true' && format('ghcr.io/{0}:latest', github.repository) || '' }}
           labels: |
-            org.opencontainers.image.title=kobo-hardcover-sync
+            org.opencontainers.image.title=lastread
             org.opencontainers.image.description=Reading progress from a stock Kobo e-reader to Hardcover: the server for a household
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.version=${{ steps.v.outputs.version }}

@@ -3,9 +3,9 @@ that finds one, the same all day, put aside for a month with Not now."""
 
 from datetime import date, timedelta
 
-from kobo_hardcover_sync import tip
-from kobo_hardcover_sync.computer import config, runner
-from kobo_hardcover_sync.engine import state
+from lastread import tip
+from lastread.computer import config, runner
+from lastread.engine import state
 from tests.kobo_fixture import BOOKS
 from tests.test_app_answers import answer
 from tests.test_computer import FakeComputer

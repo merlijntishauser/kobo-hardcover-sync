@@ -14,7 +14,7 @@ def behind_the_proxy(monkeypatch):
 def tokens_in_the_database():
     """Local mode points the accounts module at the computer's secret store;
     no test starts with that left over from another one."""
-    from kobo_hardcover_sync.server import accounts
+    from lastread.server import accounts
 
     accounts.token_store = None
     yield

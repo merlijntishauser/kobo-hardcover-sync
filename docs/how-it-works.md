@@ -1,6 +1,6 @@
 # How it works, and why
 
-What kobo-hardcover-sync is built to do, the parts it is made of, and the
+What lastread is built to do, the parts it is made of, and the
 reasons behind the choices that are not obvious. What it does with each
 book is in [sync-rules.md](sync-rules.md); running it on your own computer
 is in [local-mode.md](local-mode.md); what Hardcover's API allows is in

@@ -11,11 +11,11 @@ import sqlite3
 
 import pytest
 
-from kobo_hardcover_sync import cli, doctor
-from kobo_hardcover_sync.computer import config, runner
-from kobo_hardcover_sync.computer.platform import HARDCOVER
-from kobo_hardcover_sync.engine import collection, hardcover, state
-from kobo_hardcover_sync.server import accounts
+from lastread import cli, doctor
+from lastread.computer import config, runner
+from lastread.computer.platform import HARDCOVER
+from lastread.engine import collection, hardcover, state
+from lastread.server import accounts
 from tests import said
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer
@@ -48,7 +48,7 @@ def synced(home, live=True, name="On Hardcover"):
     """A computer in local mode that has synced: three books on, a collection on the Kobo."""
     kobo(home)
     mac = FakeComputer(home / "Volumes")
-    mac.install_trigger("kobo-hardcover-sync")
+    mac.install_trigger("lastread")
     mac.set_secret(HARDCOVER, TOKEN)
     hc = Whose(isbn=catalogue())
     runner.sync(mac, LOCAL, hardcover_client=hc)
@@ -120,15 +120,12 @@ def test_every_check_is_shown_also_one_without_a_place():
 def test_not_set_up_is_a_problem_and_the_command_says_so(home, capsys):
     mac = FakeComputer(home / "Volumes")
     checks = doctor.computer_checks(mac)
-    assert [(c.what, c.state, c.todo) for c in checks] == [("Setup", "fail", "Run `kobo-hardcover-sync setup`.")]
+    assert [(c.what, c.state, c.todo) for c in checks] == [("Setup", "fail", "Run `lastread setup`.")]
     with pytest.raises(SystemExit) as ex:
         cli.main(["doctor"], computer=mac)
     out = capsys.readouterr().out
-    assert ex.value.code == 1 and out.startswith("Kobo Hardcover Sync ") and out.splitlines()[1].startswith("Python 3.")
-    assert (
-        "\nThis computer\n  problem  Setup  This computer is not set up yet.\n                  To do: Run `kobo-hardcover-sync setup`.\n"
-        in out
-    )
+    assert ex.value.code == 1 and out.startswith("Lastread ") and out.splitlines()[1].startswith("Python 3.")
+    assert "\nThis computer\n  problem  Setup  This computer is not set up yet.\n                  To do: Run `lastread setup`.\n" in out
     assert out.endswith("1 problem: its line says what to do.\n")
     assert not os.path.exists(home / "state")  # looking made nothing
 
@@ -151,8 +148,8 @@ def test_set_up_and_nothing_else_yet(home):
     checks = doctor.computer_checks(FakeComputer(home / "Volumes"))
     assert doctor.problems(checks) == 0
     assert (found(checks, "Trigger").state, found(checks, "Hardcover").state) == ("warn", "note")
-    assert found(checks, "Trigger").todo == "Until then, run `kobo-hardcover-sync sync` with the Kobo plugged in."
-    assert found(checks, "Hardcover").todo == "`kobo-hardcover-sync token`, or Settings on the page."
+    assert found(checks, "Trigger").todo == "Until then, run `lastread sync` with the Kobo plugged in."
+    assert found(checks, "Hardcover").todo == "`lastread token`, or Settings on the page."
     assert found(checks, "Books").found == "No books yet: nothing was read from a Kobo so far."
     assert found(checks, "Kobo").todo == "Plug it in, tap Connect on the Kobo, and run this check again."
     assert found(checks, "Backups").state == "note" and found(checks, "Last sync").state == "note"
@@ -168,7 +165,7 @@ def test_in_the_app_what_to_do_names_its_buttons_not_commands(home):
     assert found(checks, "Trigger").todo == "Until then, choose Sync now with the Kobo plugged in."
     assert found(checks, "Hardcover").todo == "Choose Connect to Hardcover, under Getting started."
     assert found(checks, "Kobo").todo == "Plug it in, tap Connect on the Kobo, and choose Check again."
-    assert not [c for c in checks if "`kobo-hardcover-sync" in c.found + c.todo]
+    assert not [c for c in checks if "`lastread" in c.found + c.todo]
 
 
 @pytest.mark.parametrize(
@@ -215,7 +212,7 @@ def test_a_kobo_whose_software_was_not_tested(home):
     db.commit()
     db.close()
     c = found(doctor.computer_checks(mac, LOCAL, client=hc), "Kobo software")
-    assert c.state == "warn" and "has not been tested with kobo-hardcover-sync yet (its database is version 223)" in c.found
+    assert c.state == "warn" and "has not been tested with lastread yet (its database is version 223)" in c.found
     assert "syncing to Hardcover is not affected" in c.found and c.todo == collection.UNTESTED_HOW
     allowed = found(doctor.computer_checks(mac, config.Config(set_up=True, allow_untested_kobo=True), client=hc), "Kobo software")
     assert allowed.state == "note" and "allow_untested_kobo lets the collection be written anyway" in allowed.found
@@ -262,7 +259,7 @@ def test_the_collection_wanted_and_what_is_on_the_kobo(home):
     [
         (PermissionError(errno.EPERM, "Operation not permitted"), "This computer does not let the tool read the Kobo."),
         (OSError(errno.ENXIO, "Device not configured"), "The Kobo was unplugged during the sync. Nothing on it was changed. Plug it in again."),
-        (OSError(errno.ENOSPC, "No space left on device"), "The Kobo's database could not be read (No space left on device). Plug the Kobo in again; `kobo-hardcover-sync doctor` shows more."),
+        (OSError(errno.ENOSPC, "No space left on device"), "The Kobo's database could not be read (No space left on device). Plug the Kobo in again; `lastread doctor` shows more."),
     ],
 )  # fmt: skip
 def test_a_kobo_that_cannot_be_read(home, monkeypatch, error, said):

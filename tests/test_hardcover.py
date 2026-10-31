@@ -1,8 +1,8 @@
 import copy
 import json
 
-from kobo_hardcover_sync.engine import hardcover, job, kobo_db, state
-from kobo_hardcover_sync.engine.plan import action
+from lastread.engine import hardcover, job, kobo_db, state
+from lastread.engine.plan import action
 from tests.test_core import OLD, make_kobo
 
 
@@ -200,7 +200,7 @@ def test_reread_of_a_shelf_book_adds_a_read_but_a_new_book_never_gets_two(tmp_pa
     assert [c[0] for c in fake2.calls] == ["insert_ub", "update_read"]
 
 
-# ---------- Hardcover -> kobo-hardcover-sync ----------
+# ---------- Hardcover -> lastread ----------
 def test_read_on_hardcover_becomes_a_pinned_finished_state(tmp_path):
     st = setup(tmp_path, [READING])
     fake = FakeHC(search=BLIND)
@@ -363,7 +363,7 @@ def test_ebook_edition_is_chosen_and_set_on_the_shelf(tmp_path):
 
 
 def test_existing_shelf_edition_is_a_baseline_then_replaced_by_the_rule(tmp_path):
-    """The first two-way sync: the edition on the shelf is kobo-hardcover-sync's or
+    """The first two-way sync: the edition on the shelf is lastread's or
     Hardcover's default, not the reader's choice, so the rule may replace it."""
     st = setup(tmp_path, [READING])
     st.execute("update book set language='nl' where content_id='rd'")

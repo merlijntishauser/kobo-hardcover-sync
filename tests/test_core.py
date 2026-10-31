@@ -3,8 +3,8 @@ import sqlite3
 
 import pytest
 
-from kobo_hardcover_sync.engine import kobo_db, state
-from kobo_hardcover_sync.engine.plan import action
+from lastread.engine import kobo_db, state
+from lastread.engine.plan import action
 
 
 def matched(st, *cids):
@@ -137,7 +137,7 @@ def test_old_state_db_gets_new_columns(tmp_path):
 def test_today_and_shown_times_follow_the_time_zone_setting_else_the_computer(monkeypatch):
     from datetime import datetime
 
-    from kobo_hardcover_sync.web import fmt
+    from lastread.web import fmt
 
     monkeypatch.setenv("TZ", "Pacific/Kiritimati")  # 14 hours ahead of UTC
     ahead = state.local_day()

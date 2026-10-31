@@ -6,11 +6,11 @@ import os
 
 import pytest
 
-from kobo_hardcover_sync import cli, term
-from kobo_hardcover_sync.computer import runner
-from kobo_hardcover_sync.computer.platform import HARDCOVER
-from kobo_hardcover_sync.engine import hardcover, state
-from kobo_hardcover_sync.term import FAIL, NOTE, OK, WARN, Row, Screen
+from lastread import cli, term
+from lastread.computer import runner
+from lastread.computer.platform import HARDCOVER
+from lastread.engine import hardcover, state
+from lastread.term import FAIL, NOTE, OK, WARN, Row, Screen
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer
 from tests.test_hardcover import FakeHC
@@ -112,7 +112,7 @@ def test_the_first_help_page_is_written_for_a_reader(capsys):
     with pytest.raises(SystemExit) as ex:
         cli.main(["--help"])
     out = capsys.readouterr().out
-    assert ex.value.code == 0 and out.startswith("Kobo Hardcover Sync ") and "SUPPRESS" not in out and "\x1b" not in out
+    assert ex.value.code == 0 and out.startswith("Lastread ") and "SUPPRESS" not in out and "\x1b" not in out
     assert "On the computer you plug the Kobo into\n  setup      Make this computer sync a plugged-in Kobo\n" in out
     assert "\nOn a server\n  serve      Run the server" in out and "  page " not in out
     for _, commands in cli.COMMANDS:  # every command it names is one the tool has
@@ -126,7 +126,7 @@ def test_the_first_help_page_is_written_for_a_reader(capsys):
 def a_reader_with_books(home, live):
     kobo(home)
     mac = FakeComputer(home / "Volumes")
-    mac.install_trigger("kobo-hardcover-sync")
+    mac.install_trigger("lastread")
     mac.set_secret(HARDCOVER, TOKEN)
 
     class OneRefused(FakeHC):
@@ -148,7 +148,7 @@ def a_reader_with_books(home, live):
 def test_a_sync_by_hand_tells_its_steps_and_then_the_books(home, monkeypatch, capsys):
     mac, hc = a_reader_with_books(home, live=True)
     monkeypatch.setattr(hardcover, "Client", lambda token, **kw: hc)
-    from kobo_hardcover_sync.computer import config
+    from lastread.computer import config
 
     config.save(config.Config())
     os.unlink(home / "state" / "agent.log")
@@ -195,7 +195,7 @@ def test_what_a_sync_has_to_say_when_it_cannot_run(home, capsys):
     with pytest.raises(SystemExit) as ex:
         cli.main(["sync"], computer=mac)
     assert ex.value.code == 1
-    assert capsys.readouterr().out == "\n  problem  Sync        Not set up yet: run `kobo-hardcover-sync setup`.\n"
+    assert capsys.readouterr().out == "\n  problem  Sync        Not set up yet: run `lastread setup`.\n"
 
 
 def test_the_picture_in_the_readme_is_what_a_sync_prints():

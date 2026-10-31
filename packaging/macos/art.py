@@ -22,7 +22,7 @@ import pathlib
 import re
 
 HERE = pathlib.Path(__file__).parent
-FONT = "../../src/kobo_hardcover_sync/web/static/fonts/SchibstedGrotesk-latin.woff2"
+FONT = "../../src/lastread/web/static/fonts/SchibstedGrotesk-latin.woff2"
 
 # DESIGN.md's colours, light.
 INK, GRAPHITE, GROUND = "#17191c", "#4a4f57", "#edefea"
@@ -266,7 +266,7 @@ text {{ font-family: "Schibsted Grotesk"; }}
 </filter>
 </defs>
 <rect width="640" height="400" fill="{GROUND}"/>
-{icon}<text x="320" y="54" text-anchor="middle" font-size="19" font-weight="750" letter-spacing="-0.25" fill="{INK}">Drag Kobo Hardcover Sync onto Applications.</text>
+{icon}<text x="320" y="54" text-anchor="middle" font-size="19" font-weight="750" letter-spacing="-0.25" fill="{INK}">Drag Lastread onto Applications.</text>
 {move_mark()}
 <text x="320" y="380" text-anchor="middle" font-size="11.5" fill="{GRAPHITE}">Independent: not affiliated with Rakuten Kobo or Hardcover.</text>
 </svg>

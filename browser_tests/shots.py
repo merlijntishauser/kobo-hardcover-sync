@@ -45,7 +45,7 @@ SHELF = [  # title, author, percent, kobo status, mode, state, how, sent
 
 
 def seed(d, reader="sam"):
-    from kobo_hardcover_sync.engine import state
+    from lastread.engine import state
 
     st = state.connect(os.path.join(d, "state.db"))
     st.execute(
@@ -113,9 +113,9 @@ def local_shots(new_page, snap):
         return
     d = tempfile.mkdtemp()
     os.environ["KHS_HOME"] = d
-    from kobo_hardcover_sync.computer import config, page, platform
-    from kobo_hardcover_sync.engine import state
-    from kobo_hardcover_sync.server import accounts
+    from lastread.computer import config, page, platform
+    from lastread.engine import state
+    from lastread.server import accounts
 
     seed(d, reader="me")
     con = state.connect(os.path.join(d, "state.db"))
@@ -126,9 +126,7 @@ def local_shots(new_page, snap):
     config.save(config.Config())
     platform.pick().set_secret(platform.HARDCOVER, "a-made-up-token")
     env = {k: v for k, v in os.environ.items() if k != "KHS_TRUSTED_PROXIES"}
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "kobo_hardcover_sync", "page"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-    )
+    proc = subprocess.Popen([sys.executable, "-m", "lastread", "page"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         for _ in range(150):
             if page.running():
@@ -165,7 +163,7 @@ def main():
         KHS_INTERVAL="0",
     )
     proc = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "kobo_hardcover_sync.web.app:app", "--host", "127.0.0.1", "--port", str(port)],
+        [sys.executable, "-m", "uvicorn", "lastread.web.app:app", "--host", "127.0.0.1", "--port", str(port)],
         env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -211,8 +209,8 @@ def main():
             p.goto(url)
             snap(p, "phone-firstrun-dark")
             snap(p, "phone-firstrun-dark-full", full=True)
-            from kobo_hardcover_sync.engine import state
-            from kobo_hardcover_sync.server import accounts
+            from lastread.engine import state
+            from lastread.server import accounts
 
             con = state.connect(os.path.join(d, "state.db"))
             accounts.set_token(con, "sam", "x" * 40, "sam")

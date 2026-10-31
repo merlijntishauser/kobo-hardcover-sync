@@ -7,7 +7,7 @@ import re
 import tomllib
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-STATIC = ROOT / "src" / "kobo_hardcover_sync" / "web" / "static"
+STATIC = ROOT / "src" / "lastread" / "web" / "static"
 NOTICES = (ROOT / "THIRD-PARTY-NOTICES.md").read_text()
 PROJECT = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
 
@@ -55,7 +55,7 @@ def installed_with_it() -> dict[str, str]:
     """The packages a user gets, from the lock file: name -> version."""
     packages = {p["name"]: p for p in tomllib.loads((ROOT / "uv.lock").read_text())["package"]}
     seen: dict[str, str] = {}
-    todo = [d["name"] for d in packages["kobo-hardcover-sync"].get("dependencies", [])]
+    todo = [d["name"] for d in packages["lastread"].get("dependencies", [])]
     while todo:
         name = todo.pop()
         if name not in seen:

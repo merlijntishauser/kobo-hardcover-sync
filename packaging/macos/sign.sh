@@ -1,5 +1,5 @@
 #!/bin/sh
-# Signs "Kobo Hardcover Sync.app" from the inside out (docs/macos-app.md):
+# Signs "Lastread.app" from the inside out (docs/macos-app.md):
 #
 #   packaging/macos/sign.sh IDENTITY APP
 #

@@ -20,7 +20,7 @@ body:
   - type: textarea
     id: status
     attributes:
-      label: Output of `kobo-hardcover-sync doctor`
+      label: Output of `lastread doctor`
       description: With the Kobo plugged in, if you can. It names the version, what was checked and what it found; no book and no token is in it. In server mode, also what the Check card under Settings says.
       render: text
     validations:
@@ -29,7 +29,7 @@ body:
     id: version
     attributes:
       label: Version of the tool
-      description: "`kobo-hardcover-sync --version`"
+      description: "`lastread --version`"
     validations:
       required: true
   - type: input

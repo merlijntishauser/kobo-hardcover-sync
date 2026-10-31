@@ -8,10 +8,10 @@ import stat
 
 import pytest
 
-from kobo_hardcover_sync import cli
-from kobo_hardcover_sync.computer import config, runner
-from kobo_hardcover_sync.computer.platform import HARDCOVER
-from kobo_hardcover_sync.engine import export, kobo_db, state
+from lastread import cli
+from lastread.computer import config, runner
+from lastread.computer.platform import HARDCOVER
+from lastread.engine import export, kobo_db, state
 from tests import said
 from tests.test_computer import FakeComputer
 from tests.test_core import FAMILY, MINE, OLD, UNTOUCHED, make_kobo
@@ -31,7 +31,7 @@ def test_the_whole_shelf_without_hardcover(home, capsys):
     runner.sync(mac, LOCAL)  # never connected to Hardcover: the books are imported all the same
     cli.main(["export"], computer=mac)
     data = json.loads(capsys.readouterr().out)
-    assert (data["format"], data["reader"]) == (export.FORMAT, "me") and data["tool"].startswith("kobo-hardcover-sync ")
+    assert (data["format"], data["reader"]) == (export.FORMAT, "me") and data["tool"].startswith("lastread ")
     assert len(data["books"]) == 9 and len(data["devices"]) == 1
     assert {b["syncs"] for b in data["books"]} == {False} and {b["hardcover"] for b in data["books"]} == {None}
     assert set(data["summary"]) == {

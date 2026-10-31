@@ -1,8 +1,8 @@
 # The Homebrew formula
 
 ```
-brew install merlijntishauser/tap/kobo-hardcover-sync
-kobo-hardcover-sync setup
+brew install merlijntishauser/tap/lastread
+lastread setup
 ```
 
 The tap is `merlijntishauser/homebrew-tap`. The formula in it is written
@@ -39,9 +39,9 @@ hour) the formula has no bottle, and an install builds from source.
 
 | | |
 |---|---|
-| Install | `brew install`, then `kobo-hardcover-sync setup`. `setup` makes the trigger and, on a Mac, the small app that needs Full Disk Access once. |
+| Install | `brew install`, then `lastread setup`. `setup` makes the trigger and, on a Mac, the small app that needs Full Disk Access once. |
 | Upgrade | `brew upgrade`. The trigger starts the tool by Homebrew's own path, which stays the same, and the app is not rebuilt, so the permission stays. |
-| Uninstall | `kobo-hardcover-sync uninstall` first (it removes the trigger and the app), then `brew uninstall`. Books, settings and tokens stay unless you add `--purge`. |
+| Uninstall | `lastread uninstall` first (it removes the trigger and the app), then `brew uninstall`. Books, settings and tokens stay unless you add `--purge`. |
 
 Homebrew services are not used: nothing runs in between syncs, so there
 is no service to keep.
@@ -54,15 +54,15 @@ is no service to keep.
 2. Write the formula:
 
    ```
-   uv run python packaging/homebrew/make_formula.py --url <address of the .tar.gz> --sha256 <its sha256> > kobo-hardcover-sync.rb
+   uv run python packaging/homebrew/make_formula.py --url <address of the .tar.gz> --sha256 <its sha256> > lastread.rb
    ```
 
-3. Put it in the tap as `Formula/kobo-hardcover-sync.rb` and push. The
+3. Put it in the tap as `Formula/lastread.rb` and push. The
    tap's workflow audits, builds and tests it on two versions of macOS and
    adds the bottles; when it is green, the formula on `main` has a
    `bottle do` block. To check by hand on a Mac: `brew audit --strict
-   --online kobo-hardcover-sync`, `brew install kobo-hardcover-sync`,
-   `brew test kobo-hardcover-sync`.
+   --online lastread`, `brew install lastread`,
+   `brew test lastread`.
 
 A dependency bump changes `uv.lock`, and with it the formula the next
 release writes.
@@ -73,11 +73,11 @@ On a Mac, in a checkout:
 
 ```
 uv build --sdist
-uv run python packaging/homebrew/make_formula.py --sdist dist/kobo_hardcover_sync-*.tar.gz > /tmp/kobo-hardcover-sync.rb
+uv run python packaging/homebrew/make_formula.py --sdist dist/lastread-*.tar.gz > /tmp/lastread.rb
 brew tap-new --no-git merlijntishauser/tap
-cp /tmp/kobo-hardcover-sync.rb "$(brew --repository merlijntishauser/tap)/Formula/"
-brew install --build-from-source merlijntishauser/tap/kobo-hardcover-sync
-brew test merlijntishauser/tap/kobo-hardcover-sync
+cp /tmp/lastread.rb "$(brew --repository merlijntishauser/tap)/Formula/"
+brew install --build-from-source merlijntishauser/tap/lastread
+brew test merlijntishauser/tap/lastread
 ```
 
 `--sdist` points the formula at the file on that Mac, so nothing has to be

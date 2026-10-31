@@ -18,7 +18,7 @@ the future", and tokens may be reset without notice.
 | "You own your data. This means you can't use the API to access and use someone else's data." | Each reader's token is used for that reader's own shelf, and nothing else. |
 | "Don't share your token." It must be kept where it is secure; not in a browser. | Local mode: in the computer's secret store. Server mode: encrypted in the server's database, never sent to a browser, never logged. |
 | A commercial product or a public website may not use data owned by users, "unless on behalf a user who has allowed their data to be accessed". | Not commercial, and it only acts for the reader who gave the token. The stats endpoint shows a reader's own numbers, behind that reader's own token. |
-| "it is recommended to include a user-agent header with a description of the script". | `kobo-hardcover-sync/<version>`. |
+| "it is recommended to include a user-agent header with a description of the script". | `lastread/<version>`. |
 | Not to be used "to train large language models". | It is not. |
 | Rate limits per reader: 60 requests a minute (a burst of 10), 5000 a day on the free plan; each top-level field of a request counts as one. A request holds at most 5 top-level queries. | One request every 1.1 seconds at most, one or two top-level fields each. When told to slow down it waits as long as Hardcover says. When the day is used up it stops. |
 | "Queries have a max timeout of 30 seconds", searches 2 seconds. | The shelf is asked for in pages of 250 books. |

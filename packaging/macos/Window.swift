@@ -339,7 +339,7 @@ struct MainView: View {
             }
             .navigationSplitViewColumnWidth(min: 150, ideal: 170, max: 220)
             .disabled(settingUp)  // the galley is setup: a click on a pane would do nothing
-            .withoutSidebarToggle()  // the window's toolbar has AppKit's (KoboHardcoverSync.swift)
+            .withoutSidebarToggle()  // the window's toolbar has AppKit's (Lastread.swift)
         } detail: {
             VStack(spacing: 0) {
                 TopLine(model: model).padding(.horizontal, 20).padding(.vertical, 12)
@@ -424,7 +424,7 @@ struct TopLine: View {
     }
 
     private var readiness: (sentence: String, state: String) {
-        guard let status = model.status else { return ("Kobo Hardcover Sync", "note") }
+        guard let status = model.status else { return ("Lastread", "note") }
         if status.mode.isEmpty { return ("Not set up yet", "warn") }
         guard model.checks != nil else { return ("Checking…", "note") }
         let links = model.links

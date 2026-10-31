@@ -12,11 +12,11 @@ import time
 
 import pytest
 
-from kobo_hardcover_sync import cli, doctor, logs
-from kobo_hardcover_sync.computer import config, macos, page, runner
-from kobo_hardcover_sync.computer.platform import HARDCOVER
-from kobo_hardcover_sync.engine import hardcover, oauth, state
-from kobo_hardcover_sync.server import accounts
+from lastread import cli, doctor, logs
+from lastread.computer import config, macos, page, runner
+from lastread.computer.platform import HARDCOVER
+from lastread.engine import hardcover, oauth, state
+from lastread.server import accounts
 from tests import said
 from tests.test_accounts import ANNA, client
 from tests.test_app_answers import SAMPLES, same_shape
@@ -365,7 +365,7 @@ def test_a_connection_that_ended_is_said_on_the_page_not_passed_over(tmp_path, m
     assert hc.asked("token") == []  # going live looks whether there is a token, and asks Hardcover nothing
     hc.ended = True
     started = []
-    monkeypatch.setattr("kobo_hardcover_sync.engine.job.start", lambda *a, **kw: started.append(a))
+    monkeypatch.setattr("lastread.engine.job.start", lambda *a, **kw: started.append(a))
     c.post("/sync", headers=ANNA)
     assert started == []  # there is nothing to start a run with
     failed = db.execute("select detail from job where reader = 'anna' and status = 'failed'").fetchall()
@@ -536,7 +536,7 @@ def test_the_app_signs_in_through_the_tool_in_lines_of_json(home, monkeypatch, c
         "schema": 1,
         "done": {"ok": True, "user": "anna_reads", "message": "Connected. Hardcover knows you as @anna_reads."},
     }
-    assert "Back in Kobo Hardcover Sync" in page_said[0] and oauth.unpack(mac.secrets[HARDCOVER])
+    assert "Back in Lastread" in page_said[0] and oauth.unpack(mac.secrets[HARDCOVER])
     wanted = [json.loads(line) for line in (SAMPLES / "token.jsonl").read_text().splitlines()]
     same_shape(lines[0], wanted[0])
     same_shape(lines[-1], wanted[-1])

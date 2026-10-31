@@ -32,7 +32,7 @@ Where the build differs from what was planned below:
 
 ## The idea
 
-kobo-hardcover-sync runs in two ways, from one installed command:
+lastread runs in two ways, from one installed command:
 
 - **Local mode.** Everything on your own computer: plug in the Kobo, it
   syncs to Hardcover, the collection on the Kobo is updated, eject. One
@@ -171,14 +171,14 @@ Added with the move to Python:
 ## Commands
 
 ```
-kobo-hardcover-sync setup [--server URL]   make the trigger; says what permission to give
-kobo-hardcover-sync token                  ask for the Hardcover token, check it, store it
-kobo-hardcover-sync sync [--verbose]       one sync now; --verbose shows it book by book
-kobo-hardcover-sync status                 mode, last sync, Kobo found, token present, collection
-kobo-hardcover-sync doctor                 check everything a sync depends on; changes nothing
-kobo-hardcover-sync open                   start the page and open it
-kobo-hardcover-sync uninstall [--purge]    remove the trigger; --purge also state and secrets
-kobo-hardcover-sync serve                  server mode (what the container runs)
+lastread setup [--server URL]   make the trigger; says what permission to give
+lastread token                  ask for the Hardcover token, check it, store it
+lastread sync [--verbose]       one sync now; --verbose shows it book by book
+lastread status                 mode, last sync, Kobo found, token present, collection
+lastread doctor                 check everything a sync depends on; changes nothing
+lastread open                   start the page and open it
+lastread uninstall [--purge]    remove the trigger; --purge also state and secrets
+lastread serve                  server mode (what the container runs)
 ```
 
 `setup` can be run again at any time and changes nothing that is already

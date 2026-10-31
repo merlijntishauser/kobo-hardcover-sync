@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Kobo Hardcover Sync</string>
+	<string>Lastread</string>
 	<key>CFBundleExecutable</key>
-	<string>Kobo Hardcover Sync</string>
+	<string>Lastread</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIconName</key>
@@ -17,7 +17,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Kobo Hardcover Sync</string>
+	<string>Lastread</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -44,6 +44,6 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>MIT licence. An independent project, not affiliated with Kobo or Hardcover.</string>
 	<key>NSRemovableVolumesUsageDescription</key>
-	<string>Kobo Hardcover Sync reads your reading progress from the Kobo when you plug it in.</string>
+	<string>Lastread reads your reading progress from the Kobo when you plug it in.</string>
 </dict>
 </plist>

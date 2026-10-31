@@ -336,7 +336,7 @@ wheels = [
 ]
 
 [[package]]
-name = "kobo-hardcover-sync"
+name = "lastread"
 version = "0.20.0.dev0"
 source = { editable = "." }
 dependencies = [

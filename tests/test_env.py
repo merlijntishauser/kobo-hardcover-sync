@@ -1,4 +1,4 @@
-from kobo_hardcover_sync.env import env
+from lastread.env import env
 
 
 def test_settings_are_read_under_one_name(monkeypatch):

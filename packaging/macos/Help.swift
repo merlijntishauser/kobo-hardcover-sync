@@ -192,7 +192,7 @@ struct HelpView: View {
                 Label(topic.id, systemImage: topic.symbol).tag(topic.id)
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-            .withoutSidebarToggle()  // the window's toolbar has AppKit's (KoboHardcoverSync.swift)
+            .withoutSidebarToggle()  // the window's toolbar has AppKit's (Lastread.swift)
         } detail: {
             if let topic = shown.first(where: { $0.id == place.chosen }) ?? shown.first {
                 HelpPage(topic: topic, search: place.search)

@@ -53,7 +53,7 @@ CREATE TABLE Event (EventType INT, FirstOccurrence TEXT, LastOccurrence TEXT, Ev
 
 def book_id(n: int) -> str:
     """The id of made-up book n, shaped like a Kobo store id."""
-    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"kobo-hardcover-sync/test-book/{n}"))
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"lastread/test-book/{n}"))
 
 
 BOOKS = [book_id(n) for n in range(8)]

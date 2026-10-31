@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Kobo Hardcover Sync</string>
+	<string>Lastread</string>
 	<key>CFBundleExecutable</key>
 	<string>Widget</string>
 	<key>CFBundleIdentifier</key>
