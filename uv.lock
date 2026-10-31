@@ -337,7 +337,7 @@ wheels = [
 
 [[package]]
 name = "lastread"
-version = "0.20.0.dev0"
+version = "0.20.0"
 source = { editable = "." }
 dependencies = [
     { name = "cryptography" },
