@@ -64,8 +64,9 @@ def test_what_ci_tests_is_what_the_package_says_it_supports():
     workflow = (root / ".github" / "workflows" / "test.yml").read_text()
     tested = sorted(re.findall(r'"(3\.\d+)"', re.search(r"python: \[(.*?)\]", workflow).group(1)))
     assert promised == tested and project["requires-python"] == f">={promised[0]}"
-    for name in ("Homepage", "Changelog", "Issues"):
-        assert project["urls"][name].startswith("https://github.com/")
+    assert project["urls"]["Homepage"] == "https://lastread.app/"  # the site, since 2026-10-31
+    for name in ("Repository", "Changelog", "Issues"):
+        assert project["urls"][name].startswith("https://github.com/merlijntishauser/kobo-hardcover-sync")
 
 
 def test_the_readme_pypi_shows_has_no_link_that_leads_nowhere():
