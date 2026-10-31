@@ -562,7 +562,7 @@ the quiet card, the download card and the sheet swap with the light.
 - **Plum** (`plum-coral`, `plum-magenta`, `plum-deep`), **Teal** (`teal-lime`, `teal-bright`, `teal-mid`, `teal-deep`) and **Cobalt** (`cobalt-sky`, `cobalt-blue`, `cobalt-deep`): the three gradient families, each a `linear-gradient(200deg)` from the bright stop at the top to the deep stop at the foot, where the words are: plum at 0, 45 and 100%; teal at 0, 22, 42 and 100%, and under *What it does* at 0, 5, 11 and 100% so that the lime is a corner at the head of the card and the white heading stands on the deep teal at every width; cobalt at 0, 25 and 100%. White on Plum Deep is 9.9:1, on Teal Deep 7.83:1, on Cobalt Deep 10.36:1.
 - **Slate** (`slate-top`, `slate-mid`, `slate-deep`): the fourth card, *What it leaves alone*, at 0, 55 and 100%, with Site Ink dark words in both lights (15.22:1 at the foot).
 - **On Card** (`site-on-card`): the words on every gradient and photo card, white, every card heading included. A strike or a caret is drawn on no card; in the sheet they are the sheet's Red.
-- **The scrim**: a photograph's words sit on `linear-gradient(180deg, rgba(13, 12, 20, 0) 40%, rgba(13, 12, 20, 0.55) 62%, rgba(13, 12, 20, 0.92) 100%)`, the night ground at 92% at the foot; a step card's scrim, the story photograph's and the photograph's under *What it does*, reaches 85% at half its height, and the close's 80% at 25%.
+- **The scrim**: a photograph's words sit on `linear-gradient(180deg, rgba(13, 12, 20, 0) 40%, rgba(13, 12, 20, 0.55) 62%, rgba(13, 12, 20, 0.92) 100%)`, the night ground at 92% at the foot; a step card's scrim, the story photograph's and the photograph's under *What it does*, reaches 85% at half its height; the close's spans the whole photograph from its top (35% at 30%, 80% at 60%, 94% at the foot), with only the words held to 46rem, so that the scrim has no edge.
 
 ### Named Rules
 **The Two Pencils Rule.** Red fills only *Sync now* and *Go live*, and
@@ -748,7 +748,11 @@ pictures on two columns with *Covers* across both. A step card is 26rem
 tall (on a phone no floor, a photo step 16rem with its words padded
 5.5rem above), a card under *What it does* 28rem (below 900px no floor,
 the photograph 18rem with its words padded 6.5rem above), the close
-`clamp(24rem, 50vw, 34rem)`. On a phone (below 640px) the page shows
+`clamp(24rem, 50vw, 34rem)`. The four step cards share three rows
+(`grid-template-rows: subgrid`, 0.5rem apart, the slack above the first
+row), so that the figures stand on one line across the row, the headings
+end on a second and the paragraphs start on a third; two by two below
+1100px the same, on a phone each card is as tall as its words. On a phone (below 640px) the page shows
 fewer pictures: the Books page's night capture and the Details capture
 are hidden, the phone capture is at most 14rem wide and comes from a
 400w copy, and of the Mac app's three pictures the Overview alone

@@ -1920,7 +1920,7 @@
       {
         "name": "site-four",
         "value": "1100px",
-        "purpose": "Site: the four step cards in one row; two by two below."
+        "purpose": "Site: the four step cards in one row on three shared rows (subgrid), the figures on one line; two by two below, the same."
       }
     ],
     "gradients": [
@@ -1961,8 +1961,8 @@
       },
       {
         "name": "scrim-close",
-        "value": "linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.8) 25%, rgba(13, 12, 20, 0.94) 100%)",
-        "purpose": "Site: the close, with the download on it."
+        "value": "linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.35) 30%, rgba(13, 12, 20, 0.8) 60%, rgba(13, 12, 20, 0.94) 100%)",
+        "purpose": "Site: the close, with the download on it; it spans the whole photograph, the words held to 46rem."
       }
     ]
   },

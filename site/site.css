@@ -188,12 +188,16 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 @media (max-width: 639.98px) { .appshots .shot:not(:first-child) { display: none; } }  /* a phone: the Overview alone; the window is unreadable at 358px */
 .appshots .shot img { aspect-ratio: 1800 / 1177; }
 
-/* The four steps: the figure, a heading, one paragraph. */
-.steps .card { min-height: 26rem; justify-content: flex-end; }
+/* The four steps: the figure, a heading, one paragraph. The cards share three rows (subgrid), so that
+   the four figures stand on one line across the row, the headings on another, the paragraphs on a third;
+   the slack from the card's height goes above the figure. */
+.steps .card { min-height: 26rem; display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0.5rem; justify-content: normal; align-items: end; }
+@media (min-width: 1100px) { .steps { grid-template-rows: minmax(0, 1fr) auto auto; } }
+@media (min-width: 640px) and (max-width: 1099.98px) { .steps { grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr) auto auto; } }
 @media (max-width: 639.98px) { .steps .card { min-height: 0; } .card.photo.step > .over { padding-top: 5.5rem; } .steps .card.photo { min-height: 16rem; } }
 .steps .step h3 { margin-top: 0.25rem; }
-.steps .step p:not(.figure) { font-size: 1rem; line-height: 1.4; opacity: 0.94; }
-.card.photo.step > .over { display: grid; gap: 0.5rem; padding-top: 11rem; background: linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.85) 50%, rgba(13, 12, 20, 0.94) 100%); }  /* as specific as the photo card's own rule, which it must beat; the top half stays photograph */
+.steps .step p:not(.figure) { font-size: 1rem; line-height: 1.4; opacity: 0.94; align-self: start; }
+.card.photo.step > .over { display: grid; grid-row: 1 / span 3; grid-template-rows: subgrid; row-gap: 0.5rem; align-items: end; padding-top: 11rem; background: linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.85) 50%, rgba(13, 12, 20, 0.94) 100%); }  /* as specific as the photo card's own rule, which it must beat; the top half stays photograph */
 .card.photo.step > .over .figure { font-size: clamp(4.5rem, 2rem + 5vw, 6.5rem); }
 .card.photo.step > .over .figure { margin-bottom: 0; }
 
@@ -228,7 +232,8 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 
 /* The close: the last photograph, with the download on it. */
 .close { min-height: clamp(24rem, 50vw, 34rem); }
-.card.photo.close > .over { padding-top: 10rem; gap: 0.9rem; max-width: 46rem; background: linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.8) 25%, rgba(13, 12, 20, 0.94) 100%); }
+.card.photo.close > .over { flex: 1 1 auto; align-content: end; padding-top: 10rem; gap: 0.9rem; background: linear-gradient(180deg, rgba(13, 12, 20, 0) 0%, rgba(13, 12, 20, 0.35) 30%, rgba(13, 12, 20, 0.8) 60%, rgba(13, 12, 20, 0.94) 100%); }  /* the scrim spans the whole photograph, top to foot, with no edge; only the words are held to 46rem */
+.card.photo.close > .over > * { max-width: 46rem; }
 .close .over .lede { opacity: 0.92; }
 .close .get { gap: 0.9rem; margin-top: 0.4rem; }
 .close .primary { color: #17191c; background: #ffffff; }
